@@ -609,18 +609,16 @@ Deno.test('PotatnoDocumentPort.resolvedDataType', async (pContext) => {
         expect(lResult).toBe('number');
     });
 
-    await pContext.step('Output generic port throws when no resolving input exists', () => {
+    await pContext.step('Output generic port returns its generic marker when no resolving input is connected', () => {
         // Setup. Pick with no inputs connected.
         const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
         const lPickNode = PotatnoHelper.addProjectNode(lFunction, 'Pick');
 
         // Process.
-        const lAction = (): string => {
-            return lPickNode.outputs.value.find((pPort) => pPort.definitionId === 'result')!.resolvedDataType;
-        };
+        const lResult = lPickNode.outputs.value.find((pPort) => pPort.definitionId === 'result')!.resolvedDataType;
 
-        // Evaluation.
-        expect(lAction).toThrow("Port type couldn't be resolved as it has no resolving input port");
+        // Evaluation. The generic stays unresolved and surfaces as its generic marker.
+        expect(lResult).toBe('<T>');
     });
 
     await pContext.step('Input generic port resolves via its connected output port', () => {
@@ -637,19 +635,17 @@ Deno.test('PotatnoDocumentPort.resolvedDataType', async (pContext) => {
         expect(lResult).toBe('number');
     });
 
-    await pContext.step('Input generic port throws when not connected', () => {
+    await pContext.step('Input generic port returns its generic marker when not connected', () => {
         // Setup.
         const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
         const lPickNode = PotatnoHelper.addProjectNode(lFunction, 'Pick');
         const lPickInputA = lPickNode.inputs.value.find((pPort) => pPort.definitionId === 'a')!;
 
         // Process.
-        const lAction = (): string => {
-            return lPickInputA.resolvedDataType;
-        };
+        const lResult = lPickInputA.resolvedDataType;
 
-        // Evaluation.
-        expect(lAction).toThrow("Port type couldn't be resolved as it has no resolving input port");
+        // Evaluation. The generic stays unresolved and surfaces as its generic marker.
+        expect(lResult).toBe('<T>');
     });
 });
 

@@ -337,7 +337,7 @@ Deno.test('PotatnoDocumentNode.resizeTo()', async (pContext) => {
         expect(lDefaultEntry.transformation.height).toBe(30);
     });
 
-    await pContext.step('Clamps width to minimum 4', () => {
+    await pContext.step('Clamps width to minimum 6', () => {
         // Setup.
         const { defaultEntry: lDefaultEntry } = PotatnoHelper.setupCalculatorDocument();
 
@@ -345,18 +345,19 @@ Deno.test('PotatnoDocumentNode.resizeTo()', async (pContext) => {
         lDefaultEntry.resizeTo(1, 10);
 
         // Evaluation.
-        expect(lDefaultEntry.transformation.width).toBe(4);
+        expect(lDefaultEntry.transformation.width).toBe(6);
     });
 
-    await pContext.step('Clamps height to minimum 4', () => {
+    await pContext.step('Clamps height to minimum of max input and output port count plus header', () => {
         // Setup.
         const { defaultEntry: lDefaultEntry } = PotatnoHelper.setupCalculatorDocument();
+        const lMinHeight = Math.max(lDefaultEntry.inputs.list.length, lDefaultEntry.outputs.list.length);
 
         // Process.
         lDefaultEntry.resizeTo(10, 1);
 
         // Evaluation.
-        expect(lDefaultEntry.transformation.height).toBe(4);
+        expect(lDefaultEntry.transformation.height).toBe(lMinHeight + 1);
     });
 });
 

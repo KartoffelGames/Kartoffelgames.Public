@@ -187,7 +187,7 @@ export class PotatnoPreviewDriver<TProjectTypes extends PotatnoProjectTypesDefin
 
         return {
             documentPort: pPort,
-            nodeHook: pPort.project.generator.values.hook(`${lHookPosition}-${lNodeId}`),
+            nodeHook: pPort.project.generator.value.hook(`${lHookPosition}-${lNodeId}`),
             value: lPortValue
         };
     }

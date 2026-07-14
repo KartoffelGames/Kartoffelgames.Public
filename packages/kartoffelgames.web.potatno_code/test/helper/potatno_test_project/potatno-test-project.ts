@@ -40,13 +40,16 @@ export class PotatnoTestProject extends PotatnoProject<PotatnoTestProjectTypesDe
 
                     return lCodeResult;
                 },
-                values: {
+                value: {
                     hook: (pValueId: string): string => {
                         return `/*[${pValueId}]*/`;
                     },
-                    valueId: (pValueIndex: number): string => {
-                        return `v_${pValueIndex}`;
-                    }
+                    id: (pName: string, pIndex: number): string => {
+                        return `${pName}_${pIndex}`;
+                    },
+                    name: (pName: string) => {
+                        return pName.replace(/[^A-Za-z0-9_]/, '');
+                    },
                 }
             }
         });

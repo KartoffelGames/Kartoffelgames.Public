@@ -38,9 +38,12 @@ export class CanvasProject extends PotatnoProject<CanvasProjectTypesDefinition> 
 
                     return lCodeResult;
                 },
-                values: {
-                    valueId: (pValueIndex: number): string => {
-                        return `v_${pValueIndex}`;
+                value: {
+                    id: (pName: string, pIndex: number): string => {
+                        return `${pName}_${pIndex}`;
+                    },
+                    name: (pName: string) => {
+                        return pName.replace(/[^A-Za-z0-9_]/, '');
                     },
                     hook: (pValueId: string): string => {
                         return `/*[${pValueId}]*/`;
@@ -48,15 +51,6 @@ export class CanvasProject extends PotatnoProject<CanvasProjectTypesDefinition> 
                 }
             }
         });
-
-        // Set name validation.
-        this.namePattern = (pName: string): string | null => {
-            if(/^[a-zA-Z][a-zA-Z0-9_]*$/.test(pName)){
-                return null;
-            }
-
-            return 'Must start with a letter, use only letters, digits, underscores';
-        };
 
         // Register function, imports and base nodes.
         this.mUserFunction = lUserFunction;

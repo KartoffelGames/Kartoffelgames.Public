@@ -26,7 +26,8 @@ Deno.test('new PotatnoNodeDefinition()', async (pContext) => {
         // Evaluation.
         expect(lDefinition.id).toBe('TestNode');
         expect(lDefinition.label).toBe('Test Node');
-        expect(lDefinition.category).toBe('TestCategory');
+        expect(lDefinition.category.name).toBe('TestCategory');
+        expect(lDefinition.category.icon).toBe('◆');
         expect(lDefinition.regions.add).toEqual(['RegionAdd']);
         expect(lDefinition.regions.allows).toEqual(['RegionAllowed']);
         expect(lDefinition.regions.requires).toEqual(['RegionRequired']);

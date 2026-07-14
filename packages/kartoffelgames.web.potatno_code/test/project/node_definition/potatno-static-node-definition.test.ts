@@ -30,7 +30,8 @@ Deno.test('new PotatnoStaticNodeDefinition()', async (pContext) => {
         // Evaluation.
         expect(lDefinition.id).toBe('StaticNode');
         expect(lDefinition.label).toBe('Static Node');
-        expect(lDefinition.category).toBe('StaticCategory');
+        expect(lDefinition.category.name).toBe('StaticCategory');
+        expect(lDefinition.category.icon).toBe('◆');
         expect(lDefinition.inputs.map((pPort) => pPort.id)).toEqual(['exec', 'value']);
         expect(lDefinition.outputs.map((pPort) => pPort.id)).toEqual(['result']);
         expect(lDefinition.regions.add).toEqual(['RegionAdd']);

@@ -20,7 +20,8 @@ Deno.test('new ValueConjunctionNodeDefinition()', async (pContext) => {
         // Evaluation.
         expect(lDefinition.id).toBe(ValueConjunctionNodeDefinition.DEFINITION_ID);
         expect(lDefinition.label).toBe('Value Conjunction');
-        expect(lDefinition.category).toBe('Conjunction');
+        expect(lDefinition.category.icon).toBe('◇');
+        expect(lDefinition.category.name).toBe('Conjunction');
         expect(lDefinition.inputs.length).toBe(1);
         expect(lDefinition.inputs[0].id).toBe('in');
         expect(lDefinition.inputs[0].portType).toBe('value');

@@ -474,10 +474,10 @@ Deno.test('PotatnoCodeGenerator.generateNode()', async (pContext) => {
 
             // Evaluation.
             expect(lGraph.code).toBe(
-                '/*[start-00000003]*/(v_0, v_1) => { '
+                '/*[start-00000003]*/(a_0, b_1) => { '
                 + 'let __globalMultiplier = 1; '
-                + '/*[start-00000001]*/const v_2 = v_0 + v_1;/*[end-00000001]*/ '
-                + '/*[start-00000002]*/return (v_2) * __globalMultiplier;/*[end-00000002]*/ '
+                + '/*[start-00000001]*/const result_2 = a_0 + b_1;/*[end-00000001]*/ '
+                + '/*[start-00000002]*/return (result_2) * __globalMultiplier;/*[end-00000002]*/ '
                 + '}/*[end-00000003]*/'
             );
             expect(lGraph.nodes.get(lAddNode)).toBe('00000001');
@@ -539,9 +539,12 @@ Deno.test('PotatnoCodeGenerator.generateNode()', async (pContext) => {
             const lLocalProject = new PotatnoProject(lLocalTypes, lLocalEntryFunction, {
                 generator: {
                     code: (pContext): string => pContext.entryPoint.code,
-                    values: {
-                        valueId: (pValueIndex: number): string => {
-                            return `v_${pValueIndex}`;
+                    value: {
+                        id: (pName: string, pIndex: number): string => {
+                            return `${pName}_${pIndex}`;
+                        },
+                        name: (pName: string) => {
+                            return pName.replace(/[^A-Za-z0-9_]/, '');
                         },
                         hook: (pValueId: string): string => {
                             return `<<${pValueId}>>`;

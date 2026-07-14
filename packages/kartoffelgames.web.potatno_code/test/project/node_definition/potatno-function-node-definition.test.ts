@@ -16,7 +16,8 @@ Deno.test('new PotatnoFunctionNodeDefinition()', async (pContext) => {
         // Evaluation.
         expect(lDefinition.id).toBe('USERFUNCTION_FunctionOne');
         expect(lDefinition.label).toBe('Function One');
-        expect(lDefinition.category).toBe('user function');
+        expect(lDefinition.category.name).toBe('user function');
+        expect(lDefinition.category.icon).toBe('ƒ');
         expect(lDefinition.function).toBe(lFunction);
     });
 

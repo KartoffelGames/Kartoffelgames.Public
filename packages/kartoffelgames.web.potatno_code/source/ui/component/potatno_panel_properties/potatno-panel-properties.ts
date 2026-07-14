@@ -20,11 +20,11 @@ import propertiesTemplate from './potatno-panel-properties.html' with { type: 't
     template: propertiesTemplate,
     style: templateCss,
 })
-export class PotatnoPanelProperties implements IComponentOnConnect, IComponentOnDeconstruct {
+export class PotatnoPanelProperties implements IComponentOnDeconstruct {
     private readonly mComponent: Component;
     private readonly mManager: PotatnoUiManager;
     private mSelectedImportId: string;
-    private mUnsubscribe: PotatnoCodeUiManagerUnsubscribe | null;
+    private mUnsubscribe: PotatnoCodeUiManagerUnsubscribe;
 
     /**
      * Available import ids registered by the project.
@@ -142,13 +142,7 @@ export class PotatnoPanelProperties implements IComponentOnConnect, IComponentOn
         this.mComponent = pComponent;
         this.mManager = pManager;
         this.mSelectedImportId = '';
-        this.mUnsubscribe = null;
-    }
-
-    /**
-     * Subscribe to manager events that change the displayed function.
-     */
-    public onConnect(): void {
+        
         this.mUnsubscribe = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Document | PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.SpecialActiveFunction, () => {
             this.mComponent.updater.updateAsync();
         });
@@ -158,8 +152,7 @@ export class PotatnoPanelProperties implements IComponentOnConnect, IComponentOn
      * Detach the manager subscription.
      */
     public onDeconstruct(): void {
-        this.mUnsubscribe?.();
-        this.mUnsubscribe = null;
+        this.mUnsubscribe();
     }
 
     /**

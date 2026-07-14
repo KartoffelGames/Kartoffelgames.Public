@@ -2,17 +2,17 @@ import { Exception } from '@kartoffelgames/core';
 import type { PotatnoDocumentFunction } from '../document/potatno-document-function.ts';
 import type { PotatnoDocumentNode } from '../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../document/potatno-document-port.ts';
+import type { PotatnoDocumentValidationResult } from '../document/potatno-document-validation-result.ts';
 import type { PotatnoDocument } from '../document/potatno-document.ts';
 import { FlowConjunctionNodeDefinition } from '../project/node_definition/potatno-flow-conjunction-node-definition.ts';
 import { PotatnoFunctionNodeDefinition } from '../project/node_definition/potatno-function-node-definition.ts';
 import type { PotatnoCodeGeneratorInputPort, PotatnoCodeGeneratorOutputPort, PotatnoNodeDefinition } from '../project/node_definition/potatno-node-definition.ts';
 import { ValueConjunctionNodeDefinition } from '../project/node_definition/potatno-value-conjunction-node-definition.ts';
+import type { PotatnoProjectTypesDefinition } from '../project/potatno-project-types-definition.ts';
 import type { PotatnoProject } from '../project/potatno-project.ts';
 import { PotatnoCodeGeneratorDocumentResult } from './result/potatno-code-generator-document-result.ts';
 import { PotatnoCodeGeneratorFunctionResult } from './result/potatno-code-generator-function-result.ts';
 import { PotatnoCodeGeneratorNodeResult } from './result/potatno-code-generator-node-result.ts';
-import type { PotatnoProjectTypesDefinition } from '../project/potatno-project-types-definition.ts';
-import type { PotatnoDocumentValidationResult } from '../document/potatno-document-validation-result.ts';
 
 /**
  * Code generator for Potatno documents.
@@ -250,9 +250,9 @@ export class PotatnoCodeGenerator<TProjectTypes extends PotatnoProjectTypesDefin
         // Wrap generated node code with debug hooks.
         const lNodeId: string = this.getGeneratedNodeId(pPassData, pCursor, pNode);
         if (pPassData.debug) {
-            lNodeCode = this.mProject.generator.values.hook(`start-${lNodeId}`)
+            lNodeCode = this.mProject.generator.value.hook(`start-${lNodeId}`)
                 + lNodeCode
-                + this.mProject.generator.values.hook(`end-${lNodeId}`);
+                + this.mProject.generator.value.hook(`end-${lNodeId}`);
         }
 
         // Assemble this node's contribution in execution order: each value producer's code first (in input order),
@@ -430,7 +430,12 @@ export class PotatnoCodeGenerator<TProjectTypes extends PotatnoProjectTypesDefin
     private generatePortValue(pPassData: PotatnoCodeGeneratorPassData<TProjectTypes>, pCursor: PotatnoCodeGeneratorPassCursor<TProjectTypes>, pPort: PotatnoDocumentPort<TProjectTypes>): string {
         // Allocate a fresh valueId on first encounter in this graph.
         if (!pCursor.ports.has(pPort)) {
-            pCursor.ports.set(pPort, this.mProject.generator.values.valueId(pPassData.counter.portIndex++));
+            // Convert label of port and index into a global valid value id. 
+            const lCodeCompliantName: string = this.mProject.generator.value.name(pPort.label);
+            const lCodeValueId: string = this.mProject.generator.value.id(lCodeCompliantName, pPassData.counter.portIndex++)
+
+            // Save port with code id.
+            pCursor.ports.set(pPort, lCodeValueId);
         }
 
         return pCursor.ports.get(pPort)!;

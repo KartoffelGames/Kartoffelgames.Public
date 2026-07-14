@@ -162,7 +162,7 @@ Deno.test('PotatnoPreviewDriver.refresh()', async (pContext) => {
 
                 const lGraph = pGeneratorResult.entryPoint.graphs.find((pGraph) => pPortTarget !== null && pGraph.ports.has(pPortTarget.documentPort))!;
                 const lNodeId: string = lGraph.nodes.get(pPortTarget!.documentPort.node)!;
-                lExpectedNodeHook = pPortTarget!.documentPort.project.generator.values.hook(`end-${lNodeId}`);
+                lExpectedNodeHook = pPortTarget!.documentPort.project.generator.value.hook(`end-${lNodeId}`);
                 lExpectedValue = lGraph.ports.get(pPortTarget!.documentPort)!;
 
                 return {

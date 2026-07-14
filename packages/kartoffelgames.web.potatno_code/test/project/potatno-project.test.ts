@@ -32,9 +32,12 @@ const gNewBareProject = (): PotatnoProject<PotatnoProjectTypesDefinition> => {
     return new PotatnoProject(lTypes, lEntry, {
         generator: {
             code: (): string => '',
-            values: {
-                valueId: (pValueIndex: number): string => {
-                    return `v_${pValueIndex}`;
+            value: {
+                id: (pName: string, pIndex: number): string => {
+                    return `${pName}_${pIndex}`;
+                },
+                name: (pName: string) => {
+                    return pName.replace(/[^A-Za-z0-9_]/, '');
                 },
                 hook: (pValueId: string): string => {
                     return `/*[${pValueId}]*/`;
@@ -80,9 +83,12 @@ Deno.test('new PotatnoProject()', async (pContext) => {
         const lProject = new PotatnoProject(lTypes, lEntry, {
             generator: {
                 code: (): string => '',
-                values: {
-                    valueId: (pValueIndex: number): string => {
-                        return `v_${pValueIndex}`;
+                value: {
+                    id: (pName: string, pIndex: number): string => {
+                        return `${pName}_${pIndex}`;
+                    },
+                    name: (pName: string) => {
+                        return pName.replace(/[^A-Za-z0-9_]/, '');
                     },
                     hook: (pValueId: string): string => {
                         return `/*[${pValueId}]*/`;
@@ -126,9 +132,12 @@ Deno.test('PotatnoProject.types', async (pContext) => {
         const lProject = new PotatnoProject(lTypes, lEntry, {
             generator: {
                 code: (): string => '',
-                values: {
-                    valueId: (pValueIndex: number): string => {
-                        return `v_${pValueIndex}`;
+                value: {
+                    id: (pName: string, pIndex: number): string => {
+                        return `${pName}_${pIndex}`;
+                    },
+                    name: (pName: string) => {
+                        return pName.replace(/[^A-Za-z0-9_]/, '');
                     },
                     hook: (pValueId: string): string => {
                         return `/*[${pValueId}]*/`;
@@ -163,9 +172,12 @@ Deno.test('PotatnoProject.entryPoint', async (pContext) => {
         const lProject = new PotatnoProject(lTypes, lEntry, {
             generator: {
                 code: (): string => '',
-                values: {
-                    valueId: (pValueIndex: number): string => {
-                        return `v_${pValueIndex}`;
+                value: {
+                    id: (pName: string, pIndex: number): string => {
+                        return `${pName}_${pIndex}`;
+                    },
+                    name: (pName: string) => {
+                        return pName.replace(/[^A-Za-z0-9_]/, '');
                     },
                     hook: (pValueId: string): string => {
                         return `/*[${pValueId}]*/`;
@@ -220,9 +232,12 @@ Deno.test('PotatnoProject.userFunctions', async (pContext) => {
         const lProject = new PotatnoProject(lTypes, lEntry, {
             generator: {
                 code: (): string => '',
-                values: {
-                    valueId: (pValueIndex: number): string => {
-                        return `v_${pValueIndex}`;
+                value: {
+                    id: (pName: string, pIndex: number): string => {
+                        return `${pName}_${pIndex}`;
+                    },
+                    name: (pName: string) => {
+                        return pName.replace(/[^A-Za-z0-9_]/, '');
                     },
                     hook: (pValueId: string): string => {
                         return `/*[${pValueId}]*/`;
@@ -312,9 +327,12 @@ Deno.test('PotatnoProject.generator', async (pContext) => {
         });
         const lGenerator = {
             code: (): string => 'expected',
-            values: {
-                valueId: (pValueIndex: number): string => {
-                    return `v_${pValueIndex}`;
+            value: {
+                id: (pName: string, pIndex: number): string => {
+                    return `${pName}_${pIndex}`;
+                },
+                name: (pName: string) => {
+                    return pName.replace(/[^A-Za-z0-9_]/, '');
                 },
                 hook: (pValueId: string): string => {
                     return `<${pValueId}>`;
@@ -444,9 +462,12 @@ Deno.test('PotatnoProject.getFunction()', async (pContext) => {
         const lProject = new PotatnoProject(lTypes, lEntry, {
             generator: {
                 code: (): string => '',
-                values: {
-                    valueId: (pValueIndex: number): string => {
-                        return `v_${pValueIndex}`;
+                value: {
+                    id: (pName: string, pIndex: number): string => {
+                        return `${pName}_${pIndex}`;
+                    },
+                    name: (pName: string) => {
+                        return pName.replace(/[^A-Za-z0-9_]/, '');
                     },
                     hook: (pValueId: string): string => {
                         return `/*[${pValueId}]*/`;

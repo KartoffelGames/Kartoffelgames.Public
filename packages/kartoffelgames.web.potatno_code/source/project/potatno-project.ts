@@ -21,7 +21,6 @@ export class PotatnoProject<TProjectTypes extends PotatnoProjectTypesDefinition>
     private readonly mPreview: PotatnoPreview<TProjectTypes>;
     private readonly mTypes: TProjectTypes;
     private readonly mUserFunctions: Map<string, PotatnoFunctionDefinition<TProjectTypes>>;
-    private mValidateNamePattern: PotatnoProjectNamePatternValidator;
 
     /**
      * Get the registered entry point definition.
@@ -43,15 +42,6 @@ export class PotatnoProject<TProjectTypes extends PotatnoProjectTypesDefinition>
      */
     public get imports(): ReadonlyArray<PotatnoImportDefinition<TProjectTypes>> {
         return this.mImports;
-    }
-
-    /**
-     * Pattern validator for all names.
-     */
-    public get namePattern(): PotatnoProjectNamePatternValidator {
-        return this.mValidateNamePattern;
-    } set namePattern(pPatternValidator: PotatnoProjectNamePatternValidator) {
-        this.mValidateNamePattern = pPatternValidator;
     }
 
     /**
@@ -102,11 +92,6 @@ export class PotatnoProject<TProjectTypes extends PotatnoProjectTypesDefinition>
 
         // Add endpoint function definition.
         this.mEntryPoint = pEntryFunction;
-
-        // Define a default, allow all pattern validator.
-        this.mValidateNamePattern = () => {
-            return null;
-        };
 
         // Built-in conjunction pass-through nodes are always available in every project.
         this.addNodeDefinition(new FlowConjunctionNodeDefinition());
@@ -170,15 +155,25 @@ export type PotatnoProjectCodeGenerator<TProjectTypes extends PotatnoProjectType
     /**
      * Generators for generating value related string.
      */
-    readonly values: {
+    readonly value: {
         /**
          * Generate a value id, mostly known as variable name, that the code generator can use to reference values.
          * 
-         * @param pValueIndex - The current value index.
+         * @param pName - Name of value.
+         * @param pIndex - The current global counted index.
          * 
          * @returns a value id that can be used to reference values in code. 
          */
-        readonly valueId: (pValueIndex: number) => string;
+        readonly id: (pName: string, pIndex: number) => string;
+
+        /**
+         * Convert a name into a code compliant name.
+         * 
+         * @param pName - Raw name.
+         * 
+         * @returns code complient name. 
+         */
+        readonly name: (pName: string) => string;
 
         /**
          * Function callback for a hook generation.
@@ -191,8 +186,3 @@ export type PotatnoProjectCodeGenerator<TProjectTypes extends PotatnoProjectType
         readonly hook: (pValueId: string) => string;
     };
 };
-
-/**
- * Pattern validator for names. Return a empty string on success or the error message.
- */
-type PotatnoProjectNamePatternValidator = (pName: string) => string | null;

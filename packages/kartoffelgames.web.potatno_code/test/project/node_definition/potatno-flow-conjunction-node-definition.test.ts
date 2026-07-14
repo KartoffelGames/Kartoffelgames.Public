@@ -20,7 +20,8 @@ Deno.test('new FlowConjunctionNodeDefinition()', async (pContext) => {
         // Evaluation.
         expect(lDefinition.id).toBe(FlowConjunctionNodeDefinition.DEFINITION_ID);
         expect(lDefinition.label).toBe('Flow Conjunction');
-        expect(lDefinition.category).toBe('Conjunction');
+        expect(lDefinition.category.name).toBe('Conjunction');
+        expect(lDefinition.category.icon).toBe('◇');
         expect(lDefinition.inputs.length).toBe(1);
         expect(lDefinition.inputs[0].id).toBe('in');
         expect(lDefinition.inputs[0].portType).toBe('flow');

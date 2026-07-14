@@ -86,7 +86,7 @@ export class PotatnoCodeEditor implements IComponentOnDeconstruct {
         this.mManager = pManager;
         this.mProject = null;
 
-        this.mUnsubscribe = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Document | PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.SpecialActiveFunction, () => {
+        this.mUnsubscribe = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Document | PotatnoCodeUiManagerChangeType.SpecialActiveFunction, () => {
             this.mComponent.updater.updateAsync();
         });
     }

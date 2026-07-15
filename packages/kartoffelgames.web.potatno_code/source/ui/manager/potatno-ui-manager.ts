@@ -1,7 +1,7 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
 import type { IPotatnoDocumentItem } from '../../document/i-potatno-document-item.interface.ts';
 import type { PotatnoDocumentFunction } from '../../document/potatno-document-function.ts';
-import type { PotatnoDocument } from '../../document/potatno-document.ts';
+import { PotatnoDocument } from '../../document/potatno-document.ts';
 import { type PotatnoFunctionDefinition, PotatnoFunctionDefinitionStatics } from '../../project/potatno-function-definition.ts';
 import type { PotatnoProjectTypesDefinition } from '../../project/potatno-project-types-definition.ts';
 import type { PotatnoProject } from '../../project/potatno-project.ts';
@@ -12,6 +12,7 @@ import { PotatnoUiManagerGrid } from './manager_component/potatno-ui-manager-gri
 import { PotatnoUiManagerHistory } from './manager_component/potatno-ui-manager-history.ts';
 import { PotatnoUiManagerIntegrity } from './manager_component/potatno-ui-manager-integrity.ts';
 import { PotatnoUiManagerPreview } from './manager_component/potatno-ui-manager-preview.ts';
+import { Exception } from "@kartoffelgames/core";
 
 /**
  * Central, shared state owner for the whole Potatno-code editor UI.
@@ -40,7 +41,7 @@ export class PotatnoUiManager extends EventTarget {
     private readonly mHistory: PotatnoUiManagerHistory;
     private readonly mIntegrity: PotatnoUiManagerIntegrity;
     private readonly mPreview: PotatnoUiManagerPreview;
-    private mProject: PotatnoProject<PotatnoProjectTypesDefinition> | null;
+    private mProject!: PotatnoProject<PotatnoProjectTypesDefinition> | null;
 
     /**
      * The currently active document function, or `null` when none is resolvable.
@@ -189,12 +190,14 @@ export class PotatnoUiManager extends EventTarget {
      *
      * @param pProject - The project configuration backing the editor.
      */
-    public initialize(pProject: PotatnoProject<PotatnoProjectTypesDefinition>, pDocument: PotatnoDocument<PotatnoProjectTypesDefinition>): void {
-        this.mProject = pProject;
+    public initialize(pProject: PotatnoProject<PotatnoProjectTypesDefinition>): void {
+        // Lock for single initialization.
+        if (this.mProject) {
+            throw new Exception('Project was already initialized.', this);
+        }
 
-        // Adopt the document. The manager's own document event notifies listeners and the preview
-        // component drops its stale drivers.
-        this.mGraph.setDocument(pDocument);
+        this.mProject = pProject;
+        this.mGraph.setDocument(new PotatnoDocument(pProject));
     }
 
     /**

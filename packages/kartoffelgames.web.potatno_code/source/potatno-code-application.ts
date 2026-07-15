@@ -59,8 +59,7 @@ export class PotatnoCodeApplication<TProjectTypes extends PotatnoProjectTypesDef
         this.mCodeEditor = this.addContent(PotatnoCodeEditor) as unknown as PotatnoCodeEditor;
 
         // Pass the project configuration into the editor, then seed it with an empty document.
-        this.mCodeEditor.project = pProject as unknown as PotatnoProject<PotatnoProjectTypesDefinition>;
-        this.mCodeEditor.document = new PotatnoDocument(pProject) as unknown as PotatnoDocument<PotatnoProjectTypesDefinition>;
+        this.mCodeEditor.initializeProject(pProject as unknown as PotatnoProject<PotatnoProjectTypesDefinition>);
     }
 
     /**

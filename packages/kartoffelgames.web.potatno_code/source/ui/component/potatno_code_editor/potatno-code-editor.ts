@@ -31,7 +31,6 @@ import '../potatno_preview/potatno-preview.ts';
 export class PotatnoCodeEditor implements IComponentOnDeconstruct {
     private readonly mComponent: Component;
     private readonly mManager: PotatnoUiManager;
-    private mProject: PotatnoProject<PotatnoProjectTypesDefinition> | null;
     private readonly mUnsubscribe: PotatnoCodeUiManagerUnsubscribe;
 
     /**
@@ -41,11 +40,7 @@ export class PotatnoCodeEditor implements IComponentOnDeconstruct {
     public get document(): PotatnoDocument<PotatnoProjectTypesDefinition> | null {
         return this.mManager.graph.document;
     } set document(pFile: PotatnoDocument<PotatnoProjectTypesDefinition>) {
-        if (!this.mProject) {
-            return;
-        }
-
-        this.mManager.initialize(this.mProject, pFile as PotatnoDocument<PotatnoProjectTypesDefinition>);
+        this.mManager.graph.setDocument(pFile as PotatnoDocument<PotatnoProjectTypesDefinition>);
     }
 
     /**
@@ -67,15 +62,6 @@ export class PotatnoCodeEditor implements IComponentOnDeconstruct {
     }
 
     /**
-     * Project configuration backing the editor.
-     */
-    @PwbExport
-    public set project(pProject: PotatnoProject<PotatnoProjectTypesDefinition>) {
-        // Cache the project. The manager is initialized once the document arrives via `file`.
-        this.mProject = pProject;
-    }
-
-    /**
      * Create the editor shell.
      *
      * @param pComponent - Injected component reference, used to trigger self-updates.
@@ -84,11 +70,28 @@ export class PotatnoCodeEditor implements IComponentOnDeconstruct {
     public constructor(pComponent: Component = Injection.use(Component), pManager: PotatnoUiManager = Injection.use(PotatnoUiManager)) {
         this.mComponent = pComponent;
         this.mManager = pManager;
-        this.mProject = null;
 
         this.mUnsubscribe = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Document | PotatnoCodeUiManagerChangeType.SpecialActiveFunction, () => {
             this.mComponent.updater.updateAsync();
         });
+    }
+
+    /**
+     * Initialize the editor with a project.#
+     * 
+     * @param pProject - Project.
+     */
+    @PwbExport
+    public initializeProject(pProject: PotatnoProject<PotatnoProjectTypesDefinition>) {
+        // TODO: remove once contexted injections are in place.
+        this.mManager.initialize(pProject);
+    }
+
+    /**
+     * Detach listeners and panel resize handlers.
+     */
+    public onDeconstruct(): void {
+        this.mUnsubscribe();
     }
 
     /**
@@ -99,12 +102,5 @@ export class PotatnoCodeEditor implements IComponentOnDeconstruct {
     @PwbExport
     public async triggerPreviewUpdate(): Promise<void> {
         return this.mManager.preview.execute();
-    }
-
-    /**
-     * Detach listeners and panel resize handlers.
-     */
-    public onDeconstruct(): void {
-        this.mUnsubscribe();
     }
 }

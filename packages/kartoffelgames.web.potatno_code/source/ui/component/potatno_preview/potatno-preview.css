@@ -94,6 +94,21 @@
 
     scrollbar-color: var(--potatno-color-scrollbar-thumb) var(--potatno-color-scrollbar-track);
     scrollbar-width: thin;
+
+    .content__preview-code {
+        box-sizing: border-box;
+        width: calc(100% - 20px);
+        margin: 0 10px;
+        padding: 10px 0;
+        color: var(--potatno-color-text);
+        overflow: auto;
+
+        /* Reset inner elements padding and margin. */
+        pre, code {
+            padding: 0;
+            margin: 0;
+        }
+    }
 }
 
 .error-item {

@@ -1,6 +1,7 @@
 import { expect } from '@kartoffelgames/core-test';
 import { PotatnoDocument } from '../../source/document/potatno-document.ts';
 import { PotatnoCodeGenerator } from '../../source/parser/potatno-code-generator.ts';
+import { PotatnoFunctionNodeDefinition } from '../../source/project/node_definition/potatno-function-node-definition.ts';
 import { PotatnoStaticNodeDefinition } from '../../source/project/node_definition/potatno-static-node-definition.ts';
 import { PotatnoFunctionDefinition } from '../../source/project/potatno-function-definition.ts';
 import { PotatnoProjectTypesDefinition } from '../../source/project/potatno-project-types-definition.ts';
@@ -129,6 +130,46 @@ Deno.test('PotatnoCodeGenerator.generateDocument()', async (pContext) => {
                 + 'const calculatorX10 = (a_5, b_6) => { '
                 + 'let __globalMultiplier = 1; '
                 + '__globalMultiplier = 5; '
+                + 'return ((0) * 10) * __globalMultiplier; '
+                + '};'
+            );
+        });
+    });
+
+    await pContext.step('Dependencies', async (pContext) => {
+        await pContext.step('Entry point and dependencies output in dendency order.', () => {
+            // Setup. Main (system) calls a user helper function, so the document has one dependency.
+            const { document: lDocument, function: lMain, defaultEntry: lDefaultEntry, defaultExit: lDefaultExit } = PotatnoHelper.setupCalculatorDocument();
+            const lHelper = PotatnoHelper.newHelperFunction(lDocument, 'h1', 'helperOne');
+
+            // Sync the helper's entry / exit nodes, then wire the helper flow-only so it terminates.
+            lDocument.validate();
+            const lHelperEntry = [...lHelper.nodes].find((pNode) => pNode.definitionId === 'HelperEntry')!;
+            const lHelperExit = [...lHelper.nodes].find((pNode) => pNode.definitionId === 'HelperExit')!;
+            lHelperEntry.outputs.flow[0].connect(lHelperExit.inputs.flow[0]);
+
+            // Place a call node for the helper into main, wired Entry -> call -> Exit.
+            const lCallDefinition = lDocument.nodeDefinitions.find((pDefinition) => pDefinition instanceof PotatnoFunctionNodeDefinition && pDefinition.function === lHelper)!;
+            const lCallNode = lMain.addNodeByDefinition(lCallDefinition, { x: 0, y: 0, width: 4, height: 2 });
+            PotatnoHelper.connectFlow(lDefaultEntry, lCallNode);
+            PotatnoHelper.connectFlow(lCallNode, lDefaultExit);
+
+            // Process.
+            const lResult = new PotatnoCodeGenerator(PotatnoHelper.TEST_PROJECT).generateDocument(lDocument);
+
+            // Evaluation. The system function is the entry point (not the popped-off dependency),
+            // the helper is the single dependency, and it is declared before main's body.
+            expect(lResult.entryPoint.function).toBe(lMain);
+            expect(lResult.entryPoint.function.isSystem).toBe(true);
+            expect(lResult.dependencies.map((pDependency) => pDependency.function)).toHaveOrderedItems([lHelper]);
+            expect(lResult.code).toBe(
+                'const helperOne = (exec_4) => { let __globalMultiplier = 1; return {  }; }; '
+                + 'const calculatorDefault = (a_2, b_3) => { '
+                + 'let __globalMultiplier = 1; '
+                + 'const { Output: Output_0 } = helperOne();  '
+                + '};'
+                + 'const calculatorX10 = (a_6, b_7) => { '
+                + 'let __globalMultiplier = 1; '
                 + 'return ((0) * 10) * __globalMultiplier; '
                 + '};'
             );
@@ -487,6 +528,29 @@ Deno.test('PotatnoCodeGenerator.generateNode()', async (pContext) => {
             expect(lGraph.ports.get(lDefaultEntry.outputs.map.get('b')!)).toBe('b_1');
             expect(lGraph.ports.get(lAddNode.outputs.map.get('result')!)).toBe('result_2');
             expect(lGraph.ports.get(lDefaultExit.inputs.map.get('result')!)).toBe('result_2');
+        });
+
+        await pContext.step('Omitted without debug flag', () => {
+            // Setup. A single Add fed by entry.a/b, same graph as the debug=true case.
+            const { function: lFunction, defaultEntry: lDefaultEntry, defaultExit: lDefaultExit } = PotatnoHelper.setupCalculatorDocument();
+            const lAddNode = PotatnoHelper.addProjectNode(lFunction, 'Add');
+            PotatnoHelper.connectValue(lDefaultEntry, 'a', lAddNode, 'a');
+            PotatnoHelper.connectValue(lDefaultEntry, 'b', lAddNode, 'b');
+            PotatnoHelper.connectValue(lAddNode, 'result', lDefaultExit, 'result');
+            PotatnoHelper.connectFlow(lDefaultEntry, lDefaultExit);
+
+            // Process. pDebug defaults to false, so no per-node hook wrapping is emitted.
+            const lResult = new PotatnoCodeGenerator(PotatnoHelper.TEST_PROJECT).generateNode(lDefaultExit);
+            const lGraph = lResult.entryPoint.graphs[0];
+
+            // Evaluation.
+            expect(lGraph.code).toBe(
+                '(a_0, b_1) => { '
+                + 'let __globalMultiplier = 1; '
+                + 'const result_2 = a_0 + b_1; '
+                + 'return (result_2) * __globalMultiplier; '
+                + '}'
+            );
         });
 
         await pContext.step('Custom hook generator is honoured', () => {

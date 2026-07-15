@@ -108,9 +108,9 @@ export class PotatnoCodeGenerator<TProjectTypes extends PotatnoProjectTypesDefin
             nodeDefinitions: new Map<PotatnoDocumentFunction<TProjectTypes>, Map<string, PotatnoNodeDefinition<TProjectTypes>>>()
         };
 
-        // Generate everything. The last entry is the requested entry function result.
+        // Generate everything. The last entry is the requested entry function result, the remaining leading entries are its dependencies ordered by appearance.
         const lFunctionGenerationResults: Array<PotatnoCodeGeneratorFunctionResult<TProjectTypes>> = this.generateFunctionWithDependencies(lPassData, pExitNodes, new Set<PotatnoDocumentFunction<TProjectTypes>>());
-        const lEntryPointResult: PotatnoCodeGeneratorFunctionResult<TProjectTypes> = lFunctionGenerationResults.shift()!;
+        const lEntryPointResult: PotatnoCodeGeneratorFunctionResult<TProjectTypes> = lFunctionGenerationResults.pop()!;
 
         return new PotatnoCodeGeneratorDocumentResult(pDocument, lEntryPointResult, lFunctionGenerationResults);
     }

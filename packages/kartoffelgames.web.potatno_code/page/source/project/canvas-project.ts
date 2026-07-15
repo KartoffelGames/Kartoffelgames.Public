@@ -112,8 +112,7 @@ export class CanvasProject extends PotatnoProject<CanvasProjectTypesDefinition> 
             },
             generators: {
                 code: (pContext): string => {
-                    return `const ${pContext.outputs['result'].value} = ${pContext.inputs['a'].value} * ${pContext.inputs['b'].value};`
-                        + `/*MULTIPLYHOOK_${pContext.outputs['result'].value}*/`;
+                    return `const ${pContext.outputs['result'].value} = ${pContext.inputs['a'].value} * ${pContext.inputs['b'].value};`;
                 }
             }
         }));

@@ -29,7 +29,7 @@
         border: none;
         border-bottom: 1px solid var(--potatno-color-border);
 
-        color: var(--potatno-color-accent);
+        color: var(--potatno-color-text);
         background-color: var(--potatno-color-background-dark);
 
         font-family: var(--potatno-font-family);
@@ -58,7 +58,7 @@
         width: 100%;
         padding: 5px 9px;
         align-items: center;
-        color: var(--potatno-color-accent);
+        color: var(--potatno-color-text);
         text-align: left;
         cursor: pointer;
 
@@ -78,6 +78,7 @@
             width: 1ch;
             height: 25px;
             
+            color: var(--potatno-color-accent);
             border-left: 3px solid var(--item-color);
         }
 

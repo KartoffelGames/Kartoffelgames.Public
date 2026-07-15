@@ -219,25 +219,6 @@ export class PotatnoUiManagerGraph {
     }
 
     /**
-     * Update unspecified fields of a node.
-     * 
-     * @param pNode - Node to update.
-     * @param pUpdater - Update method of the node.
-     */
-    public updateNode(pNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition> | null, pUpdater: (pNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition>) => void): void {
-        // Skip node update when no node is set.
-        if (!pNode) {
-            return;
-        }
-
-        // Simple pass forward.
-        pUpdater(pNode);
-
-        // Dispatch changes.
-        this.mManager.dispatch(PotatnoCodeUiManagerChangeType.NodeUpdate, pNode);
-    }
-
-    /**
      * Update unspecified fields of a function.
      * 
      * @param pFunction - Function to update.
@@ -254,6 +235,25 @@ export class PotatnoUiManagerGraph {
         
         // Dispatch changes.
         this.mManager.dispatch(PotatnoCodeUiManagerChangeType.FunctionUpdate, pFunction);
+    }
+
+    /**
+     * Update unspecified fields of a node.
+     * 
+     * @param pNode - Node to update.
+     * @param pUpdater - Update method of the node.
+     */
+    public updateNode(pNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition> | null, pUpdater: (pNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition>) => void): void {
+        // Skip node update when no node is set.
+        if (!pNode) {
+            return;
+        }
+
+        // Simple pass forward.
+        pUpdater(pNode);
+
+        // Dispatch changes.
+        this.mManager.dispatch(PotatnoCodeUiManagerChangeType.NodeUpdate, pNode);
     }
 
     /**

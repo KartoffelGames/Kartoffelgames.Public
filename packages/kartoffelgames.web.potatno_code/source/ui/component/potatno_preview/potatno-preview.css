@@ -27,6 +27,9 @@
     background: var(--potatno-color-background-light);
     overflow: hidden;
 
+    /* Should never shrink */
+    flex-shrink: 0; 
+
     .header__tabs {
         display: flex;
 

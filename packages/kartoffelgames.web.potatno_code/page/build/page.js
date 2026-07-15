@@ -72,7 +72,7 @@ potatno-code-editor {\r
     --pn-node-port-body-size: 9px;\r
     --pn-node-port-gap: var(--pn-grid-size);\r
     --pn-node-port-tip-size: 5px;\r
-}`;var Qt=class{mCodeGenerator;mId;mLabel;mNodesProvider;mStatics;get codeGenerator(){return this.mCodeGenerator}get id(){return this.mId}get label(){return this.mLabel}get statics(){return this.mStatics}constructor(t){this.mId=t.id,this.mLabel=t.label,this.mNodesProvider=t.nodes,this.mStatics=t.statics,this.mCodeGenerator=t.generator.code}getNodeDefinitions(t){let e=c=>{if(!c)return new Array;let m=new Array;return c(v=>{m.push(v)},t),m},o={};return Object.defineProperty(o,"entry",{get:()=>e(this.mNodesProvider.entry)}),Object.defineProperty(o,"exit",{get:()=>e(this.mNodesProvider.exit)}),Object.defineProperty(o,"dynamic",{get:()=>e(this.mNodesProvider.dynamic)}),o}},ot={none:0,imports:1,inputs:2,outputs:4};var je=class f{static PASTE_OFFSET=2;mClipboardNodes;mManager;constructor(t){this.mManager=t,this.mClipboardNodes=new Array}copy(t){if(t.size===0)return;let e=[...t],o=new Map;for(let c=0;c<e.length;c++){let m=e[c],v=m.inputs.value.map(T=>({definitionId:T.definitionId,values:[...T.directValue]})),y={...m.transformation};y.x+=f.PASTE_OFFSET,y.y+=f.PASTE_OFFSET,o.set(m,{connections:new Array,definitionId:m.definitionId,id:c,portDirectValues:v,label:m.label,transformation:y})}for(let[c,m]of o)for(let v of c.outputs.list)for(let y of v.connectedPorts){let T=o.get(y.node);T&&m.connections.push({sourcePortName:v.definitionId,targetNodeId:T.id,targetPortName:y.definitionId})}this.mClipboardNodes=[...o.values()]}paste(){if(this.mClipboardNodes.length===0)return new Array;let t=this.mManager.activeFunction;if(!t)return[];let e=new Map;for(let o of this.mClipboardNodes){let c=t.dynamicNodeDefinitions.find(v=>v.id===o.definitionId);if(!c)continue;let m=this.mManager.graph.addNode(t,c,o.transformation);this.mManager.graph.updateNode(m,v=>{v.label=o.label;for(let y of o.portDirectValues)v.inputs.map.has(y.definitionId)&&v.inputs.map.get(y.definitionId).setDirectValue(y.values)}),e.set(o.id,m)}for(let o of this.mClipboardNodes){let c=e.get(o.id);if(c)for(let m of o.connections){let v=e.get(m.targetNodeId);if(!v)continue;let y=c.outputs.map.get(m.sourcePortName),T=v.inputs.map.get(m.targetPortName);!y||!T||this.mManager.graph.connectPorts(y,T)}}return[...e.values()]}};var Ve=class extends se{mGridNodeArea;mGridPaths;mNodeArea;mPathArea;constructor(){super(),this.mGridNodeArea=new WeakMap,this.mNodeArea=new Map,this.mGridPaths=new WeakMap,this.mPathArea=new Map}clear(t){t==="all"&&this.mNodeArea.clear(),this.mPathArea.clear()}getPath(t,e){let o=t.direction==="input"&&t.portType==="value"||t.direction==="output"&&t.portType==="flow"?t:e;return this.mGridPaths.get(o)??new Array}removeNodeArea(t){if(!this.mGridNodeArea.has(t))return;let e=this.mGridNodeArea.get(t);for(let o of e){let c=(this.mNodeArea.get(o)??0)-1;c<1?this.mNodeArea.delete(o):this.mNodeArea.set(o,c)}this.mGridNodeArea.delete(t)}updateNodeArea(t){this.removeNodeArea(t);let e=t.transformation.x,o=t.transformation.y,c=t.transformation.width,m=t.transformation.height,v=new Array;for(let y=0;y<c;y++)for(let T=0;T<m;T++){let C=`${y+e}|${T+o}`,l=(this.mNodeArea.get(C)??0)+1;this.mNodeArea.set(C,l),v.push(C)}this.mGridNodeArea.set(t,v)}updatePath(t,e,o){if(t.direction==="input"&&t.portType!=="value"||t.direction==="output"&&t.portType!=="flow")throw new A("Start port must be an input-value or an output-flow node.",this);this.removePathArea(t);let c=this.start(e,o);this.mGridPaths.set(t,c.path);let m=this.nodeId(e),v=this.nodeId(o);for(let y of c.path){let T=this.nodeId(y),C=this.mPathArea.has(T)?this.mPathArea.get(T):{ports:new Map,entryPoints:new Set};C.ports.set(t,[m,v]),C.entryPoints.add(m),C.entryPoints.add(v),this.mPathArea.set(T,C)}}costOfTraversal(t,e){let o=this.nodeId(t),c=1;this.mNodeArea.has(o)&&t!==e.endNode&&(c*=20);let m=e.path.next().value;if(this.mPathArea.has(o)){let l=this.mPathArea.get(o),n=this.nodeId(e.startNode),u=this.nodeId(e.endNode);if(l.entryPoints.has(n)||l.entryPoints.has(u))c*=.2;else if(c*=5,m){let a=this.nodeId(m);this.mPathArea.has(a)&&(c*=20)}}if(m){let l=t.y===m.y;(t===e.endNode||m===e.startNode)&&!l&&(c*=100);let n=e.path.next().value;n&&(t.x===n.x||t.y===n.y)&&(c*=.7)}let v=Math.abs(t.x-e.startNode.x),y=Math.abs(t.x-e.endNode.x),T=v<=y;(T&&t.y===e.startNode.y||!T&&t.y===e.endNode.y)&&(c*=.5);let C=e.endNode.x+e.startNode.x>>1;return t.x===C&&(c*=.5),c}heuristic(t,e){return(Math.abs(t.x-e.endNode.x)+Math.abs(t.y-e.endNode.y))*.5}neighborNodes(t){return[{x:t.x,y:t.y-1},{x:t.x-1,y:t.y},{x:t.x+1,y:t.y},{x:t.x,y:t.y+1}]}nodeId(t){return`${t.x}|${t.y}`}removePathArea(t){if(!this.mGridPaths.has(t))return;let e=this.mGridPaths.get(t);for(let o of e){let c=this.nodeId(o),m=this.mPathArea.get(c);if(!m)continue;let v=m.ports.get(t);v&&(m.ports.delete(t),m.entryPoints.delete(v[0]),m.entryPoints.delete(v[1]),m.ports.size===0?this.mPathArea.delete(c):this.mPathArea.set(c,m))}this.mGridPaths.delete(t)}};var ze=class{mGridElement;mManager;mPathFinder;set gridElement(t){this.mGridElement=t}constructor(t){this.mManager=t,this.mGridElement=null,this.mPathFinder=new Ve,this.mManager.subscribe(_.Node|_.SpecialActiveFunction,e=>{if((e.changeType&_.SpecialActiveFunction)>0){if(!this.mManager.activeFunction)return;this.mPathFinder.clear("all");for(let o of this.mManager.activeFunction.nodes)this.mPathFinder.updateNodeArea(o);this.updatePaths();return}(e.changeType&_.Node)>0&&((e.changeType&_.NodeDelete)>0?this.mPathFinder.removeNodeArea(e.item):this.mPathFinder.updateNodeArea(e.item)),this.updatePaths()}),this.mManager.subscribe(_.Connection,()=>{this.updatePaths()})}createTemporaryPath(t,e){let o=y=>y instanceof ht?this.getPortGridPoint(y):y,c=o(t),m=o(e),v=this.mPathFinder.start(c,m).path;return this.createSvgPath(v)}getConnectionPath(t,e){let o=this.mPathFinder.getPath(t,e);return this.createSvgPath(o)}getPortGridPoint(t){let e=t.node,o=t.direction==="input"?e.inputs.list:e.outputs.list,c=(()=>{let v=0;for(;v<o.length&&o[v]!==t;v++);return v})(),m=t.direction==="input"?e.transformation.x:e.transformation.x+e.transformation.width-1;return{y:e.transformation.y+1+c,x:m}}pixelToGridSpace(t,e){let o=t,c=e;if(this.mGridElement){let m=this.mGridElement.getBoundingClientRect();o-=m.left,c-=m.top}return o-=this.mManager.grid.panX,c-=this.mManager.grid.panY,o/=this.mManager.grid.zoom,c/=this.mManager.grid.zoom,{x:Math.floor(o/this.mManager.grid.gridSize),y:Math.floor(c/this.mManager.grid.gridSize)}}createGridCellPath(t,e,o){let c=this.getGridPosition(t,e),m=this.getGridPosition(t,o),v={x:e==="bottom"||e==="top"?c.x:m.x,y:e==="left"||e==="right"?c.y:m.y};return`M ${c.x},${c.y} Q ${v.x},${v.y} ${m.x},${m.y}`}createPath(t,e){let[o,c]=t.direction==="input"&&t.portType==="value"||t.direction==="output"&&t.portType==="flow"?[t,e]:[e,t],m=this.getPortGridPoint(o),v=this.getPortGridPoint(c);this.mPathFinder.updatePath(o,m,v)}createSvgPath(t){let e=(c,m)=>{let v=m.x-c.x,y=m.y-c.y;switch(!0){case(v===0&&y===1):return"bottom";case(v===0&&y===-1):return"top";case(v===-1&&y===0):return"left";case(v===1&&y===0):return"right";default:throw new A("Missformed path. Path points are not directly next to each other.",this)}},o="";for(let c=1;c<t.length-1;c++){let m=t[c],v=t[c-1],y=t[c+1],T=e(m,v),C=e(m,y);o+=this.createGridCellPath(m,T,C)}return o}getGridPosition(t,e){let o={x:t.x*this.mManager.grid.gridSize+this.mManager.grid.gridSize/2,y:t.y*this.mManager.grid.gridSize+this.mManager.grid.gridSize/2},c=this.mManager.grid.gridSize/2;switch(e){case"top":o.y-=c;break;case"right":o.x+=c;break;case"bottom":o.y+=c;break;case"left":o.x-=c;break}return o}updatePaths(){this.mPathFinder.clear("path");let t=this.mManager.activeFunction;if(t)for(let e of t.nodes){for(let o of e.outputs.flow){let c=o.connectedPorts.values().next().value;c&&this.createPath(o,c)}for(let o of e.inputs.value){let c=o.connectedPorts.values().next().value;c&&this.createPath(o,c)}}}};var $e=class{mDocument;mManager;get document(){return this.mDocument}constructor(t){this.mManager=t,this.mDocument=null}addFunction(t){let e=this.mDocument;if(!e||!e.project.userFunctions.has(t))return;let o=new yt(e.project,e,{definitionId:t,id:crypto.randomUUID(),isSystem:!1,label:`Function_${e.functions.length}`});e.addFunction(o),e.validate(),this.mManager.dispatch(_.FunctionAdd,o),this.mManager.setActiveFunction(o)}addNode(t,e,o){let c=t.addNodeByDefinition(e,o);return this.mManager.dispatch(_.NodeAdd,c),c}connectPorts(t,e){try{t.connect(e)}catch{return!1}return this.mManager.dispatch(_.ConnectionAdd,t),this.mManager.dispatch(_.ConnectionAdd,e),!0}disconnectPorts(t,e){t.disconnect(e),this.mManager.dispatch(_.ConnectionDelete,t),this.mManager.dispatch(_.ConnectionDelete,e)}removeFunction(t){let e=this.mDocument;if(!e)return;let o=null;for(let c of e.functions)if(c.id===t){o=c,e.removeFunction(c);break}o&&(this.mManager.dispatch(_.FunctionDelete,o),this.setDefaultActiveFunction())}removeNode(t){t.function.removeNode(t),this.mManager.dispatch(_.NodeDelete,t)}setDocument(t){this.mDocument=t,this.mDocument.validate(),this.mManager.dispatch(_.Document,this.mDocument),this.setDefaultActiveFunction()}setPortDirectValue(t,e){t.setDirectValue(e),this.mManager.dispatch(_.NodeUpdate,t.node)}transformNode(t,e){let o={x:t.transformation.x,y:t.transformation.y,width:t.transformation.width,height:t.transformation.height,...e};t.moveTo(o.x,o.y),t.resizeTo(o.width,o.height),this.mManager.dispatch(_.NodeTransform,t)}updateNode(t,e){t&&(e(t),this.mManager.dispatch(_.NodeUpdate,t))}updateFunction(t,e){t&&(e(t),this.mManager.dispatch(_.FunctionUpdate,t))}setDefaultActiveFunction(){if(!this.mDocument||this.mDocument.functions.length===0)return;let t=(()=>{let e=[...this.mDocument.functions];if(!this.mManager.activeFunction)return e[0];let o=e.find(c=>c.id===this.mManager.activeFunction.id);return o||e[0]})();this.mManager.activeFunction!==t&&this.mManager.setActiveFunction(t)}};var Ge=class f{static GRID_SIZE=25;static MAX_ZOOM=2;static MIN_ZOOM=.25;mPanX;mPanY;mZoom;get gridSize(){return f.GRID_SIZE}get panX(){return this.mPanX}get panY(){return this.mPanY}get zoom(){return this.mZoom}constructor(){this.mPanX=0,this.mPanY=0,this.mZoom=1}getGridBackgroundCss(){let t=f.GRID_SIZE*this.mZoom,e=this.mPanX%t,o=this.mPanY%t;return[`background-size: ${t}px ${t}px`,`background-position: ${e}px ${o}px`,'background-image: url("data:image/svg+xml,%3Csvg xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22 viewBox%3D%220 0 100 100%22%3E%3Cpath d%3D%22M0 0h18M0 0v18M100 0H82M100 0v18M0 100h18M0 100V82M100 100H82M100 100V82%22 stroke%3D%22%23313244%22 stroke-width%3D%225%22 stroke-linecap%3D%22round%22%2F%3E%3C%2Fsvg%3E")'].join("; ")}getTransformCss(){return`translate(${this.mPanX}px, ${this.mPanY}px) scale(${this.mZoom})`}pan(t,e){this.mPanX+=t,this.mPanY+=e}screenToWorld(t,e){return{x:(t-this.mPanX)/this.mZoom,y:(e-this.mPanY)/this.mZoom}}snapToGrid(t,e){return{x:Math.round(t/f.GRID_SIZE)*f.GRID_SIZE,y:Math.round(e/f.GRID_SIZE)*f.GRID_SIZE}}zoomAt(t,e,o){let c=this.mZoom,m=1+o,v=this.mZoom*m;v=Math.max(f.MIN_ZOOM,Math.min(f.MAX_ZOOM,v));let y=(t-this.mPanX)/c,T=(e-this.mPanY)/c;this.mZoom=v,this.mPanX=t-y*this.mZoom,this.mPanY=e-T*this.mZoom}};var Be=class f{static MAX_HISTORY_ITEMS=100;mManager;mSnapshotIndex;mSnapshots;get canRedo(){return this.mSnapshotIndex<this.mSnapshots.length-1}get canUndo(){return this.mSnapshotIndex>0}constructor(t){this.mManager=t,this.mSnapshotIndex=-1,this.mSnapshots=new Array;let e=0;this.mManager.subscribe(_.Any,()=>{globalThis.clearTimeout(e),e=globalThis.setTimeout(()=>{this.pushHistory()},1e3)})}clear(){this.mSnapshots.length=0,this.mSnapshotIndex=-1}redo(){if(!this.canRedo)return;let t=this.mSnapshots[++this.mSnapshotIndex],e=JSON.parse(t);this.restoreHistory(e)}undo(){if(!this.canUndo)return;let t=this.mSnapshots[--this.mSnapshotIndex],e=JSON.parse(t);this.restoreHistory(e)}pushHistory(){let t=this.mManager.graph.document;if(!t)return;this.mSnapshots.splice(this.mSnapshotIndex+1);let e=new Kt().serialize(t),o=JSON.stringify(e);this.mSnapshots.length>0&&this.mSnapshots.at(-1)===o||(this.mSnapshotIndex=this.mSnapshots.push(o)-1,this.mSnapshots.length>f.MAX_HISTORY_ITEMS&&(this.mSnapshots.shift(),this.mSnapshotIndex--))}restoreHistory(t){let e=this.mManager.project;e&&this.mManager.graph.setDocument(new Jt(e).deserialize(t))}};var Ue=class{mErrorItems;mErrorList;mIsDirty;mManager;get errorItems(){return this.mIsDirty&&this.revalidate(),this.mErrorItems}get errors(){return this.mIsDirty&&this.revalidate(),this.mErrorList}get isValid(){return this.mIsDirty&&this.revalidate(),this.mErrorItems.size===0}constructor(t){this.mManager=t,this.mErrorList=new Array,this.mErrorItems=new Set,this.mIsDirty=!0;let e=0;this.mManager.subscribe(_.Any,()=>{this.mIsDirty=!0,globalThis.clearTimeout(e),e=globalThis.setTimeout(()=>{this.mIsDirty&&(this.revalidate(),this.mIsDirty=!1)},1e3)})}revalidate(){if(!this.mManager.graph.document)return;this.mErrorList.splice(0,this.mErrorList.length),this.mErrorItems.clear();let t=this.mManager.graph.document.validate();for(let e of t.errors)switch(this.mErrorItems.add(e.item),!0){case e.item instanceof ht:{this.mErrorList.push({location:`Node "${e.item.node.label}"`,message:e.message});break}case e.item instanceof Dt:{this.mErrorList.push({location:`Node "${e.item.label}"`,message:e.message});break}}for(let e of t.affectedItems)switch(!0){case e instanceof ht:{this.mManager.dispatch(_.PortAdd|_.PortUpdate,e),this.mManager.dispatch(_.NodeUpdate,e.node);break}case e instanceof Dt:{this.mManager.dispatch(_.NodeAdd|_.NodeUpdate|_.NodeTransform,e);break}case e instanceof yt:{this.mManager.dispatch(_.FunctionAdd|_.FunctionUpdate,e);break}}}};var He=class{mDriverActivity;mDriverElements;mDriverList;mDrivers;mElementDriver;mManager;mPreviewIntersection;constructor(t){this.mManager=t,this.mDriverList=new Array,this.mDrivers=new WeakMap,this.mDriverActivity=new WeakMap,this.mDriverElements=new WeakMap,this.mElementDriver=new WeakMap,this.mManager.subscribe(_.Document,()=>{this.mDriverList.splice(0,this.mDriverList.length)});let e=0,o=_.Connection|_.Function|_.Node;this.mManager.subscribe(o,()=>{globalThis.clearTimeout(e),e=globalThis.setTimeout(()=>this.refresh(),1e3)}),this.mPreviewIntersection=new IntersectionObserver(c=>{for(let m of c){let v=this.mElementDriver.get(m.target);if(!v)continue;let y=v.deref();y&&this.mDriverActivity.set(y,m.isIntersecting)}})}async execute(){let t=this.mDriverList.map(async e=>{let o=e.deref();if(o&&this.mDriverActivity.get(o))try{await o.execute()}catch(c){console.error("[PotatnoUiManagerPreview] Driver render failed:",c)}});await Promise.all(t)}refresh(){if(this.mManager.integrity.isValid)for(let t=this.mDriverList.length-1;t>=0;t--){let e=this.mDriverList[t].deref();if(!e){this.unregister(this.mDriverList[t]);continue}e.refresh()}}requestDriver(t,e){let o=this.mDrivers.get(t);if(o&&o.display.id===e)return o;let c=t.project.preview.getDisplay(e);if(!c)throw new A(`Preview has no display for "${e}".`,this);let m=c.createDriver(t);return this.register(t,m),this.mManager.integrity.isValid&&m.refresh(),m}register(t,e){this.mDrivers.set(t,e);let o=new WeakRef(e);this.mDriverList.push(o);let c=e.element;this.mDriverElements.set(o,c),this.mElementDriver.set(c,o),this.mPreviewIntersection.observe(c)}unregister(t){let e=this.mDriverList.indexOf(t);if(e===-1)return;this.mDriverList.splice(e,1);let o=this.mDriverElements.get(t);o&&this.mPreviewIntersection.unobserve(o)}};function ns(){function f(l,n){return function(a){e(n,"addInitializer"),o(a,"An initializer"),l.push(a)}}function t(l,n,u,a,r,b,g,D,w){var p;switch(r){case 1:p="accessor";break;case 2:p="method";break;case 3:p="getter";break;case 4:p="setter";break;default:p="field"}var s={kind:p,name:g?"#"+n:n,static:b,private:g,metadata:D},d={v:!1};s.addInitializer=f(a,d);var i,h;r===0?g?(i=u.get,h=u.set):(i=function(){return this[n]},h=function(x){this[n]=x}):r===2?i=function(){return u.value}:((r===1||r===3)&&(i=function(){return u.get.call(this)}),(r===1||r===4)&&(h=function(x){u.set.call(this,x)})),s.access=i&&h?{get:i,set:h}:i?{get:i}:{set:h};try{return l(w,s)}finally{d.v=!0}}function e(l,n){if(l.v)throw new Error("attempted to call "+n+" after decoration was finished")}function o(l,n){if(typeof l!="function")throw new TypeError(n+" must be a function")}function c(l,n){var u=typeof n;if(l===1){if(u!=="object"||n===null)throw new TypeError("accessor decorators must return an object with get, set, or init properties or void 0");n.get!==void 0&&o(n.get,"accessor.get"),n.set!==void 0&&o(n.set,"accessor.set"),n.init!==void 0&&o(n.init,"accessor.init")}else if(u!=="function"){var a;throw l===0?a="field":l===10?a="class":a="method",new TypeError(a+" decorators must return a function or void 0")}}function m(l,n,u,a,r,b,g,D,w){var p=u[0],s,d,i;g?r===0||r===1?s={get:u[3],set:u[4]}:r===3?s={get:u[3]}:r===4?s={set:u[3]}:s={value:u[3]}:r!==0&&(s=Object.getOwnPropertyDescriptor(n,a)),r===1?i={get:s.get,set:s.set}:r===2?i=s.value:r===3?i=s.get:r===4&&(i=s.set);var h,x,S;if(typeof p=="function")h=t(p,a,s,D,r,b,g,w,i),h!==void 0&&(c(r,h),r===0?d=h:r===1?(d=h.init,x=h.get||i.get,S=h.set||i.set,i={get:x,set:S}):i=h);else for(var P=p.length-1;P>=0;P--){var M=p[P];if(h=t(M,a,s,D,r,b,g,w,i),h!==void 0){c(r,h);var N;r===0?N=h:r===1?(N=h.init,x=h.get||i.get,S=h.set||i.set,i={get:x,set:S}):i=h,N!==void 0&&(d===void 0?d=N:typeof d=="function"?d=[d,N]:d.push(N))}}if(r===0||r===1){if(d===void 0)d=function(I,E){return E};else if(typeof d!="function"){var F=d;d=function(I,E){for(var L=E,R=0;R<F.length;R++)L=F[R].call(I,L);return L}}else{var V=d;d=function(I,E){return V.call(I,E)}}l.push(d)}r!==0&&(r===1?(s.get=i.get,s.set=i.set):r===2?s.value=i:r===3?s.get=i:r===4&&(s.set=i),g?r===1?(l.push(function(I,E){return i.get.call(I,E)}),l.push(function(I,E){return i.set.call(I,E)})):r===2?l.push(i):l.push(function(I,E){return i.call(I,E)}):Object.defineProperty(n,a,s))}function v(l,n,u){for(var a=[],r,b,g=new Map,D=new Map,w=0;w<n.length;w++){var p=n[w];if(Array.isArray(p)){var s=p[1],d=p[2],i=p.length>3,h=s>=5,x,S;if(h?(x=l,s=s-5,b=b||[],S=b):(x=l.prototype,r=r||[],S=r),s!==0&&!i){var P=h?D:g,M=P.get(d)||0;if(M===!0||M===3&&s!==4||M===4&&s!==3)throw new Error("Attempted to decorate a public method/accessor that has the same name as a previously decorated public method/accessor. This is not currently supported by the decorators plugin. Property name was: "+d);!M&&s>2?P.set(d,s):P.set(d,!0)}m(a,x,p,d,s,h,i,S,u)}}return y(a,r),y(a,b),a}function y(l,n){n&&l.push(function(u){for(var a=0;a<n.length;a++)n[a].call(u);return u})}function T(l,n,u){if(n.length>0){for(var a=[],r=l,b=l.name,g=n.length-1;g>=0;g--){var D={v:!1};try{var w=n[g](r,{kind:"class",name:b,addInitializer:f(a,D),metadata:u})}finally{D.v=!0}w!==void 0&&(c(10,w),r=w)}return[C(r,u),function(){for(var p=0;p<a.length;p++)a[p].call(r)}]}}function C(l,n){return Object.defineProperty(l,Symbol.metadata||Symbol.for("Symbol.metadata"),{configurable:!0,enumerable:!0,value:n})}return function(n,u,a,r){if(r!==void 0)var b=r[Symbol.metadata||Symbol.for("Symbol.metadata")];var g=Object.create(b===void 0?null:b),D=v(n,u,g);return a.length||C(n,g),{e:D,get c(){return T(n,a,g)}}}}function fo(f,t,e,o){return(fo=ns())(f,t,e,o)}var po,uo,ho,K;po=O.injectable("singleton");var mo=class extends(ho=EventTarget){static{({c:[K,uo]}=fo(this,[],[po],ho))}constructor(){super(),this.mClipboard=new je(this),this.mIntegrity=new Ue(this),this.mConnections=new ze(this),this.mGraph=new $e(this),this.mHistory=new Be(this),this.mPreview=new He(this),this.mGrid=new Ge,this.mProject=null,this.mActiveFunction=null,this.mEventBuffer=new Map,this.mEventBufferDispatchRequest=-1}mActiveFunction;mClipboard;mConnections;mEventBuffer;mEventBufferDispatchRequest;mGraph;mGrid;mHistory;mIntegrity;mPreview;mProject;get activeFunction(){return this.mActiveFunction}get clipboard(){return this.mClipboard}get connections(){return this.mConnections}get graph(){return this.mGraph}get grid(){return this.mGrid}get history(){return this.mHistory}get integrity(){return this.mIntegrity}get preview(){return this.mPreview}get project(){return this.mProject}dispatch(t,e){let o=this.mEventBuffer.get(e)??0;this.mEventBuffer.set(e,o|t),this.mEventBufferDispatchRequest!==-1&&globalThis.cancelAnimationFrame(this.mEventBufferDispatchRequest),this.mEventBufferDispatchRequest=requestAnimationFrame(()=>{this.mEventBufferDispatchRequest=-1;for(let[c,m]of this.mEventBuffer)this.dispatchEvent(new xe(m,c));this.mEventBuffer.clear()})}generateStringColor(t){let e=(()=>{let c=0;for(let m=0;m<t.length;m++)c=t.charCodeAt(m)+((c<<5)-c);return c})();return`hsl(${Math.abs(e)*137.508%360}, 70%, 60%)`}initialize(t){if(this.mProject)throw new A("Project was already initialized.",this);this.mProject=t,this.mGraph.setDocument(new Nt(t))}setActiveFunction(t){!this.mGraph.document||!this.mGraph.document.functions.find(o=>o===o)||(this.mActiveFunction=t,this.dispatch(_.SpecialActiveFunction,t))}subscribe(t,e){let o=c=>{t!==_.Any&&(c.changeType&t)===0||e(c)};return this.addEventListener(xe.EVENT_TYPE,o),()=>{this.removeEventListener(xe.EVENT_TYPE,o)}}updateFunctionProperties(t){let e=this.activeFunction;if(!e)return;let c=e.project.getFunction(e.definitionId)?.statics??ot.imports|ot.inputs|ot.outputs;if(t.name!==void 0&&(e.label=t.name),t.inputs!==void 0&&(c&ot.inputs)===0){for(let m of[...e.inputs])e.removeInput(m);for(let m of t.inputs)e.addInput({dataType:m.type,label:m.name})}if(t.outputs!==void 0&&(c&ot.outputs)===0){for(let m of[...e.outputs])e.removeOutput(m);for(let m of t.outputs)e.addOutput({dataType:m.type,label:m.name})}if(t.imports!==void 0&&(c&ot.imports)===0){let m=new Set(e.imports),v=new Set(t.imports);for(let y of[...e.imports])v.has(y)||e.removeImport(y);for(let y of t.imports)m.has(y)||e.addImport(y)}this.dispatch(_.FunctionUpdate,e)}static{uo()}},_={Any:16777215,Connection:15,ConnectionAdd:1,ConnectionUpdate:2,ConnectionDelete:4,Document:240,Function:3840,FunctionAdd:256,FunctionUpdate:512,FunctionDelete:1024,Node:61440,NodeAdd:4096,NodeUpdate:8192,NodeDelete:16384,NodeTransform:32768,Port:983040,PortAdd:65536,PortUpdate:131072,PortDelete:262144,Special:15728640,SpecialActiveFunction:1048576},xe=class f extends Event{static EVENT_TYPE="PotatnoUiManagerChangeEvent";mChangeType;mEventItem;get changeType(){return this.mChangeType}get item(){return this.mEventItem}constructor(t,e){super(f.EVENT_TYPE),this.mChangeType=t,this.mEventItem=e}};var go=`:host {\r
+}`;var Qt=class{mCodeGenerator;mId;mLabel;mNodesProvider;mStatics;get codeGenerator(){return this.mCodeGenerator}get id(){return this.mId}get label(){return this.mLabel}get statics(){return this.mStatics}constructor(t){this.mId=t.id,this.mLabel=t.label,this.mNodesProvider=t.nodes,this.mStatics=t.statics,this.mCodeGenerator=t.generator.code}getNodeDefinitions(t){let e=c=>{if(!c)return new Array;let m=new Array;return c(v=>{m.push(v)},t),m},o={};return Object.defineProperty(o,"entry",{get:()=>e(this.mNodesProvider.entry)}),Object.defineProperty(o,"exit",{get:()=>e(this.mNodesProvider.exit)}),Object.defineProperty(o,"dynamic",{get:()=>e(this.mNodesProvider.dynamic)}),o}},ot={none:0,imports:1,inputs:2,outputs:4};var je=class f{static PASTE_OFFSET=2;mClipboardNodes;mManager;constructor(t){this.mManager=t,this.mClipboardNodes=new Array}copy(t){if(t.size===0)return;let e=[...t],o=new Map;for(let c=0;c<e.length;c++){let m=e[c],v=m.inputs.value.map(T=>({definitionId:T.definitionId,values:[...T.directValue]})),y={...m.transformation};y.x+=f.PASTE_OFFSET,y.y+=f.PASTE_OFFSET,o.set(m,{connections:new Array,definitionId:m.definitionId,id:c,portDirectValues:v,label:m.label,transformation:y})}for(let[c,m]of o)for(let v of c.outputs.list)for(let y of v.connectedPorts){let T=o.get(y.node);T&&m.connections.push({sourcePortName:v.definitionId,targetNodeId:T.id,targetPortName:y.definitionId})}this.mClipboardNodes=[...o.values()]}paste(){if(this.mClipboardNodes.length===0)return new Array;let t=this.mManager.activeFunction;if(!t)return[];let e=new Map;for(let o of this.mClipboardNodes){let c=t.dynamicNodeDefinitions.find(v=>v.id===o.definitionId);if(!c)continue;let m=this.mManager.graph.addNode(t,c,o.transformation);this.mManager.graph.updateNode(m,v=>{v.label=o.label;for(let y of o.portDirectValues)v.inputs.map.has(y.definitionId)&&v.inputs.map.get(y.definitionId).setDirectValue(y.values)}),e.set(o.id,m)}for(let o of this.mClipboardNodes){let c=e.get(o.id);if(c)for(let m of o.connections){let v=e.get(m.targetNodeId);if(!v)continue;let y=c.outputs.map.get(m.sourcePortName),T=v.inputs.map.get(m.targetPortName);!y||!T||this.mManager.graph.connectPorts(y,T)}}return[...e.values()]}};var Ve=class extends se{mGridNodeArea;mGridPaths;mNodeArea;mPathArea;constructor(){super(),this.mGridNodeArea=new WeakMap,this.mNodeArea=new Map,this.mGridPaths=new WeakMap,this.mPathArea=new Map}clear(t){t==="all"&&this.mNodeArea.clear(),this.mPathArea.clear()}getPath(t,e){let o=t.direction==="input"&&t.portType==="value"||t.direction==="output"&&t.portType==="flow"?t:e;return this.mGridPaths.get(o)??new Array}removeNodeArea(t){if(!this.mGridNodeArea.has(t))return;let e=this.mGridNodeArea.get(t);for(let o of e){let c=(this.mNodeArea.get(o)??0)-1;c<1?this.mNodeArea.delete(o):this.mNodeArea.set(o,c)}this.mGridNodeArea.delete(t)}updateNodeArea(t){this.removeNodeArea(t);let e=t.transformation.x,o=t.transformation.y,c=t.transformation.width,m=t.transformation.height,v=new Array;for(let y=0;y<c;y++)for(let T=0;T<m;T++){let C=`${y+e}|${T+o}`,l=(this.mNodeArea.get(C)??0)+1;this.mNodeArea.set(C,l),v.push(C)}this.mGridNodeArea.set(t,v)}updatePath(t,e,o){if(t.direction==="input"&&t.portType!=="value"||t.direction==="output"&&t.portType!=="flow")throw new A("Start port must be an input-value or an output-flow node.",this);this.removePathArea(t);let c=this.start(e,o);this.mGridPaths.set(t,c.path);let m=this.nodeId(e),v=this.nodeId(o);for(let y of c.path){let T=this.nodeId(y),C=this.mPathArea.has(T)?this.mPathArea.get(T):{ports:new Map,entryPoints:new Set};C.ports.set(t,[m,v]),C.entryPoints.add(m),C.entryPoints.add(v),this.mPathArea.set(T,C)}}costOfTraversal(t,e){let o=this.nodeId(t),c=1;this.mNodeArea.has(o)&&t!==e.endNode&&(c*=20);let m=e.path.next().value;if(this.mPathArea.has(o)){let l=this.mPathArea.get(o),n=this.nodeId(e.startNode),u=this.nodeId(e.endNode);if(l.entryPoints.has(n)||l.entryPoints.has(u))c*=.2;else if(c*=5,m){let a=this.nodeId(m);this.mPathArea.has(a)&&(c*=20)}}if(m){let l=t.y===m.y;(t===e.endNode||m===e.startNode)&&!l&&(c*=100);let n=e.path.next().value;n&&(t.x===n.x||t.y===n.y)&&(c*=.7)}let v=Math.abs(t.x-e.startNode.x),y=Math.abs(t.x-e.endNode.x),T=v<=y;(T&&t.y===e.startNode.y||!T&&t.y===e.endNode.y)&&(c*=.5);let C=e.endNode.x+e.startNode.x>>1;return t.x===C&&(c*=.5),c}heuristic(t,e){return(Math.abs(t.x-e.endNode.x)+Math.abs(t.y-e.endNode.y))*.5}neighborNodes(t){return[{x:t.x,y:t.y-1},{x:t.x-1,y:t.y},{x:t.x+1,y:t.y},{x:t.x,y:t.y+1}]}nodeId(t){return`${t.x}|${t.y}`}removePathArea(t){if(!this.mGridPaths.has(t))return;let e=this.mGridPaths.get(t);for(let o of e){let c=this.nodeId(o),m=this.mPathArea.get(c);if(!m)continue;let v=m.ports.get(t);v&&(m.ports.delete(t),m.entryPoints.delete(v[0]),m.entryPoints.delete(v[1]),m.ports.size===0?this.mPathArea.delete(c):this.mPathArea.set(c,m))}this.mGridPaths.delete(t)}};var ze=class{mGridElement;mManager;mPathFinder;set gridElement(t){this.mGridElement=t}constructor(t){this.mManager=t,this.mGridElement=null,this.mPathFinder=new Ve,this.mManager.subscribe(_.Node|_.SpecialActiveFunction,e=>{if((e.changeType&_.SpecialActiveFunction)>0){if(!this.mManager.activeFunction)return;this.mPathFinder.clear("all");for(let o of this.mManager.activeFunction.nodes)this.mPathFinder.updateNodeArea(o);this.updatePaths();return}(e.changeType&_.Node)>0&&((e.changeType&_.NodeDelete)>0?this.mPathFinder.removeNodeArea(e.item):this.mPathFinder.updateNodeArea(e.item)),this.updatePaths()}),this.mManager.subscribe(_.Connection,()=>{this.updatePaths()})}createTemporaryPath(t,e){let o=y=>y instanceof ht?this.getPortGridPoint(y):y,c=o(t),m=o(e),v=this.mPathFinder.start(c,m).path;return this.createSvgPath(v)}getConnectionPath(t,e){let o=this.mPathFinder.getPath(t,e);return this.createSvgPath(o)}getPortGridPoint(t){let e=t.node,o=t.direction==="input"?e.inputs.list:e.outputs.list,c=(()=>{let v=0;for(;v<o.length&&o[v]!==t;v++);return v})(),m=t.direction==="input"?e.transformation.x:e.transformation.x+e.transformation.width-1;return{y:e.transformation.y+1+c,x:m}}pixelToGridSpace(t,e){let o=t,c=e;if(this.mGridElement){let m=this.mGridElement.getBoundingClientRect();o-=m.left,c-=m.top}return o-=this.mManager.grid.panX,c-=this.mManager.grid.panY,o/=this.mManager.grid.zoom,c/=this.mManager.grid.zoom,{x:Math.floor(o/this.mManager.grid.gridSize),y:Math.floor(c/this.mManager.grid.gridSize)}}createGridCellPath(t,e,o){let c=this.getGridPosition(t,e),m=this.getGridPosition(t,o),v={x:e==="bottom"||e==="top"?c.x:m.x,y:e==="left"||e==="right"?c.y:m.y};return`M ${c.x},${c.y} Q ${v.x},${v.y} ${m.x},${m.y}`}createPath(t,e){let[o,c]=t.direction==="input"&&t.portType==="value"||t.direction==="output"&&t.portType==="flow"?[t,e]:[e,t],m=this.getPortGridPoint(o),v=this.getPortGridPoint(c);this.mPathFinder.updatePath(o,m,v)}createSvgPath(t){let e=(c,m)=>{let v=m.x-c.x,y=m.y-c.y;switch(!0){case(v===0&&y===1):return"bottom";case(v===0&&y===-1):return"top";case(v===-1&&y===0):return"left";case(v===1&&y===0):return"right";default:throw new A("Missformed path. Path points are not directly next to each other.",this)}},o="";for(let c=1;c<t.length-1;c++){let m=t[c],v=t[c-1],y=t[c+1],T=e(m,v),C=e(m,y);o+=this.createGridCellPath(m,T,C)}return o}getGridPosition(t,e){let o={x:t.x*this.mManager.grid.gridSize+this.mManager.grid.gridSize/2,y:t.y*this.mManager.grid.gridSize+this.mManager.grid.gridSize/2},c=this.mManager.grid.gridSize/2;switch(e){case"top":o.y-=c;break;case"right":o.x+=c;break;case"bottom":o.y+=c;break;case"left":o.x-=c;break}return o}updatePaths(){this.mPathFinder.clear("path");let t=this.mManager.activeFunction;if(t)for(let e of t.nodes){for(let o of e.outputs.flow){let c=o.connectedPorts.values().next().value;c&&this.createPath(o,c)}for(let o of e.inputs.value){let c=o.connectedPorts.values().next().value;c&&this.createPath(o,c)}}}};var $e=class{mDocument;mManager;get document(){return this.mDocument}constructor(t){this.mManager=t,this.mDocument=null}addFunction(t){let e=this.mDocument;if(!e||!e.project.userFunctions.has(t))return;let o=new yt(e.project,e,{definitionId:t,id:crypto.randomUUID(),isSystem:!1,label:`Function_${e.functions.length}`});e.addFunction(o),e.validate(),this.mManager.dispatch(_.FunctionAdd,o),this.mManager.setActiveFunction(o)}addNode(t,e,o){let c=t.addNodeByDefinition(e,o);return this.mManager.dispatch(_.NodeAdd,c),c}connectPorts(t,e){try{t.connect(e)}catch{return!1}return this.mManager.dispatch(_.ConnectionAdd,t),this.mManager.dispatch(_.ConnectionAdd,e),!0}disconnectPorts(t,e){t.disconnect(e),this.mManager.dispatch(_.ConnectionDelete,t),this.mManager.dispatch(_.ConnectionDelete,e)}removeFunction(t){let e=this.mDocument;if(!e)return;let o=null;for(let c of e.functions)if(c.id===t){o=c,e.removeFunction(c);break}o&&(this.mManager.dispatch(_.FunctionDelete,o),this.setDefaultActiveFunction())}removeNode(t){t.function.removeNode(t),this.mManager.dispatch(_.NodeDelete,t)}setDocument(t){this.mDocument=t,this.mDocument.validate(),this.mManager.dispatch(_.Document,this.mDocument),this.setDefaultActiveFunction()}setPortDirectValue(t,e){t.setDirectValue(e),this.mManager.dispatch(_.NodeUpdate,t.node)}transformNode(t,e){let o={x:t.transformation.x,y:t.transformation.y,width:t.transformation.width,height:t.transformation.height,...e};t.moveTo(o.x,o.y),t.resizeTo(o.width,o.height),this.mManager.dispatch(_.NodeTransform,t)}updateFunction(t,e){t&&(e(t),this.mManager.dispatch(_.FunctionUpdate,t))}updateNode(t,e){t&&(e(t),this.mManager.dispatch(_.NodeUpdate,t))}setDefaultActiveFunction(){if(!this.mDocument||this.mDocument.functions.length===0)return;let t=(()=>{let e=[...this.mDocument.functions];if(!this.mManager.activeFunction)return e[0];let o=e.find(c=>c.id===this.mManager.activeFunction.id);return o||e[0]})();this.mManager.activeFunction!==t&&this.mManager.setActiveFunction(t)}};var Ge=class f{static GRID_SIZE=25;static MAX_ZOOM=2;static MIN_ZOOM=.25;mPanX;mPanY;mZoom;get gridSize(){return f.GRID_SIZE}get panX(){return this.mPanX}get panY(){return this.mPanY}get zoom(){return this.mZoom}constructor(){this.mPanX=0,this.mPanY=0,this.mZoom=1}getGridBackgroundCss(){let t=f.GRID_SIZE*this.mZoom,e=this.mPanX%t,o=this.mPanY%t;return[`background-size: ${t}px ${t}px`,`background-position: ${e}px ${o}px`,'background-image: url("data:image/svg+xml,%3Csvg xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22 viewBox%3D%220 0 100 100%22%3E%3Cpath d%3D%22M0 0h18M0 0v18M100 0H82M100 0v18M0 100h18M0 100V82M100 100H82M100 100V82%22 stroke%3D%22%23313244%22 stroke-width%3D%225%22 stroke-linecap%3D%22round%22%2F%3E%3C%2Fsvg%3E")'].join("; ")}getTransformCss(){return`translate(${this.mPanX}px, ${this.mPanY}px) scale(${this.mZoom})`}pan(t,e){this.mPanX+=t,this.mPanY+=e}screenToWorld(t,e){return{x:(t-this.mPanX)/this.mZoom,y:(e-this.mPanY)/this.mZoom}}snapToGrid(t,e){return{x:Math.round(t/f.GRID_SIZE)*f.GRID_SIZE,y:Math.round(e/f.GRID_SIZE)*f.GRID_SIZE}}zoomAt(t,e,o){let c=this.mZoom,m=1+o,v=this.mZoom*m;v=Math.max(f.MIN_ZOOM,Math.min(f.MAX_ZOOM,v));let y=(t-this.mPanX)/c,T=(e-this.mPanY)/c;this.mZoom=v,this.mPanX=t-y*this.mZoom,this.mPanY=e-T*this.mZoom}};var Be=class f{static MAX_HISTORY_ITEMS=100;mManager;mSnapshotIndex;mSnapshots;get canRedo(){return this.mSnapshotIndex<this.mSnapshots.length-1}get canUndo(){return this.mSnapshotIndex>0}constructor(t){this.mManager=t,this.mSnapshotIndex=-1,this.mSnapshots=new Array;let e=0;this.mManager.subscribe(_.Any,()=>{globalThis.clearTimeout(e),e=globalThis.setTimeout(()=>{this.pushHistory()},1e3)})}clear(){this.mSnapshots.length=0,this.mSnapshotIndex=-1}redo(){if(!this.canRedo)return;let t=this.mSnapshots[++this.mSnapshotIndex],e=JSON.parse(t);this.restoreHistory(e)}undo(){if(!this.canUndo)return;let t=this.mSnapshots[--this.mSnapshotIndex],e=JSON.parse(t);this.restoreHistory(e)}pushHistory(){let t=this.mManager.graph.document;if(!t)return;this.mSnapshots.splice(this.mSnapshotIndex+1);let e=new Kt().serialize(t),o=JSON.stringify(e);this.mSnapshots.length>0&&this.mSnapshots.at(-1)===o||(this.mSnapshotIndex=this.mSnapshots.push(o)-1,this.mSnapshots.length>f.MAX_HISTORY_ITEMS&&(this.mSnapshots.shift(),this.mSnapshotIndex--))}restoreHistory(t){let e=this.mManager.project;e&&this.mManager.graph.setDocument(new Jt(e).deserialize(t))}};var Ue=class{mErrorItems;mErrorList;mIsDirty;mManager;get errorItems(){return this.mIsDirty&&this.revalidate(),this.mErrorItems}get errors(){return this.mIsDirty&&this.revalidate(),this.mErrorList}get isValid(){return this.mIsDirty&&this.revalidate(),this.mErrorItems.size===0}constructor(t){this.mManager=t,this.mErrorList=new Array,this.mErrorItems=new Set,this.mIsDirty=!0;let e=0;this.mManager.subscribe(_.Any,()=>{this.mIsDirty=!0,globalThis.clearTimeout(e),e=globalThis.setTimeout(()=>{this.mIsDirty&&(this.revalidate(),this.mIsDirty=!1)},1e3)})}revalidate(){if(!this.mManager.graph.document)return;this.mErrorList.splice(0,this.mErrorList.length),this.mErrorItems.clear();let t=this.mManager.graph.document.validate();for(let e of t.errors)switch(this.mErrorItems.add(e.item),!0){case e.item instanceof ht:{this.mErrorList.push({location:`Node "${e.item.node.label}"`,message:e.message});break}case e.item instanceof Dt:{this.mErrorList.push({location:`Node "${e.item.label}"`,message:e.message});break}}for(let e of t.affectedItems)switch(!0){case e instanceof ht:{this.mManager.dispatch(_.PortAdd|_.PortUpdate,e),this.mManager.dispatch(_.NodeUpdate,e.node);break}case e instanceof Dt:{this.mManager.dispatch(_.NodeAdd|_.NodeUpdate|_.NodeTransform,e);break}case e instanceof yt:{this.mManager.dispatch(_.FunctionAdd|_.FunctionUpdate,e);break}}}};var He=class{mDriverActivity;mDriverElements;mDriverList;mDrivers;mElementDriver;mManager;mPreviewIntersection;constructor(t){this.mManager=t,this.mDriverList=new Array,this.mDrivers=new WeakMap,this.mDriverActivity=new WeakMap,this.mDriverElements=new WeakMap,this.mElementDriver=new WeakMap,this.mManager.subscribe(_.Document,()=>{this.mDriverList.splice(0,this.mDriverList.length)});let e=0,o=_.Connection|_.Function|_.Node;this.mManager.subscribe(o,()=>{globalThis.clearTimeout(e),e=globalThis.setTimeout(()=>this.refresh(),1e3)}),this.mPreviewIntersection=new IntersectionObserver(c=>{for(let m of c){let v=this.mElementDriver.get(m.target);if(!v)continue;let y=v.deref();y&&this.mDriverActivity.set(y,m.isIntersecting)}})}async execute(){let t=this.mDriverList.map(async e=>{let o=e.deref();if(o&&this.mDriverActivity.get(o))try{await o.execute()}catch(c){console.error("[PotatnoUiManagerPreview] Driver render failed:",c)}});await Promise.all(t)}refresh(){if(this.mManager.integrity.isValid)for(let t=this.mDriverList.length-1;t>=0;t--){let e=this.mDriverList[t].deref();if(!e){this.unregister(this.mDriverList[t]);continue}e.refresh()}}requestDriver(t,e){let o=this.mDrivers.get(t);if(o&&o.display.id===e)return o;let c=t.project.preview.getDisplay(e);if(!c)throw new A(`Preview has no display for "${e}".`,this);let m=c.createDriver(t);return this.register(t,m),this.mManager.integrity.isValid&&m.refresh(),m}register(t,e){this.mDrivers.set(t,e);let o=new WeakRef(e);this.mDriverList.push(o);let c=e.element;this.mDriverElements.set(o,c),this.mElementDriver.set(c,o),this.mPreviewIntersection.observe(c)}unregister(t){let e=this.mDriverList.indexOf(t);if(e===-1)return;this.mDriverList.splice(e,1);let o=this.mDriverElements.get(t);o&&this.mPreviewIntersection.unobserve(o)}};function ns(){function f(l,n){return function(a){e(n,"addInitializer"),o(a,"An initializer"),l.push(a)}}function t(l,n,u,a,r,b,g,D,w){var p;switch(r){case 1:p="accessor";break;case 2:p="method";break;case 3:p="getter";break;case 4:p="setter";break;default:p="field"}var s={kind:p,name:g?"#"+n:n,static:b,private:g,metadata:D},d={v:!1};s.addInitializer=f(a,d);var i,h;r===0?g?(i=u.get,h=u.set):(i=function(){return this[n]},h=function(x){this[n]=x}):r===2?i=function(){return u.value}:((r===1||r===3)&&(i=function(){return u.get.call(this)}),(r===1||r===4)&&(h=function(x){u.set.call(this,x)})),s.access=i&&h?{get:i,set:h}:i?{get:i}:{set:h};try{return l(w,s)}finally{d.v=!0}}function e(l,n){if(l.v)throw new Error("attempted to call "+n+" after decoration was finished")}function o(l,n){if(typeof l!="function")throw new TypeError(n+" must be a function")}function c(l,n){var u=typeof n;if(l===1){if(u!=="object"||n===null)throw new TypeError("accessor decorators must return an object with get, set, or init properties or void 0");n.get!==void 0&&o(n.get,"accessor.get"),n.set!==void 0&&o(n.set,"accessor.set"),n.init!==void 0&&o(n.init,"accessor.init")}else if(u!=="function"){var a;throw l===0?a="field":l===10?a="class":a="method",new TypeError(a+" decorators must return a function or void 0")}}function m(l,n,u,a,r,b,g,D,w){var p=u[0],s,d,i;g?r===0||r===1?s={get:u[3],set:u[4]}:r===3?s={get:u[3]}:r===4?s={set:u[3]}:s={value:u[3]}:r!==0&&(s=Object.getOwnPropertyDescriptor(n,a)),r===1?i={get:s.get,set:s.set}:r===2?i=s.value:r===3?i=s.get:r===4&&(i=s.set);var h,x,S;if(typeof p=="function")h=t(p,a,s,D,r,b,g,w,i),h!==void 0&&(c(r,h),r===0?d=h:r===1?(d=h.init,x=h.get||i.get,S=h.set||i.set,i={get:x,set:S}):i=h);else for(var P=p.length-1;P>=0;P--){var M=p[P];if(h=t(M,a,s,D,r,b,g,w,i),h!==void 0){c(r,h);var N;r===0?N=h:r===1?(N=h.init,x=h.get||i.get,S=h.set||i.set,i={get:x,set:S}):i=h,N!==void 0&&(d===void 0?d=N:typeof d=="function"?d=[d,N]:d.push(N))}}if(r===0||r===1){if(d===void 0)d=function(I,E){return E};else if(typeof d!="function"){var F=d;d=function(I,E){for(var L=E,R=0;R<F.length;R++)L=F[R].call(I,L);return L}}else{var V=d;d=function(I,E){return V.call(I,E)}}l.push(d)}r!==0&&(r===1?(s.get=i.get,s.set=i.set):r===2?s.value=i:r===3?s.get=i:r===4&&(s.set=i),g?r===1?(l.push(function(I,E){return i.get.call(I,E)}),l.push(function(I,E){return i.set.call(I,E)})):r===2?l.push(i):l.push(function(I,E){return i.call(I,E)}):Object.defineProperty(n,a,s))}function v(l,n,u){for(var a=[],r,b,g=new Map,D=new Map,w=0;w<n.length;w++){var p=n[w];if(Array.isArray(p)){var s=p[1],d=p[2],i=p.length>3,h=s>=5,x,S;if(h?(x=l,s=s-5,b=b||[],S=b):(x=l.prototype,r=r||[],S=r),s!==0&&!i){var P=h?D:g,M=P.get(d)||0;if(M===!0||M===3&&s!==4||M===4&&s!==3)throw new Error("Attempted to decorate a public method/accessor that has the same name as a previously decorated public method/accessor. This is not currently supported by the decorators plugin. Property name was: "+d);!M&&s>2?P.set(d,s):P.set(d,!0)}m(a,x,p,d,s,h,i,S,u)}}return y(a,r),y(a,b),a}function y(l,n){n&&l.push(function(u){for(var a=0;a<n.length;a++)n[a].call(u);return u})}function T(l,n,u){if(n.length>0){for(var a=[],r=l,b=l.name,g=n.length-1;g>=0;g--){var D={v:!1};try{var w=n[g](r,{kind:"class",name:b,addInitializer:f(a,D),metadata:u})}finally{D.v=!0}w!==void 0&&(c(10,w),r=w)}return[C(r,u),function(){for(var p=0;p<a.length;p++)a[p].call(r)}]}}function C(l,n){return Object.defineProperty(l,Symbol.metadata||Symbol.for("Symbol.metadata"),{configurable:!0,enumerable:!0,value:n})}return function(n,u,a,r){if(r!==void 0)var b=r[Symbol.metadata||Symbol.for("Symbol.metadata")];var g=Object.create(b===void 0?null:b),D=v(n,u,g);return a.length||C(n,g),{e:D,get c(){return T(n,a,g)}}}}function fo(f,t,e,o){return(fo=ns())(f,t,e,o)}var po,uo,ho,K;po=O.injectable("singleton");var mo=class extends(ho=EventTarget){static{({c:[K,uo]}=fo(this,[],[po],ho))}constructor(){super(),this.mClipboard=new je(this),this.mIntegrity=new Ue(this),this.mConnections=new ze(this),this.mGraph=new $e(this),this.mHistory=new Be(this),this.mPreview=new He(this),this.mGrid=new Ge,this.mProject=null,this.mActiveFunction=null,this.mEventBuffer=new Map,this.mEventBufferDispatchRequest=-1}mActiveFunction;mClipboard;mConnections;mEventBuffer;mEventBufferDispatchRequest;mGraph;mGrid;mHistory;mIntegrity;mPreview;mProject;get activeFunction(){return this.mActiveFunction}get clipboard(){return this.mClipboard}get connections(){return this.mConnections}get graph(){return this.mGraph}get grid(){return this.mGrid}get history(){return this.mHistory}get integrity(){return this.mIntegrity}get preview(){return this.mPreview}get project(){return this.mProject}dispatch(t,e){let o=this.mEventBuffer.get(e)??0;this.mEventBuffer.set(e,o|t),this.mEventBufferDispatchRequest!==-1&&globalThis.cancelAnimationFrame(this.mEventBufferDispatchRequest),this.mEventBufferDispatchRequest=requestAnimationFrame(()=>{this.mEventBufferDispatchRequest=-1;for(let[c,m]of this.mEventBuffer)this.dispatchEvent(new xe(m,c));this.mEventBuffer.clear()})}generateStringColor(t){let e=(()=>{let c=0;for(let m=0;m<t.length;m++)c=t.charCodeAt(m)+((c<<5)-c);return c})();return`hsl(${Math.abs(e)*137.508%360}, 70%, 60%)`}initialize(t){if(this.mProject)throw new A("Project was already initialized.",this);this.mProject=t,this.mGraph.setDocument(new Nt(t))}setActiveFunction(t){!this.mGraph.document||!this.mGraph.document.functions.find(o=>o===o)||(this.mActiveFunction=t,this.dispatch(_.SpecialActiveFunction,t))}subscribe(t,e){let o=c=>{t!==_.Any&&(c.changeType&t)===0||e(c)};return this.addEventListener(xe.EVENT_TYPE,o),()=>{this.removeEventListener(xe.EVENT_TYPE,o)}}updateFunctionProperties(t){let e=this.activeFunction;if(!e)return;let c=e.project.getFunction(e.definitionId)?.statics??ot.imports|ot.inputs|ot.outputs;if(t.name!==void 0&&(e.label=t.name),t.inputs!==void 0&&(c&ot.inputs)===0){for(let m of[...e.inputs])e.removeInput(m);for(let m of t.inputs)e.addInput({dataType:m.type,label:m.name})}if(t.outputs!==void 0&&(c&ot.outputs)===0){for(let m of[...e.outputs])e.removeOutput(m);for(let m of t.outputs)e.addOutput({dataType:m.type,label:m.name})}if(t.imports!==void 0&&(c&ot.imports)===0){let m=new Set(e.imports),v=new Set(t.imports);for(let y of[...e.imports])v.has(y)||e.removeImport(y);for(let y of t.imports)m.has(y)||e.addImport(y)}this.dispatch(_.FunctionUpdate,e)}static{uo()}},_={Any:16777215,Connection:15,ConnectionAdd:1,ConnectionUpdate:2,ConnectionDelete:4,Document:240,Function:3840,FunctionAdd:256,FunctionUpdate:512,FunctionDelete:1024,Node:61440,NodeAdd:4096,NodeUpdate:8192,NodeDelete:16384,NodeTransform:32768,Port:983040,PortAdd:65536,PortUpdate:131072,PortDelete:262144,Special:15728640,SpecialActiveFunction:1048576},xe=class f extends Event{static EVENT_TYPE="PotatnoUiManagerChangeEvent";mChangeType;mEventItem;get changeType(){return this.mChangeType}get item(){return this.mEventItem}constructor(t,e){super(f.EVENT_TYPE),this.mChangeType=t,this.mEventItem=e}};var go=`:host {\r
     font-family: var(--potatno-font-family);\r
     font-size: var(--potatno-font-size);\r
 }\r
@@ -395,7 +395,7 @@ potatno-code-editor {\r
         border: none;
         border-bottom: 1px solid var(--potatno-color-border);
 
-        color: var(--potatno-color-accent);
+        color: var(--potatno-color-text);
         background-color: var(--potatno-color-background-dark);
 
         font-family: var(--potatno-font-family);
@@ -424,7 +424,7 @@ potatno-code-editor {\r
         width: 100%;
         padding: 5px 9px;
         align-items: center;
-        color: var(--potatno-color-accent);
+        color: var(--potatno-color-text);
         text-align: left;
         cursor: pointer;
 
@@ -444,6 +444,7 @@ potatno-code-editor {\r
             width: 1ch;
             height: 25px;
             
+            color: var(--potatno-color-accent);
             border-left: 3px solid var(--item-color);
         }
 
@@ -1389,25 +1390,10 @@ potatno-code-editor {\r
     /* Hopefully that cascade into all childs. */\r
     font-family: var(--potatno-font-family);\r
     font-size: var(--potatno-font-size);\r
-}\r
 \r
-.properties-header {\r
-    padding: 10px 12px;\r
-    font-family: var(--potatno-font-family);\r
-    font-size: var(--potatno-font-size-big);\r
-    font-weight: 600;\r
-    color: var(--potatno-color-text);\r
-    border-bottom: 1px solid var(--potatno-color-border);\r
-    background: var(--potatno-color-background-dark);\r
-    flex-shrink: 0;\r
-}\r
-\r
-.properties-content {\r
-    flex: 1;\r
+    /* Enable content scroll */\r
     overflow-y: auto;\r
     overflow-x: hidden;\r
-    padding: 8px 0;\r
-\r
     scrollbar-color: var(--potatno-color-scrollbar-thumb) var(--potatno-color-scrollbar-track);\r
     scrollbar-width: thin;\r
 }\r
@@ -1415,20 +1401,26 @@ potatno-code-editor {\r
 .section {\r
     padding: 8px 12px;\r
     border-bottom: 1px solid var(--potatno-color-border);\r
+\r
+    &:last-child {\r
+        border-bottom: none;\r
+    }\r
+\r
+    .section__label {\r
+        font-size: var(--potatno-font-size-small);\r
+        color: var(--potatno-color-accent);\r
+        text-transform: uppercase;\r
+        margin-bottom: 6px;\r
+    }\r
+\r
+    .section__empty {\r
+        color: var(--potatno-color-text);\r
+        font-size: var(--potatno-font-size-small);\r
+        font-style: italic;\r
+        padding: 4px 0;\r
+    }\r
 }\r
 \r
-.section:last-child {\r
-    border-bottom: none;\r
-}\r
-\r
-.section-label {\r
-    font-family: var(--potatno-font-family);\r
-    font-size: var(--potatno-font-size-small);\r
-    color: var(--pn-text-muted);\r
-    text-transform: uppercase;\r
-    letter-spacing: 0.5px;\r
-    margin-bottom: 6px;\r
-}\r
 \r
 .name-input {\r
     width: 100%;\r
@@ -1436,7 +1428,6 @@ potatno-code-editor {\r
     border: 1px solid var(--potatno-color-border);\r
     border-radius: 4px;\r
     color: var(--potatno-color-accent);\r
-    font-family: var(--potatno-font-family);\r
     font-size: var(--potatno-font-size);\r
     padding: 5px 8px;\r
     outline: none;\r
@@ -1454,7 +1445,7 @@ potatno-code-editor {\r
 }\r
 \r
 .name-input:disabled {\r
-    color: var(--pn-text-muted);\r
+    color: var(--potatno-color-text);\r
     background: var(--potatno-color-background-dark);\r
     cursor: not-allowed;\r
 }\r
@@ -1477,7 +1468,6 @@ potatno-code-editor {\r
     border: 1px solid var(--potatno-color-border);\r
     border-radius: 4px;\r
     color: var(--potatno-color-text);\r
-    font-family: var(--potatno-font-family);\r
     font-size: var(--potatno-font-size-small);\r
     padding: 4px 6px;\r
     outline: none;\r
@@ -1495,7 +1485,7 @@ potatno-code-editor {\r
 }\r
 \r
 .port-name-input:disabled {\r
-    color: var(--pn-text-muted);\r
+    color: var(--potatno-color-text);\r
     background: var(--potatno-color-background-dark);\r
     cursor: not-allowed;\r
 }\r
@@ -1506,7 +1496,6 @@ potatno-code-editor {\r
     border: 1px solid var(--potatno-color-border);\r
     border-radius: 4px;\r
     color: var(--potatno-color-text);\r
-    font-family: var(--potatno-font-family);\r
     font-size: var(--potatno-font-size-small);\r
     padding: 4px 6px;\r
     outline: none;\r
@@ -1519,7 +1508,7 @@ potatno-code-editor {\r
 }\r
 \r
 .port-type-input:disabled {\r
-    color: var(--pn-text-muted);\r
+    color: var(--potatno-color-text);\r
     background: var(--potatno-color-background-dark);\r
     cursor: not-allowed;\r
 }\r
@@ -1533,7 +1522,7 @@ potatno-code-editor {\r
     background: transparent;\r
     border: none;\r
     border-radius: 3px;\r
-    color: var(--pn-text-muted);\r
+    color: var(--potatno-color-text);\r
     font-size: var(--potatno-font-size-small);\r
     cursor: pointer;\r
     flex-shrink: 0;\r
@@ -1555,7 +1544,6 @@ potatno-code-editor {\r
 \r
 .import-name {\r
     flex: 1;\r
-    font-family: var(--potatno-font-family);\r
     font-size: var(--potatno-font-size-small);\r
     color: var(--potatno-color-text);\r
     padding: 4px 6px;\r
@@ -1570,7 +1558,6 @@ potatno-code-editor {\r
     border: 1px solid var(--potatno-color-border);\r
     border-radius: 4px;\r
     color: var(--potatno-color-text);\r
-    font-family: var(--potatno-font-family);\r
     font-size: var(--potatno-font-size-small);\r
     padding: 4px 6px;\r
     outline: none;\r
@@ -1610,7 +1597,6 @@ potatno-code-editor {\r
     border: 1px dashed var(--potatno-color-border);\r
     border-radius: 4px;\r
     color: var(--potatno-color-text);\r
-    font-family: var(--potatno-font-family);\r
     font-size: var(--potatno-font-size-small);\r
     cursor: pointer;\r
     transition: background 0.15s, border-color 0.15s, color 0.15s;\r
@@ -1620,115 +1606,107 @@ potatno-code-editor {\r
     background: var(--potatno-color-background-light);\r
     border-color: var(--potatno-color-accent);\r
     color: var(--potatno-color-text);\r
-}\r
+}`;var Wn=`<potatno-resize-box class="resize-box" left="true">\r
+    <div class="section">\r
+        <div class="section__label">Function Name</div>\r
+        <input class="name-input" type="text" [value]="this.functionName" [disabled]="this.nameDisabled" pattern="[a-zA-Z][a-zA-Z0-9_]*" title="Must start with a letter, use only letters, digits, underscores" (change)="this.onNameChange($event)" />\r
+    </div>\r
 \r
-.empty-note {\r
-    color: var(--pn-text-muted);\r
-    font-family: var(--potatno-font-family);\r
-    font-size: var(--potatno-font-size-small);\r
-    font-style: italic;\r
-    padding: 4px 0;\r
-}\r
-`;var Wn=`<potatno-resize-box class="resize-box" left="true">\r
-    <div class="properties-header">Properties</div>\r
-\r
-    <div class="properties-content">\r
-        <div class="section">\r
-            <div class="section-label">Function Name</div>\r
-            <input class="name-input" type="text" [value]="this.functionName" [disabled]="this.nameDisabled" pattern="[a-zA-Z][a-zA-Z0-9_]*" title="Must start with a letter, use only letters, digits, underscores" (change)="this.onNameChange($event)" />\r
-        </div>\r
-\r
-        <div class="section">\r
-            <div class="section-label">Inputs</div>\r
-            <div class="port-list">\r
-                $for(input of this.functionInputs; index = $index) {\r
-                    <div class="port-entry">\r
-                        <input class="port-name-input" type="text" [value]="this.input.name" [disabled]="this.inputsDisabled" pattern="[a-zA-Z][a-zA-Z0-9_]*" title="Must start with a letter, use only letters, digits, underscores" (change)="this.onInputNameChange(this.index, $event)" />\r
-                        <select class="port-type-input" [disabled]="this.inputsDisabled" (change)="this.onInputTypeChange(this.index, $event)">\r
-                            $for(t of this.availableTypes) {\r
-                                <option [value]="this.t" [selected]="this.t === this.input.type">{{this.t}}</option>\r
-                            }\r
-                        </select>\r
-                        $if(!this.inputsDisabled) {\r
-                            <button class="port-delete-button" (click)="this.onDeleteInput(this.index)">\u2715</button>\r
+    <div class="section">\r
+        <div class="section__label">Inputs</div>\r
+        <div class="port-list">\r
+            $for(input of this.functionInputs; index = $index) {\r
+                <div class="port-entry">\r
+                    <input class="port-name-input" type="text" [value]="this.input.name" [disabled]="this.inputsDisabled" pattern="[a-zA-Z][a-zA-Z0-9_]*" title="Must start with a letter, use only letters, digits, underscores" (change)="this.onInputNameChange(this.index, $event)" />\r
+                    <select class="port-type-input" [disabled]="this.inputsDisabled" (change)="this.onInputTypeChange(this.index, $event)">\r
+                        $for(t of this.availableTypes) {\r
+                            <option [value]="this.t" [selected]="this.t === this.input.type">{{this.t}}</option>\r
                         }\r
-                    </div>\r
-                }\r
-                $if(this.functionInputs.length === 0) {\r
-                    <div class="empty-note">No inputs defined.</div>\r
-                }\r
-            </div>\r
-            $if(!this.inputsDisabled) {\r
-                <button class="add-button" (click)="this.onAddInput()">+ Add Input</button>\r
+                    </select>\r
+                    $if(!this.inputsDisabled) {\r
+                        <button class="port-delete-button" (click)="this.onDeleteInput(this.index)">\u2715</button>\r
+                    }\r
+                </div>\r
+            }\r
+            $if(this.functionInputs.length === 0) {\r
+                <div class="section__empty">No inputs defined.</div>\r
             }\r
         </div>\r
+        $if(!this.inputsDisabled) {\r
+            <button class="add-button" (click)="this.onAddInput()">+ Add Input</button>\r
+        }\r
+    </div>\r
 \r
-        <div class="section">\r
-            <div class="section-label">Outputs</div>\r
-            <div class="port-list">\r
-                $for(output of this.functionOutputs; index = $index) {\r
-                    <div class="port-entry">\r
-                        <input class="port-name-input" type="text" [value]="this.output.name" [disabled]="this.outputsDisabled" pattern="[a-zA-Z][a-zA-Z0-9_]*" title="Must start with a letter, use only letters, digits, underscores" (change)="this.onOutputNameChange(this.index, $event)" />\r
-                        <select class="port-type-input" [disabled]="this.outputsDisabled" (change)="this.onOutputTypeChange(this.index, $event)">\r
-                            $for(t of this.availableTypes) {\r
-                                <option [value]="this.t" [selected]="this.t === this.output.type">{{this.t}}</option>\r
-                            }\r
-                        </select>\r
-                        $if(!this.outputsDisabled) {\r
-                            <button class="port-delete-button" (click)="this.onDeleteOutput(this.index)">\u2715</button>\r
+    <div class="section">\r
+        <div class="section__label">Outputs</div>\r
+        <div class="port-list">\r
+            $for(output of this.functionOutputs; index = $index) {\r
+                <div class="port-entry">\r
+                    <input class="port-name-input" type="text" [value]="this.output.name" [disabled]="this.outputsDisabled" pattern="[a-zA-Z][a-zA-Z0-9_]*" title="Must start with a letter, use only letters, digits, underscores" (change)="this.onOutputNameChange(this.index, $event)" />\r
+                    <select class="port-type-input" [disabled]="this.outputsDisabled" (change)="this.onOutputTypeChange(this.index, $event)">\r
+                        $for(t of this.availableTypes) {\r
+                            <option [value]="this.t" [selected]="this.t === this.output.type">{{this.t}}</option>\r
                         }\r
-                    </div>\r
-                }\r
-                $if(this.functionOutputs.length === 0) {\r
-                    <div class="empty-note">No outputs defined.</div>\r
-                }\r
-            </div>\r
-            $if(!this.outputsDisabled) {\r
-                <button class="add-button" (click)="this.onAddOutput()">+ Add Output</button>\r
+                    </select>\r
+                    $if(!this.outputsDisabled) {\r
+                        <button class="port-delete-button" (click)="this.onDeleteOutput(this.index)">\u2715</button>\r
+                    }\r
+                </div>\r
+            }\r
+            $if(this.functionOutputs.length === 0) {\r
+                <div class="section__empty">No outputs defined.</div>\r
             }\r
         </div>\r
+        $if(!this.outputsDisabled) {\r
+            <button class="add-button" (click)="this.onAddOutput()">+ Add Output</button>\r
+        }\r
+    </div>\r
 \r
-        <div class="section">\r
-            <div class="section-label">Imports</div>\r
-            <div class="port-list">\r
-                $for(imp of this.functionImports; index = $index) {\r
-                    <div class="import-entry">\r
-                        <span class="import-name">{{this.imp.label}}</span>\r
-                        $if(!this.importsDisabled) {\r
-                            <button class="port-delete-button" (click)="this.onDeleteImport(this.index)">\u2715</button>\r
-                        }\r
-                    </div>\r
-                }\r
-                $if(this.functionImports.length === 0) {\r
-                    <div class="empty-note">No imports added.</div>\r
-                }\r
-            </div>\r
-            $if(!this.importsDisabled) {\r
-                $if(this.unusedImports.length > 0) {\r
-                    <div class="add-import-row">\r
-                        <select class="import-select" (change)="this.onImportSelectChange($event)">\r
-                            $for(avail of this.unusedImports) {\r
-                                <option [value]="this.avail.id">{{this.avail.label}}</option>\r
-                            }\r
-                        </select>\r
-                        <button class="add-button" (click)="this.onAddSelectedImport()">+ Add</button>\r
-                    </div>\r
-                }\r
+    <div class="section">\r
+        <div class="section__label">Imports</div>\r
+        <div class="port-list">\r
+            $for(imp of this.functionImports; index = $index) {\r
+                <div class="import-entry">\r
+                    <span class="import-name">{{this.imp.label}}</span>\r
+                    $if(!this.importsDisabled) {\r
+                        <button class="port-delete-button" (click)="this.onDeleteImport(this.index)">\u2715</button>\r
+                    }\r
+                </div>\r
+            }\r
+            $if(this.functionImports.length === 0) {\r
+                <div class="section__empty">No imports added.</div>\r
             }\r
         </div>\r
+        $if(!this.importsDisabled) {\r
+            $if(this.unusedImports.length > 0) {\r
+                <div class="add-import-row">\r
+                    <select class="import-select" (change)="this.onImportSelectChange($event)">\r
+                        $for(avail of this.unusedImports) {\r
+                            <option [value]="this.avail.id">{{this.avail.label}}</option>\r
+                        }\r
+                    </select>\r
+                    <button class="add-button" (click)="this.onAddSelectedImport()">+ Add</button>\r
+                </div>\r
+            }\r
+        }\r
     </div>\r
 </potatno-resize-box>\r
 `;function As(){function f(l,n){return function(a){e(n,"addInitializer"),o(a,"An initializer"),l.push(a)}}function t(l,n,u,a,r,b,g,D,w){var p;switch(r){case 1:p="accessor";break;case 2:p="method";break;case 3:p="getter";break;case 4:p="setter";break;default:p="field"}var s={kind:p,name:g?"#"+n:n,static:b,private:g,metadata:D},d={v:!1};s.addInitializer=f(a,d);var i,h;r===0?g?(i=u.get,h=u.set):(i=function(){return this[n]},h=function(x){this[n]=x}):r===2?i=function(){return u.value}:((r===1||r===3)&&(i=function(){return u.get.call(this)}),(r===1||r===4)&&(h=function(x){u.set.call(this,x)})),s.access=i&&h?{get:i,set:h}:i?{get:i}:{set:h};try{return l(w,s)}finally{d.v=!0}}function e(l,n){if(l.v)throw new Error("attempted to call "+n+" after decoration was finished")}function o(l,n){if(typeof l!="function")throw new TypeError(n+" must be a function")}function c(l,n){var u=typeof n;if(l===1){if(u!=="object"||n===null)throw new TypeError("accessor decorators must return an object with get, set, or init properties or void 0");n.get!==void 0&&o(n.get,"accessor.get"),n.set!==void 0&&o(n.set,"accessor.set"),n.init!==void 0&&o(n.init,"accessor.init")}else if(u!=="function"){var a;throw l===0?a="field":l===10?a="class":a="method",new TypeError(a+" decorators must return a function or void 0")}}function m(l,n,u,a,r,b,g,D,w){var p=u[0],s,d,i;g?r===0||r===1?s={get:u[3],set:u[4]}:r===3?s={get:u[3]}:r===4?s={set:u[3]}:s={value:u[3]}:r!==0&&(s=Object.getOwnPropertyDescriptor(n,a)),r===1?i={get:s.get,set:s.set}:r===2?i=s.value:r===3?i=s.get:r===4&&(i=s.set);var h,x,S;if(typeof p=="function")h=t(p,a,s,D,r,b,g,w,i),h!==void 0&&(c(r,h),r===0?d=h:r===1?(d=h.init,x=h.get||i.get,S=h.set||i.set,i={get:x,set:S}):i=h);else for(var P=p.length-1;P>=0;P--){var M=p[P];if(h=t(M,a,s,D,r,b,g,w,i),h!==void 0){c(r,h);var N;r===0?N=h:r===1?(N=h.init,x=h.get||i.get,S=h.set||i.set,i={get:x,set:S}):i=h,N!==void 0&&(d===void 0?d=N:typeof d=="function"?d=[d,N]:d.push(N))}}if(r===0||r===1){if(d===void 0)d=function(I,E){return E};else if(typeof d!="function"){var F=d;d=function(I,E){for(var L=E,R=0;R<F.length;R++)L=F[R].call(I,L);return L}}else{var V=d;d=function(I,E){return V.call(I,E)}}l.push(d)}r!==0&&(r===1?(s.get=i.get,s.set=i.set):r===2?s.value=i:r===3?s.get=i:r===4&&(s.set=i),g?r===1?(l.push(function(I,E){return i.get.call(I,E)}),l.push(function(I,E){return i.set.call(I,E)})):r===2?l.push(i):l.push(function(I,E){return i.call(I,E)}):Object.defineProperty(n,a,s))}function v(l,n,u){for(var a=[],r,b,g=new Map,D=new Map,w=0;w<n.length;w++){var p=n[w];if(Array.isArray(p)){var s=p[1],d=p[2],i=p.length>3,h=s>=5,x,S;if(h?(x=l,s=s-5,b=b||[],S=b):(x=l.prototype,r=r||[],S=r),s!==0&&!i){var P=h?D:g,M=P.get(d)||0;if(M===!0||M===3&&s!==4||M===4&&s!==3)throw new Error("Attempted to decorate a public method/accessor that has the same name as a previously decorated public method/accessor. This is not currently supported by the decorators plugin. Property name was: "+d);!M&&s>2?P.set(d,s):P.set(d,!0)}m(a,x,p,d,s,h,i,S,u)}}return y(a,r),y(a,b),a}function y(l,n){n&&l.push(function(u){for(var a=0;a<n.length;a++)n[a].call(u);return u})}function T(l,n,u){if(n.length>0){for(var a=[],r=l,b=l.name,g=n.length-1;g>=0;g--){var D={v:!1};try{var w=n[g](r,{kind:"class",name:b,addInitializer:f(a,D),metadata:u})}finally{D.v=!0}w!==void 0&&(c(10,w),r=w)}return[C(r,u),function(){for(var p=0;p<a.length;p++)a[p].call(r)}]}}function C(l,n){return Object.defineProperty(l,Symbol.metadata||Symbol.for("Symbol.metadata"),{configurable:!0,enumerable:!0,value:n})}return function(n,u,a,r){if(r!==void 0)var b=r[Symbol.metadata||Symbol.for("Symbol.metadata")];var g=Object.create(b===void 0?null:b),D=v(n,u,g);return a.length||C(n,g),{e:D,get c(){return T(n,a,g)}}}}function Jn(f,t,e,o){return(Jn=As())(f,t,e,o)}var Kn,Zn,Ls;Kn=W({selector:"potatno-panel-properties",template:Wn,style:Yn});var qn=class{static{({c:[Ls,Zn]}=Jn(this,[],[Kn]))}constructor(t=O.use($),e=O.use(K)){this.mComponent=t,this.mManager=e,this.mSelectedImportId="",this.mUnsubscribe=this.mManager.subscribe(_.Document|_.Function|_.SpecialActiveFunction,()=>{this.mComponent.updater.updateAsync()})}mComponent;mManager;mSelectedImportId;mUnsubscribe;get availableImports(){return this.mManager.project?.imports.map(t=>({id:t.id,label:t.label}))??[]}get availableTypes(){let t=this.mManager.project;if(!t)return[];let e=new Set;for(let[o]of t.types.types)e.add(o);return[...e].sort()}get functionImportIds(){return[...this.mManager.activeFunction?.imports??[]]}get functionImports(){let t=new Map(this.availableImports.map(e=>[e.id,e]));return this.functionImportIds.map(e=>t.get(e)??{id:e,label:e})}get functionInputs(){return(this.mManager.activeFunction?.inputs??[]).map(t=>({name:t.label,type:t.dataType}))}get functionName(){return this.mManager.activeFunction?.label??""}get functionOutputs(){return(this.mManager.activeFunction?.outputs??[]).map(t=>({name:t.label,type:t.dataType}))}get isSystem(){return this.mManager.activeFunction?.isSystem??!1}get nameDisabled(){return this.isSystem}get importsDisabled(){return this.hasStaticFlag(ot.imports)}get inputsDisabled(){return this.hasStaticFlag(ot.inputs)}get outputsDisabled(){return this.hasStaticFlag(ot.outputs)}get unusedImports(){let t=new Set(this.functionImportIds);return this.availableImports.filter(e=>!t.has(e.id))}onDeconstruct(){this.mUnsubscribe()}onAddSelectedImport(){let t=this.unusedImports,e=this.mSelectedImportId||(t.length>0?t[0].id:"");e&&(this.mManager.updateFunctionProperties({imports:[...this.functionImportIds,e]}),this.mSelectedImportId="")}onAddInput(){let t=this.availableTypes.length>0?this.availableTypes[0]:"number";this.mManager.updateFunctionProperties({inputs:[...this.functionInputs,{name:this.uniquePortName("new_input"),type:t}]})}onAddOutput(){let t=this.availableTypes.length>0?this.availableTypes[0]:"number";this.mManager.updateFunctionProperties({outputs:[...this.functionOutputs,{name:this.uniquePortName("new_output"),type:t}]})}onDeleteImport(t){let e=[...this.functionImportIds];e.splice(t,1),this.mManager.updateFunctionProperties({imports:e})}onDeleteInput(t){let e=[...this.functionInputs];e.splice(t,1),this.mManager.updateFunctionProperties({inputs:e})}onDeleteOutput(t){let e=[...this.functionOutputs];e.splice(t,1),this.mManager.updateFunctionProperties({outputs:e})}onImportSelectChange(t){this.mSelectedImportId=t.target.value}onInputNameChange(t,e){let o=e.target,c=o.value,m=this.isNameDuplicate(c,"input",t);o.style.borderColor=m?"var(--potatno-color-error)":"";let v=[...this.functionInputs];v[t]={...v[t],name:c},this.mManager.updateFunctionProperties({inputs:v})}onInputTypeChange(t,e){let o=e.target.value,c=[...this.functionInputs];c[t]={...c[t],type:o},this.mManager.updateFunctionProperties({inputs:c})}onNameChange(t){let e=t.target,o=e.value,c=this.isNameDuplicate(o,"function");e.style.borderColor=c?"var(--potatno-color-error)":"",this.mManager.updateFunctionProperties({name:o})}onOutputNameChange(t,e){let o=e.target,c=o.value,m=this.isNameDuplicate(c,"output",t);o.style.borderColor=m?"var(--potatno-color-error)":"";let v=[...this.functionOutputs];v[t]={...v[t],name:c},this.mManager.updateFunctionProperties({outputs:v})}onOutputTypeChange(t,e){let o=e.target.value,c=[...this.functionOutputs];c[t]={...c[t],type:o},this.mManager.updateFunctionProperties({outputs:c})}isNameDuplicate(t,e,o){if(e!=="function"&&t===this.functionName)return!0;let c=this.functionInputs;for(let v=0;v<c.length;v++)if(!(e==="input"&&v===o)&&c[v].name===t)return!0;let m=this.functionOutputs;for(let v=0;v<m.length;v++)if(!(e==="output"&&v===o)&&m[v].name===t)return!0;return!1}hasStaticFlag(t){let e=this.mManager.activeFunction;if(!e)return!0;let o=e.project.getFunction(e.definitionId);return o?(o.statics&t)!==0:!0}uniquePortName(t){if(!this.isNameDuplicate(t,"function"))return t;let e=2;for(;this.isNameDuplicate(`${t}_${e}`,"function");)e++;return`${t}_${e}`}static{Zn()}};var st=class{static MAIN="MAIN";mBuild;mDefaultParameters;mFunction;mTypes;get defaultParameters(){return this.mDefaultParameters}get function(){return this.mFunction}get types(){return this.mTypes}constructor(t,e){this.mFunction=t,this.mDefaultParameters=e.defaultParameters,this.mTypes=new Set(e.types),this.mBuild=e.build}compile(t,e){return this.mBuild({defaultParameters:this.mDefaultParameters,function:this.mFunction,projectTypes:t.entryPoint.function.project.types},t,e)}};var Qn=`:host {\r
-    display: block;\r
+    display: flex;\r
+    flex-direction: column;\r
     position: relative;\r
 }\r
 \r
 .container {\r
+    flex: 1;\r
     display: flex;\r
     flex-direction: column;\r
-\r
     box-sizing: border-box;\r
-    height: 100%;\r
+\r
+    /* Somehow this fixes overflow. Maybe min is set lower than current content size it is? */\r
+    min-height: 0;\r
+    min-width: 0;\r
+    \r
     width: 100%;\r
 \r
     /* Adjust for handle width */\r
@@ -1899,6 +1877,9 @@ $if(this.left) {
     border-bottom: 1px solid var(--potatno-color-border);\r
     background: var(--potatno-color-background-light);\r
     overflow: hidden;\r
+\r
+    /* Should never shrink */\r
+    flex-shrink: 0; \r
 \r
     .header__tabs {\r
         display: flex;\r

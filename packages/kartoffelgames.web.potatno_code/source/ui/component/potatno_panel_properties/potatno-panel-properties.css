@@ -16,25 +16,10 @@
     /* Hopefully that cascade into all childs. */
     font-family: var(--potatno-font-family);
     font-size: var(--potatno-font-size);
-}
 
-.properties-header {
-    padding: 10px 12px;
-    font-family: var(--potatno-font-family);
-    font-size: var(--potatno-font-size-big);
-    font-weight: 600;
-    color: var(--potatno-color-text);
-    border-bottom: 1px solid var(--potatno-color-border);
-    background: var(--potatno-color-background-dark);
-    flex-shrink: 0;
-}
-
-.properties-content {
-    flex: 1;
+    /* Enable content scroll */
     overflow-y: auto;
     overflow-x: hidden;
-    padding: 8px 0;
-
     scrollbar-color: var(--potatno-color-scrollbar-thumb) var(--potatno-color-scrollbar-track);
     scrollbar-width: thin;
 }
@@ -42,20 +27,26 @@
 .section {
     padding: 8px 12px;
     border-bottom: 1px solid var(--potatno-color-border);
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    .section__label {
+        font-size: var(--potatno-font-size-small);
+        color: var(--potatno-color-accent);
+        text-transform: uppercase;
+        margin-bottom: 6px;
+    }
+
+    .section__empty {
+        color: var(--potatno-color-text);
+        font-size: var(--potatno-font-size-small);
+        font-style: italic;
+        padding: 4px 0;
+    }
 }
 
-.section:last-child {
-    border-bottom: none;
-}
-
-.section-label {
-    font-family: var(--potatno-font-family);
-    font-size: var(--potatno-font-size-small);
-    color: var(--pn-text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 6px;
-}
 
 .name-input {
     width: 100%;
@@ -63,7 +54,6 @@
     border: 1px solid var(--potatno-color-border);
     border-radius: 4px;
     color: var(--potatno-color-accent);
-    font-family: var(--potatno-font-family);
     font-size: var(--potatno-font-size);
     padding: 5px 8px;
     outline: none;
@@ -81,7 +71,7 @@
 }
 
 .name-input:disabled {
-    color: var(--pn-text-muted);
+    color: var(--potatno-color-text);
     background: var(--potatno-color-background-dark);
     cursor: not-allowed;
 }
@@ -104,7 +94,6 @@
     border: 1px solid var(--potatno-color-border);
     border-radius: 4px;
     color: var(--potatno-color-text);
-    font-family: var(--potatno-font-family);
     font-size: var(--potatno-font-size-small);
     padding: 4px 6px;
     outline: none;
@@ -122,7 +111,7 @@
 }
 
 .port-name-input:disabled {
-    color: var(--pn-text-muted);
+    color: var(--potatno-color-text);
     background: var(--potatno-color-background-dark);
     cursor: not-allowed;
 }
@@ -133,7 +122,6 @@
     border: 1px solid var(--potatno-color-border);
     border-radius: 4px;
     color: var(--potatno-color-text);
-    font-family: var(--potatno-font-family);
     font-size: var(--potatno-font-size-small);
     padding: 4px 6px;
     outline: none;
@@ -146,7 +134,7 @@
 }
 
 .port-type-input:disabled {
-    color: var(--pn-text-muted);
+    color: var(--potatno-color-text);
     background: var(--potatno-color-background-dark);
     cursor: not-allowed;
 }
@@ -160,7 +148,7 @@
     background: transparent;
     border: none;
     border-radius: 3px;
-    color: var(--pn-text-muted);
+    color: var(--potatno-color-text);
     font-size: var(--potatno-font-size-small);
     cursor: pointer;
     flex-shrink: 0;
@@ -182,7 +170,6 @@
 
 .import-name {
     flex: 1;
-    font-family: var(--potatno-font-family);
     font-size: var(--potatno-font-size-small);
     color: var(--potatno-color-text);
     padding: 4px 6px;
@@ -197,7 +184,6 @@
     border: 1px solid var(--potatno-color-border);
     border-radius: 4px;
     color: var(--potatno-color-text);
-    font-family: var(--potatno-font-family);
     font-size: var(--potatno-font-size-small);
     padding: 4px 6px;
     outline: none;
@@ -237,7 +223,6 @@
     border: 1px dashed var(--potatno-color-border);
     border-radius: 4px;
     color: var(--potatno-color-text);
-    font-family: var(--potatno-font-family);
     font-size: var(--potatno-font-size-small);
     cursor: pointer;
     transition: background 0.15s, border-color 0.15s, color 0.15s;
@@ -247,12 +232,4 @@
     background: var(--potatno-color-background-light);
     border-color: var(--potatno-color-accent);
     color: var(--potatno-color-text);
-}
-
-.empty-note {
-    color: var(--pn-text-muted);
-    font-family: var(--potatno-font-family);
-    font-size: var(--potatno-font-size-small);
-    font-style: italic;
-    padding: 4px 0;
 }

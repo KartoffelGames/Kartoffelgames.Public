@@ -45,7 +45,15 @@
         font-style: italic;
         padding: 4px 0;
     }
+
+    .section__list {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
 }
+
+
 
 
 .name-input {
@@ -74,12 +82,6 @@
     color: var(--potatno-color-text);
     background: var(--potatno-color-background-dark);
     cursor: not-allowed;
-}
-
-.port-list {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
 }
 
 .port-entry {

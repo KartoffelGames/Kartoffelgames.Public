@@ -6,41 +6,49 @@
 
     <div class="section">
         <div class="section__label">Inputs</div>
-        <div class="port-list">
-            $for(input of this.functionInputs; index = $index) {
+
+        <div class="section__list">
+            $for(inputPort of this.functionProperties.inputs) {
                 <div class="port-entry">
-                    <input class="port-name-input" type="text" [value]="this.input.name" [disabled]="this.inputsDisabled" pattern="[a-zA-Z][a-zA-Z0-9_]*" title="Must start with a letter, use only letters, digits, underscores" (change)="this.onInputNameChange(this.index, $event)" />
-                    <select class="port-type-input" [disabled]="this.inputsDisabled" (change)="this.onInputTypeChange(this.index, $event)">
-                        $for(t of this.availableTypes) {
-                            <option [value]="this.t" [selected]="this.t === this.input.type">{{this.t}}</option>
+                    <!-- Label/Name -->
+                    <input class="port-name-input" type="text" [(value)]="this.inputPort.label" [disabled]="this.functionProperties.statics.inputs" (change)="this.submitInputChange()"/>
+
+                    <!-- Type Selection -->
+                    <select class="port-type-input" [(value)]="this.inputPort.dataType" [disabled]="this.functionProperties.statics.inputs" (change)="this.submitInputChange()">
+                        $for(portType of this.projectTypes) {
+                            <option [value]="this.portType" [selected]="this.portType === this.inputPort.dataType">{{this.portType}}</option>
                         }
                     </select>
-                    $if(!this.inputsDisabled) {
-                        <button class="port-delete-button" (click)="this.onDeleteInput(this.index)">✕</button>
+
+                    <!-- Delete button if not static -->
+                    $if(!this.functionProperties.statics.inputs) {
+                        <button class="port-delete-button" (click)="this.onDeleteInput(this.inputPort)">✕</button>
                     }
                 </div>
             }
-            $if(this.functionInputs.length === 0) {
+
+            $if(this.functionProperties.inputs.length === 0) {
                 <div class="section__empty">No inputs defined.</div>
             }
         </div>
-        $if(!this.inputsDisabled) {
+
+        $if(!this.functionProperties.statics.inputs) {
             <button class="add-button" (click)="this.onAddInput()">+ Add Input</button>
         }
     </div>
 
     <div class="section">
         <div class="section__label">Outputs</div>
-        <div class="port-list">
-            $for(output of this.functionOutputs; index = $index) {
+        <div class="section__list">
+            $for(outputPort of this.functionOutputs; index = $index) {
                 <div class="port-entry">
-                    <input class="port-name-input" type="text" [value]="this.output.name" [disabled]="this.outputsDisabled" pattern="[a-zA-Z][a-zA-Z0-9_]*" title="Must start with a letter, use only letters, digits, underscores" (change)="this.onOutputNameChange(this.index, $event)" />
-                    <select class="port-type-input" [disabled]="this.outputsDisabled" (change)="this.onOutputTypeChange(this.index, $event)">
-                        $for(t of this.availableTypes) {
-                            <option [value]="this.t" [selected]="this.t === this.output.type">{{this.t}}</option>
+                    <input class="port-name-input" type="text" [value]="this.outputPort.name" [disabled]="this.functionProperties.statics.outputs" pattern="[a-zA-Z][a-zA-Z0-9_]*" title="Must start with a letter, use only letters, digits, underscores" (change)="this.onOutputNameChange(this.index, $event)" />
+                    <select class="port-type-input" [disabled]="this.functionProperties.statics.outputs" (change)="this.onOutputTypeChange(this.index, $event)">
+                        $for(portType of this.projectTypes) {
+                            <option [value]="this.portType" [selected]="this.portType === this.outputPort.type">{{this.portType}}</option>
                         }
                     </select>
-                    $if(!this.outputsDisabled) {
+                    $if(!this.functionProperties.statics.outputs) {
                         <button class="port-delete-button" (click)="this.onDeleteOutput(this.index)">✕</button>
                     }
                 </div>
@@ -49,18 +57,18 @@
                 <div class="section__empty">No outputs defined.</div>
             }
         </div>
-        $if(!this.outputsDisabled) {
+        $if(!this.functionProperties.statics.outputs) {
             <button class="add-button" (click)="this.onAddOutput()">+ Add Output</button>
         }
     </div>
 
     <div class="section">
         <div class="section__label">Imports</div>
-        <div class="port-list">
+        <div class="section__list">
             $for(imp of this.functionImports; index = $index) {
                 <div class="import-entry">
                     <span class="import-name">{{this.imp.label}}</span>
-                    $if(!this.importsDisabled) {
+                    $if(!this.functionProperties.statics.imports) {
                         <button class="port-delete-button" (click)="this.onDeleteImport(this.index)">✕</button>
                     }
                 </div>
@@ -69,7 +77,7 @@
                 <div class="section__empty">No imports added.</div>
             }
         </div>
-        $if(!this.importsDisabled) {
+        $if(!this.functionProperties.statics.imports) {
             $if(this.unusedImports.length > 0) {
                 <div class="add-import-row">
                     <select class="import-select" (change)="this.onImportSelectChange($event)">

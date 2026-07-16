@@ -1,9 +1,8 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import { Component, PwbComponent, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
+import { Component, ComponentState, PwbComponent, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import { PotatnoFunctionDefinitionStatics } from '../../../project/potatno-function-definition.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
-import type { PotatnoProject } from '../../../project/potatno-project.ts';
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, type PotatnoCodeUiManagerPortView, type PotatnoCodeUiManagerUnsubscribe } from '../../manager/potatno-ui-manager.ts';
 import templateCss from './potatno-panel-properties.css' with { type: 'text' };
 import propertiesTemplate from './potatno-panel-properties.html' with { type: 'text' };
@@ -25,6 +24,13 @@ export class PotatnoPanelProperties implements IComponentOnDeconstruct {
     private readonly mManager: PotatnoUiManager;
     private mSelectedImportId: string;
     private readonly mUnsubscribe: PotatnoCodeUiManagerUnsubscribe;
+    private readonly mProjectTypes: Set<string>;
+
+    /**
+     * Function properties.
+     */
+    @ComponentState.state({ complexValue: true })
+    public accessor functionProperties: PotatnoPanelPropertiesProperties;
 
     /**
      * Available import ids registered by the project.
@@ -39,18 +45,8 @@ export class PotatnoPanelProperties implements IComponentOnDeconstruct {
     /**
      * Available port types that can be selected.
      */
-    public get availableTypes(): Array<string> {
-        const lProject: PotatnoProject<PotatnoProjectTypesDefinition> | null = this.mManager.project;
-        if (!lProject) {
-            return [];
-        }
-
-        const lTypeSet: Set<string> = new Set<string>();
-        for (const [lTypeName] of lProject.types.types) {
-            lTypeSet.add(lTypeName);
-        }
-
-        return [...lTypeSet].sort();
+    public get projectTypes(): Set<string> {
+        return this.mProjectTypes;
     }
 
     /**
@@ -90,38 +86,10 @@ export class PotatnoPanelProperties implements IComponentOnDeconstruct {
     }
 
     /**
-     * Whether the active function is a system function (non-editable).
-     */
-    public get isSystem(): boolean {
-        return this.mManager.activeFunction?.isSystem ?? false;
-    }
-
-    /**
      * Whether the function name input should be disabled.
      */
     public get nameDisabled(): boolean {
-        return this.isSystem;
-    }
-
-    /**
-     * Whether import editing is disabled.
-     */
-    public get importsDisabled(): boolean {
-        return this.hasStaticFlag(PotatnoFunctionDefinitionStatics.imports);
-    }
-
-    /**
-     * Whether input editing is disabled.
-     */
-    public get inputsDisabled(): boolean {
-        return this.hasStaticFlag(PotatnoFunctionDefinitionStatics.inputs);
-    }
-
-    /**
-     * Whether output editing is disabled.
-     */
-    public get outputsDisabled(): boolean {
-        return this.hasStaticFlag(PotatnoFunctionDefinitionStatics.outputs);
+        return this.mManager.activeFunction?.isSystem ?? false;
     }
 
     /**
@@ -142,10 +110,97 @@ export class PotatnoPanelProperties implements IComponentOnDeconstruct {
         this.mComponent = pComponent;
         this.mManager = pManager;
         this.mSelectedImportId = '';
+        this.mProjectTypes = new Set<string>();
 
+        // Create a feedback loop. This component triggers function changes, what triggers a data reload, what triggers a UI update.
+        this.functionProperties = this.convertFunctionProperties();
         this.mUnsubscribe = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Document | PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.SpecialActiveFunction, () => {
+            // Update functions properties.
+            this.functionProperties = this.convertFunctionProperties();
+
+            // Load all types. Usually types dont change.
+            this.mProjectTypes.clear();
+            for (const [lTypeName] of this.mManager.project!.types.types) {
+                this.mProjectTypes.add(lTypeName);
+            }
+
+            // And then update the ui.
             this.mComponent.updater.updateAsync();
         });
+    }
+
+    /**
+     * Update saved function properties UI.
+     * 
+     * @returns the converted function properties.
+     */
+    public convertFunctionProperties(): PotatnoPanelPropertiesProperties {
+        // Create empty function property list. 
+        const lFunctionProperties: PotatnoPanelPropertiesProperties = {
+            inputs: new Array<PotatnoPanelPropertiesPropertiesPort>(),
+            outputs: new Array<PotatnoPanelPropertiesPropertiesPort>(),
+            imports: new Array<PotatnoPanelPropertiesPropertiesImport>(),
+            statics: {
+                label: true,
+                imports: true,
+                inputs: true,
+                outputs: true
+            }
+        };
+
+        // Read current function.
+        const lFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null = this.mManager.activeFunction;
+        if (!lFunction) {
+            return lFunctionProperties;
+        }
+
+        // Set statics.
+        const lFunctionDefinition = lFunction.project.getFunction(lFunction.definitionId);
+        if (lFunctionDefinition) {
+            lFunctionProperties.statics.label = lFunction.isSystem;
+            lFunctionProperties.statics.imports = (lFunctionDefinition.statics & PotatnoFunctionDefinitionStatics.imports) !== 0;
+            lFunctionProperties.statics.inputs = (lFunctionDefinition.statics & PotatnoFunctionDefinitionStatics.inputs) !== 0;
+            lFunctionProperties.statics.outputs = (lFunctionDefinition.statics & PotatnoFunctionDefinitionStatics.outputs) !== 0;
+        }
+
+        // Insert imports.
+        for (const lImport of lFunction.project.imports) {
+            // Only add label if it is contained in the current function.
+            if (!lFunction.imports.has(lImport.id)) {
+                continue;
+            }
+
+            lFunctionProperties.imports.push({
+                id: lImport.id,
+                label: lImport.label
+            });
+        }
+
+        // Insert inputs.
+        const lInputDublicateList: Set<string> = new Set<string>();
+        for (const lInput of lFunction.inputs) {
+            lFunctionProperties.inputs.push({
+                label: lInput.label,
+                dataType: lInput.dataType,
+                hasError: lInputDublicateList.has(lInput.label)
+            });
+
+            lInputDublicateList.add(lInput.label);
+        }
+
+        // Insert outputs.
+        const lOutputDublicateList: Set<string> = new Set<string>();
+        for (const lInput of lFunction.outputs) {
+            lFunctionProperties.outputs.push({
+                label: lInput.label,
+                dataType: lInput.dataType,
+                hasError: lOutputDublicateList.has(lInput.label)
+            });
+
+            lOutputDublicateList.add(lInput.label);
+        }
+
+        return lFunctionProperties;
     }
 
     /**
@@ -173,7 +228,7 @@ export class PotatnoPanelProperties implements IComponentOnDeconstruct {
      * Add a new empty input port.
      */
     public onAddInput(): void {
-        const lDefaultType: string = this.availableTypes.length > 0 ? this.availableTypes[0] : 'number';
+        const lDefaultType: string = this.projectTypes.length > 0 ? this.projectTypes[0] : 'number';
         this.mManager.updateFunctionProperties({ inputs: [...this.functionInputs, { name: this.uniquePortName('new_input'), type: lDefaultType }] });
     }
 
@@ -181,7 +236,7 @@ export class PotatnoPanelProperties implements IComponentOnDeconstruct {
      * Add a new empty output port.
      */
     public onAddOutput(): void {
-        const lDefaultType: string = this.availableTypes.length > 0 ? this.availableTypes[0] : 'number';
+        const lDefaultType: string = this.projectTypes.length > 0 ? this.projectTypes[0] : 'number';
         this.mManager.updateFunctionProperties({ outputs: [...this.functionOutputs, { name: this.uniquePortName('new_output'), type: lDefaultType }] });
     }
 
@@ -201,10 +256,18 @@ export class PotatnoPanelProperties implements IComponentOnDeconstruct {
      *
      * @param pIndex - Index of the input to remove.
      */
-    public onDeleteInput(pIndex: number): void {
-        const lInputs: Array<PortEntry> = [...this.functionInputs];
-        lInputs.splice(pIndex, 1);
-        this.mManager.updateFunctionProperties({ inputs: lInputs });
+    public onDeleteInput(pPort: PotatnoPanelPropertiesPropertiesPort): void {
+        // Find index of port.
+        const lInputIndex: number = this.functionProperties.inputs.indexOf(pPort);
+        if(lInputIndex === -1){
+            return;
+        }
+        
+        // Remove input from function properties.
+        this.functionProperties.inputs.splice(lInputIndex, 1);
+
+        // And submit the change.
+        this.submitInputChange();
     }
 
     /**
@@ -228,32 +291,23 @@ export class PotatnoPanelProperties implements IComponentOnDeconstruct {
     }
 
     /**
-     * Handle input port name change.
-     *
-     * @param pIndex - Index of the input.
-     * @param pEvent - Change event.
-     */
-    public onInputNameChange(pIndex: number, pEvent: Event): void {
-        const lInput: HTMLInputElement = pEvent.target as HTMLInputElement;
-        const lNewName: string = lInput.value;
-        const lIsInvalid: boolean = this.isNameDuplicate(lNewName, 'input', pIndex);
-        lInput.style.borderColor = lIsInvalid ? 'var(--potatno-color-error)' : '';
-        const lInputs: Array<PortEntry> = [...this.functionInputs];
-        lInputs[pIndex] = { ...lInputs[pIndex], name: lNewName };
-        this.mManager.updateFunctionProperties({ inputs: lInputs });
-    }
-
-    /**
      * Handle input port type change.
      *
      * @param pIndex - Index of the input.
      * @param pEvent - Change event.
      */
-    public onInputTypeChange(pIndex: number, pEvent: Event): void {
-        const lNewType: string = (pEvent.target as HTMLSelectElement).value;
-        const lInputs: Array<PortEntry> = [...this.functionInputs];
-        lInputs[pIndex] = { ...lInputs[pIndex], type: lNewType };
-        this.mManager.updateFunctionProperties({ inputs: lInputs });
+    public submitInputChange(): void {
+        // Update function by removing and adding all new inputs. 
+        this.mManager.graph.updateFunction(this.mManager.activeFunction, (pFunction) => {
+            // Remove all inputs.
+            for (const lPort of [...pFunction.inputs]) {
+                pFunction.removeInput(lPort);
+            }
+
+            for (const lPortData of this.functionProperties.inputs) {
+                pFunction.addInput({ dataType: lPortData.dataType, label: lPortData.label });
+            }
+        });
     }
 
     /**
@@ -375,6 +429,29 @@ export class PotatnoPanelProperties implements IComponentOnDeconstruct {
     }
 }
 
+export type PotatnoPanelPropertiesProperties = {
+    inputs: Array<PotatnoPanelPropertiesPropertiesPort>;
+    outputs: Array<PotatnoPanelPropertiesPropertiesPort>;
+    imports: Array<PotatnoPanelPropertiesPropertiesImport>;
+    statics: {
+        label: boolean;
+        imports: boolean;
+        inputs: boolean;
+        outputs: boolean;
+    };
+};
+
+export type PotatnoPanelPropertiesPropertiesPort = {
+    label: string;
+    dataType: string;
+    hasError: boolean;
+};
+
+export type PotatnoPanelPropertiesPropertiesImport = {
+    id: string;
+    label: string;
+};
+
 /**
  * Port definition for function inputs and outputs.
  */
@@ -384,6 +461,5 @@ type PortEntry = PotatnoCodeUiManagerPortView;
  * Import option shown by the properties panel.
  */
 type ImportEntry = {
-    id: string;
-    label: string;
+
 };

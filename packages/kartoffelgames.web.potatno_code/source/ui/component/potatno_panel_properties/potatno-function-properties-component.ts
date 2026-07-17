@@ -1,18 +1,14 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import { Component, ComponentState, PwbComponent, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
+import { ComponentState, PwbComponent, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import { PotatnoFunctionDefinitionStatics } from '../../../project/potatno-function-definition.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
-import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, type PotatnoCodeUiManagerPortView, type PotatnoCodeUiManagerUnsubscribe } from '../../manager/potatno-ui-manager.ts';
+import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, type PotatnoCodeUiManagerUnsubscribe } from '../../manager/potatno-ui-manager.ts';
 import templateCss from './potatno-function-properties-component.css' with { type: 'text' };
 import propertiesTemplate from './potatno-function-properties-component.html' with { type: 'text' };
 
 /**
  * Properties panel component for the potatno-code visual editor.
- *
- * Reads the active function's name, ports and imports from the shared {@link PotatnoUiManager}
- * and applies every edit back through it; the manager re-validates and notifies listeners. Only the
- * pending import-dropdown selection is local. Name/identifier validation stays here as a UI concern.
  */
 @PwbComponent({
     selector: 'potatno-function-properties',
@@ -20,27 +16,16 @@ import propertiesTemplate from './potatno-function-properties-component.html' wi
     style: templateCss,
 })
 export class PotatnoFunctionPropertiesComponent implements IComponentOnDeconstruct {
-    private readonly mComponent: Component;
     private readonly mManager: PotatnoUiManager;
+    private readonly mProjectTypes: Set<string>;
     private mSelectedImportId: string;
     private readonly mUnsubscribe: PotatnoCodeUiManagerUnsubscribe;
-    private readonly mProjectTypes: Set<string>;
 
     /**
      * Function properties.
      */
     @ComponentState.state({ complexValue: true })
-    public accessor functionProperties: PotatnoPanelPropertiesProperties;
-
-    /**
-     * Available import ids registered by the project.
-     */
-    public get availableImports(): Array<ImportEntry> {
-        return this.mManager.project?.imports.map((pImportDefinition) => ({
-            id: pImportDefinition.id,
-            label: pImportDefinition.label
-        })) ?? [];
-    }
+    public accessor functionProperties: PotatnoFunctionPropertiesComponentProperties;
 
     /**
      * Available port types that can be selected.
@@ -50,64 +35,38 @@ export class PotatnoFunctionPropertiesComponent implements IComponentOnDeconstru
     }
 
     /**
-     * Import ids used by the active function.
+     * Current selected import id.
      */
-    public get functionImportIds(): Array<string> {
-        return [...(this.mManager.activeFunction?.imports ?? [])];
-    }
-
-    /**
-     * Imports used by the active function.
-     */
-    public get functionImports(): Array<ImportEntry> {
-        const lAvailableImports: Map<string, ImportEntry> = new Map<string, ImportEntry>(this.availableImports.map((pImportEntry) => [pImportEntry.id, pImportEntry]));
-        return this.functionImportIds.map((pImportId) => lAvailableImports.get(pImportId) ?? { id: pImportId, label: pImportId });
-    }
-
-    /**
-     * Input port descriptors of the active function.
-     */
-    public get functionInputs(): Array<PortEntry> {
-        return (this.mManager.activeFunction?.inputs ?? []).map((pPort) => ({ name: pPort.label, type: pPort.dataType }));
-    }
-
-    /**
-     * Name of the active function.
-     */
-    public get functionName(): string {
-        return this.mManager.activeFunction?.label ?? '';
-    }
-
-    /**
-     * Output port descriptors of the active function.
-     */
-    public get functionOutputs(): Array<PortEntry> {
-        return (this.mManager.activeFunction?.outputs ?? []).map((pPort) => ({ name: pPort.label, type: pPort.dataType }));
-    }
-
-    /**
-     * Whether the function name input should be disabled.
-     */
-    public get nameDisabled(): boolean {
-        return this.mManager.activeFunction?.isSystem ?? false;
+    public get selectedImportId(): string {
+        return this.mSelectedImportId;
+    } set selectedImportId(pImportId: string) {
+        this.mSelectedImportId = pImportId;
     }
 
     /**
      * Import ids available to add (registered but not yet used).
      */
-    public get unusedImports(): Array<ImportEntry> {
-        const lUsed: Set<string> = new Set<string>(this.functionImportIds);
-        return this.availableImports.filter((pImportEntry) => !lUsed.has(pImportEntry.id));
+    public get unusedImports(): Array<PotatnoFunctionPropertiesComponentImport> {
+        // Must have a active function.
+        if (!this.mManager.activeFunction) {
+            return new Array<PotatnoFunctionPropertiesComponentImport>();
+        }
+
+        // Filter all imports with the already selected imports of the function.
+        return this.mManager.activeFunction.project.imports.filter((pAvailableImport) => {
+            return !this.functionProperties.imports.find((pUsedImport) => {
+                return pAvailableImport.id === pUsedImport.id;
+            });
+        });
     }
 
     /**
-     * Create the properties panel.
+     * Create the function properties panel.
      *
      * @param pComponent - Injected component reference, used to trigger self-updates.
      * @param pManager - Injected shared UI manager singleton.
      */
-    public constructor(pComponent: Component = Injection.use(Component), pManager: PotatnoUiManager = Injection.use(PotatnoUiManager)) {
-        this.mComponent = pComponent;
+    public constructor(pManager: PotatnoUiManager = Injection.use(PotatnoUiManager)) {
         this.mManager = pManager;
         this.mSelectedImportId = '';
         this.mProjectTypes = new Set<string>();
@@ -115,113 +74,15 @@ export class PotatnoFunctionPropertiesComponent implements IComponentOnDeconstru
         // Create a feedback loop. This component triggers function changes, what triggers a data reload, what triggers a UI update.
         this.functionProperties = this.convertFunctionProperties();
         this.mUnsubscribe = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Document | PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.SpecialActiveFunction, () => {
-            // Update functions properties.
-            this.functionProperties = this.convertFunctionProperties();
-
             // Load all types. Usually types dont change.
             this.mProjectTypes.clear();
             for (const [lTypeName] of this.mManager.project!.types.types) {
                 this.mProjectTypes.add(lTypeName);
             }
 
-            // And then update the ui.
-            this.mComponent.updater.updateAsync();
+            // Update functions properties. Also triggers update.
+            this.functionProperties = this.convertFunctionProperties();
         });
-    }
-
-    /**
-     * Update saved function properties UI.
-     * 
-     * @returns the converted function properties.
-     */
-    public convertFunctionProperties(): PotatnoPanelPropertiesProperties {
-        // Create empty function property list. 
-        const lFunctionProperties: PotatnoPanelPropertiesProperties = {
-            inputs: new Array<PotatnoPanelPropertiesPropertiesPort>(),
-            outputs: new Array<PotatnoPanelPropertiesPropertiesPort>(),
-            imports: new Array<PotatnoPanelPropertiesPropertiesImport>(),
-            statics: {
-                label: true,
-                imports: true,
-                inputs: true,
-                outputs: true
-            }
-        };
-
-        // Read current function.
-        const lFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null = this.mManager.activeFunction;
-        if (!lFunction) {
-            return lFunctionProperties;
-        }
-
-        // Set statics.
-        const lFunctionDefinition = lFunction.project.getFunction(lFunction.definitionId);
-        if (lFunctionDefinition) {
-            lFunctionProperties.statics.label = lFunction.isSystem;
-            lFunctionProperties.statics.imports = (lFunctionDefinition.statics & PotatnoFunctionDefinitionStatics.imports) !== 0;
-            lFunctionProperties.statics.inputs = (lFunctionDefinition.statics & PotatnoFunctionDefinitionStatics.inputs) !== 0;
-            lFunctionProperties.statics.outputs = (lFunctionDefinition.statics & PotatnoFunctionDefinitionStatics.outputs) !== 0;
-        }
-
-        // Insert imports.
-        for (const lImport of lFunction.project.imports) {
-            // Only add label if it is contained in the current function.
-            if (!lFunction.imports.has(lImport.id)) {
-                continue;
-            }
-
-            lFunctionProperties.imports.push({
-                id: lImport.id,
-                label: lImport.label
-            });
-        }
-
-        // Insert inputs.
-        const lInputDublicateList: Set<string> = new Set<string>();
-        for (const lInput of lFunction.inputs) {
-            lFunctionProperties.inputs.push({
-                label: lInput.label,
-                dataType: lInput.dataType,
-                hasError: lInputDublicateList.has(lInput.label)
-            });
-
-            lInputDublicateList.add(lInput.label);
-        }
-
-        // Insert outputs.
-        const lOutputDublicateList: Set<string> = new Set<string>();
-        for (const lInput of lFunction.outputs) {
-            lFunctionProperties.outputs.push({
-                label: lInput.label,
-                dataType: lInput.dataType,
-                hasError: lOutputDublicateList.has(lInput.label)
-            });
-
-            lOutputDublicateList.add(lInput.label);
-        }
-
-        return lFunctionProperties;
-    }
-
-    /**
-     * Detach the manager subscription.
-     */
-    public onDeconstruct(): void {
-        this.mUnsubscribe();
-    }
-
-    /**
-     * Add the currently selected import from the dropdown.
-     */
-    public onAddSelectedImport(): void {
-        const lUnused: Array<ImportEntry> = this.unusedImports;
-        const lImportId: string = this.mSelectedImportId || (lUnused.length > 0 ? lUnused[0].id : '');
-        if (!lImportId) {
-            return;
-        }
-
-        this.mManager.updateFunctionProperties({ imports: [...this.functionImportIds, lImportId] });
-        this.mSelectedImportId = '';
     }
 
     /**
@@ -229,7 +90,7 @@ export class PotatnoFunctionPropertiesComponent implements IComponentOnDeconstru
      * 
      * @param pTargetPortList - Target port list reference.
      */
-    public addPort(pTargetPortList: Array<PotatnoPanelPropertiesPropertiesPort>): void {
+    public addPort(pTargetPortList: Array<PotatnoFunctionPropertiesComponentPort>): void {
         // Read the first (default) datatype.
         const lDataType: string | undefined = this.projectTypes.values().next().value;
         if (!lDataType) {
@@ -256,11 +117,28 @@ export class PotatnoFunctionPropertiesComponent implements IComponentOnDeconstru
     }
 
     /**
-     * Add a new empty output port.
+     * Add the currently selected import from the dropdown.
      */
-    public onAddOutput(): void {
-        const lDefaultType: string = this.projectTypes.length > 0 ? this.projectTypes[0] : 'number';
-        this.mManager.updateFunctionProperties({ outputs: [...this.functionOutputs, { name: this.uniquePortName('new_output'), type: lDefaultType }] });
+    public addSelectedImport(): void {
+        // Read all available imports.
+        const lUnusedImports: Array<PotatnoFunctionPropertiesComponentImport> = this.unusedImports;
+        if (lUnusedImports.length === 0) {
+            return;
+        }
+
+        // Find the selected import.
+        let lSelectedImport: PotatnoFunctionPropertiesComponentImport | undefined = lUnusedImports.find((pUnusedImport) => {
+            return pUnusedImport.id === this.mSelectedImportId;
+        });
+
+        // When nothing was found, just add the first.
+        if (!lSelectedImport) {
+            lSelectedImport = lUnusedImports.at(0)!;
+        }
+
+        // Add import and submit changes.
+        this.functionProperties.imports.push(lSelectedImport);
+        this.submitChange();
     }
 
     /**
@@ -268,10 +146,17 @@ export class PotatnoFunctionPropertiesComponent implements IComponentOnDeconstru
      *
      * @param pIndex - Index of the import to remove.
      */
-    public onDeleteImport(pIndex: number): void {
-        const lImportIds: Array<string> = [...this.functionImportIds];
-        lImportIds.splice(pIndex, 1);
-        this.mManager.updateFunctionProperties({ imports: lImportIds });
+    public deleteImport(pImport: PotatnoFunctionPropertiesComponentImport): void {
+        const lImportIndex: number = this.functionProperties.imports.indexOf(pImport);
+        if (lImportIndex === -1) {
+            return;
+        }
+
+        // Remove input from function properties.
+        this.functionProperties.imports.splice(lImportIndex, 1);
+
+        // And submit the change.
+        this.submitChange();
     }
 
     /**
@@ -279,7 +164,7 @@ export class PotatnoFunctionPropertiesComponent implements IComponentOnDeconstru
      *
      * @param pIndex - Index of the input to remove.
      */
-    public deletePort(pPort: PotatnoPanelPropertiesPropertiesPort, pTargetPortList: Array<PotatnoPanelPropertiesPropertiesPort>): void {
+    public deletePort(pPort: PotatnoFunctionPropertiesComponentPort, pTargetPortList: Array<PotatnoFunctionPropertiesComponentPort>): void {
         // Find index of port.
         const lInputIndex: number = pTargetPortList.indexOf(pPort);
         if (lInputIndex === -1) {
@@ -294,58 +179,85 @@ export class PotatnoFunctionPropertiesComponent implements IComponentOnDeconstru
     }
 
     /**
-     * Delete an output port by index.
-     *
-     * @param pIndex - Index of the output to remove.
+     * Detach the manager subscription.
      */
-    public onDeleteOutput(pIndex: number): void {
-        const lOutputs: Array<PortEntry> = [...this.functionOutputs];
-        lOutputs.splice(pIndex, 1);
-        this.mManager.updateFunctionProperties({ outputs: lOutputs });
-    }
-
-    /**
-     * Handle import dropdown selection change.
-     *
-     * @param pEvent - Change event from the select element.
-     */
-    public onImportSelectChange(pEvent: Event): void {
-        this.mSelectedImportId = (pEvent.target as HTMLSelectElement).value;
+    public onDeconstruct(): void {
+        this.mUnsubscribe();
     }
 
     /**
      * Submit changes to the underlying function.
      * Any changes that where made to the function properties are synced to the actual function.
      */
-    public submitChange(): void {
+    public async submitChange(): Promise<void> {
+        let lHasError: boolean = false;
+
+        // Insert inputs.
+        const lInputDublicateList: Set<string> = new Set<string>();
+        for (const lInput of this.functionProperties.inputs) {
+            // Set error when the name already exists. Save the global error state.
+            lInput.hasError = lInputDublicateList.has(lInput.label);
+            lHasError ||= lInput.hasError;
+
+            lInputDublicateList.add(lInput.label);
+        }
+
+        // Insert outputs.
+        const lOutputDublicateList: Set<string> = new Set<string>();
+        for (const lInput of this.functionProperties.outputs) {
+            // Set error when the name already exists. Save the global error state.
+            lInput.hasError = lOutputDublicateList.has(lInput.label);
+            lHasError ||= lInput.hasError;
+
+            lOutputDublicateList.add(lInput.label);
+        }
+
+        // On error. Just trigger the rebuild without syncing the data.
+        if (lHasError) {
+            this.functionProperties = this.functionProperties;
+            return;
+        }
+
+        // Save the current edited function before shedule, so even after a change, the correct function will be updated.
+        const lFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null = this.mManager.activeFunction;
+        const lFunctionProperties: PotatnoFunctionPropertiesComponentProperties = this.functionProperties;
+
+        // Queue a macro task, so all event are executed before syncing.
+        await new Promise((pResolve) => {
+            globalThis.setTimeout(pResolve, 10);
+        });
+
         // Update function by removing and adding all new inputs. 
-        this.mManager.graph.updateFunction(this.mManager.activeFunction, (pFunction) => {
+        this.mManager.graph.updateFunction(lFunction, (pFunction) => {
+            // Update the name.
+            pFunction.label = lFunctionProperties.label;
+
             // Remove and add all inputs. Ensures correct port order on functions definitions.
-            if (!this.functionProperties.statics.inputs) {
-                for (const lPort of pFunction.inputs) {
-                    pFunction.removeInput(lPort);
+            if (!lFunctionProperties.statics.inputs) {
+                while (pFunction.inputs.length > 0) {
+                    pFunction.removeInput(pFunction.inputs.at(0)!);
                 }
-                for (const lPortData of this.functionProperties.inputs) {
+                for (const lPortData of lFunctionProperties.inputs) {
                     pFunction.addInput({ dataType: lPortData.dataType, label: lPortData.label });
                 }
             }
 
             // Remove and add all outputs. Ensures correct port order on functions definitions.
-            if (!this.functionProperties.statics.outputs) {
-                for (const lPort of pFunction.outputs) {
-                    pFunction.removeOutput(lPort);
+            if (!lFunctionProperties.statics.outputs) {
+                while (pFunction.outputs.length > 0) {
+                    pFunction.removeOutput(pFunction.outputs.at(0)!);
                 }
-                for (const lPortData of this.functionProperties.outputs) {
+                for (const lPortData of lFunctionProperties.outputs) {
                     pFunction.addOutput({ dataType: lPortData.dataType, label: lPortData.label });
                 }
             }
 
             // Remove and add all imports. Easier to code and run than trying to merge.
-            if (!this.functionProperties.statics.imports) {
+            if (!lFunctionProperties.statics.imports) {
                 for (const lImportId of pFunction.imports) {
                     pFunction.removeImport(lImportId);
                 }
-                for (const lImport of this.functionProperties.imports) {
+                for (const lImport of lFunctionProperties.imports) {
                     pFunction.addImport(lImport.id);
                 }
             }
@@ -353,109 +265,83 @@ export class PotatnoFunctionPropertiesComponent implements IComponentOnDeconstru
     }
 
     /**
-     * Handle function name change.
-     *
-     * @param pEvent - Change event from the name input.
+     * Update saved function properties UI.
+     * 
+     * @returns the converted function properties.
      */
-    public onNameChange(pEvent: Event): void {
-        const lInput: HTMLInputElement = pEvent.target as HTMLInputElement;
-        const lNewName: string = lInput.value;
-        const lIsInvalid: boolean = this.isNameDuplicate(lNewName, 'function');
-        lInput.style.borderColor = lIsInvalid ? 'var(--potatno-color-error)' : '';
-        this.mManager.updateFunctionProperties({ name: lNewName });
-    }
+    private convertFunctionProperties(): PotatnoFunctionPropertiesComponentProperties {
+        // Create empty function property list. 
+        const lFunctionProperties: PotatnoFunctionPropertiesComponentProperties = {
+            label: '',
+            inputs: new Array<PotatnoFunctionPropertiesComponentPort>(),
+            outputs: new Array<PotatnoFunctionPropertiesComponentPort>(),
+            imports: new Array<PotatnoFunctionPropertiesComponentImport>(),
+            statics: {
+                label: true,
+                imports: true,
+                inputs: true,
+                outputs: true
+            }
+        };
 
-    /**
-     * Handle output port name change.
-     *
-     * @param pIndex - Index of the output.
-     * @param pEvent - Change event.
-     */
-    public onOutputNameChange(pIndex: number, pEvent: Event): void {
-        const lInput: HTMLInputElement = pEvent.target as HTMLInputElement;
-        const lNewName: string = lInput.value;
-        const lIsInvalid: boolean = this.isNameDuplicate(lNewName, 'output', pIndex);
-        lInput.style.borderColor = lIsInvalid ? 'var(--potatno-color-error)' : '';
-        const lOutputs: Array<PortEntry> = [...this.functionOutputs];
-        lOutputs[pIndex] = { ...lOutputs[pIndex], name: lNewName };
-        this.mManager.updateFunctionProperties({ outputs: lOutputs });
-    }
-
-    /**
-     * Handle output port type change.
-     *
-     * @param pIndex - Index of the output.
-     * @param pEvent - Change event.
-     */
-    public onOutputTypeChange(pIndex: number, pEvent: Event): void {
-        const lNewType: string = (pEvent.target as HTMLSelectElement).value;
-        const lOutputs: Array<PortEntry> = [...this.functionOutputs];
-        lOutputs[pIndex] = { ...lOutputs[pIndex], type: lNewType };
-        this.mManager.updateFunctionProperties({ outputs: lOutputs });
-    }
-
-    /**
-     * Check whether a name is duplicated across inputs, outputs, and function name.
-     *
-     * @param pName - The name to check.
-     * @param pExcludeList - Which list the name belongs to.
-     * @param pIndex - Index within the list to skip.
-     *
-     * @returns True if duplicated.
-     */
-    private isNameDuplicate(pName: string, pExcludeList: 'input' | 'output' | 'function', pIndex?: number): boolean {
-        if (pExcludeList !== 'function' && pName === this.functionName) {
-            return true;
+        // Read current function.
+        const lFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null = this.mManager.activeFunction;
+        if (!lFunction) {
+            return lFunctionProperties;
         }
 
-        const lInputs: Array<PortEntry> = this.functionInputs;
-        for (let lIdx: number = 0; lIdx < lInputs.length; lIdx++) {
-            if (pExcludeList === 'input' && lIdx === pIndex) {
+        // Set statics.
+        const lFunctionDefinition = lFunction.project.getFunction(lFunction.definitionId);
+        if (lFunctionDefinition) {
+            lFunctionProperties.statics.label = lFunction.isSystem;
+            lFunctionProperties.statics.imports = (lFunctionDefinition.statics & PotatnoFunctionDefinitionStatics.imports) !== 0;
+            lFunctionProperties.statics.inputs = (lFunctionDefinition.statics & PotatnoFunctionDefinitionStatics.inputs) !== 0;
+            lFunctionProperties.statics.outputs = (lFunctionDefinition.statics & PotatnoFunctionDefinitionStatics.outputs) !== 0;
+        }
+
+        // Insert function label
+        lFunctionProperties.label = lFunction.label;
+
+        // Insert imports.
+        for (const lImport of lFunction.project.imports) {
+            // Only add label if it is contained in the current function.
+            if (!lFunction.imports.has(lImport.id)) {
                 continue;
             }
-            if (lInputs[lIdx].name === pName) {
-                return true;
-            }
+
+            lFunctionProperties.imports.push({
+                id: lImport.id,
+                label: lImport.label
+            });
         }
 
-        const lOutputs: Array<PortEntry> = this.functionOutputs;
-        for (let lIdx: number = 0; lIdx < lOutputs.length; lIdx++) {
-            if (pExcludeList === 'output' && lIdx === pIndex) {
-                continue;
-            }
-            if (lOutputs[lIdx].name === pName) {
-                return true;
-            }
+        // Insert inputs.
+        for (const lInput of lFunction.inputs) {
+            lFunctionProperties.inputs.push({
+                label: lInput.label,
+                dataType: lInput.dataType,
+                hasError: false // Cant be dublicate
+            });
         }
 
-        return false;
-    }
-
-    /**
-     * Produce a port name that does not collide with the function name or any existing port.
-     *
-     * @param pBase - The base name to start from.
-     *
-     * @returns A unique, identifier-safe port name.
-     */
-    private uniquePortName(pBase: string): string {
-        if (!this.isNameDuplicate(pBase, 'function')) {
-            return pBase;
+        // Insert outputs.
+        for (const lInput of lFunction.outputs) {
+            lFunctionProperties.outputs.push({
+                label: lInput.label,
+                dataType: lInput.dataType,
+                hasError: false // Cant be dublicate
+            });
         }
 
-        let lCounter: number = 2;
-        while (this.isNameDuplicate(`${pBase}_${lCounter}`, 'function')) {
-            lCounter++;
-        }
-
-        return `${pBase}_${lCounter}`;
+        return lFunctionProperties;
     }
 }
 
-export type PotatnoPanelPropertiesProperties = {
-    inputs: Array<PotatnoPanelPropertiesPropertiesPort>;
-    outputs: Array<PotatnoPanelPropertiesPropertiesPort>;
-    imports: Array<PotatnoPanelPropertiesPropertiesImport>;
+export type PotatnoFunctionPropertiesComponentProperties = {
+    label: string;
+    inputs: Array<PotatnoFunctionPropertiesComponentPort>;
+    outputs: Array<PotatnoFunctionPropertiesComponentPort>;
+    imports: Array<PotatnoFunctionPropertiesComponentImport>;
     statics: {
         label: boolean;
         imports: boolean;
@@ -464,26 +350,13 @@ export type PotatnoPanelPropertiesProperties = {
     };
 };
 
-export type PotatnoPanelPropertiesPropertiesPort = {
+export type PotatnoFunctionPropertiesComponentPort = {
     label: string;
     dataType: string;
     hasError: boolean;
 };
 
-export type PotatnoPanelPropertiesPropertiesImport = {
-    id: string;
-    label: string;
-};
-
-/**
- * Port definition for function inputs and outputs.
- */
-type PortEntry = PotatnoCodeUiManagerPortView;
-
-/**
- * Import option shown by the properties panel.
- */
-type ImportEntry = {
+export type PotatnoFunctionPropertiesComponentImport = {
     id: string;
     label: string;
 };

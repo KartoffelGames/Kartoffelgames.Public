@@ -9,8 +9,9 @@
     height: 100%;
     background-color: var(--potatno-color-background);
 
-    /* Globaly restrict to max size of parent. */
+    /* Set min, max and default width */
     max-width: 500px;
+    width: 250px;
     min-width: 200px;
 
     /* Hopefully that cascade into all childs. */

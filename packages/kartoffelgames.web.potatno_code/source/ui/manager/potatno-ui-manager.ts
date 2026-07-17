@@ -12,7 +12,7 @@ import { PotatnoUiManagerGrid } from './manager_component/potatno-ui-manager-gri
 import { PotatnoUiManagerHistory } from './manager_component/potatno-ui-manager-history.ts';
 import { PotatnoUiManagerIntegrity } from './manager_component/potatno-ui-manager-integrity.ts';
 import { PotatnoUiManagerPreview } from './manager_component/potatno-ui-manager-preview.ts';
-import { Exception } from "@kartoffelgames/core";
+import { Exception } from '@kartoffelgames/core';
 
 /**
  * Central, shared state owner for the whole Potatno-code editor UI.

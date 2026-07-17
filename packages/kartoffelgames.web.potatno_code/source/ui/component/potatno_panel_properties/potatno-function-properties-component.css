@@ -9,13 +9,15 @@
     height: 100%;
     background-color: var(--potatno-color-background);
 
-    /* Globaly restrict to max size of parent. */
+    /* Set min, max and default width */
     max-width: 500px;
+    width: 250px;
     min-width: 200px;
 
     /* Hopefully that cascade into all childs. */
     font-family: var(--potatno-font-family);
     font-size: var(--potatno-font-size);
+    color: var(--potatno-color-text);
 
     /* Enable content scroll */
     overflow-y: auto;
@@ -40,10 +42,11 @@
     }
 
     .section__empty {
-        color: var(--potatno-color-text);
+        padding: 4px 0;
+        opacity: 0.5;
+
         font-size: var(--potatno-font-size-small);
         font-style: italic;
-        padding: 4px 0;
     }
 
     .section__list {
@@ -69,9 +72,7 @@
         /* Transition items. */
         border: 1px dashed var(--potatno-color-border);
         border-radius: 2px;
-        color: var(--potatno-color-text);
         background-color: var(--potatno-color-background-light);
-
 
         transition: border-color 0.15s, color 0.15s, background-color 0.15s;
 
@@ -84,7 +85,6 @@
             background-color: var(--potatno-color-background);
         }
     }
-
 }
 
 .list-item {
@@ -103,150 +103,110 @@
         cursor: pointer;
 
         /* Cool hover transitions... It literally sucks. */
-        color: var(--potatno-color-text);
-        transition: background-color 0.15s, color 0.15s;
+        transition: background-color 0.15s, opacity 0.15s;
 
         &:hover {
-            background-color: color-mix(in srgb, var(--potatno-color-error) 75%, var(--potatno-color-background));
+            background-color: var(--potatno-color-error);
+            opacity: 0.75;
         }
 
         &:active {
-            background-color: color-mix(in srgb, var(--potatno-color-error) 50%, var(--potatno-color-background));
+            background-color: var(--potatno-color-error);
+            opacity: 0.5;
         }
     }
 
-    .list-item__input {
-        flex: 1;
+    .list-item__button {
+        flex: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box;
+
+        gap: 6px;
+        padding: 4px 12px;
+
+        font-size: var(--potatno-font-size-small);
+        cursor: pointer;
+
+        /* Transition items. */
+        border: 1px dashed var(--potatno-color-border);
+        border-radius: 2px;
+        background-color: var(--potatno-color-background-light);
+
+        transition: border-color 0.15s, color 0.15s, background-color 0.15s;
+
+        &:hover {
+            border-color: var(--potatno-color-accent);
+            color: var(--potatno-color-accent);
+        }
+
+        &:active {
+            background-color: var(--potatno-color-background);
+        }
+    }
+
+    .list-item__text-input {
+        /* Hear me out... this max the text input but also allows the select to also grow when no text input is present */
+        flex: 999;
+        min-width: 0;
+
+        padding: 5px 6px;
         background: var(--potatno-color-background-light);
+        font-size: var(--potatno-font-size-small);
+        color: var(--potatno-color-text);
+
+        /* Custom borders for animations*/
         border: 1px solid var(--potatno-color-border);
         border-radius: 4px;
-        color: var(--potatno-color-text);
-        font-size: var(--potatno-font-size-small);
-        padding: 4px 6px;
         outline: none;
         transition: border-color 0.15s;
-        min-width: 0;
 
         &:focus {
             border-color: var(--potatno-color-accent);
         }
 
-        &:invalid {
+        &:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        &.error {
             border-color: var(--potatno-color-error);
-            outline-color: var(--potatno-color-error);
+        }
+    }
+
+    .list-item__select-input {
+        flex: 1;
+        padding: 5px 6px;
+        background: var(--potatno-color-background-light);
+        font-size: var(--potatno-font-size-small);
+        color: var(--potatno-color-text);
+
+        /* Custom borders for animations*/
+        border: 1px solid var(--potatno-color-border);
+        border-radius: 4px;
+        outline: none;
+        transition: border-color 0.15s;
+
+        &:focus {
+            border-color: var(--potatno-color-accent);
         }
 
         &:disabled {
-            color: var(--potatno-color-text);
-            background: var(--potatno-color-background-dark);
+            opacity: 0.5;
             cursor: not-allowed;
         }
     }
 
-}
+    .list-item__text {
+        flex: 1;
+        padding: 4px 6px;
+        font-size: var(--potatno-font-size-small);
 
-
-
-
-
-.name-input {
-    width: 100%;
-    background: var(--potatno-color-background-light);
-    border: 1px solid var(--potatno-color-border);
-    border-radius: 4px;
-    color: var(--potatno-color-accent);
-    font-size: var(--potatno-font-size);
-    padding: 5px 8px;
-    outline: none;
-    transition: border-color 0.15s;
-    box-sizing: border-box;
-}
-
-.name-input:focus {
-    border-color: var(--potatno-color-accent);
-}
-
-.name-input:invalid {
-    border-color: var(--potatno-color-error);
-    outline-color: var(--potatno-color-error);
-}
-
-.name-input:disabled {
-    color: var(--potatno-color-text);
-    background: var(--potatno-color-background-dark);
-    cursor: not-allowed;
-}
-
-
-
-.port-type-input {
-    width: 70px;
-    background: var(--potatno-color-background-light);
-    border: 1px solid var(--potatno-color-border);
-    border-radius: 4px;
-    color: var(--potatno-color-text);
-    font-size: var(--potatno-font-size-small);
-    padding: 4px 6px;
-    outline: none;
-    transition: border-color 0.15s;
-    flex-shrink: 0;
-}
-
-.port-type-input:focus {
-    border-color: var(--potatno-color-accent);
-}
-
-.port-type-input:disabled {
-    color: var(--potatno-color-text);
-    background: var(--potatno-color-background-dark);
-    cursor: not-allowed;
-}
-
-.import-entry {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.import-name {
-    flex: 1;
-    font-size: var(--potatno-font-size-small);
-    color: var(--potatno-color-text);
-    padding: 4px 6px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.import-select {
-    flex: 1;
-    background: var(--potatno-color-background-light);
-    border: 1px solid var(--potatno-color-border);
-    border-radius: 4px;
-    color: var(--potatno-color-text);
-    font-size: var(--potatno-font-size-small);
-    padding: 4px 6px;
-    outline: none;
-    transition: border-color 0.15s;
-    min-width: 0;
-}
-
-.import-select:focus {
-    border-color: var(--potatno-color-accent);
-}
-
-.add-import-row {
-    display: flex;
-    gap: 4px;
-    margin-top: 6px;
-}
-
-.add-import-row .import-select {
-    flex: 1;
-}
-
-.add-import-row .add-button {
-    flex-shrink: 0;
-    width: auto;
-    margin-top: 0;
+        /* Ellipsis stuff */
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
 }

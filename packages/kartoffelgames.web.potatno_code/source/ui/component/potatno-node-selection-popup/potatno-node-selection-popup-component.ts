@@ -3,7 +3,7 @@ import { Component, ComponentState, PwbChild, PwbComponent, PwbComponentEvent, t
 import type { PotatnoNodeDefinition } from '../../../project/node_definition/potatno-node-definition.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import { PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
-import { PotatnoResizeBoxComponent } from "../potatno-resize-box/potatno-resize-box-component.ts";
+import { PotatnoResizeBoxComponent } from '../potatno-resize-box/potatno-resize-box-component.ts';
 import addNodePopupCss from './potatno-node-selection-popup-component.css' with { type: 'text' };
 import addNodePopupTemplate from './potatno-node-selection-popup-component.html' with { type: 'text' };
 

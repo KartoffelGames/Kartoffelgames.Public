@@ -4,8 +4,8 @@ import type { PotatnoDocumentFunction } from '../../../document/potatno-document
 import type { PotatnoFunctionDefinition } from '../../../project/potatno-function-definition.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, type PotatnoCodeUiManagerUnsubscribe } from '../../manager/potatno-ui-manager.ts';
-import templateCss from './potatno-function-list.css' with { type: 'text' };
-import functionListTemplate from './potatno-function-list.html' with { type: 'text' };
+import templateCss from './potatno-function-list-component.css' with { type: 'text' };
+import functionListTemplate from './potatno-function-list-component.html' with { type: 'text' };
 
 /**
  * Function list component for the potatno-code visual editor.
@@ -15,7 +15,7 @@ import functionListTemplate from './potatno-function-list.html' with { type: 'te
     template: functionListTemplate,
     style: templateCss,
 })
-export class PotatnoFunctionList implements IComponentOnDeconstruct {
+export class PotatnoFunctionListComponent implements IComponentOnDeconstruct {
     private readonly mManager: PotatnoUiManager;
     private readonly mUnsubscribe: PotatnoCodeUiManagerUnsubscribe;
     

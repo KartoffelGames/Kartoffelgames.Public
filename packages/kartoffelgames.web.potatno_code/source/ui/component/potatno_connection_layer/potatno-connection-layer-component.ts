@@ -5,8 +5,8 @@ import type { PotatnoDocumentFunction } from '../../../document/potatno-document
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
-import connectionLayerCss from './potatno-connection-layer.css' with { type: 'text' };
-import connectionLayerTemplate from './potatno-connection-layer.html' with { type: 'text' };
+import connectionLayerCss from './potatno-connection-layer-component.css' with { type: 'text' };
+import connectionLayerTemplate from './potatno-connection-layer-component.html' with { type: 'text' };
 
 /**
  * SVG connection layer for the node graph.
@@ -16,7 +16,7 @@ import connectionLayerTemplate from './potatno-connection-layer.html' with { typ
     template: connectionLayerTemplate,
     style: connectionLayerCss,
 })
-export class PotatnoConnectionLayer implements IComponentOnDeconstruct {
+export class PotatnoConnectionLayerComponent implements IComponentOnDeconstruct {
     private readonly mConnectionRegistry: Map<number, PotatnoConnectionLayerConnection>;
     private readonly mManager: PotatnoUiManager;
     private readonly mUnsubscribe: () => void;

@@ -7,10 +7,10 @@ import { PotatnoFunctionNodeDefinition } from '../../../project/node_definition/
 import type { PotatnoNodeDefinition } from '../../../project/node_definition/potatno-node-definition.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import type { PotatnoProject } from '../../../project/potatno-project.ts';
-import { PotatnoCodeUiManagerChangeType, type PotatnoCodeUiManagerUnsubscribe, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
+import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, type PotatnoCodeUiManagerUnsubscribe } from '../../manager/potatno-ui-manager.ts';
 import { PotatnoPreviewModule } from '../../module/potatno-preview.module.ts';
 import { NodeCategory } from '../../node/node-category.enum.ts';
-import { PotatnoPortComponent } from '../potatno_port/potatno-port.ts';
+import { PotatnoPortComponent } from '../potatno_port/potatno-port-component.ts';
 import nodeCss from './potatno-node-component.css' with { type: 'text' };
 import nodeTemplate from './potatno-node-component.html' with { type: 'text' };
 

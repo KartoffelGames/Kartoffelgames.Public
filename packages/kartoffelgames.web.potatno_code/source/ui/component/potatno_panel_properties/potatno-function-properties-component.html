@@ -9,12 +9,12 @@
 
         <div class="section__list">
             $for(inputPort of this.functionProperties.inputs) {
-                <div class="port-entry">
+                <div class="list-item">
                     <!-- Label/Name -->
-                    <input class="port-name-input" type="text" [(value)]="this.inputPort.label" [disabled]="this.functionProperties.statics.inputs" (change)="this.submitInputChange()"/>
+                    <input class="list-item__input" type="text" [(value)]="this.inputPort.label" [disabled]="this.functionProperties.statics.inputs" (change)="this.submitChange()"/>
 
                     <!-- Type Selection -->
-                    <select class="port-type-input" [(value)]="this.inputPort.dataType" [disabled]="this.functionProperties.statics.inputs" (change)="this.submitInputChange()">
+                    <select class="port-type-input" [(value)]="this.inputPort.dataType" [disabled]="this.functionProperties.statics.inputs" (change)="this.submitChange()">
                         $for(portType of this.projectTypes) {
                             <option [value]="this.portType" [selected]="this.portType === this.inputPort.dataType">{{this.portType}}</option>
                         }
@@ -22,7 +22,7 @@
 
                     <!-- Delete button if not static -->
                     $if(!this.functionProperties.statics.inputs) {
-                        <button class="port-delete-button" (click)="this.onDeleteInput(this.inputPort)">✕</button>
+                        <div class="list-item__delete" (click)="this.deletePort(this.inputPort, this.functionProperties.inputs)">✕</div>
                     }
                 </div>
             }
@@ -30,64 +30,72 @@
             $if(this.functionProperties.inputs.length === 0) {
                 <div class="section__empty">No inputs defined.</div>
             }
-        </div>
 
-        $if(!this.functionProperties.statics.inputs) {
-            <button class="add-button" (click)="this.onAddInput()">+ Add Input</button>
-        }
+            $if(!this.functionProperties.statics.inputs) {
+                <div class="section__button" (click)="this.addPort(this.functionProperties.inputs)">
+                    <div>+</div>
+                    <div>Add Input</div>
+                </div>
+            }
+        </div>
     </div>
 
     <div class="section">
         <div class="section__label">Outputs</div>
         <div class="section__list">
             $for(outputPort of this.functionOutputs; index = $index) {
-                <div class="port-entry">
-                    <input class="port-name-input" type="text" [value]="this.outputPort.name" [disabled]="this.functionProperties.statics.outputs" pattern="[a-zA-Z][a-zA-Z0-9_]*" title="Must start with a letter, use only letters, digits, underscores" (change)="this.onOutputNameChange(this.index, $event)" />
+                <div class="list-item">
+                    <input class="list-item__input" type="text" [value]="this.outputPort.name" [disabled]="this.functionProperties.statics.outputs" pattern="[a-zA-Z][a-zA-Z0-9_]*" title="Must start with a letter, use only letters, digits, underscores" (change)="this.onOutputNameChange(this.index, $event)" />
                     <select class="port-type-input" [disabled]="this.functionProperties.statics.outputs" (change)="this.onOutputTypeChange(this.index, $event)">
                         $for(portType of this.projectTypes) {
                             <option [value]="this.portType" [selected]="this.portType === this.outputPort.type">{{this.portType}}</option>
                         }
                     </select>
                     $if(!this.functionProperties.statics.outputs) {
-                        <button class="port-delete-button" (click)="this.onDeleteOutput(this.index)">✕</button>
+                        <div class="list-item__delete" (click)="this.onDeleteOutput(this.index)">✕</div>
                     }
                 </div>
             }
             $if(this.functionOutputs.length === 0) {
                 <div class="section__empty">No outputs defined.</div>
             }
-        </div>
-        $if(!this.functionProperties.statics.outputs) {
-            <button class="add-button" (click)="this.onAddOutput()">+ Add Output</button>
-        }
+
+            $if(!this.functionProperties.statics.outputs) {
+                <div class="section__button" (click)="this.onAddOutput()">
+                    <div>+</div>
+                    <div>Add Output</div>
+                </div>
+            }
+        </div> 
     </div>
 
     <div class="section">
         <div class="section__label">Imports</div>
         <div class="section__list">
             $for(imp of this.functionImports; index = $index) {
-                <div class="import-entry">
+                <div class="list-item">
                     <span class="import-name">{{this.imp.label}}</span>
                     $if(!this.functionProperties.statics.imports) {
-                        <button class="port-delete-button" (click)="this.onDeleteImport(this.index)">✕</button>
+                        <div class="list-item__delete" (click)="this.onDeleteImport(this.index)">✕</div>
                     }
                 </div>
             }
+
             $if(this.functionImports.length === 0) {
                 <div class="section__empty">No imports added.</div>
             }
-        </div>
-        $if(!this.functionProperties.statics.imports) {
-            $if(this.unusedImports.length > 0) {
-                <div class="add-import-row">
-                    <select class="import-select" (change)="this.onImportSelectChange($event)">
+
+            $if(!this.functionProperties.statics.imports && this.unusedImports.length > 0) {
+                <div class="list-item">
+                    <select class="list-item__input" (change)="this.onImportSelectChange($event)">
                         $for(avail of this.unusedImports) {
                             <option [value]="this.avail.id">{{this.avail.label}}</option>
                         }
                     </select>
-                    <button class="add-button" (click)="this.onAddSelectedImport()">+ Add</button>
+                    <button class="section__button" (click)="this.onAddSelectedImport()">+ Add</button>
                 </div>
             }
-        }
+        </div>
+        
     </div>
 </potatno-resize-box>

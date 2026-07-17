@@ -1,8 +1,8 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { Component, ComponentState, PwbComponent } from '@kartoffelgames/web-potato-web-builder';
 import { PwbExport } from '../../../../../kartoffelgames.web.potato_web_builder/source/module/export/pwb-export.decorator.ts';
-import styles from './potatno-resize-box.css' with { type: 'text' };
-import template from './potatno-resize-box.html' with { type: 'text' };
+import styles from './potatno-resize-box-component.css' with { type: 'text' };
+import template from './potatno-resize-box-component.html' with { type: 'text' };
 
 /**
  * user resizeable panel.
@@ -13,7 +13,7 @@ import template from './potatno-resize-box.html' with { type: 'text' };
     template: template,
     style: styles
 })
-export class PotatnoResizeBox {
+export class PotatnoResizeBoxComponent {
     private readonly mComponentElement: HTMLElement;
 
     /**

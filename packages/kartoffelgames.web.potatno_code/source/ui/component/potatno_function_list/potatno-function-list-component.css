@@ -126,11 +126,13 @@
     justify-content: center;
     gap: 6px;
     padding: 8px 12px;
+    cursor: pointer;
+
+    /* Transition items. */
     border: 1px dashed var(--potatno-color-border);
     border-radius: 2px;
     color: var(--potatno-color-text);
     background-color: var(--potatno-color-background-light);
-    cursor: pointer;
 
     transition: border-color 0.15s, color 0.15s, background-color 0.15s;
 

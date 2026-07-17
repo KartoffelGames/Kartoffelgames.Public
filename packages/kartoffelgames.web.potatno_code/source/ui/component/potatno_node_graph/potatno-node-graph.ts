@@ -5,8 +5,8 @@ import type { PotatnoDocumentNode } from '../../../document/potatno-document-nod
 import type { PotatnoNodeDefinition } from '../../../project/node_definition/potatno-node-definition.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import { PotatnoCodeUiManagerChangeType, type PotatnoCodeUiManagerUnsubscribe, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
-import { PotatnoNodeSelectionPopup } from '../potatno-node-selection-popup/potatno-node-selection-popup.ts';
-import { PotatnoConnectionLayer } from '../potatno_connection_layer/potatno-connection-layer.ts';
+import { PotatnoNodeSelectionPopupComponent } from '../potatno-node-selection-popup/potatno-node-selection-popup-component.ts';
+import { PotatnoConnectionLayerComponent } from '../potatno_connection_layer/potatno-connection-layer-component.ts';
 import { PotatnoNodeComponent, type ResizeStartDetail } from '../potatno_node_component/potatno-node-component.ts';
 import graphCss from './potatno-node-graph.css' with { type: 'text' };
 import graphTemplate from './potatno-node-graph.html' with { type: 'text' };
@@ -16,7 +16,7 @@ import graphTemplate from './potatno-node-graph.html' with { type: 'text' };
  *
  * Owns only graph-local interaction state — pan/zoom, selection, node dragging, wire dragging and
  * the clipboard. The add-node popup and the SVG connection layer are delegated to their own child
- * components ({@link PotatnoAddNodePopup}, {@link PotatnoConnectionLayer}). The document it renders,
+ * components ({@link PotatnoAddNodePopup}, {@link PotatnoConnectionLayerComponent}). The document it renders,
  * the active function, validation errors and the per-node preview elements all come from the shared
  * {@link PotatnoUiManager}; every document mutation is routed back through the manager so history,
  * validation and preview rebuilds stay centralized. The graph refreshes by subscribing to manager
@@ -26,7 +26,7 @@ import graphTemplate from './potatno-node-graph.html' with { type: 'text' };
     selector: 'potatno-node-graph',
     template: graphTemplate,
     style: graphCss,
-    components: [PotatnoNodeSelectionPopup, PotatnoNodeComponent, PotatnoConnectionLayer,]
+    components: [PotatnoNodeSelectionPopupComponent, PotatnoNodeComponent, PotatnoConnectionLayerComponent,]
 })
 export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDeconstruct {
     private readonly mComponent: Component;

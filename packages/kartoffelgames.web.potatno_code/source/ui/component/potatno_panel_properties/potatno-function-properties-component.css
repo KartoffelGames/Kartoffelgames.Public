@@ -51,7 +51,100 @@
         flex-direction: column;
         gap: 4px;
     }
+
+    .section__button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box;
+        width: 100%;
+
+        gap: 6px;
+        padding: 4px 8px;
+        margin: 4px 0 0 0;
+
+        font-size: var(--potatno-font-size-small);
+        cursor: pointer;
+
+        /* Transition items. */
+        border: 1px dashed var(--potatno-color-border);
+        border-radius: 2px;
+        color: var(--potatno-color-text);
+        background-color: var(--potatno-color-background-light);
+
+
+        transition: border-color 0.15s, color 0.15s, background-color 0.15s;
+
+        &:hover {
+            border-color: var(--potatno-color-accent);
+            color: var(--potatno-color-accent);
+        }
+
+        &:active {
+            background-color: var(--potatno-color-background);
+        }
+    }
+
 }
+
+.list-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+
+    .list-item__delete {
+        display: flex;
+        width: 18px;
+        height: 18px;
+        align-items: center;
+        justify-content: center;
+        border-radius: 2px;
+        font-size: 11px;
+        cursor: pointer;
+
+        /* Cool hover transitions... It literally sucks. */
+        color: var(--potatno-color-text);
+        transition: background-color 0.15s, color 0.15s;
+
+        &:hover {
+            background-color: color-mix(in srgb, var(--potatno-color-error) 75%, var(--potatno-color-background));
+        }
+
+        &:active {
+            background-color: color-mix(in srgb, var(--potatno-color-error) 50%, var(--potatno-color-background));
+        }
+    }
+
+    .list-item__input {
+        flex: 1;
+        background: var(--potatno-color-background-light);
+        border: 1px solid var(--potatno-color-border);
+        border-radius: 4px;
+        color: var(--potatno-color-text);
+        font-size: var(--potatno-font-size-small);
+        padding: 4px 6px;
+        outline: none;
+        transition: border-color 0.15s;
+        min-width: 0;
+
+        &:focus {
+            border-color: var(--potatno-color-accent);
+        }
+
+        &:invalid {
+            border-color: var(--potatno-color-error);
+            outline-color: var(--potatno-color-error);
+        }
+
+        &:disabled {
+            color: var(--potatno-color-text);
+            background: var(--potatno-color-background-dark);
+            cursor: not-allowed;
+        }
+    }
+
+}
+
 
 
 
@@ -84,39 +177,7 @@
     cursor: not-allowed;
 }
 
-.port-entry {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
 
-.port-name-input {
-    flex: 1;
-    background: var(--potatno-color-background-light);
-    border: 1px solid var(--potatno-color-border);
-    border-radius: 4px;
-    color: var(--potatno-color-text);
-    font-size: var(--potatno-font-size-small);
-    padding: 4px 6px;
-    outline: none;
-    transition: border-color 0.15s;
-    min-width: 0;
-}
-
-.port-name-input:focus {
-    border-color: var(--potatno-color-accent);
-}
-
-.port-name-input:invalid {
-    border-color: var(--potatno-color-error);
-    outline-color: var(--potatno-color-error);
-}
-
-.port-name-input:disabled {
-    color: var(--potatno-color-text);
-    background: var(--potatno-color-background-dark);
-    cursor: not-allowed;
-}
 
 .port-type-input {
     width: 70px;
@@ -139,29 +200,6 @@
     color: var(--potatno-color-text);
     background: var(--potatno-color-background-dark);
     cursor: not-allowed;
-}
-
-.port-delete-button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 20px;
-    height: 20px;
-    background: transparent;
-    border: none;
-    border-radius: 3px;
-    color: var(--potatno-color-text);
-    font-size: var(--potatno-font-size-small);
-    cursor: pointer;
-    flex-shrink: 0;
-    transition: background 0.15s, color 0.15s;
-    padding: 0;
-    line-height: 1;
-}
-
-.port-delete-button:hover {
-    background: var(--potatno-color-error);
-    color: var(--potatno-color-text);
 }
 
 .import-entry {
@@ -211,27 +249,4 @@
     flex-shrink: 0;
     width: auto;
     margin-top: 0;
-}
-
-.add-button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    width: 100%;
-    margin-top: 6px;
-    padding: 4px 8px;
-    background: transparent;
-    border: 1px dashed var(--potatno-color-border);
-    border-radius: 4px;
-    color: var(--potatno-color-text);
-    font-size: var(--potatno-font-size-small);
-    cursor: pointer;
-    transition: background 0.15s, border-color 0.15s, color 0.15s;
-}
-
-.add-button:hover {
-    background: var(--potatno-color-background-light);
-    border-color: var(--potatno-color-accent);
-    color: var(--potatno-color-text);
 }

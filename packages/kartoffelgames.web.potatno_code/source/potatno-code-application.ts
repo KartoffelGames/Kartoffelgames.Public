@@ -8,7 +8,7 @@ import { PotatnoDeserializer } from './serialization/potatno-deserializer.ts';
 import type { PotatnoCodeFileSerializationResult } from './serialization/potatno-serialization.type.ts';
 import { PotatnoSerializer } from './serialization/potatno-serializer.ts';
 import themeCss from './ui/component/potatno-theme.css' with { type: 'text' };
-import { PotatnoCodeEditor } from './ui/component/potatno_code_editor/potatno-code-editor.ts';
+import { PotatnoCodeEditorComponent } from './ui/component/potatno_code_editor/potatno-code-editor-component.ts';
 
 /*
  * TODO: UI
@@ -21,7 +21,7 @@ import { PotatnoCodeEditor } from './ui/component/potatno_code_editor/potatno-co
  * backed by a PotatnoProject (configuration) and a PotatnoCodeFile (document state).
  */
 export class PotatnoCodeApplication<TProjectTypes extends PotatnoProjectTypesDefinition> extends PwbApplication {
-    private readonly mCodeEditor: PotatnoCodeEditor;
+    private readonly mCodeEditor: PotatnoCodeEditorComponent;
     private readonly mProject: PotatnoProject<TProjectTypes>;
 
     /**
@@ -56,7 +56,7 @@ export class PotatnoCodeApplication<TProjectTypes extends PotatnoProjectTypesDef
         this.addStyle(applicationCss);
 
         // Add the editor component and store the element reference.
-        this.mCodeEditor = this.addContent(PotatnoCodeEditor) as unknown as PotatnoCodeEditor;
+        this.mCodeEditor = this.addContent(PotatnoCodeEditorComponent) as unknown as PotatnoCodeEditorComponent;
 
         // Pass the project configuration into the editor, then seed it with an empty document.
         this.mCodeEditor.initializeProject(pProject as unknown as PotatnoProject<PotatnoProjectTypesDefinition>);

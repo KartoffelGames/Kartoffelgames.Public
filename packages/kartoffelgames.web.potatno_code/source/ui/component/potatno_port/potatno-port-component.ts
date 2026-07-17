@@ -5,17 +5,13 @@ import type { PotatnoDocumentPort } from '../../../document/potatno-document-por
 import type { PotatnoPortDefinitionDirection } from '../../../project/potatno-port-definition.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import type { PotatnoUiManagerGridPathFindingPoint } from '../../manager/helper/potatno-ui-grid-path-finding.ts';
-import { PotatnoCodeUiManagerChangeType, type PotatnoCodeUiManagerUnsubscribe, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
-import portCss from './potatno-port.css' with { type: 'text' };
-import portTemplate from './potatno-port.html' with { type: 'text' };
+import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, type PotatnoCodeUiManagerUnsubscribe } from '../../manager/potatno-ui-manager.ts';
+import portCss from './potatno-port-component.css' with { type: 'text' };
+import portTemplate from './potatno-port-component.html' with { type: 'text' };
 
 /**
  * Port component for the potatno-code visual editor.
- *
- * Renders a single {@link PotatnoDocumentPort}. The owning node pushes in the port and owner-node
- * references; error highlighting comes from the shared {@link PotatnoUiManager}, and direct-value
- * edits are committed through it. The component self-updates by subscribing to manager events so it
- * re-renders its connection-dependent visuals (direct-value inputs, colour) without a version token.
+ * Renders a single {@link PotatnoDocumentPort}.
  */
 @PwbComponent({
     selector: 'potatno-port',

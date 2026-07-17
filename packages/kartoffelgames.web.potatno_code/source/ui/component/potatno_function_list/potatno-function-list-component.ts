@@ -23,7 +23,7 @@ export class PotatnoFunctionListComponent implements IComponentOnDeconstruct {
      * Function entries to display.
      */
     @ComponentState.state({ complexValue: true })
-    public accessor documentFunctions: Array<PotatnoFunctionListEntry>;
+    public accessor documentFunctions: Array<PotatnoFunctionListComponentEntry>;
 
     /**
      * Whether the function type selection popup is currently visible.
@@ -58,7 +58,7 @@ export class PotatnoFunctionListComponent implements IComponentOnDeconstruct {
         this.mManager = pManager;
 
         // Define empty default values for states.
-        this.documentFunctions = new Array<PotatnoFunctionListEntry>();
+        this.documentFunctions = new Array<PotatnoFunctionListComponentEntry>();
         this.showPopup = false;
 
         // subscribe to any document or function changes to renew the current document function list.
@@ -70,7 +70,7 @@ export class PotatnoFunctionListComponent implements IComponentOnDeconstruct {
                     isSystem: pFunction.isSystem,
                     function: pFunction
                 };
-            }) ?? new Array<PotatnoFunctionListEntry>();
+            }) ?? new Array<PotatnoFunctionListComponentEntry>();
         });
     }
 
@@ -92,7 +92,7 @@ export class PotatnoFunctionListComponent implements IComponentOnDeconstruct {
      *
      * @param pFunctionListItem - The function to delete.
      */
-    public deleteFunction(pFunctionListItem: PotatnoFunctionListEntry): void {
+    public deleteFunction(pFunctionListItem: PotatnoFunctionListComponentEntry): void {
         this.mManager.graph.removeFunction(pFunctionListItem.id);
     }
 
@@ -108,7 +108,7 @@ export class PotatnoFunctionListComponent implements IComponentOnDeconstruct {
      *
      * @param pFunctionListItem - The function to select.
      */
-    public selectFunction(pFunctionListItem: PotatnoFunctionListEntry): void {
+    public selectFunction(pFunctionListItem: PotatnoFunctionListComponentEntry): void {
         this.mManager.setActiveFunction(pFunctionListItem.function);
     }
 }
@@ -116,7 +116,7 @@ export class PotatnoFunctionListComponent implements IComponentOnDeconstruct {
 /**
  * A function entry for the function list.
  */
-type PotatnoFunctionListEntry = {
+type PotatnoFunctionListComponentEntry = {
     id: string;
     label: string;
     isSystem: boolean;

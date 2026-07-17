@@ -20,7 +20,7 @@ export class PotatnoResizeBoxComponent {
      * Enabled directions. Used only in template references.
      */
     @ComponentState.state({ proxy: true })
-    private accessor enabledDirections: PotatnoResizeBoxDirections;
+    private accessor enabledDirections: PotatnoResizeBoxComponentDirections;
 
     /**
      * If bottom resize handle is enabled.
@@ -114,7 +114,7 @@ export class PotatnoResizeBoxComponent {
      * @param pEvent - The starting pointer down event.
      * @param pAllowedMovement - Allowed movement.
      */
-    private handleResize(pEvent: PointerEvent, pAllowedMovement: PotatnoResizeBoxMovement): void {
+    private handleResize(pEvent: PointerEvent, pAllowedMovement: PotatnoResizeBoxComponentMovement): void {
         pEvent.preventDefault();
         pEvent.stopPropagation();
 
@@ -214,9 +214,9 @@ export class PotatnoResizeBoxComponent {
     }
 }
 
-type PotatnoResizeBoxMovement = 'horizontal' | 'vertical' | 'both';
+type PotatnoResizeBoxComponentMovement = 'horizontal' | 'vertical' | 'both';
 
-type PotatnoResizeBoxDirections = {
+type PotatnoResizeBoxComponentDirections = {
     top: boolean;
     right: boolean;
     bottom: boolean;

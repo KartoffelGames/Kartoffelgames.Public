@@ -17,7 +17,7 @@ import connectionLayerTemplate from './potatno-connection-layer-component.html' 
     style: connectionLayerCss,
 })
 export class PotatnoConnectionLayerComponent implements IComponentOnDeconstruct {
-    private readonly mConnectionRegistry: Map<number, PotatnoConnectionLayerConnection>;
+    private readonly mConnectionRegistry: Map<number, PotatnoConnectionLayerComponentConnection>;
     private readonly mManager: PotatnoUiManager;
     private readonly mUnsubscribe: () => void;
 
@@ -33,7 +33,7 @@ export class PotatnoConnectionLayerComponent implements IComponentOnDeconstruct 
      * @param pManager - Injected shared UI manager singleton.
      */
     public constructor(pManager: PotatnoUiManager = Injection.use(PotatnoUiManager)) {
-        this.mConnectionRegistry = new Map<number, PotatnoConnectionLayerConnection>();
+        this.mConnectionRegistry = new Map<number, PotatnoConnectionLayerComponentConnection>();
         this.mManager = pManager;
 
         // Debounced svg redraw.
@@ -70,7 +70,7 @@ export class PotatnoConnectionLayerComponent implements IComponentOnDeconstruct 
         pEvent.stopPropagation();
 
         // Read connection by its stored id.
-        const lConnection: PotatnoConnectionLayerConnection | undefined = this.mConnectionRegistry.get(lConnectionId);
+        const lConnection: PotatnoConnectionLayerComponentConnection | undefined = this.mConnectionRegistry.get(lConnectionId);
         if (!lConnection) {
             return;
         }
@@ -163,7 +163,7 @@ export class PotatnoConnectionLayerComponent implements IComponentOnDeconstruct 
     }
 }
 
-type PotatnoConnectionLayerConnection = {
+type PotatnoConnectionLayerComponentConnection = {
     sourcePort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>;
     targetPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>;
 };

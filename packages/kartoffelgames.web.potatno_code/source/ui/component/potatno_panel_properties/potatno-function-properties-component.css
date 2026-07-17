@@ -74,7 +74,7 @@
         border-radius: 2px;
         background-color: var(--potatno-color-background-light);
 
-        transition: border-color 0.15s, color 0.15s, background-color 0.15s;
+        transition: border-color 0.15s, color 0.15s, background-color 0.15s, scale 0.15s;
 
         &:hover {
             border-color: var(--potatno-color-accent);
@@ -83,6 +83,7 @@
 
         &:active {
             background-color: var(--potatno-color-background);
+            scale: 0.98;
         }
     }
 }
@@ -134,7 +135,7 @@
         border-radius: 2px;
         background-color: var(--potatno-color-background-light);
 
-        transition: border-color 0.15s, color 0.15s, background-color 0.15s;
+        transition: border-color 0.15s, color 0.15s, background-color 0.15s, scale 0.15s;
 
         &:hover {
             border-color: var(--potatno-color-accent);
@@ -143,6 +144,7 @@
 
         &:active {
             background-color: var(--potatno-color-background);
+            scale: 0.98;
         }
     }
 

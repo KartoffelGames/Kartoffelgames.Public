@@ -25,7 +25,7 @@ export class PotatnoNodeSelectionPopupComponent implements IComponentOnConnect, 
      * Filtered result entries shown in the list.
      */
     @ComponentState.state({ complexValue: true })
-    public accessor results: Array<PotatnoAddNodePopupEntry>;
+    public accessor results: Array<PotatnoNodeSelectionPopupComponentEntry>;
 
     /**
      * Search field element, focused when the popup opens.
@@ -61,7 +61,7 @@ export class PotatnoNodeSelectionPopupComponent implements IComponentOnConnect, 
         this.mComponent = pComponent;
 
         this.selectedDefinitionId = null;
-        this.results = new Array<PotatnoAddNodePopupEntry>();
+        this.results = new Array<PotatnoNodeSelectionPopupComponentEntry>();
         this.searchValue = '';
     }
 
@@ -88,7 +88,7 @@ export class PotatnoNodeSelectionPopupComponent implements IComponentOnConnect, 
             pEvent.preventDefault();
 
             // Find list index of current selected definition.
-            let lEntryIndex = this.results.findIndex((pEntry: PotatnoAddNodePopupEntry) => {
+            let lEntryIndex = this.results.findIndex((pEntry: PotatnoNodeSelectionPopupComponentEntry) => {
                 return pEntry.definition.id === this.selectedDefinitionId;
             });
             lEntryIndex = Math.max(0, lEntryIndex);
@@ -140,12 +140,12 @@ export class PotatnoNodeSelectionPopupComponent implements IComponentOnConnect, 
     private rebuildResults(): void {
         // No function, no results. Reset list.
         if (!this.mManager.activeFunction) {
-            this.results = new Array<PotatnoAddNodePopupEntry>();
+            this.results = new Array<PotatnoNodeSelectionPopupComponentEntry>();
             return;
         }
 
         // Build a entry list for all dynamic nodes.
-        const lEntryList: Array<PotatnoAddNodePopupEntry> = this.mManager.activeFunction.dynamicNodeDefinitions.map((pNodeDefinition) => {
+        const lEntryList: Array<PotatnoNodeSelectionPopupComponentEntry> = this.mManager.activeFunction.dynamicNodeDefinitions.map((pNodeDefinition) => {
             return {
                 category: pNodeDefinition.category.name,
                 definition: pNodeDefinition,
@@ -159,12 +159,12 @@ export class PotatnoNodeSelectionPopupComponent implements IComponentOnConnect, 
         const lSearchTerm: string = this.searchValue.trim().toLowerCase();
 
         // Filter entry list by searchterm.
-        this.results = lEntryList.filter((pEntry: PotatnoAddNodePopupEntry) => {
+        this.results = lEntryList.filter((pEntry: PotatnoNodeSelectionPopupComponentEntry) => {
             return pEntry.label.includes(lSearchTerm);
         });
 
         // Select the first result when the current selected definition is not in the search result.
-        if (!this.results.some((pEntry: PotatnoAddNodePopupEntry) => pEntry.definition.id === this.selectedDefinitionId)) {
+        if (!this.results.some((pEntry: PotatnoNodeSelectionPopupComponentEntry) => pEntry.definition.id === this.selectedDefinitionId)) {
             this.selectedDefinitionId = this.results[0]?.definition.id ?? null;
         }
     }
@@ -181,7 +181,7 @@ export class PotatnoNodeSelectionPopupComponent implements IComponentOnConnect, 
         }
 
         // Find entry be selected definition id.
-        const lEntry: PotatnoAddNodePopupEntry | undefined = this.results.find((pEntry: PotatnoAddNodePopupEntry) => {
+        const lEntry: PotatnoNodeSelectionPopupComponentEntry | undefined = this.results.find((pEntry: PotatnoNodeSelectionPopupComponentEntry) => {
             return pEntry.definition.id === pSelectedIndex;
         });
 
@@ -197,7 +197,7 @@ export class PotatnoNodeSelectionPopupComponent implements IComponentOnConnect, 
 /**
  * Display and insertion data for one available node definition shown in the popup.
  */
-type PotatnoAddNodePopupEntry = {
+type PotatnoNodeSelectionPopupComponentEntry = {
     category: string;
     color: string;
     definition: PotatnoNodeDefinition<PotatnoProjectTypesDefinition>;

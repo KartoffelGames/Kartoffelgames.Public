@@ -111,11 +111,15 @@ potatno-code-editor {\r
     text-align: left;\r
     color: var(--potatno-color-text);\r
     cursor: pointer;\r
-    transition: background-color 0.15s;\r
+    transition: background-color 0.15s, scale 0.15s;\r
 \r
     &.active,\r
     &:active {\r
         background-color: var(--potatno-color-background-light);\r
+    }\r
+\r
+    &:active {\r
+        scale: 0.98;\r
     }\r
 \r
     .function-item__icon {\r
@@ -173,10 +177,10 @@ potatno-code-editor {\r
         border-radius: 2px;\r
         font-size: 11px;\r
         cursor: pointer;\r
+        color: var(--potatno-color-text);\r
 \r
         /* Cool hover transitions... It literally sucks. */\r
-        color: var(--potatno-color-text);\r
-        transition: background-color 0.15s, color 0.15s;\r
+        transition: background-color 0.15s;\r
 \r
         &:hover {\r
             background-color: color-mix(in srgb, var(--potatno-color-error) 75%, var(--potatno-color-background));\r
@@ -209,7 +213,7 @@ potatno-code-editor {\r
     color: var(--potatno-color-text);\r
     background-color: var(--potatno-color-background-light);\r
 \r
-    transition: border-color 0.15s, color 0.15s, background-color 0.15s;\r
+    transition: border-color 0.15s, color 0.15s, background-color 0.15s, scale 0.15s;\r
 \r
     &:hover {\r
         border-color: var(--potatno-color-accent);\r
@@ -218,6 +222,7 @@ potatno-code-editor {\r
 \r
     &:active {\r
         background-color: var(--potatno-color-background);\r
+        scale: 0.98;\r
     }\r
 }\r
 \r
@@ -256,7 +261,7 @@ potatno-code-editor {\r
         padding: 5px 12px 5px 9px;\r
         color: var(--potatno-color-text);\r
         cursor: pointer;\r
-        transition: color 0.15s, background-color 0.15s;\r
+        transition: color 0.15s, background-color 0.15s, scale 0.15s;\r
 \r
         /* Only set it to relative so the z-index has an effect */\r
         position: relative;\r
@@ -268,6 +273,7 @@ potatno-code-editor {\r
 \r
         &:active {\r
             background-color: var(--potatno-color-background);\r
+            scale: 0.98;\r
         }\r
 \r
         .icon {\r
@@ -509,18 +515,14 @@ $if(this.left) {\r
         padding: 8px 10px;\r
         outline: none;\r
 \r
-        border: none;\r
-        border-bottom: 1px solid var(--potatno-color-border);\r
+        /* Mistreat border as fake background. */\r
+        border: 5px solid var(--potatno-color-background-light);\r
 \r
         color: var(--potatno-color-text);\r
-        background-color: var(--potatno-color-background-dark);\r
+        background-color: var(--potatno-color-background);\r
 \r
         font-family: var(--potatno-font-family);\r
         font-size: var(--potatno-font-size);\r
-\r
-        &:focus {\r
-            border-bottom-color: var(--potatno-color-accent);\r
-        }\r
     }\r
 \r
     .selection-popup__results {\r
@@ -528,6 +530,7 @@ $if(this.left) {\r
         overflow-x: hidden;\r
         overflow-y: auto;\r
         padding: 4px 0;\r
+        border-top: 2px solid var(--potatno-color-accent);\r
 \r
         scrollbar-color: var(--potatno-color-scrollbar-thumb) var(--potatno-color-scrollbar-track);\r
         scrollbar-width: thin;\r
@@ -545,13 +548,15 @@ $if(this.left) {\r
         text-align: left;\r
         cursor: pointer;\r
 \r
+        transition: scale 0.15s;\r
+\r
         &:hover,\r
         &.selected {\r
             background-color: var(--potatno-color-background-light);\r
         }\r
 \r
         &:active {\r
-            background-color: var(--potatno-color-background-dark);\r
+            scale: 0.98;\r
         }\r
 \r
         .selection-popup__result-icon {\r
@@ -560,7 +565,7 @@ $if(this.left) {\r
             padding: 0 10px;\r
             width: 1ch;\r
             height: 25px;\r
-            \r
+\r
             color: var(--potatno-color-accent);\r
             border-left: 3px solid var(--item-color);\r
         }\r
@@ -739,7 +744,7 @@ $if(this.left) {\r
         border: 1px solid var(--potatno-port-color);\r
         border-radius: 2px;\r
 \r
-        background: color-mix(in srgb, var(--potatno-port-color) 12%, var(--potatno-color-background));\r
+        background-color: color-mix(in srgb, var(--potatno-port-color) 12%, var(--potatno-color-background));\r
         white-space: nowrap;\r
     }\r
 \r
@@ -756,7 +761,7 @@ $if(this.left) {\r
         border: 1px solid color-mix(in srgb, var(--potatno-port-color) 35%, transparent);\r
         border-radius: 2px;\r
         color: var(--potatno-color-text);\r
-        background: color-mix(in srgb, var(--potatno-port-color) 8%, var(--potatno-color-background));\r
+        background-color: color-mix(in srgb, var(--potatno-port-color) 8%, var(--potatno-color-background));\r
         box-sizing: border-box;\r
         font-size: var(--potatno-font-size-small);\r
         appearance: textfield;\r
@@ -843,7 +848,7 @@ $if(this.left) {\r
                     height: calc((var(--potatno-port-flow-size) / 3) * 2);\r
                     width: calc((var(--potatno-port-flow-size) / 3) * 2);\r
 \r
-                    background: var(--potatno-port-color);\r
+                    background-color: var(--potatno-port-color);\r
                     border-radius: 2px;\r
                 }\r
 \r
@@ -858,15 +863,15 @@ $if(this.left) {\r
                 }\r
 \r
                 &.connected::before {\r
-                    background: var(--potatno-port-color);\r
+                    background-color: var(--potatno-port-color);\r
                 }\r
 \r
                 &:not(.connected)::before {\r
-                    background: color-mix(in srgb, var(--potatno-port-color) 30%, var(--potatno-color-background));\r
+                    background-color: color-mix(in srgb, var(--potatno-port-color) 30%, var(--potatno-color-background));\r
                 }\r
 \r
                 &.error::before {\r
-                    background: var(--potatno-color-error);\r
+                    background-color: var(--potatno-color-error);\r
                 }\r
 \r
                 .output & {\r
@@ -911,22 +916,22 @@ $if(this.left) {\r
             }\r
 \r
             &.value {\r
-                background: var(--potatno-port-color);\r
+                background-color: var(--potatno-port-color);\r
                 border: 1px solid var(--potatno-port-color);\r
                 border-radius: 50%;\r
                 height: calc(var(--potatno-port-value-size) - 1px);\r
                 width: calc(var(--potatno-port-value-size) - 1px);\r
 \r
                 &.connected {\r
-                    background: var(--potatno-port-color);\r
+                    background-color: var(--potatno-port-color);\r
                 }\r
 \r
                 &:not(.connected) {\r
-                    background: color-mix(in srgb, var(--potatno-port-color) 30%, var(--potatno-color-background));\r
+                    background-color: color-mix(in srgb, var(--potatno-port-color) 30%, var(--potatno-color-background));\r
                 }\r
 \r
                 &.error {\r
-                    background: var(--potatno-color-error);\r
+                    background-color: var(--potatno-color-error);\r
                 }\r
             }\r
 \r
@@ -1565,7 +1570,7 @@ $if(this.left) {\r
         border-radius: 2px;\r
         background-color: var(--potatno-color-background-light);\r
 \r
-        transition: border-color 0.15s, color 0.15s, background-color 0.15s;\r
+        transition: border-color 0.15s, color 0.15s, background-color 0.15s, scale 0.15s;\r
 \r
         &:hover {\r
             border-color: var(--potatno-color-accent);\r
@@ -1574,6 +1579,7 @@ $if(this.left) {\r
 \r
         &:active {\r
             background-color: var(--potatno-color-background);\r
+            scale: 0.98;\r
         }\r
     }\r
 }\r
@@ -1625,7 +1631,7 @@ $if(this.left) {\r
         border-radius: 2px;\r
         background-color: var(--potatno-color-background-light);\r
 \r
-        transition: border-color 0.15s, color 0.15s, background-color 0.15s;\r
+        transition: border-color 0.15s, color 0.15s, background-color 0.15s, scale 0.15s;\r
 \r
         &:hover {\r
             border-color: var(--potatno-color-accent);\r
@@ -1634,6 +1640,7 @@ $if(this.left) {\r
 \r
         &:active {\r
             background-color: var(--potatno-color-background);\r
+            scale: 0.98;\r
         }\r
     }\r
 \r
@@ -1833,7 +1840,7 @@ $if(this.left) {\r
     max-width: 100%;\r
     max-height: 100%;\r
 \r
-    background: var(--potatno-color-background);\r
+    background-color: var(--potatno-color-background);\r
     border: 1px solid var(--potatno-color-border);\r
     border-width: 0 1px 1px 0;\r
     box-shadow: 0 4px 12px var(--potatno-color-shadow);\r
@@ -1844,7 +1851,7 @@ $if(this.left) {\r
     align-items: center;\r
     justify-content: space-between;\r
     border-bottom: 1px solid var(--potatno-color-border);\r
-    background: var(--potatno-color-background-light);\r
+    background-color: var(--potatno-color-background-light);\r
     overflow: hidden;\r
 \r
     /* Should never shrink */\r
@@ -1874,6 +1881,7 @@ $if(this.left) {\r
 \r
             &:active {\r
                 background: var(--tab-selected-color);\r
+                scale: 0.98;\r
             }\r
 \r
             &.selected {\r
@@ -1900,7 +1908,7 @@ $if(this.left) {\r
             font-family: var(--potatno-font-family);\r
             font-size: var(--potatno-font-size-small);\r
 \r
-            background: var(--potatno-color-background-light);\r
+            background-color: var(--potatno-color-background-light);\r
             color: var(--potatno-color-text);\r
 \r
             border: 1px solid var(--potatno-color-border);\r
@@ -1912,7 +1920,7 @@ $if(this.left) {\r
 .content {\r
     flex: 1;\r
     padding: 4px;\r
-    background: var(--potatno-color-background);\r
+    background-color: var(--potatno-color-background);\r
     overflow: auto;\r
 \r
     scrollbar-color: var(--potatno-color-scrollbar-thumb) var(--potatno-color-scrollbar-track);\r

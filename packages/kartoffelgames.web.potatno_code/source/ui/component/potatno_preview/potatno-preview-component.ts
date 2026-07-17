@@ -27,7 +27,7 @@ import template from './potatno-preview-component.html' with { type: 'text' };
 export class PotatnoPreviewComponent implements IComponentOnDeconstruct {
     private readonly mComponent: Component;
     private readonly mManager: PotatnoUiManager;
-    private mPreviewTargets: Map<string, PotatnoPreviewTarget>;
+    private mPreviewTargets: Map<string, PotatnoPreviewComponentTarget>;
     private readonly mUnsubscribeErrorResolve: PotatnoCodeUiManagerUnsubscribe;
     private readonly mUnsubscribeOutputFetch: PotatnoCodeUiManagerUnsubscribe;
 
@@ -41,7 +41,7 @@ export class PotatnoPreviewComponent implements IComponentOnDeconstruct {
      * Selected tab. Ignored on errors.
      */
     @ComponentState.state()
-    public accessor selectedTab: PotatnoPreviewTab;
+    public accessor selectedTab: PotatnoPreviewComponentTab;
 
     /**
      * Generated preview code.
@@ -54,7 +54,7 @@ export class PotatnoPreviewComponent implements IComponentOnDeconstruct {
      */
     public get displayOptions(): ReadonlyMap<string, string> {
         // Read function definition of target function.
-        const lPreviewPort: PotatnoPreviewTarget | undefined = this.mPreviewTargets.get(this.selectedOutputId);
+        const lPreviewPort: PotatnoPreviewComponentTarget | undefined = this.mPreviewTargets.get(this.selectedOutputId);
         if (!lPreviewPort) {
             return new Map<string, string>();
         }
@@ -73,7 +73,7 @@ export class PotatnoPreviewComponent implements IComponentOnDeconstruct {
     /**
      * Output options for the output selector (user functions only).
      */
-    public get outputOptions(): ReadonlyMap<string, PotatnoPreviewTarget> {
+    public get outputOptions(): ReadonlyMap<string, PotatnoPreviewComponentTarget> {
         return this.mPreviewTargets;
     }
 
@@ -82,7 +82,7 @@ export class PotatnoPreviewComponent implements IComponentOnDeconstruct {
      */
     public get previewDriver(): PotatnoPreviewDriver<PotatnoProjectTypesDefinition> | null {
         // Read the available preview port by output id. Skip if the output has no preview.
-        const lPreviewTarget: PotatnoPreviewTarget | undefined = this.mPreviewTargets.get(this.selectedOutputId);
+        const lPreviewTarget: PotatnoPreviewComponentTarget | undefined = this.mPreviewTargets.get(this.selectedOutputId);
         if (!lPreviewTarget) {
             return null;
         }
@@ -115,7 +115,7 @@ export class PotatnoPreviewComponent implements IComponentOnDeconstruct {
      * Currently selected output id, falling back to the first available.
      */
     public get selectedOutputId(): string {
-        const lOptions: ReadonlyMap<string, PotatnoPreviewTarget> = this.outputOptions;
+        const lOptions: ReadonlyMap<string, PotatnoPreviewComponentTarget> = this.outputOptions;
 
         // Check current selected if its a valid selection and reset it when its not.
         if (!lOptions.has(this.mSelectedOutputId)) {
@@ -184,8 +184,8 @@ export class PotatnoPreviewComponent implements IComponentOnDeconstruct {
      * 
      * @returns all available preview targets of current active function.
      */
-    private findFunctionPreviewTargets(): Map<string, PotatnoPreviewTarget> {
-        const lOutputPorts: Map<string, PotatnoPreviewTarget> = new Map<string, PotatnoPreviewTarget>();
+    private findFunctionPreviewTargets(): Map<string, PotatnoPreviewComponentTarget> {
+        const lOutputPorts: Map<string, PotatnoPreviewComponentTarget> = new Map<string, PotatnoPreviewComponentTarget>();
 
         // When no active function is set, 
         if (!this.mManager.activeFunction) {
@@ -274,7 +274,7 @@ export class PotatnoPreviewComponent implements IComponentOnDeconstruct {
     }
 }
 
-type PotatnoPreviewTarget = {
+type PotatnoPreviewComponentTarget = {
     /**
      * Label for preview target.
      */
@@ -291,4 +291,4 @@ type PotatnoPreviewTarget = {
     displays: Map<string, string>;
 };
 
-type PotatnoPreviewTab = 'preview' | 'code';
+type PotatnoPreviewComponentTab = 'preview' | 'code';

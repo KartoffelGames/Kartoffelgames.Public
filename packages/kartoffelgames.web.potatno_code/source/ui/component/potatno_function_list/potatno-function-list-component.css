@@ -37,11 +37,15 @@
     text-align: left;
     color: var(--potatno-color-text);
     cursor: pointer;
-    transition: background-color 0.15s;
+    transition: background-color 0.15s, scale 0.15s;
 
     &.active,
     &:active {
         background-color: var(--potatno-color-background-light);
+    }
+
+    &:active {
+        scale: 0.98;
     }
 
     .function-item__icon {
@@ -99,10 +103,10 @@
         border-radius: 2px;
         font-size: 11px;
         cursor: pointer;
+        color: var(--potatno-color-text);
 
         /* Cool hover transitions... It literally sucks. */
-        color: var(--potatno-color-text);
-        transition: background-color 0.15s, color 0.15s;
+        transition: background-color 0.15s;
 
         &:hover {
             background-color: color-mix(in srgb, var(--potatno-color-error) 75%, var(--potatno-color-background));
@@ -135,7 +139,7 @@
     color: var(--potatno-color-text);
     background-color: var(--potatno-color-background-light);
 
-    transition: border-color 0.15s, color 0.15s, background-color 0.15s;
+    transition: border-color 0.15s, color 0.15s, background-color 0.15s, scale 0.15s;
 
     &:hover {
         border-color: var(--potatno-color-accent);
@@ -144,6 +148,7 @@
 
     &:active {
         background-color: var(--potatno-color-background);
+        scale: 0.98;
     }
 }
 
@@ -182,7 +187,7 @@
         padding: 5px 12px 5px 9px;
         color: var(--potatno-color-text);
         cursor: pointer;
-        transition: color 0.15s, background-color 0.15s;
+        transition: color 0.15s, background-color 0.15s, scale 0.15s;
 
         /* Only set it to relative so the z-index has an effect */
         position: relative;
@@ -194,6 +199,7 @@
 
         &:active {
             background-color: var(--potatno-color-background);
+            scale: 0.98;
         }
 
         .icon {

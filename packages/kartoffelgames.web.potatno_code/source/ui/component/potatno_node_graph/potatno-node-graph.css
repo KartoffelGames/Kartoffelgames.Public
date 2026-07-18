@@ -3,42 +3,38 @@
     flex: 1;
     min-height: 0;
     min-width: 0;
-    position: relative;
 }
 
 .canvas-wrapper {
-    background: var(--potatno-color-background);
-    cursor: default;
+    position: relative;
     flex: 1;
     min-height: 0;
     min-width: 0;
+    background-color: var(--potatno-color-background);
     overflow: hidden;
-    position: relative;
 }
 
-.grid-layer {
+.grid {
     position: absolute;
     top: 0;
     left: 0;
-    transform-origin: 0 0;
+
+    .grid__node {
+        position: absolute;
+        border-radius: 2px;
+
+        &.selected {
+            outline: 2px solid var(--potatno-color-accent);
+        }
+    }
 }
 
-.node-layer {
-    position: absolute;
-    top: 0;
-    left: 0;
-}
 
-.node-position {
-    position: absolute;
-}
 
 .selection-box {
-    background: var(--pn-selection-color);
+    position: absolute;
+    background-color: color-mix(in srgb, var(--potatno-color-accent) 20%, transparent);
     border: 1px solid var(--potatno-color-accent);
     pointer-events: none;
-    position: absolute;
     z-index: 1000;
 }
-
-

@@ -43,22 +43,8 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
     @ComponentState.state()
     public accessor nodeData: PotatnoDocumentNode<PotatnoProjectTypesDefinition> | null = null;
 
-    /**
-     * Whether this node is currently selected.
-     */
-    @PwbExport
-    @ComponentState.state()
-    public accessor selected: boolean = false;
-
     @PwbComponentEvent('resize-start')
     private accessor mResizeStart!: ComponentEventEmitter<ResizeStartDetail>;
-
-    /**
-     * CSS class string for the selected state.
-     */
-    public get selectedClass(): string {
-        return this.selected ? 'selected' : '';
-    }
 
     /**
      * CSS class string for the error state.

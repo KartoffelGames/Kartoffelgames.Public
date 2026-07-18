@@ -1,6 +1,6 @@
 $if(this.nodeData) {
     $if(this.isReroute) {
-        <div class="node-reroute {{this.selectedClass}} {{this.hasErrorClass}}">
+        <div class="node-reroute {{this.hasErrorClass}}">
             <div class="reroute-inputs">
                 $for(inPort of this.inputPorts) {
                     <potatno-port
@@ -20,7 +20,7 @@ $if(this.nodeData) {
     }
     $if(!this.isReroute) {
     $if(this.isComment) {
-        <div class="node-comment {{this.selectedClass}} {{this.hasErrorClass}}">
+        <div class="node-comment {{this.hasErrorClass}}">
             <div class="comment-header">
                 <span class="node-icon">{{this.categoryIcon}}</span>
                 <span class="node-label">{{this.nodeName}}</span>
@@ -36,7 +36,7 @@ $if(this.nodeData) {
         </div>
     }
     $if(!this.isComment) {
-        <div class="node {{this.selectedClass}} {{this.hasErrorClass}}">
+        <div class="node {{this.hasErrorClass}}">
             <div class="node-header" style="background: {{this.categoryColor}}">
                 <span class="node-icon">{{this.categoryIcon}}</span>
                 <span class="node-label">{{this.nodeName}}</span>

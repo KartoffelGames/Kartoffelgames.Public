@@ -17,14 +17,9 @@
     min-height: 100%;
     background: var(--potatno-color-background);
     
-    border-radius: var(--node-border-radius);
     box-shadow: 0 2px 8px var(--potatno-color-shadow);
     overflow: visible;
     user-select: none;
-
-    /* Add border and adjust global position for it. */
-    border: 1px solid var(--potatno-color-border);
-    transform: translate(-1px, -1px);
 }
 
 .node.selected {

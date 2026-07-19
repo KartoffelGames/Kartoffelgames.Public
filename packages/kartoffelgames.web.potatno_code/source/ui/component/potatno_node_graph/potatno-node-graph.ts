@@ -1,13 +1,13 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import { Component, ComponentState, PwbChild, PwbComponent, type ComponentEvent, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
+import { Component, ComponentState, PwbComponent, type ComponentEvent, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoNodeDefinition } from '../../../project/node_definition/potatno-node-definition.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
-import { PotatnoCodeUiManagerChangeType, type PotatnoCodeUiManagerUnsubscribe, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
+import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, type PotatnoCodeUiManagerUnsubscribe } from '../../manager/potatno-ui-manager.ts';
 import { PotatnoNodeSelectionPopupComponent } from '../potatno-node-selection-popup/potatno-node-selection-popup-component.ts';
 import { PotatnoConnectionLayerComponent } from '../potatno_connection_layer/potatno-connection-layer-component.ts';
-import { PotatnoNodeComponent, type ResizeStartDetail } from '../potatno_node_component/potatno-node-component.ts';
+import { PotatnoNodeComponent } from '../potatno_node_component/potatno-node-component.ts';
 import graphCss from './potatno-node-graph.css' with { type: 'text' };
 import graphTemplate from './potatno-node-graph.html' with { type: 'text' };
 
@@ -326,24 +326,6 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
     }
 
     /**
-     * Start resizing a comment node.
-     *
-     * @param pEvent - Component event with resize start data.
-     */
-    public onNodeResizeStart(pEvent: ComponentEvent<ResizeStartDetail>): void {
-        this.closeAddNodePopup();
-        this.mInteractionState = {
-            mode: 'resizing-comment',
-            node: pEvent.value.node,
-            originalH: pEvent.value.node.transformation.height,
-            originalW: pEvent.value.node.transformation.width,
-            startX: pEvent.value.startX,
-            startY: pEvent.value.startY
-        };
-        this.startDocumentPointerTracking();
-    }
-
-    /**
      * Insert the node definition chosen in the add-node popup at the popup's world position.
      *
      * @param pEvent - Component event carrying the selected node definition.
@@ -390,20 +372,6 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
             };
             this.mShowSelectionBox = Math.abs(this.mSelectionBoxScreen.x2 - this.mSelectionBoxScreen.x1) > 5
                 || Math.abs(this.mSelectionBoxScreen.y2 - this.mSelectionBoxScreen.y1) > 5;
-            return;
-        }
-
-        if (lState.mode === 'resizing-comment') {
-            const lGridSize: number = this.mManager.grid.gridSize;
-            const lDx: number = (pEvent.clientX - lState.startX) / this.mManager.grid.zoom;
-            const lDy: number = (pEvent.clientY - lState.startY) / this.mManager.grid.zoom;
-
-            // Resize through the manager so the change is announced and the connection layer redraws.
-            this.mManager.graph.transformNode(lState.node, {
-                width: lState.originalW + Math.round(lDx / lGridSize),
-                height: lState.originalH + Math.round(lDy / lGridSize)
-            });
-            this.rebuildVisibleNodePositions();
             return;
         }
     }
@@ -516,7 +484,9 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
         // Move each dragged node through the manager so the connection layer redraws its wires to follow.
         for (const [lNode, lOrigin] of pState.origins) {
             const lSnapped: Point = this.mManager.grid.snapToGrid(lOrigin.originX + lDx, lOrigin.originY + lDy);
-            this.mManager.graph.transformNode(lNode, { x: Math.round(lSnapped.x / lGridSize), y: Math.round(lSnapped.y / lGridSize) });
+            this.mManager.graph.transformNode(lNode, (pNode) => {
+                pNode.moveTo(Math.round(lSnapped.x / lGridSize), Math.round(lSnapped.y / lGridSize));
+            });
         }
 
         this.rebuildVisibleNodePositions();
@@ -792,8 +762,7 @@ type GraphInteractionState =
     | { mode: 'idle'; }
     | { mode: 'panning'; startX: number; startY: number; }
     | { mode: 'dragging-node'; startX: number; startY: number; origins: Map<PotatnoDocumentNode<PotatnoProjectTypesDefinition>, NodeDragOrigin>; }
-    | { mode: 'selecting'; }
-    | { mode: 'resizing-comment'; node: PotatnoDocumentNode<PotatnoProjectTypesDefinition>; startX: number; startY: number; originalW: number; originalH: number; };
+    | { mode: 'selecting'; };
 
 type AddNodePopupState = {
     screenX: number;

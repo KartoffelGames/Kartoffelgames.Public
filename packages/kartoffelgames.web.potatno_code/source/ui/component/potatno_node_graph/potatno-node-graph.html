@@ -5,7 +5,7 @@
     <potatno-connection-layer/>
 
     $for(nodeState of this.visibleNodes) {
-        <potatno-node class="grid-content__node {{this.nodeState.selected ? 'selected' : ''}}" style="left:{{this.nodeState.pixelX}}px; top:{{this.nodeState.pixelY}}px; width:{{this.nodeState.pixelW}}px; height:{{this.nodeState.pixelH}}px;" [nodeData]="this.nodeState.node" (pointerdown)="this.onNodePointerDown($event, this.nodeState.node)" (resize-start)="this.onNodeResizeStart($event)"/>
+        <potatno-node class="grid-content__node {{this.nodeState.selected ? 'selected' : ''}}" style="left:{{this.nodeState.pixelX}}px; top:{{this.nodeState.pixelY}}px; width:{{this.nodeState.pixelW}}px; height:{{this.nodeState.pixelH}}px;" [nodeData]="this.nodeState.node" (pointerdown)="this.onNodePointerDown($event, this.nodeState.node)"/>
     }
 </div>
 

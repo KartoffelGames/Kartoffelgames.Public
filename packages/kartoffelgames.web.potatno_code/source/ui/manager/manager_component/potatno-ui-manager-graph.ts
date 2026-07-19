@@ -195,31 +195,27 @@ export class PotatnoUiManagerGraph {
     }
 
     /**
-     * Announce a transient, in-place node geometry change (a live drag or resize) so the connection
-     * layer can redraw its wires. Carries no history/preview/validation side effects — those are
-     * committed separately on pointer-up via {@link commitNodeChange}.
+     * Calls updater function with the specified node.
+     * Does emit an transformation event on completion and nothing else.
+     * 
+     * @param pNode - Node to update.
+     * @param pUpdater - Update method of the node.
      */
-    public transformNode(pNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition>, pTransformation: Partial<PotatnoDocumentNodeTransformation>): void {
-        // Build full transformation and override provided data.
-        const lTransformation: PotatnoDocumentNodeTransformation = {
-            x: pNode.transformation.x,
-            y: pNode.transformation.y,
-            width: pNode.transformation.width,
-            height: pNode.transformation.height,
+    public transformNode(pNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition> | null,  pUpdater: (pNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition>) => void): void {
+        // Skip node update when no node is set.
+        if (!pNode) {
+            return;
+        }
 
-            // Override with provided data.
-            ...pTransformation
-        };
-
-        // Move and resize.
-        pNode.moveTo(lTransformation.x, lTransformation.y);
-        pNode.resizeTo(lTransformation.width, lTransformation.height);
+        // Simple pass forward.
+        pUpdater(pNode);
 
         this.mManager.dispatch(PotatnoCodeUiManagerChangeType.NodeTransform, pNode);
     }
 
     /**
-     * Update unspecified fields of a function.
+     * Calls updater function with the specified function.
+     * Does emit an update event on completion.
      * 
      * @param pFunction - Function to update.
      * @param pUpdater - Update method of the function.
@@ -238,7 +234,8 @@ export class PotatnoUiManagerGraph {
     }
 
     /**
-     * Update unspecified fields of a node.
+     * Calls updater function with the specified node.
+     * Does emit an update event on completion.
      * 
      * @param pNode - Node to update.
      * @param pUpdater - Update method of the node.

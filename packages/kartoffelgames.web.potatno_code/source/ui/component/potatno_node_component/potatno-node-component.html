@@ -1,101 +1,53 @@
-$if(this.nodeData) {
-    $if(this.isReroute) {
-        <div class="node-reroute {{this.hasErrorClass}}">
-            <div class="reroute-inputs">
-                $for(inPort of this.inputPorts) {
-                    <potatno-port
-                        [port]="this.inPort">
-                    </potatno-port>
-                }
-            </div>
-            <div class="reroute-dot"></div>
-            <div class="reroute-outputs">
-                $for(outPort of this.outputPorts) {
-                    <potatno-port
-                        [port]="this.outPort">
-                    </potatno-port>
-                }
-            </div>
-        </div>
-    }
-    $if(!this.isReroute) {
-    $if(this.isComment) {
-        <div class="node-comment {{this.hasErrorClass}}">
-            <div class="comment-header">
-                <span class="node-icon">{{this.categoryIcon}}</span>
-                <span class="node-label">{{this.nodeName}}</span>
-            </div>
-            <div class="comment-body">
-                <textarea [value]="this.nodeLabel"
-                          (input)="this.onCommentInput($event)">
-                </textarea>
-            </div>
-            <div class="resize-handle"
-                 (pointerdown)="this.onResizeStart($event)">
-            </div>
-        </div>
-    }
-    $if(!this.isComment) {
-        <div class="node {{this.hasErrorClass}}">
-            <div class="node-header" style="background: {{this.categoryColor}}">
-                <span class="node-icon">{{this.categoryIcon}}</span>
-                <span class="node-label">{{this.nodeName}}</span>
-                $if(this.showOpenButton) {
-                    <button class="open-function-btn"
-                            (click)="this.onOpenFunction($event)">
-                        open
-                    </button>
-                }
-                $if(this.canPreview) {
-                    <div class="preview-eye-wrapper">
-                        <button [className]="this.previewEyeClass">👁</button>
-                        <div class="preview-port-menu">
-                            <button [className]="this.previewNoneClass"
-                                    (click)="this.onClearPreview($event)">
-                                None
-                            </button>
-                            $for(port of this.valueOutputPorts) {
-                                <button [className]="this.previewPortClass(this.port)"
-                                        (click)="this.onSelectPreviewPort($event, this.port)">
-                                    {{this.port.label}}
-                                </button>
-                            }
-                        </div>
-                    </div>
-                }
-            </div>
-            <div class="node-body">
-                $if(this.inputPorts.length > 0) {
-                    <div class="node-ports">    
-                        $for(inPort of this.inputPorts) {
-                            <potatno-port
-                                [port]="this.inPort">
-                            </potatno-port>
-                        }   
-                    </div>
-                }
+<!-- Resizeable part of node -->
+<potatno-resize-box class="node {{this.hasErrorClass}}" top="true" right="true" bottom="true" left="true" [snap]="25" (resize-end)="this.resizeNode($event.value)">
 
-                $if(this.outputPorts.length > 0) {
-                    <div class="node-ports">
-                        $for(outPort of this.outputPorts) {
-                            <potatno-port
-                                [port]="this.outPort">
-                            </potatno-port>
-                        }
-                    </div>
+    <div class="node-header" style="background: {{this.categoryColor}}">
+        <span class="node-icon">{{this.categoryIcon}}</span>
+        <span class="node-label">{{this.nodeLabel}}</span>
+        $if(this.isFunction) {
+            <button class="open-function-btn" (click)="this.onOpenFunction($event)">open</button>
+        }
+        $if(this.canPreview) {
+            <div class="preview-eye-wrapper">
+                <button [className]="this.previewEyeClass">👁</button>
+                <div class="preview-port-menu">
+                    <button [className]="this.previewNoneClass" (click)="this.onClearPreview($event)">None</button>
+                    $for(port of this.valueOutputPorts) {
+                        <button class="preview-port-item {{ this.isPreviewedPort(this.port) ? 'active': '' }}" (click)="this.onSelectPreviewPort($event, this.port)">{{this.port.label}}</button>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="node-body">
+        $if(this.inputPorts.length > 0) {
+            <div class="node-ports">    
+                $for(inPort of this.inputPorts) {
+                    <potatno-port [port]="this.inPort"/>
+                }   
+            </div>
+        }
+
+        $if(this.outputPorts.length > 0) {
+            <div class="node-ports">
+                $for(outPort of this.outputPorts) {
+                    <potatno-port [port]="this.outPort"/>
                 }
             </div>
-            $if(this.isPreviewActive) {
-                <div class="preview-style-bar">
-                    <select class="preview-style-select" (change)="this.onSelectPreviewStyle($event)">
-                        $for(display of this.previewDisplays) {
-                            <option [value]="this.display.id" [selected]="this.display.id === this.selectedDisplayId">{{this.display.label}}</option>
-                        }
-                    </select>
-                </div>
-            }
-            <div class="node-preview" potatno-preview="this.previewDriver"></div>
+        }
+    </div>
+
+    $if(this.isPreviewActive) {
+        <div class="preview-style-bar">
+            <select class="preview-style-select" (change)="this.onSelectPreviewStyle($event)">
+                $for(display of this.previewDisplays) {
+                    <option [value]="this.display.id" [selected]="this.display.id === this.selectedDisplayId">{{this.display.label}}</option>
+                }
+            </select>
         </div>
+
+        <div class="node-preview" potatno-preview="this.previewDriver"></div>
     }
-    }
-}
+</potatno-resize-box>
+

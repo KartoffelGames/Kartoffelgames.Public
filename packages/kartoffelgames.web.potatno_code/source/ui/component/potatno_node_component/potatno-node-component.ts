@@ -1,5 +1,5 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import { Component, ComponentState, PwbComponent, PwbComponentEvent, PwbExport, type ComponentEventEmitter, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
+import { Component, ComponentState, PwbComponent, PwbExport, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import type { PotatnoPreviewDriver } from '../../../preview/potatno-preview-driver.ts';
@@ -10,30 +10,26 @@ import type { PotatnoProject } from '../../../project/potatno-project.ts';
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, type PotatnoCodeUiManagerUnsubscribe } from '../../manager/potatno-ui-manager.ts';
 import { PotatnoPreviewModule } from '../../module/potatno-preview.module.ts';
 import { NodeCategory } from '../../node/node-category.enum.ts';
+import { PotatnoResizeBoxComponent, PotatnoResizeBoxComponentSize } from "../potatno-resize-box/potatno-resize-box-component.ts";
 import { PotatnoPortComponent } from '../potatno_port/potatno-port-component.ts';
 import nodeCss from './potatno-node-component.css' with { type: 'text' };
 import nodeTemplate from './potatno-node-component.html' with { type: 'text' };
 
 /**
  * Node component for the potatno-code visual editor.
- *
- * Renders a single {@link PotatnoDocumentNode}. Layout inputs (which node, selected, grid size)
- * are pushed in by the graph; everything else — validation highlighting, the inline preview
- * element and its available displays, and every mutation (label edits, preview opt-in, opening a
- * function) — goes through the shared {@link PotatnoUiManager}. The component self-updates by
- * subscribing to manager events instead of receiving refresh tokens.
+ * Handles resize and position on its own.
  */
 @PwbComponent({
     selector: 'potatno-node',
     template: nodeTemplate,
     style: nodeCss,
     modules: [PotatnoPreviewModule],
-    components: [PotatnoPortComponent]
+    components: [PotatnoPortComponent, PotatnoResizeBoxComponent]
 })
-export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDeconstruct {
+export class PotatnoNodeComponent implements IComponentOnDeconstruct {
     private readonly mComponent: Component;
     private readonly mManager: PotatnoUiManager;
-    private mUnsubscribe: PotatnoCodeUiManagerUnsubscribe | null;
+    private mUnsubscribe: PotatnoCodeUiManagerUnsubscribe;
     private mNodeDefinition: PotatnoNodeDefinition<PotatnoProjectTypesDefinition> | null;
 
     /**
@@ -43,9 +39,6 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
     @ComponentState.state()
     public accessor nodeData: PotatnoDocumentNode<PotatnoProjectTypesDefinition> | null = null;
 
-    @PwbComponentEvent('resize-start')
-    private accessor mResizeStart!: ComponentEventEmitter<ResizeStartDetail>;
-
     /**
      * CSS class string for the error state.
      */
@@ -54,31 +47,10 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
     }
 
     /**
-     * Whether this is a comment-category node.
-     */
-    public get isComment(): boolean {
-        return this.nodeDefinition?.category.name === NodeCategory.Comment;
-    }
-
-    /**
-     * Whether this is a reroute passthrough node.
-     */
-    public get isReroute(): boolean {
-        return this.nodeDefinition?.category.name === NodeCategory.Reroute;
-    }
-
-    /**
      * Whether this is a function-category node.
      */
     public get isFunction(): boolean {
         return this.nodeDefinition?.category.name === NodeCategory.Function;
-    }
-
-    /**
-     * Whether the open-function button should be shown. Only for function nodes.
-     */
-    public get showOpenButton(): boolean {
-        return this.isFunction;
     }
 
     /**
@@ -204,18 +176,6 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
     }
 
     /**
-     * Node definition name (shown as the node's title in the header).
-     */
-    public get nodeName(): string {
-        if (!this.nodeData) {
-            return '';
-        }
-        const lNodeData = this.nodeData;
-        const lDef = lNodeData.project.nodeDefinitions.find((lNodeDef: { id: string; }) => lNodeDef.id === lNodeData.definitionId);
-        return lDef?.label ?? lNodeData.label;
-    }
-
-    /**
      * Inline CSS style for grid-sized node layout.
      */
     public get nodeGridStyle(): string {
@@ -286,9 +246,44 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
     public constructor(pComponent: Component = Injection.use(Component), pManager: PotatnoUiManager = Injection.use(PotatnoUiManager)) {
         this.mComponent = pComponent;
         this.mManager = pManager;
-        this.mUnsubscribe = null;
         this.mNodeDefinition = null;
+
+        this.mUnsubscribe = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.SpecialActiveFunction | PotatnoCodeUiManagerChangeType.Node | PotatnoCodeUiManagerChangeType.Connection, () => {
+            this.mComponent.updater.updateAsync();
+        });
     }
+
+    /**
+     * Detach the manager subscription.
+     */
+    public onDeconstruct(): void {
+        this.mUnsubscribe();
+    }
+
+    public resizeNode(pResize: PotatnoResizeBoxComponentSize): void {
+        this.mManager.graph.transformNode(this.nodeData, (pNode) => {
+            const lWidth: number = pResize.width / this.mManager.grid.gridSize;
+            const lHeight: number = pResize.height / this.mManager.grid.gridSize;
+
+            pNode.resizeTo(lWidth, lHeight);
+        });
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     /**
      * Whether the given port is the one currently previewed.
@@ -299,31 +294,7 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
         return this.nodeData?.preview?.portId === pPort.definitionId;
     }
 
-    /**
-     * CSS class for a port row in the preview menu.
-     *
-     * @param pPort - Port the row represents.
-     */
-    public previewPortClass(pPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>): string {
-        return this.isPreviewedPort(pPort) ? 'preview-port-item active' : 'preview-port-item';
-    }
-
-    /**
-     * Subscribe to manager events that affect this node's rendering.
-     */
-    public onConnect(): void {
-        this.mUnsubscribe = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.SpecialActiveFunction | PotatnoCodeUiManagerChangeType.Node | PotatnoCodeUiManagerChangeType.Connection, () => {
-            this.mComponent.updater.updateAsync();
-        });
-    }
-
-    /**
-     * Detach the manager subscription.
-     */
-    public onDeconstruct(): void {
-        this.mUnsubscribe?.();
-        this.mUnsubscribe = null;
-    }
+    
 
     /**
      * Choose which output port to preview. Re-selecting the active port turns the preview off.
@@ -437,46 +408,7 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
         // Set nodes function.
         this.mManager.setActiveFunction(lNodeDefinition.function);
     }
-
-    /**
-     * Handle text input changes on comment nodes.
-     *
-     * @param pEvent - Input event from the comment textarea.
-     */
-    public onCommentInput(pEvent: Event): void {
-        const lTarget: HTMLTextAreaElement = pEvent.target as HTMLTextAreaElement;
-
-        // Set node data.
-        this.mManager.graph.updateNode(this.nodeData, (pNode) => {
-            pNode.label = lTarget.value;
-        });
-    }
-
-    /**
-     * Handle pointer down on the resize handle of comment nodes.
-     *
-     * @param pEvent - Pointer event from the resize handle.
-     */
-    public onResizeStart(pEvent: PointerEvent): void {
-        pEvent.stopPropagation();
-        pEvent.preventDefault();
-        if (!this.nodeData) {
-            return;
-        }
-        this.mResizeStart.dispatchEvent({
-            node: this.nodeData,
-            startX: pEvent.clientX,
-            startY: pEvent.clientY
-        });
-    }
-
 }
-
-export type ResizeStartDetail = {
-    node: PotatnoDocumentNode<PotatnoProjectTypesDefinition>;
-    startX: number;
-    startY: number;
-};
 
 type PotatnoNodeComponentPreviewDisplayOption = {
     readonly id: string;

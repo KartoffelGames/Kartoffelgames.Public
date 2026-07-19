@@ -1,5 +1,5 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import { Component, ComponentState, PwbComponent } from '@kartoffelgames/web-potato-web-builder';
+import { Component, type ComponentEventEmitter, ComponentState, PwbComponent, PwbComponentEvent } from '@kartoffelgames/web-potato-web-builder';
 import { PwbExport } from '../../../../../kartoffelgames.web.potato_web_builder/source/module/export/pwb-export.decorator.ts';
 import styles from './potatno-resize-box-component.css' with { type: 'text' };
 import template from './potatno-resize-box-component.html' with { type: 'text' };
@@ -20,16 +20,22 @@ export class PotatnoResizeBoxComponent {
      * Enabled directions. Used only in template references.
      */
     @ComponentState.state({ proxy: true })
-    private accessor enabledDirections: PotatnoResizeBoxComponentDirections;
+    private accessor mEnabledDirections: PotatnoResizeBoxComponentConfiguration;
+
+    /**
+     * Emitted with the definition the user picked, for the host to insert.
+     */
+    @PwbComponentEvent('resize')
+    private accessor mResize!: ComponentEventEmitter<PotatnoResizeBoxComponentSize>;
 
     /**
      * If bottom resize handle is enabled.
      */
     @PwbExport
     public get bottom(): boolean {
-        return this.enabledDirections.enabled.bottom;
+        return this.mEnabledDirections.enabledDirections.bottom;
     } set bottom(pEnabled: unknown) {
-        this.enabledDirections.enabled.bottom = this.parseBoolean(pEnabled);
+        this.mEnabledDirections.enabledDirections.bottom = this.parseBoolean(pEnabled);
     }
 
     /**
@@ -37,9 +43,9 @@ export class PotatnoResizeBoxComponent {
      */
     @PwbExport
     public get left(): boolean {
-        return this.enabledDirections.enabled.left;
+        return this.mEnabledDirections.enabledDirections.left;
     } set left(pEnabled: unknown) {
-        this.enabledDirections.enabled.left = this.parseBoolean(pEnabled);
+        this.mEnabledDirections.enabledDirections.left = this.parseBoolean(pEnabled);
     }
 
     /**
@@ -47,9 +53,9 @@ export class PotatnoResizeBoxComponent {
      */
     @PwbExport
     public get right(): boolean {
-        return this.enabledDirections.enabled.right;
+        return this.mEnabledDirections.enabledDirections.right;
     } set right(pEnabled: unknown) {
-        this.enabledDirections.enabled.right = this.parseBoolean(pEnabled);
+        this.mEnabledDirections.enabledDirections.right = this.parseBoolean(pEnabled);
     }
 
     /**
@@ -57,9 +63,9 @@ export class PotatnoResizeBoxComponent {
      */
     @PwbExport
     public get snap(): number {
-        return this.enabledDirections.snap;
+        return this.mEnabledDirections.snap;
     } set snap(pPixel: number) {
-        this.enabledDirections.snap = parseInt(pPixel.toString());
+        this.mEnabledDirections.snap = parseInt(pPixel.toString());
     }
 
     /**
@@ -67,9 +73,9 @@ export class PotatnoResizeBoxComponent {
      */
     @PwbExport
     public get top(): boolean {
-        return this.enabledDirections.enabled.top;
+        return this.mEnabledDirections.enabledDirections.top;
     } set top(pEnabled: unknown) {
-        this.enabledDirections.enabled.top = this.parseBoolean(pEnabled);
+        this.mEnabledDirections.enabledDirections.top = this.parseBoolean(pEnabled);
     }
 
     /**
@@ -82,9 +88,9 @@ export class PotatnoResizeBoxComponent {
         this.mComponentElement = pComponent.element;
 
         // Disabled all direction as default.
-        this.enabledDirections = {
+        this.mEnabledDirections = {
             snap: 1,
-            enabled: {
+            enabledDirections: {
                 top: false,
                 right: false,
                 bottom: false,
@@ -150,13 +156,17 @@ export class PotatnoResizeBoxComponent {
             lHorizontalInvertion = -1;
         }
 
+        // Save the current size while resizing to check if the size has actually changed.
+        let lCurrentWidth: number = lStartingWidth;
+        let lCurrentHeight: number = lStartingHeight;
+
         // Resize magic listener (●'◡'●)つ━☆・*。
         const lPointerMoveListener = (pMoveEvent: PointerEvent): void => {
             // Resize from top-left corner: moving left/up increases size.
             const lMovementChangeX: number = (pMoveEvent.clientX - lStartX) * lVerticalInvertion;
             const lMovementChangeY: number = (pMoveEvent.clientY - lStartY) * lHorizontalInvertion;
 
-            // Change window size but clamp it doen to a minimum size.
+            // Change window size but clamp it down to a minimum size.
             let lWidth: number = lStartingWidth + lMovementChangeX;
             let lHeight: number = lStartingHeight + lMovementChangeY;
 
@@ -169,7 +179,7 @@ export class PotatnoResizeBoxComponent {
             }
 
             // And then update component size.
-            this.updateComponentSize(lWidth, lHeight);
+            [lCurrentWidth, lCurrentHeight] = this.updateComponentSize(lWidth, lHeight, lCurrentWidth, lCurrentHeight);
         };
 
         // Pointer up listener, cleaning up temporary listener.
@@ -214,26 +224,72 @@ export class PotatnoResizeBoxComponent {
      * @param pWidth - Width in pixel.
      * @param pHeight - Height in pixel.
      */
-    private updateComponentSize(pWidth: number, pHeight: number) {
+    private updateComponentSize(pWidth: number, pHeight: number, pStartingWidth: number, pStartingHeight: number) {
+        let lResizedWidth: number = pStartingWidth;
+        let lResizedHeight: number = pStartingHeight;
+
         // Only set width when eighter left or right is enabled
-        if (this.enabledDirections.enabled.left || this.enabledDirections.enabled.right) {
-            const lSnappedWidth: number = Math.floor(Math.abs(pWidth) / this.enabledDirections.snap) * this.enabledDirections.snap * (pWidth / Math.abs(pWidth));
-            this.mComponentElement.style.setProperty('width', `${lSnappedWidth}px`);
+        if (this.mEnabledDirections.enabledDirections.left || this.mEnabledDirections.enabledDirections.right) {
+            // Snap the resized value.
+            lResizedWidth = Math.floor(Math.abs(pWidth) / this.mEnabledDirections.snap) * this.mEnabledDirections.snap * (pWidth / Math.abs(pWidth));
+
+            this.mComponentElement.style.setProperty('width', `${lResizedWidth}px`);
         }
 
         // Only set width when eighter top or bottom is enabled
-        if (this.enabledDirections.enabled.top || this.enabledDirections.enabled.bottom) {
-            const lSnappedHeight: number = Math.floor(Math.abs(pHeight) / this.enabledDirections.snap) * this.enabledDirections.snap * (pHeight / Math.abs(pHeight));
-            this.mComponentElement.style.setProperty('height', `${lSnappedHeight}px`);
+        if (this.mEnabledDirections.enabledDirections.top || this.mEnabledDirections.enabledDirections.bottom) {
+            // Snap the resized value.
+            lResizedHeight = Math.floor(Math.abs(pHeight) / this.mEnabledDirections.snap) * this.mEnabledDirections.snap * (pHeight / Math.abs(pHeight));
+
+            this.mComponentElement.style.setProperty('height', `${lResizedHeight}px`);
         }
+
+        // Dispatch event when the width has changed.
+        if (lResizedWidth !== pStartingWidth || lResizedHeight !== pStartingHeight) {
+            this.mResize.dispatchEvent(new PotatnoResizeBoxComponentSize(lResizedWidth, lResizedHeight));
+        }
+
+        // Return back the actual resized values.
+        return [lResizedWidth, lResizedHeight];
+    }
+}
+
+export class PotatnoResizeBoxComponentSize {
+    private readonly mWidth: number;
+    private readonly mHeight: number;
+
+    /**
+     * New resized width.
+     */
+    public get width(): number {
+        return this.mWidth;
+    }
+
+    /**
+     * New resized height.
+     */
+    public get height(): number {
+        return this.mHeight;
+    }
+
+    /**
+     * Constructor.
+     * 
+     * @param pWidth - New resized width.
+     * @param pHeight - New resized height.
+     */
+    public constructor(pWidth: number, pHeight: number) {
+
+        this.mWidth = pWidth;
+        this.mHeight = pHeight;
     }
 }
 
 type PotatnoResizeBoxComponentMovement = 'horizontal' | 'vertical' | 'both';
 
-type PotatnoResizeBoxComponentDirections = {
+type PotatnoResizeBoxComponentConfiguration = {
     snap: number;
-    enabled: {
+    enabledDirections: {
         top: boolean;
         right: boolean;
         bottom: boolean;

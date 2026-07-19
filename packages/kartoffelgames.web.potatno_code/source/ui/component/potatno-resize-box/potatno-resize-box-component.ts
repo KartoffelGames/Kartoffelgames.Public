@@ -29,6 +29,12 @@ export class PotatnoResizeBoxComponent {
     private accessor mResize!: ComponentEventEmitter<PotatnoResizeBoxComponentSize>;
 
     /**
+     * Emitted with the definition the user picked, for the host to insert.
+     */
+    @PwbComponentEvent('resize-end')
+    private accessor mResizeEnd!: ComponentEventEmitter<PotatnoResizeBoxComponentSize>;
+
+    /**
      * If bottom resize handle is enabled.
      */
     @PwbExport
@@ -187,6 +193,11 @@ export class PotatnoResizeBoxComponent {
             // Remove temporary mouse move listener.
             document.removeEventListener('pointermove', lPointerMoveListener);
             document.removeEventListener('pointerup', lPointerUpListener);
+
+            // Dispatch end event on pointer up, only if any size has actually changed.
+            if(lCurrentWidth !== lStartingWidth || lCurrentHeight !== lStartingHeight){
+                this.mResizeEnd.dispatchEvent(new PotatnoResizeBoxComponentSize(lCurrentWidth, lCurrentHeight))
+            }
         };
 
         // Add temporary mouse move listener.
@@ -279,7 +290,6 @@ export class PotatnoResizeBoxComponentSize {
      * @param pHeight - New resized height.
      */
     public constructor(pWidth: number, pHeight: number) {
-
         this.mWidth = pWidth;
         this.mHeight = pHeight;
     }

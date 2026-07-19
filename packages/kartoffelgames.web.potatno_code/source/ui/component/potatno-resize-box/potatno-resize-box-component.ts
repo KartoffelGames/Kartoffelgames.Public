@@ -27,9 +27,9 @@ export class PotatnoResizeBoxComponent {
      */
     @PwbExport
     public get bottom(): boolean {
-        return this.enabledDirections.bottom;
+        return this.enabledDirections.enabled.bottom;
     } set bottom(pEnabled: unknown) {
-        this.enabledDirections.bottom = this.parseBoolean(pEnabled);
+        this.enabledDirections.enabled.bottom = this.parseBoolean(pEnabled);
     }
 
     /**
@@ -37,9 +37,9 @@ export class PotatnoResizeBoxComponent {
      */
     @PwbExport
     public get left(): boolean {
-        return this.enabledDirections.left;
+        return this.enabledDirections.enabled.left;
     } set left(pEnabled: unknown) {
-        this.enabledDirections.left = this.parseBoolean(pEnabled);
+        this.enabledDirections.enabled.left = this.parseBoolean(pEnabled);
     }
 
     /**
@@ -47,9 +47,19 @@ export class PotatnoResizeBoxComponent {
      */
     @PwbExport
     public get right(): boolean {
-        return this.enabledDirections.right;
+        return this.enabledDirections.enabled.right;
     } set right(pEnabled: unknown) {
-        this.enabledDirections.right = this.parseBoolean(pEnabled);
+        this.enabledDirections.enabled.right = this.parseBoolean(pEnabled);
+    }
+
+    /**
+     * If top resize handle is enabled.
+     */
+    @PwbExport
+    public get snap(): number {
+        return this.enabledDirections.snap;
+    } set snap(pPixel: number) {
+        this.enabledDirections.snap = parseInt(pPixel.toString());
     }
 
     /**
@@ -57,9 +67,9 @@ export class PotatnoResizeBoxComponent {
      */
     @PwbExport
     public get top(): boolean {
-        return this.enabledDirections.top;
+        return this.enabledDirections.enabled.top;
     } set top(pEnabled: unknown) {
-        this.enabledDirections.top = this.parseBoolean(pEnabled);
+        this.enabledDirections.enabled.top = this.parseBoolean(pEnabled);
     }
 
     /**
@@ -73,10 +83,13 @@ export class PotatnoResizeBoxComponent {
 
         // Disabled all direction as default.
         this.enabledDirections = {
-            top: false,
-            right: false,
-            bottom: false,
-            left: false
+            snap: 1,
+            enabled: {
+                top: false,
+                right: false,
+                bottom: false,
+                left: false
+            }
         };
     }
 
@@ -129,11 +142,11 @@ export class PotatnoResizeBoxComponent {
 
         // Find if movement should be inverted based on clicked handle.
         let lVerticalInvertion: number = 1;
-        if(Math.abs(lStartX - lComponentSize.left) < Math.abs(lStartX - lComponentSize.right)){
+        if (Math.abs(lStartX - lComponentSize.left) < Math.abs(lStartX - lComponentSize.right)) {
             lVerticalInvertion = -1;
         }
         let lHorizontalInvertion: number = 1;
-        if(Math.abs(lStartY - lComponentSize.top) < Math.abs(lStartY - lComponentSize.bottom)){
+        if (Math.abs(lStartY - lComponentSize.top) < Math.abs(lStartY - lComponentSize.bottom)) {
             lHorizontalInvertion = -1;
         }
 
@@ -203,13 +216,15 @@ export class PotatnoResizeBoxComponent {
      */
     private updateComponentSize(pWidth: number, pHeight: number) {
         // Only set width when eighter left or right is enabled
-        if (this.enabledDirections.left || this.enabledDirections.right) {
-            this.mComponentElement.style.setProperty('width', `${pWidth}px`);
+        if (this.enabledDirections.enabled.left || this.enabledDirections.enabled.right) {
+            const lSnappedWidth: number = Math.floor(Math.abs(pWidth) / this.enabledDirections.snap) * this.enabledDirections.snap * (pWidth / Math.abs(pWidth));
+            this.mComponentElement.style.setProperty('width', `${lSnappedWidth}px`);
         }
 
         // Only set width when eighter top or bottom is enabled
-        if (this.enabledDirections.top || this.enabledDirections.bottom) {
-            this.mComponentElement.style.setProperty('height', `${pHeight}px`);
+        if (this.enabledDirections.enabled.top || this.enabledDirections.enabled.bottom) {
+            const lSnappedHeight: number = Math.floor(Math.abs(pHeight) / this.enabledDirections.snap) * this.enabledDirections.snap * (pHeight / Math.abs(pHeight));
+            this.mComponentElement.style.setProperty('height', `${lSnappedHeight}px`);
         }
     }
 }
@@ -217,8 +232,11 @@ export class PotatnoResizeBoxComponent {
 type PotatnoResizeBoxComponentMovement = 'horizontal' | 'vertical' | 'both';
 
 type PotatnoResizeBoxComponentDirections = {
-    top: boolean;
-    right: boolean;
-    bottom: boolean;
-    left: boolean;
+    snap: number;
+    enabled: {
+        top: boolean;
+        right: boolean;
+        bottom: boolean;
+        left: boolean;
+    };
 };

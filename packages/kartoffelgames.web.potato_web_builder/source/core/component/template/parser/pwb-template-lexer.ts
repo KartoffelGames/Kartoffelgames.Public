@@ -25,7 +25,8 @@ export class PwbTemplateLexer extends Lexer<PwbTemplateToken> {
                     type: PwbTemplateToken.ExpressionStart
                 },
                 end: {
-                    regex: /}}/,
+                    // Consume a single trailing whitespace so it is not lost to whitespace trimming between tokens.
+                    regex: /}}[ \n\r]?/,
                     type: PwbTemplateToken.ExpressionEnd
                 }
             }

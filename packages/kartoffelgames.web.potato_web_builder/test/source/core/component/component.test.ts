@@ -570,6 +570,60 @@ Deno.test('PwbComponent--Functionality: Loop detection', async (pContext) => {
     });
 });
 
+Deno.test('PwbComponent--Functionality: Attribute expression chain whitespace', async (pContext) => {
+    await pContext.step('Whitespace between adjacent expressions if explicit added', async () => {
+        // Setup. Define expected attribute value.
+        const lExpectedClass: string = 'resize-handle vertical left hasPrevious hasNext';
+
+        // Setup. Define component.
+        @PwbComponent({
+            selector: TestUtil.randomSelector(),
+            template: `<div class="resize-handle vertical left {{this.top ? 'hasPrevious' : ''}} {{this.bottom ? 'hasNext' : ''}}"></div>`
+        })
+        class TestComponent {
+            public bottom: boolean = true;
+            public top: boolean = true;
+        }
+
+        // Process. Create element and read div class attribute.
+        const lComponent: HTMLElement = await TestUtil.createComponent(TestComponent);
+        const lDiv: HTMLDivElement = TestUtil.getComponentNode(lComponent, 'div');
+        const lResultClass: string | null = lDiv.getAttribute('class');
+
+        // Evaluation.
+        expect(lResultClass).toBe(lExpectedClass);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+
+    await pContext.step('No whitespace between adjacent expressions if not explicit added', async () => {
+        // Setup. Define expected attribute value.
+        const lExpectedClass: string = 'resize-handle vertical left hasPrevioushasNext';
+
+        // Setup. Define component.
+        @PwbComponent({
+            selector: TestUtil.randomSelector(),
+            template: `<div class="resize-handle vertical left {{this.top ? 'hasPrevious' : ''}}{{this.bottom ? 'hasNext' : ''}}"></div>`
+        })
+        class TestComponent {
+            public bottom: boolean = true;
+            public top: boolean = true;
+        }
+
+        // Process. Create element and read div class attribute.
+        const lComponent: HTMLElement = await TestUtil.createComponent(TestComponent);
+        const lDiv: HTMLDivElement = TestUtil.getComponentNode(lComponent, 'div');
+        const lResultClass: string | null = lDiv.getAttribute('class');
+
+        // Evaluation.
+        expect(lResultClass).toBe(lExpectedClass);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
 Deno.test('PwbComponent--Functionality: Creation without customElements register', async (pContext) => {
     await pContext.step('Default', async () => {
         // Setup.

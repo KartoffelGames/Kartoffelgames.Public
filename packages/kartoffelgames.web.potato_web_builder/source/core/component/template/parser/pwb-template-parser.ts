@@ -33,16 +33,20 @@ export class PwbTemplateParser extends CodeParser<PwbTemplateToken, PwbTemplate>
     private initGraph(): void {
         // Expression graph.
         const lExpression = Graph.define(() => {
-            return GraphNode.new<PwbTemplateToken>().required(PwbTemplateToken.ExpressionStart).optional('value', PwbTemplateToken.ExpressionValue).required(PwbTemplateToken.ExpressionEnd);
-        }).converter((pData): PwbTemplateExpression => {
-            return new PwbTemplateExpression(pData.value ?? '');
+            return GraphNode.new<PwbTemplateToken>().required(PwbTemplateToken.ExpressionStart).optional('value', PwbTemplateToken.ExpressionValue).required('end', PwbTemplateToken.ExpressionEnd);
+        }).converter((pData): ExpressionInformation => {
+            // The expression end token holds the closing "}}" and any single trailing whitespace consumed with it.
+            return {
+                expression: new PwbTemplateExpression(pData.value ?? ''),
+                hasTrailingWhitespace: pData.end.length > 2
+            };
         });
 
         // Attribute graph.
         const lXmlAttributeValueList = Graph.define(() => {
             type Result = {
                 data: Array<{
-                    value: PwbTemplateExpression | {
+                    value: ExpressionInformation | {
                         text: string;
                     };
                 }>;
@@ -56,7 +60,7 @@ export class PwbTemplateParser extends CodeParser<PwbTemplateToken, PwbTemplate>
                 ])
             ).optional('data<-data', lSelfReference);
         });
-        
+
         const lXmlAttribute = Graph.define(() => {
             return GraphNode.new<PwbTemplateToken>().required('name', PwbTemplateToken.XmlIdentifier).optional('attributeValue',
                 GraphNode.new<PwbTemplateToken>().required(PwbTemplateToken.XmlAssignment).required(PwbTemplateToken.XmlExplicitValueIdentifier).optional('list<-data', lXmlAttributeValueList).required(PwbTemplateToken.XmlExplicitValueIdentifier)
@@ -67,8 +71,14 @@ export class PwbTemplateParser extends CodeParser<PwbTemplateToken, PwbTemplate>
             // Add value to value list.
             if (pData.attributeValue?.list) {
                 for (const lAttributeValue of pData.attributeValue.list) {
-                    if (lAttributeValue.value instanceof PwbTemplateExpression) {
-                        lValues.push(lAttributeValue.value);
+                    // Expression value with its optional trailing whitespace.
+                    if ('expression' in lAttributeValue.value) {
+                        lValues.push(lAttributeValue.value.expression);
+
+                        // Add trailing whitespace as its own static value.
+                        if (lAttributeValue.value.hasTrailingWhitespace) {
+                            lValues.push(' ');
+                        }
                     } else {
                         lValues.push(lAttributeValue.value.text);
                     }
@@ -94,7 +104,7 @@ export class PwbTemplateParser extends CodeParser<PwbTemplateToken, PwbTemplate>
         const lXmlTextNodeValueList = Graph.define(() => {
             type Result = {
                 data: Array<{
-                    value: PwbTemplateExpression | {
+                    value: ExpressionInformation | {
                         text: string;
                     };
                 }>;
@@ -118,8 +128,14 @@ export class PwbTemplateParser extends CodeParser<PwbTemplateToken, PwbTemplate>
 
             // Add each textnode value to text node.
             for (const lTextNodeValue of pData.list) {
-                if (lTextNodeValue.value instanceof PwbTemplateExpression) {
-                    lTextContent.addValue(lTextNodeValue.value);
+                // Expression value with its optional trailing whitespace.
+                if ('expression' in lTextNodeValue.value) {
+                    lTextContent.addValue(lTextNodeValue.value.expression);
+
+                    // Add trailing whitespace as its own static value.
+                    if (lTextNodeValue.value.hasTrailingWhitespace) {
+                        lTextContent.addValue(' ');
+                    }
                 } else {
                     lTextContent.addValue(lTextNodeValue.value.text);
                 }
@@ -254,3 +270,4 @@ export class PwbTemplateParser extends CodeParser<PwbTemplateToken, PwbTemplate>
 
 
 type AttributeInformation = { name: string, values: Array<string | PwbTemplateExpression>; };
+type ExpressionInformation = { expression: PwbTemplateExpression, hasTrailingWhitespace: boolean; };

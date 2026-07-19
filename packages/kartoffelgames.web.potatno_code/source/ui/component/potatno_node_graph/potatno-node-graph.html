@@ -1,17 +1,18 @@
-<div #canvasWrapper class="canvas-wrapper" [style]="this.gridBackgroundStyle" (pointerdown)="this.onCanvasPointerDown($event)" (wheel)="this.onCanvasWheel($event)" (contextmenu)="this.onContextMenu($event)">
-    <div class="grid" [style]="this.gridTransformStyle">
-        <potatno-connection-layer/>
+<!-- Serves only as a background. -->
+<div class="grid-background" [style]="this.gridBackgroundStyle"></div>
 
-        $for(nodeState of this.visibleNodes) {
-            <potatno-node class="grid__node {{this.nodeState.selected ? 'selected' : ''}}" style="left:{{this.nodeState.pixelX}}px; top:{{this.nodeState.pixelY}}px; width:{{this.nodeState.pixelW}}px; height:{{this.nodeState.pixelH}}px;" [nodeData]="this.nodeState.node" (pointerdown)="this.onNodePointerDown($event, this.nodeState.node)" (resize-start)="this.onNodeResizeStart($event)"/>
-        }
-    </div>
-    
-    $if(this.showSelectionBox) {
-        <div class="selection-box" [style]="this.selectionBoxStyle"></div>
-    }
+<div class="grid-content" [style]="this.gridTransformStyle">
+    <potatno-connection-layer/>
 
-    $if(this.showAddNodePopup) {
-        <potatno-node-selection-popup [style]="this.addNodePopupStyle" (node-select)="this.onAddNodePopupNodeSelect($event)"/>
+    $for(nodeState of this.visibleNodes) {
+        <potatno-node class="grid-content__node {{this.nodeState.selected ? 'selected' : ''}}" style="left:{{this.nodeState.pixelX}}px; top:{{this.nodeState.pixelY}}px; width:{{this.nodeState.pixelW}}px; height:{{this.nodeState.pixelH}}px;" [nodeData]="this.nodeState.node" (pointerdown)="this.onNodePointerDown($event, this.nodeState.node)" (resize-start)="this.onNodeResizeStart($event)"/>
     }
 </div>
+
+$if(this.showSelectionBox) {
+    <div class="selection-box" [style]="this.selectionBoxStyle"></div>
+}
+
+$if(this.showAddNodePopup) {
+    <potatno-node-selection-popup [style]="this.addNodePopupStyle" (node-select)="this.onAddNodePopupNodeSelect($event)"/>
+}

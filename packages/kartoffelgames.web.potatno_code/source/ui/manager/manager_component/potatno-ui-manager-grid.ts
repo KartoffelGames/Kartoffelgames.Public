@@ -61,13 +61,10 @@ export class PotatnoUiManagerGrid {
         const lScaledGrid: number = PotatnoUiManagerGrid.GRID_SIZE * this.mZoom;
         const lOffsetX: number = this.mPanX % lScaledGrid;
         const lOffsetY: number = this.mPanY % lScaledGrid;
-
-        const lPlusGridSvg: string = '%3Csvg xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22 viewBox%3D%220 0 100 100%22%3E%3Cpath d%3D%22M0 0h18M0 0v18M100 0H82M100 0v18M0 100h18M0 100V82M100 100H82M100 100V82%22 stroke%3D%22%23313244%22 stroke-width%3D%225%22 stroke-linecap%3D%22round%22%2F%3E%3C%2Fsvg%3E';
-
+        
         return [
             `background-size: ${lScaledGrid}px ${lScaledGrid}px`,
             `background-position: ${lOffsetX}px ${lOffsetY}px`,
-            `background-image: url("data:image/svg+xml,${lPlusGridSvg}")`
         ].join('; ');
     }
 

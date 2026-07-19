@@ -1,25 +1,27 @@
 :host {
-    display: flex;
-    flex: 1;
-    min-height: 0;
-    min-width: 0;
-}
-
-.canvas-wrapper {
     position: relative;
     flex: 1;
+    display: flex;
     min-height: 0;
     min-width: 0;
-    background-color: var(--potatno-color-background);
     overflow: hidden;
 }
 
-.grid {
+.grid-background {
+    flex: 1;
+
+    background-size: 0px 0px;
+    background-position: 0px 0px;
+    background-color: var(--potatno-color-background);
+    background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Cpath%20d%3D%22M0%200h18M0%200v18M100%200H82M100%200v18M0%20100h18M0%20100V82M100%20100H82M100%20100V82%22%20stroke%3D%22%23313244%22%20stroke-width%3D%225%22%20stroke-linecap%3D%22round%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.grid-content {
     position: absolute;
     top: 0;
     left: 0;
 
-    .grid__node {
+    .grid-content__node {
         position: absolute;
         border-radius: 2px;
 
@@ -28,8 +30,6 @@
         }
     }
 }
-
-
 
 .selection-box {
     position: absolute;

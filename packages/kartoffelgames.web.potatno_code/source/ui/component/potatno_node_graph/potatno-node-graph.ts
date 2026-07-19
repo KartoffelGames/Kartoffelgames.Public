@@ -70,12 +70,6 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
     private accessor mAddNodePopup: AddNodePopupState | null = null;
 
     /**
-     * Root graph wrapper used for pointer coordinate calculations.
-     */
-    @PwbChild('canvasWrapper')
-    public accessor canvasWrapper!: HTMLElement;
-
-    /**
      * Create the graph component and its local interaction state.
      *
      * @param pComponent - Injected component reference, used to trigger self-updates.
@@ -91,6 +85,11 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
         this.mManager = pManager;
         this.mSelectedNodes = new Set<PotatnoDocumentNode<PotatnoProjectTypesDefinition>>();
         this.mUnsubscribe = null;
+
+        // Add user events directly to the component element.
+        pComponent.element.addEventListener('pointerdown', (pEvent) => { this.onCanvasPointerDown(pEvent); });
+        pComponent.element.addEventListener('wheel', (pEvent) => { this.onCanvasWheel(pEvent); });
+        pComponent.element.addEventListener('contextmenu', (pEvent) => { this.onContextMenu(pEvent); });
     }
 
     /**
@@ -471,37 +470,6 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
     }
 
     /**
-     * Add non-comment nodes inside a dragged comment to the drag origin map.
-     *
-     * @param pCommentNode - Comment node being dragged.
-     * @param pOrigins - Origin map to extend.
-     */
-    private addCommentContainedNodeOrigins(pCommentNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition>, pOrigins: Map<PotatnoDocumentNode<PotatnoProjectTypesDefinition>, NodeDragOrigin>): void {
-        const lActiveFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null = this.mManager.activeFunction;
-        if (!lActiveFunction) {
-            return;
-        }
-
-        const lGridSize: number = this.mManager.grid.gridSize;
-        const lCommentLeft: number = pCommentNode.transformation.x * lGridSize;
-        const lCommentTop: number = pCommentNode.transformation.y * lGridSize;
-        const lCommentRight: number = lCommentLeft + pCommentNode.transformation.width * lGridSize;
-        const lCommentBottom: number = lCommentTop + pCommentNode.transformation.height * lGridSize;
-
-        for (const lNode of lActiveFunction.nodes) {
-            if (lNode === pCommentNode || this.mSelectedNodes.has(lNode)) { // || lNode.category === NodeCategory.Comment
-                continue;
-            }
-
-            const lNodeX: number = lNode.transformation.x * lGridSize;
-            const lNodeY: number = lNode.transformation.y * lGridSize;
-            if (lNodeX >= lCommentLeft && lNodeX <= lCommentRight && lNodeY >= lCommentTop && lNodeY <= lCommentBottom) {
-                pOrigins.set(lNode, { originX: lNodeX, originY: lNodeY });
-            }
-        }
-    }
-
-    /**
      * Close the add-node popup. The popup component owns its own search/selection state and is
      * rebuilt fresh on the next open, so clearing the position state is enough.
      */
@@ -572,19 +540,6 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
     }
 
     /**
-     * Find the graph wrapper if it is already connected.
-     *
-     * @returns Canvas wrapper or null before render.
-     */
-    private getCanvasWrapperOrNull(): HTMLElement | null {
-        try {
-            return this.canvasWrapper;
-        } catch {
-            return null;
-        }
-    }
-
-    /**
      * Calculate pointer coordinates relative to the graph wrapper.
      *
      * @param pClientX - Viewport X coordinate.
@@ -593,12 +548,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      * @returns Local graph wrapper coordinates.
      */
     private getLocalPointerPosition(pClientX: number, pClientY: number): Point {
-        const lWrapper: HTMLElement | null = this.getCanvasWrapperOrNull();
-        if (!lWrapper) {
-            return { x: 0, y: 0 };
-        }
-
-        const lRect: DOMRect = lWrapper.getBoundingClientRect();
+        const lRect: DOMRect = this.mComponent.element.getBoundingClientRect();
         return { x: pClientX - lRect.left, y: pClientY - lRect.top };
     }
 
@@ -677,13 +627,13 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      * @param pClientY - Viewport Y coordinate.
      */
     private openAddNodePopupAtPointer(pClientX: number, pClientY: number): void {
-        const lWrapper: HTMLElement | null = this.getCanvasWrapperOrNull();
+        const lWrapper: HTMLElement = this.mComponent.element;
         const lLocalPosition: Point = this.getLocalPointerPosition(pClientX, pClientY);
         const lWorldPosition: Point = this.mManager.grid.screenToWorld(lLocalPosition.x, lLocalPosition.y);
         const lPopupWidth: number = 280;
         const lPopupHeight: number = 320;
-        const lMaxX: number = Math.max(0, (lWrapper?.clientWidth ?? lPopupWidth) - lPopupWidth - 8);
-        const lMaxY: number = Math.max(0, (lWrapper?.clientHeight ?? lPopupHeight) - lPopupHeight - 8);
+        const lMaxX: number = Math.max(0, (lWrapper.clientWidth ?? lPopupWidth) - lPopupWidth - 8);
+        const lMaxY: number = Math.max(0, (lWrapper.clientHeight ?? lPopupHeight) - lPopupHeight - 8);
 
         this.mAddNodePopup = {
             screenX: Math.max(8, Math.min(lLocalPosition.x, lMaxX)),

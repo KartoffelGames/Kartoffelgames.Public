@@ -488,8 +488,6 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
                 pNode.moveTo(Math.round(lSnapped.x / lGridSize), Math.round(lSnapped.y / lGridSize));
             });
         }
-
-        this.rebuildVisibleNodePositions();
     }
 
     /**
@@ -641,38 +639,15 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
         const lActiveFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null = this.mManager.activeFunction;
 
         if (lActiveFunction) {
-            const lGridSize: number = this.mManager.grid.gridSize;
             for (const lNode of lActiveFunction.nodes) {
-                const lHeight: number = Math.max(lNode.transformation.height, this.calculateNodeGridHeight(lNode));
                 lVisibleNodes.push({
                     node: lNode,
-                    pixelH: lHeight * lGridSize,
-                    pixelW: lNode.transformation.width * lGridSize,
-                    pixelX: lNode.transformation.x * lGridSize,
-                    pixelY: lNode.transformation.y * lGridSize,
                     selected: this.mSelectedNodes.has(lNode)
                 });
             }
         }
 
         this.mCachedGraphData = { visibleNodes: lVisibleNodes };
-    }
-
-    /**
-     * Rebuild only cached node positions after a layout interaction.
-     */
-    private rebuildVisibleNodePositions(): void {
-        const lGridSize: number = this.mManager.grid.gridSize;
-        this.mCachedGraphData = {
-            visibleNodes: this.mCachedGraphData.visibleNodes.map((pState: NodeViewState) => ({
-                node: pState.node,
-                pixelH: Math.max(pState.node.transformation.height, this.calculateNodeGridHeight(pState.node)) * lGridSize,
-                pixelW: pState.node.transformation.width * lGridSize,
-                pixelX: pState.node.transformation.x * lGridSize,
-                pixelY: pState.node.transformation.y * lGridSize,
-                selected: pState.selected
-            }))
-        };
     }
 
     /**
@@ -747,10 +722,6 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
 
 export type NodeViewState = {
     node: PotatnoDocumentNode<PotatnoProjectTypesDefinition>;
-    pixelH: number;
-    pixelW: number;
-    pixelX: number;
-    pixelY: number;
     selected: boolean;
 };
 

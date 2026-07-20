@@ -207,8 +207,16 @@ export class PotatnoUiManagerGraph {
             return;
         }
 
+        // Read the transformation before the update.
+        const lBeforeTransformation = structuredClone(pNode.transformation);
+
         // Simple pass forward.
         pUpdater(pNode);
+
+        // Dispatch transformation change event only when actually something has changed.
+        if(lBeforeTransformation.width === pNode.transformation.width && lBeforeTransformation.height === pNode.transformation.height && lBeforeTransformation.x === pNode.transformation.x && lBeforeTransformation.y === pNode.transformation.y) {
+            return;
+        }
 
         this.mManager.dispatch(PotatnoCodeUiManagerChangeType.NodeTransform, pNode);
     }

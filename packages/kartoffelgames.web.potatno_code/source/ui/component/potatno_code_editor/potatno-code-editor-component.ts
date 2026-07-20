@@ -81,16 +81,9 @@ export class PotatnoCodeEditorComponent implements IComponentOnDeconstruct {
      * @param pProject - Project.
      */
     @PwbExport
-    public initializeProject(pProject: PotatnoProject<PotatnoProjectTypesDefinition>) {
+    public initializeProject(pProject: PotatnoProject<PotatnoProjectTypesDefinition>): void {
         // TODO: remove once contexted injections are in place.
         this.mManager.initialize(pProject);
-    }
-
-    /**
-     * Detach listeners and panel resize handlers.
-     */
-    public onDeconstruct(): void {
-        this.mUnsubscribe();
     }
 
     /**
@@ -101,5 +94,12 @@ export class PotatnoCodeEditorComponent implements IComponentOnDeconstruct {
     @PwbExport
     public async triggerPreviewUpdate(): Promise<void> {
         return this.mManager.preview.execute();
+    }
+
+    /**
+     * Detach listeners and panel resize handlers.
+     */
+    public onDeconstruct(): void {
+        this.mUnsubscribe();
     }
 }

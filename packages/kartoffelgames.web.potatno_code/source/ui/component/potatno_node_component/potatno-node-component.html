@@ -1,5 +1,5 @@
 <!-- Resizeable part of node -->
-<potatno-resize-box class="node {{this.hasErrorClass}}" top="true" right="true" bottom="true" left="true" [snap]="25" (resize-end)="this.resizeNode($event.value)">
+<potatno-resize-box #ResizeBox class="node {{this.hasErrorClass}}" top="true" right="true" bottom="true" left="true" [snap]="25" [virtual]="true" (resize)="this.transformNodeData($event.value)">
 
     <div class="node-header" style="background: {{this.categoryColor}}">
         <span class="node-icon">{{this.categoryIcon}}</span>

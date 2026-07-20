@@ -10,10 +10,11 @@ import type { PotatnoProject } from '../../../project/potatno-project.ts';
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, type PotatnoCodeUiManagerUnsubscribe } from '../../manager/potatno-ui-manager.ts';
 import { PotatnoPreviewModule } from '../../module/potatno-preview.module.ts';
 import { NodeCategory } from '../../node/node-category.enum.ts';
-import { PotatnoResizeBoxComponent, PotatnoResizeBoxComponentSize } from "../potatno-resize-box/potatno-resize-box-component.ts";
+import { PotatnoResizeBoxComponent, PotatnoResizeBoxComponentResize, PotatnoResizeBoxComponentResizeDirection } from '../potatno-resize-box/potatno-resize-box-component.ts';
 import { PotatnoPortComponent } from '../potatno_port/potatno-port-component.ts';
 import nodeCss from './potatno-node-component.css' with { type: 'text' };
 import nodeTemplate from './potatno-node-component.html' with { type: 'text' };
+import { PwbChild } from "../../../../../kartoffelgames.web.potato_web_builder/source/module/pwb_child/pwb-child.decorator.ts";
 
 /**
  * Node component for the potatno-code visual editor.
@@ -29,15 +30,24 @@ import nodeTemplate from './potatno-node-component.html' with { type: 'text' };
 export class PotatnoNodeComponent implements IComponentOnDeconstruct {
     private readonly mComponent: Component;
     private readonly mManager: PotatnoUiManager;
-    private mUnsubscribe: PotatnoCodeUiManagerUnsubscribe;
+    private readonly mUnsubscribe: PotatnoCodeUiManagerUnsubscribe;
+    private readonly mUnsubscribeTransformation: PotatnoCodeUiManagerUnsubscribe;
     private mNodeDefinition: PotatnoNodeDefinition<PotatnoProjectTypesDefinition> | null;
+    private mNodeData: PotatnoDocumentNode<PotatnoProjectTypesDefinition> | null;
 
     /**
      * The domain node object to render.
      */
     @PwbExport
-    @ComponentState.state()
-    public accessor nodeData: PotatnoDocumentNode<PotatnoProjectTypesDefinition> | null = null;
+    public get nodeData(): PotatnoDocumentNode<PotatnoProjectTypesDefinition> | null {
+        return this.mNodeData;
+    } set nodeData(pNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition> | null) {
+        this.mNodeData = pNode;
+        this.updateComponentTransformation(pNode);
+    }
+
+    @PwbChild('ResizeBox')
+    private accessor resizeBox!: PotatnoResizeBoxComponent & Element;
 
     /**
      * CSS class string for the error state.
@@ -247,9 +257,20 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
         this.mComponent = pComponent;
         this.mManager = pManager;
         this.mNodeDefinition = null;
+        this.mNodeData = null;
 
         this.mUnsubscribe = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.SpecialActiveFunction | PotatnoCodeUiManagerChangeType.Node | PotatnoCodeUiManagerChangeType.Connection, () => {
             this.mComponent.updater.updateAsync();
+        });
+
+        this.mUnsubscribeTransformation = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.NodeTransform, (pItem) => {
+            // Only trigger a transformation if its affects the current node data.
+            if (pItem.item !== this.nodeData) {
+                return;
+            }
+
+            // Calculate the current size of the component.
+            this.updateComponentTransformation(this.nodeData);
         });
     }
 
@@ -258,22 +279,61 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
      */
     public onDeconstruct(): void {
         this.mUnsubscribe();
+        this.mUnsubscribeTransformation();
     }
 
-    public resizeNode(pResize: PotatnoResizeBoxComponentSize): void {
+    /**
+     * Resize the node data to the set resize data.
+     * The node resize restriction applies.
+     * 
+     * @param pResize - Resize data.
+     */
+    public transformNodeData(pResize: PotatnoResizeBoxComponentResize): void {
         this.mManager.graph.transformNode(this.nodeData, (pNode) => {
-            const lWidth: number = pResize.width / this.mManager.grid.gridSize;
-            const lHeight: number = pResize.height / this.mManager.grid.gridSize;
+            // Save size before resizing.
+            const lLastWidth: number = pNode.transformation.width;
+            const lLastheight: number = pNode.transformation.height;
 
-            pNode.resizeTo(lWidth, lHeight);
+            // Resize size.
+            pNode.resizeTo(pResize.width / this.mManager.grid.gridSize, pResize.height / this.mManager.grid.gridSize);
+
+            // Calculate size change.
+            const lWidthChange: number = pNode.transformation.width - lLastWidth;
+            const lHeightChange: number = pNode.transformation.height - lLastheight;
+
+            // Move the coordinate in the right direction based on the used handle.
+            if (lHeightChange !== 0 && (pResize.resizeHandle & PotatnoResizeBoxComponentResizeDirection.top) > 0) {
+                // Move y coordinate up the moved height amount.
+                pNode.moveTo(pNode.transformation.x, pNode.transformation.y - lHeightChange);
+            }
+            if (lWidthChange !== 0 && (pResize.resizeHandle & PotatnoResizeBoxComponentResizeDirection.left) > 0) {
+                // Move y coordinate up the moved height amount.
+                pNode.moveTo(pNode.transformation.x - lWidthChange, pNode.transformation.y);
+            }
         });
     }
 
+    /**
+     * Update the actual component size and position.
+     * 
+     * @param pNode - Node data. 
+     */
+    private updateComponentTransformation(pNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition> | null): void {
+        if (!pNode) {
+            return;
+        }
 
+        // Calculate 
+        const lNodeWidth: number = pNode.transformation.width * this.mManager.grid.gridSize;
+        const lNodeHeight: number = pNode.transformation.height * this.mManager.grid.gridSize;
+        this.resizeBox.resize(lNodeWidth, lNodeHeight);
 
-
-
-
+        // Set the node position on the actual component.
+        const lNodeX: number = pNode.transformation.x * this.mManager.grid.gridSize;
+        const lNodeY: number = pNode.transformation.y * this.mManager.grid.gridSize;
+        this.mComponent.element.style.setProperty('left', `${lNodeX}px`);
+        this.mComponent.element.style.setProperty('top', `${lNodeY}px`);
+    }
 
 
 
@@ -293,8 +353,6 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
     public isPreviewedPort(pPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>): boolean {
         return this.nodeData?.preview?.portId === pPort.definitionId;
     }
-
-    
 
     /**
      * Choose which output port to preview. Re-selecting the active port turns the preview off.

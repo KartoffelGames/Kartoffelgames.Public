@@ -20,28 +20,28 @@ export class PotatnoResizeBoxComponent {
      * Enabled directions. Used only in template references.
      */
     @ComponentState.state({ proxy: true })
-    private accessor mEnabledDirections: PotatnoResizeBoxComponentConfiguration;
+    private accessor mConfiguration: PotatnoResizeBoxComponentConfiguration;
 
     /**
      * Emitted with the definition the user picked, for the host to insert.
      */
     @PwbComponentEvent('resize')
-    private accessor mResize!: ComponentEventEmitter<PotatnoResizeBoxComponentSize>;
+    private accessor mResize!: ComponentEventEmitter<PotatnoResizeBoxComponentResize>;
 
     /**
      * Emitted with the definition the user picked, for the host to insert.
      */
     @PwbComponentEvent('resize-end')
-    private accessor mResizeEnd!: ComponentEventEmitter<PotatnoResizeBoxComponentSize>;
+    private accessor mResizeEnd!: ComponentEventEmitter<PotatnoResizeBoxComponentResize>;
 
     /**
      * If bottom resize handle is enabled.
      */
     @PwbExport
     public get bottom(): boolean {
-        return this.mEnabledDirections.enabledDirections.bottom;
+        return this.mConfiguration.enabledDirections.bottom;
     } set bottom(pEnabled: unknown) {
-        this.mEnabledDirections.enabledDirections.bottom = this.parseBoolean(pEnabled);
+        this.mConfiguration.enabledDirections.bottom = this.parseBoolean(pEnabled);
     }
 
     /**
@@ -49,9 +49,9 @@ export class PotatnoResizeBoxComponent {
      */
     @PwbExport
     public get left(): boolean {
-        return this.mEnabledDirections.enabledDirections.left;
+        return this.mConfiguration.enabledDirections.left;
     } set left(pEnabled: unknown) {
-        this.mEnabledDirections.enabledDirections.left = this.parseBoolean(pEnabled);
+        this.mConfiguration.enabledDirections.left = this.parseBoolean(pEnabled);
     }
 
     /**
@@ -59,9 +59,9 @@ export class PotatnoResizeBoxComponent {
      */
     @PwbExport
     public get right(): boolean {
-        return this.mEnabledDirections.enabledDirections.right;
+        return this.mConfiguration.enabledDirections.right;
     } set right(pEnabled: unknown) {
-        this.mEnabledDirections.enabledDirections.right = this.parseBoolean(pEnabled);
+        this.mConfiguration.enabledDirections.right = this.parseBoolean(pEnabled);
     }
 
     /**
@@ -69,9 +69,9 @@ export class PotatnoResizeBoxComponent {
      */
     @PwbExport
     public get snap(): number {
-        return this.mEnabledDirections.snap;
+        return this.mConfiguration.snap;
     } set snap(pPixel: number) {
-        this.mEnabledDirections.snap = parseInt(pPixel.toString());
+        this.mConfiguration.snap = parseInt(pPixel.toString());
     }
 
     /**
@@ -79,9 +79,20 @@ export class PotatnoResizeBoxComponent {
      */
     @PwbExport
     public get top(): boolean {
-        return this.mEnabledDirections.enabledDirections.top;
+        return this.mConfiguration.enabledDirections.top;
     } set top(pEnabled: unknown) {
-        this.mEnabledDirections.enabledDirections.top = this.parseBoolean(pEnabled);
+        this.mConfiguration.enabledDirections.top = this.parseBoolean(pEnabled);
+    }
+
+    /**
+     * If resize is only virtual and does not actually resize.
+     * Still triggers events and can be resized with the exposed resize method.
+     */
+    @PwbExport
+    public get virtual(): boolean {
+        return this.mConfiguration.isVirtual;
+    } set virtual(pEnabled: boolean) {
+        this.mConfiguration.isVirtual = this.parseBoolean(pEnabled);
     }
 
     /**
@@ -94,8 +105,9 @@ export class PotatnoResizeBoxComponent {
         this.mComponentElement = pComponent.element;
 
         // Disabled all direction as default.
-        this.mEnabledDirections = {
+        this.mConfiguration = {
             snap: 1,
+            isVirtual: false,
             enabledDirections: {
                 top: false,
                 right: false,
@@ -103,6 +115,30 @@ export class PotatnoResizeBoxComponent {
                 left: false
             }
         };
+    }
+
+    /**
+     * Exposed resize function of resize box.
+     * Does not trigger any events.
+     * 
+     * @param pWidth - new width.
+     * @param pHeight - new height.
+     * 
+     * @returns true if the size has changed.
+     */
+    @PwbExport
+    public resize(pWidth: number, pHeight: number): boolean {
+        // Save current size so the current pointer position determinates exactly this size.
+        const lComponentSize: DOMRect = this.mComponentElement.getBoundingClientRect();
+        const lStartingWidth: number = lComponentSize.width;
+        const lStartingHeight: number = lComponentSize.height;
+
+        // Resize component without a triggered handle.
+        this.mComponentElement.style.setProperty('width', `${pWidth}px`);
+        this.mComponentElement.style.setProperty('height', `${pHeight}px`);
+
+        // Dispatch end event after resize, only if any size has actually changed.
+        return pWidth !== lStartingWidth || pHeight !== lStartingHeight;
     }
 
     /**
@@ -133,6 +169,30 @@ export class PotatnoResizeBoxComponent {
     }
 
     /**
+     * Create the resize event object. 
+     * Fills in the correct used handle based on the staring and current size.
+     * 
+     * @param pUsedHandle - All used handle for the resize.
+     * @param pWidth - Current width.
+     * @param pHeight - Current height-
+     * @param pStartingWidth - Staring width.
+     * @param pStartingHeight - Starting height.
+     * 
+     * @returns fully configurated PotatnoResizeBoxComponentResize object.
+     */
+    private createResizeEvent(pUsedHandle: number, pWidth: number, pHeight: number, pStartingWidth: number, pStartingHeight: number) {
+        let lResizedHandle: number = pUsedHandle;
+        if (pWidth === pStartingWidth) {
+            lResizedHandle &= ~(PotatnoResizeBoxComponentResizeDirection.right | PotatnoResizeBoxComponentResizeDirection.left);
+        }
+        if (pHeight === pStartingHeight) {
+            lResizedHandle &= ~(PotatnoResizeBoxComponentResizeDirection.top | PotatnoResizeBoxComponentResizeDirection.bottom);
+        }
+
+        return new PotatnoResizeBoxComponentResize(pWidth, pHeight, lResizedHandle);
+    }
+
+    /**
      * Handle the resize logic with a set movement restriction.
      * Applies temporary pointer events to read resizing movements.
      * 
@@ -153,14 +213,19 @@ export class PotatnoResizeBoxComponent {
         const lStartY = pEvent.clientY;
 
         // Find if movement should be inverted based on clicked handle.
-        let lVerticalInvertion: number = 1;
+        let lVerticalInvertion: number = 1; // Right handle
         if (Math.abs(lStartX - lComponentSize.left) < Math.abs(lStartX - lComponentSize.right)) {
-            lVerticalInvertion = -1;
+            lVerticalInvertion = -1; // Left handle
         }
-        let lHorizontalInvertion: number = 1;
+        let lHorizontalInvertion: number = 1; // Bottom handle
         if (Math.abs(lStartY - lComponentSize.top) < Math.abs(lStartY - lComponentSize.bottom)) {
-            lHorizontalInvertion = -1;
+            lHorizontalInvertion = -1; // Top handle
         }
+
+        // Determinate handles used.
+        let lUsedHandles: number = 0;
+        lUsedHandles += (lVerticalInvertion === 1) ? PotatnoResizeBoxComponentResizeDirection.right : PotatnoResizeBoxComponentResizeDirection.left;
+        lUsedHandles += (lHorizontalInvertion === 1) ? PotatnoResizeBoxComponentResizeDirection.bottom : PotatnoResizeBoxComponentResizeDirection.top;
 
         // Save the current size while resizing to check if the size has actually changed.
         let lCurrentWidth: number = lStartingWidth;
@@ -185,7 +250,7 @@ export class PotatnoResizeBoxComponent {
             }
 
             // And then update component size.
-            [lCurrentWidth, lCurrentHeight] = this.updateComponentSize(lWidth, lHeight, lCurrentWidth, lCurrentHeight);
+            [lCurrentWidth, lCurrentHeight] = this.updateComponentSize(lUsedHandles, lWidth, lHeight, lCurrentWidth, lCurrentHeight);
         };
 
         // Pointer up listener, cleaning up temporary listener.
@@ -195,8 +260,8 @@ export class PotatnoResizeBoxComponent {
             document.removeEventListener('pointerup', lPointerUpListener);
 
             // Dispatch end event on pointer up, only if any size has actually changed.
-            if(lCurrentWidth !== lStartingWidth || lCurrentHeight !== lStartingHeight){
-                this.mResizeEnd.dispatchEvent(new PotatnoResizeBoxComponentSize(lCurrentWidth, lCurrentHeight))
+            if (lCurrentWidth !== lStartingWidth || lCurrentHeight !== lStartingHeight) {
+                this.mResizeEnd.dispatchEvent(this.createResizeEvent(lUsedHandles, lCurrentWidth, lCurrentHeight, lStartingWidth, lStartingHeight));
             }
         };
 
@@ -235,29 +300,34 @@ export class PotatnoResizeBoxComponent {
      * @param pWidth - Width in pixel.
      * @param pHeight - Height in pixel.
      */
-    private updateComponentSize(pWidth: number, pHeight: number, pStartingWidth: number, pStartingHeight: number) {
-        let lResizedWidth: number = pStartingWidth;
-        let lResizedHeight: number = pStartingHeight;
-
+    private updateComponentSize(pUsedHandle: number, pWidth: number, pHeight: number, pStartingWidth: number, pStartingHeight: number) {
         // Only set width when eighter left or right is enabled
-        if (this.mEnabledDirections.enabledDirections.left || this.mEnabledDirections.enabledDirections.right) {
+        let lResizedWidth: number = pStartingWidth;
+        if (this.mConfiguration.enabledDirections.left || this.mConfiguration.enabledDirections.right) {
             // Snap the resized value.
-            lResizedWidth = Math.floor(Math.abs(pWidth) / this.mEnabledDirections.snap) * this.mEnabledDirections.snap * (pWidth / Math.abs(pWidth));
+            lResizedWidth = Math.floor(Math.abs(pWidth) / this.mConfiguration.snap) * this.mConfiguration.snap * (pWidth / Math.abs(pWidth));
 
-            this.mComponentElement.style.setProperty('width', `${lResizedWidth}px`);
+            // Resize if the resize should not be virtual.
+            if (!this.mConfiguration.isVirtual) {
+                this.mComponentElement.style.setProperty('width', `${lResizedWidth}px`);
+            }
         }
 
         // Only set width when eighter top or bottom is enabled
-        if (this.mEnabledDirections.enabledDirections.top || this.mEnabledDirections.enabledDirections.bottom) {
+        let lResizedHeight: number = pStartingHeight;
+        if (this.mConfiguration.enabledDirections.top || this.mConfiguration.enabledDirections.bottom) {
             // Snap the resized value.
-            lResizedHeight = Math.floor(Math.abs(pHeight) / this.mEnabledDirections.snap) * this.mEnabledDirections.snap * (pHeight / Math.abs(pHeight));
+            lResizedHeight = Math.floor(Math.abs(pHeight) / this.mConfiguration.snap) * this.mConfiguration.snap * (pHeight / Math.abs(pHeight));
 
-            this.mComponentElement.style.setProperty('height', `${lResizedHeight}px`);
+            // Resize if the resize should not be virtual.
+            if (!this.mConfiguration.isVirtual) {
+                this.mComponentElement.style.setProperty('height', `${lResizedHeight}px`);
+            }
         }
 
-        // Dispatch event when the width has changed.
+        // Dispatch event after the width has changed.
         if (lResizedWidth !== pStartingWidth || lResizedHeight !== pStartingHeight) {
-            this.mResize.dispatchEvent(new PotatnoResizeBoxComponentSize(lResizedWidth, lResizedHeight));
+            this.mResize.dispatchEvent(this.createResizeEvent(pUsedHandle, lResizedWidth, lResizedHeight, pStartingWidth, pStartingHeight));
         }
 
         // Return back the actual resized values.
@@ -265,16 +335,10 @@ export class PotatnoResizeBoxComponent {
     }
 }
 
-export class PotatnoResizeBoxComponentSize {
-    private readonly mWidth: number;
+export class PotatnoResizeBoxComponentResize {
     private readonly mHeight: number;
-
-    /**
-     * New resized width.
-     */
-    public get width(): number {
-        return this.mWidth;
-    }
+    private readonly mResizeHandle: number;
+    private readonly mWidth: number;
 
     /**
      * New resized height.
@@ -284,21 +348,46 @@ export class PotatnoResizeBoxComponentSize {
     }
 
     /**
+     * Resize handle where the resize happened.
+     */
+    public get resizeHandle(): number {
+        return this.mResizeHandle;
+    }
+
+    /**
+     * New resized width.
+     */
+    public get width(): number {
+        return this.mWidth;
+    }
+
+    /**
      * Constructor.
      * 
      * @param pWidth - New resized width.
      * @param pHeight - New resized height.
+     * @param pResizeHandle - Resize handle where the resize happened.
      */
-    public constructor(pWidth: number, pHeight: number) {
-        this.mWidth = pWidth;
+    public constructor(pWidth: number, pHeight: number, pResizeHandle: number) {
         this.mHeight = pHeight;
+        this.mResizeHandle = pResizeHandle;
+        this.mWidth = pWidth;
     }
 }
+
+export const PotatnoResizeBoxComponentResizeDirection = {
+    top: 1,
+    right: 2,
+    bottom: 4,
+    left: 8,
+} as const;
+export type PotatnoResizeBoxComponentResizeDirection = typeof PotatnoResizeBoxComponentResizeDirection[keyof typeof PotatnoResizeBoxComponentResizeDirection];
 
 type PotatnoResizeBoxComponentMovement = 'horizontal' | 'vertical' | 'both';
 
 type PotatnoResizeBoxComponentConfiguration = {
     snap: number;
+    isVirtual: boolean;
     enabledDirections: {
         top: boolean;
         right: boolean;

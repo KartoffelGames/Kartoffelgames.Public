@@ -27,6 +27,9 @@
     background-color: var(--potatno-color-background-light);
     overflow: hidden;
 
+    /* Adjust border for resize box */
+    padding: 2px 2px 0 2px;
+
     /* Should never shrink */
     flex-shrink: 0; 
 

@@ -4,8 +4,8 @@
 <div class="grid-content" [style]="this.gridTransformStyle">
     <potatno-connection-layer/>
 
-    $for(nodeState of this.visibleNodes) {
-        <potatno-node class="grid-content__node {{this.nodeState.selected ? 'selected' : ''}}" [nodeData]="this.nodeState.node" (pointerdown)="this.onNodePointerDown($event, this.nodeState.node)"/>
+    $for(node of this.nodes) {
+        <potatno-node class="grid-content__node {{this.selectedNode.has(this.node) ? 'selected' : ''}}" [nodeData]="this.node" (pointerdown)="this.onNodePointerDown($event, this.node)"/>
     }
 </div>
 

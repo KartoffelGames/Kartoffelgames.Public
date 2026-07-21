@@ -39,12 +39,6 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
     private mUnsubscribe: PotatnoCodeUiManagerUnsubscribe | null;
 
     /**
-     * Cached node data rendered by the graph template.
-     */
-    @ComponentState.state({ complexValue: true })
-    private accessor mCachedGraphData: GraphViewData;
-
-    /**
      * Version token that refreshes transform-bound template styles.
      */
     @ComponentState.state()
@@ -76,7 +70,6 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      * @param pManager - Injected shared UI manager singleton.
      */
     public constructor(pComponent: Component = Injection.use(Component), pManager: PotatnoUiManager = Injection.use(PotatnoUiManager)) {
-        this.mCachedGraphData = { visibleNodes: [] };
         this.mComponent = pComponent;
         this.mDocumentPointerMoveHandler = null;
         this.mDocumentPointerUpHandler = null;
@@ -136,8 +129,16 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
     /**
      * Node view states rendered by the template.
      */
-    public get visibleNodes(): Array<NodeViewState> {
-        return this.mCachedGraphData.visibleNodes;
+    public get nodes(): ReadonlySet<PotatnoDocumentNode<PotatnoProjectTypesDefinition>> {
+        if (!this.mManager.activeFunction) {
+            return new Set<PotatnoDocumentNode<PotatnoProjectTypesDefinition>>();
+        }
+
+        return this.mManager.activeFunction.nodes;
+    }
+
+    public get selectedNode(): ReadonlySet<PotatnoDocumentNode<PotatnoProjectTypesDefinition>> {
+        return this.mSelectedNodes;
     }
 
     /**
@@ -176,12 +177,8 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
                 this.resetForActiveFunction();
             }
 
-            this.invalidateGraphContent();
-
             this.mComponent.updater.updateAsync();
         });
-
-        this.invalidateGraphContent();
     }
 
     /**
@@ -220,7 +217,6 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
 
         if (!pEvent.ctrlKey) {
             this.mSelectedNodes.clear();
-            this.invalidateNodeVisuals();
         }
 
         const lLocalPosition: Point = this.getLocalPointerPosition(pEvent.clientX, pEvent.clientY);
@@ -299,8 +295,6 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
             this.mSelectedNodes.clear();
             this.mSelectedNodes.add(pNode);
         }
-
-        this.invalidateNodeVisuals();
 
         const lGridSize: number = this.mManager.grid.gridSize;
         const lOrigins: Map<PotatnoDocumentNode<PotatnoProjectTypesDefinition>, NodeDragOrigin> = new Map<PotatnoDocumentNode<PotatnoProjectTypesDefinition>, NodeDragOrigin>();
@@ -521,21 +515,6 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
     }
 
     /**
-     * Rebuild the cached node data. The connection layer redraws itself from the same manager
-     * events, so the graph no longer drives connection rendering here.
-     */
-    private invalidateGraphContent(): void {
-        this.rebuildGraphData();
-    }
-
-    /**
-     * Refresh only node visual state.
-     */
-    private invalidateNodeVisuals(): void {
-        this.rebuildGraphData();
-    }
-
-    /**
      * Insert a node at a world position.
      *
      * @param pDefinition - Node definition to instantiate.
@@ -632,25 +611,6 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
     }
 
     /**
-     * Rebuild the cached graph nodes from the active function.
-     */
-    private rebuildGraphData(): void {
-        const lVisibleNodes: Array<NodeViewState> = [];
-        const lActiveFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null = this.mManager.activeFunction;
-
-        if (lActiveFunction) {
-            for (const lNode of lActiveFunction.nodes) {
-                lVisibleNodes.push({
-                    node: lNode,
-                    selected: this.mSelectedNodes.has(lNode)
-                });
-            }
-        }
-
-        this.mCachedGraphData = { visibleNodes: lVisibleNodes };
-    }
-
-    /**
      * Reset all interaction state when the rendered function changes (document load or switch).
      */
     private resetForActiveFunction(): void {
@@ -689,8 +649,6 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
                 this.mSelectedNodes.add(lNode);
             }
         }
-
-        this.invalidateNodeVisuals();
     }
 
     /**

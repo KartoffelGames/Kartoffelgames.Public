@@ -95,6 +95,9 @@ export class PotatnoUiManagerIntegrity {
             return;
         }
 
+        // Set document as clean.
+        this.mIsDirty = false;
+
         // Clean error lists. Not fast but clean.
         this.mErrorList.splice(0, this.mErrorList.length);
         this.mErrorItems.clear();

@@ -212,8 +212,8 @@ export class PotatnoUiManager extends EventTarget {
         }
 
         // Search for the active function.
-        const lActiveFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | undefined = this.mGraph.document.functions.find((pFunction) => {
-            return pFunction === pFunction;
+        const lActiveFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | undefined = this.mGraph.document.functions.find((pDocumentFunction) => {
+            return pDocumentFunction === pFunction;
         });
 
         // Skip if function could not be found.

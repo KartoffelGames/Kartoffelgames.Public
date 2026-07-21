@@ -14,24 +14,16 @@
     flex-direction: column;
     min-height: 100%;
     background: var(--potatno-color-background);
-    
+
     box-shadow: 0 2px 8px var(--potatno-color-shadow);
     overflow: visible;
     user-select: none;
-}
 
-.node.selected {
-      border-color: var(--potatno-color-accent);
-    box-shadow: 0 0 0 1px var(--potatno-color-accent), 0 2px 8px var(--potatno-color-shadow);
+    &.error {
+        border-color: var(--potatno-color-error, #f38ba8);
+        box-shadow: 0 0 0 1px var(--potatno-color-error, #f38ba8), 0 2px 8px var(--potatno-color-shadow);
+    }
 }
-
-.node.has-error,
-.node.has-error.selected {
-    border-color: var(--potatno-color-error, #f38ba8);
-    box-shadow: 0 0 0 1px var(--potatno-color-error, #f38ba8), 0 2px 8px var(--potatno-color-shadow);
-}
-
-/* ── Header bar ── */
 
 .node-header {
     display: flex;
@@ -46,11 +38,30 @@
     line-height: var(--pn-grid-size);
     cursor: grab;
     --port-label-color: rgba(255, 255, 255, 0.9);
+
+    &:active {
+        cursor: grabbing;
+    }
 }
 
-.node-header:active {
-    cursor: grabbing;
+.node-body {
+    flex: 1;
+    display: flex;
+    gap: 0 20px;
+
+    .node-body__ports {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+    }
 }
+
+
+
+
+
+
 
 .node-icon {
     font-size: var(--pn-node-font-size);
@@ -65,27 +76,6 @@
     overflow: hidden;
     text-overflow: ellipsis;
 }
-
-/* ── Body with data ports ── */
-
-.node-body {
-    display: flex;
-    flex: 1 0 auto;
-    justify-content: space-between;
-    min-height: calc(100% - var(--pn-node-header-height));
-    padding: 0;
-    gap: 0 20px;
-}
-
-.node-ports {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    min-width: 0;
-}
-
-/* ── Value node text input ── */
 
 .node-value-row {
     display: flex;

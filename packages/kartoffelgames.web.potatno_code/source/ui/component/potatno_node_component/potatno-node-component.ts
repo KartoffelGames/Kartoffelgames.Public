@@ -52,8 +52,31 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
     /**
      * CSS class string for the error state.
      */
-    public get hasErrorClass(): string {
-        return (this.nodeData !== null && this.mManager.integrity.errorItems.has(this.nodeData)) ? 'has-error' : '';
+    public get hasError(): boolean {
+        if (!this.nodeData) {
+            return false;
+        }
+
+        // Node has error.
+        if (this.mManager.integrity.errorItems.has(this.nodeData)) {
+            return true;
+        }
+
+        // Any input port has an error.
+        for (const lInputPort of this.nodeData.inputs.list) {
+            if (this.mManager.integrity.errorItems.has(lInputPort)) {
+                return true;
+            }
+        }
+
+        // Any output port has an error.
+        for (const lOutputPort of this.nodeData.outputs.list) {
+            if (this.mManager.integrity.errorItems.has(lOutputPort)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

@@ -1,12 +1,14 @@
 <!-- Resizeable part of node -->
-<potatno-resize-box #ResizeBox class="node {{this.hasErrorClass}}" top="true" right="true" bottom="true" left="true" [snap]="25" [virtual]="true" (resize)="this.transformNodeData($event.value)">
+<potatno-resize-box #ResizeBox class="node {{this.hasError ? 'error' : ''}}" top="true" right="true" bottom="true" left="true" [snap]="25" [virtual]="true" (resize)="this.transformNodeData($event.value)">
 
     <div class="node-header" style="background: {{this.categoryColor}}">
         <span class="node-icon">{{this.categoryIcon}}</span>
         <span class="node-label">{{this.nodeLabel}}</span>
+
         $if(this.isFunction) {
             <button class="open-function-btn" (click)="this.onOpenFunction($event)">open</button>
         }
+
         $if(this.canPreview) {
             <div class="preview-eye-wrapper">
                 <button [className]="this.previewEyeClass">👁</button>
@@ -22,7 +24,7 @@
 
     <div class="node-body">
         $if(this.inputPorts.length > 0) {
-            <div class="node-ports">    
+            <div class="node-body__ports">    
                 $for(inPort of this.inputPorts) {
                     <potatno-port [port]="this.inPort"/>
                 }   
@@ -30,7 +32,7 @@
         }
 
         $if(this.outputPorts.length > 0) {
-            <div class="node-ports">
+            <div class="node-body__ports">
                 $for(outPort of this.outputPorts) {
                     <potatno-port [port]="this.outPort"/>
                 }

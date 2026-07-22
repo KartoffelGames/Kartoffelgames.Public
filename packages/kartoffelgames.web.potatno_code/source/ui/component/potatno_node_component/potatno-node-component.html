@@ -1,24 +1,11 @@
 <!-- Resizeable part of node -->
 <potatno-resize-box #ResizeBox class="node {{this.hasError ? 'error' : ''}}" top="true" right="true" bottom="true" left="true" [snap]="25" [virtual]="true" (resize)="this.transformNodeData($event.value)">
-
-    <div class="node-header" style="background: {{this.categoryColor}}">
-        <span class="node-icon">{{this.categoryIcon}}</span>
-        <span class="node-label">{{this.nodeLabel}}</span>
+    <div class="node-header" style="--node-category-color: {{this.categoryColor}}">
+        <span class="node-header__icon">{{this.categoryIcon}}</span>
+        <span class="node-header__label">{{this.nodeLabel}}</span>
 
         $if(this.isFunction) {
-            <button class="open-function-btn" (click)="this.onOpenFunction($event)">open</button>
-        }
-
-        $if(this.canPreview) {
-            <div class="preview-eye-wrapper">
-                <button [className]="this.previewEyeClass">👁</button>
-                <div class="preview-port-menu">
-                    <button [className]="this.previewNoneClass" (click)="this.onClearPreview($event)">None</button>
-                    $for(port of this.valueOutputPorts) {
-                        <button class="preview-port-item {{ this.isPreviewedPort(this.port) ? 'active': '' }}" (click)="this.onSelectPreviewPort($event, this.port)">{{this.port.label}}</button>
-                    }
-                </div>
-            </div>
+            <div class="node-header__open-function" (click)="this.openFunction()">↪</div>
         }
     </div>
 
@@ -38,18 +25,36 @@
                 }
             </div>
         }
-    </div>
-
-    $if(this.isPreviewActive) {
-        <div class="preview-style-bar">
-            <select class="preview-style-select" (change)="this.onSelectPreviewStyle($event)">
-                $for(display of this.previewDisplays) {
-                    <option [value]="this.display.id" [selected]="this.display.id === this.selectedDisplayId">{{this.display.label}}</option>
-                }
-            </select>
-        </div>
-
-        <div class="node-preview" potatno-preview="this.previewDriver"></div>
-    }
+    </div>    
 </potatno-resize-box>
 
+$if(this.canPreview) {
+    <div class="node-preview">
+        <div class="node-preview__toggle">
+            <div class="icon"/>
+        </div>
+
+        <div class="preview-eye-wrapper">
+            <button [className]="this.previewEyeClass">👁</button>
+            <div class="preview-port-menu">
+                <button [className]="this.previewNoneClass" (click)="this.selectPreviewPort(null)">None</button>
+                $for(port of this.valueOutputPorts) {
+                    <button class="preview-port-item {{ this.isPreviewedPort(this.port) ? 'active': '' }}" (click)="this.selectPreviewPort(this.port)">{{this.port.label}}</button>
+                }
+            </div>
+        </div>
+
+        $if(this.isPreviewActive) {
+            <div class="preview-style-bar">
+                <select class="preview-style-select" (change)="this.onSelectPreviewStyle($event)">
+                    $for(display of this.previewDisplays) {
+                        <option [value]="this.display.id" [selected]="this.display.id === this.selectedDisplayId">{{this.display.label}}</option>
+                    }
+                </select>
+            </div>
+
+            <div class="node-preview-window" potatno-preview="this.previewDriver"></div>
+        }
+    </div>
+}
+        

@@ -43,6 +43,7 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
         return this.mNodeData;
     } set nodeData(pNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition> | null) {
         this.mNodeData = pNode;
+
         this.updateComponentTransformation(pNode);
     }
 
@@ -83,7 +84,7 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
      * Whether this is a function-category node.
      */
     public get isFunction(): boolean {
-        return this.nodeDefinition?.category.name === NodeCategory.Function;
+        return this.mNodeDefinition instanceof PotatnoFunctionNodeDefinition;
     }
 
     /**
@@ -358,7 +359,18 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
         this.mComponent.element.style.setProperty('top', `${lNodeY}px`);
     }
 
+    /**
+     * Open the document function represented by this function node.
+     */
+    public openFunction(): void {
+        // Node data must be set for this node and be a function node definition.
+        if (!(this.mNodeDefinition instanceof PotatnoFunctionNodeDefinition)) {
+            return;
+        }
 
+        // Set nodes function.
+        this.mManager.setActiveFunction(this.mNodeDefinition.function);
+    }
 
 
 
@@ -383,8 +395,13 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
      * @param pEvent - Click event from the port row.
      * @param pPort - Port to preview.
      */
-    public onSelectPreviewPort(pEvent: MouseEvent, pPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>): void {
-        pEvent.stopPropagation();
+    public selectPreviewPort(pPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null): void {
+        // Reset preview if no port is selected.
+        if (pPort === null) {
+            return this.mManager.graph.updateNode(this.nodeData, (pNode) => {
+                pNode.preview = null;
+            });
+        }
 
         const lDisplays: Array<string> = this.previewDisplaysForPort(pPort);
         this.mManager.graph.updateNode(this.nodeData, (pNode) => {
@@ -421,18 +438,6 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
     }
 
     /**
-     * Disable this node's inline preview (the "None" row).
-     *
-     * @param pEvent - Click event from the row.
-     */
-    public onClearPreview(pEvent: MouseEvent): void {
-        pEvent.stopPropagation();
-        this.mManager.graph.updateNode(this.nodeData, (pNode) => {
-            pNode.preview = null;
-        });
-    }
-
-    /**
      * Change the preview display ("style") for the active preview.
      *
      * @param pEvent - Change event from the style selector.
@@ -461,33 +466,6 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
                 label: pProject.preview.getDisplay(pDisplayId)?.name ?? pDisplayId
             };
         });
-    }
-
-    /**
-     * Open the document function represented by this function node.
-     *
-     * @param pEvent - Click event from the open button.
-     */
-    public onOpenFunction(pEvent: MouseEvent): void {
-        pEvent.stopPropagation();
-
-        // Node data and document must be set for this function.
-        if (!this.nodeData || !this.mManager.graph.document) {
-            return;
-        }
-
-        const lNodeDefinitionId: string = this.nodeData.definitionId;
-        const lNodeDefinition: PotatnoNodeDefinition<PotatnoProjectTypesDefinition> | undefined = this.mManager.graph.document.nodeDefinitions.find((pNodeDefinition) => {
-            return pNodeDefinition.id === lNodeDefinitionId;
-        });
-
-        // Skip when the node definition is a function node definition.
-        if (!(lNodeDefinition instanceof PotatnoFunctionNodeDefinition)) {
-            return;
-        }
-
-        // Set nodes function.
-        this.mManager.setActiveFunction(lNodeDefinition.function);
     }
 }
 

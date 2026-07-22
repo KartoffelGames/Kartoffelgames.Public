@@ -256,63 +256,6 @@ export class PotatnoUiManager extends EventTarget {
             this.removeEventListener(PotatnoUiManagerChangeEvent.EVENT_TYPE, lEventHandler as (pEvent: Event) => void);
         };
     }
-
-    /**
-     * Apply right-panel property changes to the active function.
-     *
-     * @param pData - The changed function properties.
-     */
-    public updateFunctionProperties(pData: PotatnoCodeUiManagerPropertiesChange): void {
-        // TODO: all of this shit to graph ui component.
-        const lActiveFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null = this.activeFunction;
-        if (!lActiveFunction) {
-            return;
-        }
-
-        const lFunctionDefinition: PotatnoFunctionDefinition<PotatnoProjectTypesDefinition> | undefined = lActiveFunction.project.getFunction(lActiveFunction.definitionId);
-        const lStatics: number = lFunctionDefinition?.statics ?? (PotatnoFunctionDefinitionStatics.imports | PotatnoFunctionDefinitionStatics.inputs | PotatnoFunctionDefinitionStatics.outputs);
-
-        if (pData.name !== undefined) {
-            lActiveFunction.label = pData.name;
-        }
-
-        if (pData.inputs !== undefined && (lStatics & PotatnoFunctionDefinitionStatics.inputs) === 0) {
-            // Rebuild the input list from the panel's desired state so renames and type changes
-            // apply, not just additions and removals. Entry/exit node ports resync during validation.
-            for (const lPort of [...lActiveFunction.inputs]) {
-                lActiveFunction.removeInput(lPort);
-            }
-            for (const lPortData of pData.inputs) {
-                lActiveFunction.addInput({ dataType: lPortData.type, label: lPortData.name });
-            }
-        }
-
-        if (pData.outputs !== undefined && (lStatics & PotatnoFunctionDefinitionStatics.outputs) === 0) {
-            for (const lPort of [...lActiveFunction.outputs]) {
-                lActiveFunction.removeOutput(lPort);
-            }
-            for (const lPortData of pData.outputs) {
-                lActiveFunction.addOutput({ dataType: lPortData.type, label: lPortData.name });
-            }
-        }
-
-        if (pData.imports !== undefined && (lStatics & PotatnoFunctionDefinitionStatics.imports) === 0) {
-            const lExistingImportIds: Set<string> = new Set<string>(lActiveFunction.imports);
-            const lNewImportIds: Set<string> = new Set<string>(pData.imports);
-            for (const lImportId of [...lActiveFunction.imports]) {
-                if (!lNewImportIds.has(lImportId)) {
-                    lActiveFunction.removeImport(lImportId);
-                }
-            }
-            for (const lImportId of pData.imports) {
-                if (!lExistingImportIds.has(lImportId)) {
-                    lActiveFunction.addImport(lImportId);
-                }
-            }
-        }
-
-        this.dispatch(PotatnoCodeUiManagerChangeType.FunctionUpdate, lActiveFunction);
-    }
 }
 
 /**

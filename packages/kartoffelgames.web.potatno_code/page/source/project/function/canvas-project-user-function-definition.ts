@@ -82,7 +82,6 @@ export class CanvasProjectUserFunctionDefinition extends PotatnoFunctionDefiniti
                             .map(([, pInput]) => pInput.value)
                             .join(', ');
                         const lDestructure: string = Object.entries(pContext.outputs)
-                            .filter(([pId]) => pId !== 'Output')
                             .map(([pId, pOutput]) => `${pId}: ${pOutput.value}`)
                             .join(', ');
                         const lFlowNext: string = pContext.outputs['Output']?.code.inner ?? '';

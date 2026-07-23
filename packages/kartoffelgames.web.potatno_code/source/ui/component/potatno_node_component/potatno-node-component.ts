@@ -145,10 +145,19 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
             return [];
         }
 
+        const createDisplayOptions = (pProject: PotatnoProject<PotatnoProjectTypesDefinition>, pDisplayIds: Array<string>): Array<PotatnoNodeComponentPreviewDisplayOption> => {
+            return pDisplayIds.map((pDisplayId) => {
+                return {
+                    id: pDisplayId,
+                    label: pProject.preview.getDisplay(pDisplayId)?.name ?? pDisplayId
+                };
+            });
+        }
+
         const lBinding = this.nodeData.preview;
         const lPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | undefined = lBinding ? this.nodeData.outputs.map.get(lBinding.portId) : undefined;
         if (lPort && lPort.portType === 'value') {
-            return this.createDisplayOptions(lProject, lProject.preview.availableDisplays(lFunctionDefinition, lPort.resolvedDataType));
+            return createDisplayOptions(lProject, lProject.preview.availableDisplays(lFunctionDefinition, lPort.resolvedDataType));
         }
 
         const lDisplays: Set<string> = new Set<string>();
@@ -158,7 +167,7 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
             }
         }
 
-        return this.createDisplayOptions(lProject, [...lDisplays]);
+        return createDisplayOptions(lProject, [...lDisplays]);
     }
 
     /**
@@ -432,47 +441,16 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
         return this.selectPreviewPort(lPreviewablePorts[0]);
     }
 
-
-
-
-
-    /**
-     * Whether the given port is the one currently previewed.
-     *
-     * @param pPort - Port to check.
-     */
-    public isPreviewedPort(pPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>): boolean {
-        return this.nodeData?.preview?.portId === pPort.definitionId;
-    }
-
     /**
      * Change the preview display ("style") for the active preview.
      *
      * @param pEvent - Change event from the style selector.
      */
-    public onSelectPreviewStyle(pEvent: Event): void {
-        pEvent.stopPropagation();
-
-        const lDisplayId: string = (pEvent.target as HTMLSelectElement).value;
+    public selectPreviewDisplay(pDisplayId: string): void {
         this.mManager.graph.updateNode(this.nodeData, (pNode) => {
             if (pNode.preview) {
-                pNode.preview = { portId: pNode.preview.portId, displayId: lDisplayId };
+                pNode.preview = { portId: pNode.preview.portId, displayId: pDisplayId };
             }
-        });
-    }
-
-    /**
-     * Convert registry ids to selector options using display names.
-     *
-     * @param pProject - Project owning the preview registry.
-     * @param pDisplayIds - Display ids to convert.
-     */
-    private createDisplayOptions(pProject: PotatnoProject<PotatnoProjectTypesDefinition>, pDisplayIds: Array<string>): Array<PotatnoNodeComponentPreviewDisplayOption> {
-        return pDisplayIds.map((pDisplayId) => {
-            return {
-                id: pDisplayId,
-                label: pProject.preview.getDisplay(pDisplayId)?.name ?? pDisplayId
-            };
         });
     }
 }

@@ -30,26 +30,32 @@
 
 $if(this.canPreview) {
     <div class="node-preview">
-        <div class="node-preview__toggle" (click)="this.togglePreview()">
+        <div class="node-preview__toggle {{ this.isPreviewActive ? 'active' : '' }}" (click)="this.togglePreview()">
             <div class="icon"/>
         </div>
 
         $if(this.isPreviewActive) {
-            <div class="preview-style-bar">
-                <select class="preview-style-select" (change)="this.updatePreview()">
+            <div class="node-preview__selections">
+                <div class="select-button" tabindex="-1">
+                    <div class="select-button__button">👁</div>
+                    <div class="select-button__options">
+                        $for(display of this.previewDisplays) {
+                            <div class="option {{ this.display.id === this.selectedDisplayId ? 'selected' : '' }}" (click)="this.selectPreviewDisplay(this.display.id)">
+                                <div class="option__icon">👁</div>
+                                <div class="option__name">{{this.display.label}}</div>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <select class="select" (change)="this.updatePreview()">
                     $for(port of this.previewPorts) {
                         <option [value]="this.port.definitionId" [selected]="false">{{this.port.label}}</option>
                     }
                 </select>
-
-                <select class="preview-style-select" (change)="this.onSelectPreviewStyle($event)">
-                    $for(display of this.previewDisplays) {
-                        <option [value]="this.display.id" [selected]="this.display.id === this.selectedDisplayId">{{this.display.label}}</option>
-                    }
-                </select>
             </div>
 
-            <div class="node-preview-window" potatno-preview="this.previewDriver"></div>
+            <div class="node-preview__window" potatno-preview="this.previewDriver"></div>
         }
     </div>
 }

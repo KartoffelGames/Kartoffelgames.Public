@@ -5,6 +5,7 @@
 
     --node-border-radius: 2px;
     --node-border-color: color-mix(in srgb, var(--potatno-color-text) 30%, var(--potatno-color-background));
+    --node-preview-select-height: 24px;
 }
 
 .node {
@@ -107,7 +108,7 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        height: 15px;
+        height: calc(var(--potatno-grid-size) / 2);
         background-color: var(--potatno-color-background);
         cursor: pointer;
 
@@ -121,114 +122,189 @@
 
         .icon {
             position: absolute;
+            box-sizing: border-box;
+            left: 50%;
             border: 0px solid var(--node-border-color);
-            border-width: 0 2px 2px 0;
+            border-width: 0px 1px 1px 0;
             height: 10px;
             width: 10px;
-            rotate: 45deg;
-            translate: 0 -5px;
-            transition: border-color 0.15s;
+            transform: translate(-50%, -3px) rotate(45deg);
+            transition: border-color 0.15s, transform 0.15s;
+
+            /* Passive size set for the inner arrow. */
+            padding: 2px;
+
+            /* Inner arrow */
+            &::before {
+                content: '';
+                display: block;
+                border: 0px solid var(--node-border-color);
+                border-width: 0px 1px 1px 0;
+                height: 100%;
+                width: 100%;
+                transition: border-color 0.15s;
+            }
 
             /* Hover animation scoped to parent */
             .node-preview__toggle:hover & {
                 border-color: var(--potatno-color-accent);
+
+                &::before {
+                    border-color: var(--potatno-color-accent);
+                }
+            }
+
+            .node-preview__toggle.active & {
+                transform: translate(-50%, 3px) rotate(-135deg);
             }
         }
     }
-}
 
+    .node-preview__window {
+        background: var(--potatno-color-background-dark);
+        overflow: hidden;
 
+        /* The whole preview area has a total grid height of 6. [6 - toggle-height - select-height] */
+        max-height: calc((var(--potatno-grid-size) * 5.5) - var(--node-preview-select-height));
+    }
 
+    .node-preview__selections {
+        box-sizing: border-box;
+        display: flex;
+        justify-content: space-between;
+        background-color: var(--potatno-color-background);
+        border-top: 1px solid var(--potatno-color-border);
+        padding: 2px;
+        gap: 2px;
 
+        /* Height minus border */
+        height: calc(var(--node-preview-select-height) - 1px);
 
-.preview-eye-btn {
-    background: none;
-    border: 1px solid currentColor;
-    border-radius: 3px;
-    color: inherit;
-    font-size: var(--pn-node-button-font-size);
-    height: var(--pn-grid-size);
-    line-height: 1;
-    padding: 0 3px;
-    cursor: pointer;
-    opacity: 0.55;
-    flex-shrink: 0;
-}
+        .select {
+            flex: 1;
+            box-sizing: border-box;
+            height: 100%;
+            min-width: 0;
+            padding: 0px 2px;
+            background: var(--potatno-color-background-light);
+            font-size: var(--potatno-font-size-small);
+            color: var(--potatno-color-text);
 
-.preview-eye-btn:hover {
-    opacity: 0.85;
-}
+            /* Custom borders for animations*/
+            border: 1px solid var(--potatno-color-border);
+            border-radius: 2px;
+            outline: none;
+            transition: border-color 0.15s;
 
-.preview-eye-btn.active {
-    opacity: 1;
-    background: rgba(255, 255, 255, 0.25);
-}
+            &:focus {
+                border-color: var(--potatno-color-accent);
+            }
+        }
 
-.preview-eye-wrapper {
-    position: relative;
-    display: inline-flex;
-    flex-shrink: 0;
-}
+        .select-button {
+            position: relative;
+            flex: 0;
+            height: 100%;
 
-.preview-port-menu {
-    display: none;
-    position: absolute;
-    top: 100%;
-    right: 0;
-    z-index: 50;
-    min-width: 96px;
-    flex-direction: column;
-    background: var(--potatno-color-background-light);
-    border: 1px solid var(--potatno-color-border);
-    border-radius: 4px;
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
-    padding: 2px 0;
-}
+            .select-button__button {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-sizing: border-box;
+                height: 100%;
+                aspect-ratio: 1 / 1;
+                color: var(--potatno-color-text);
+                font-size: var(--potatno-font-size-small);
+                cursor: pointer;
 
-.preview-eye-wrapper:hover .preview-port-menu {
-    display: flex;
-}
+                /* Transition items. */
+                border: 1px dashed var(--potatno-color-border);
+                border-radius: 2px;
+                background-color: var(--potatno-color-background-light);
 
-.preview-port-item {
-    background: none;
-    border: none;
-    color: var(--potatno-color-accent);
-    cursor: pointer;
-    font-family: var(--potatno-font-family);
-    font-size: var(--potatno-font-size-small);
-    padding: 3px 8px;
-    text-align: left;
-}
+                &:hover {
+                    border-color: var(--potatno-color-accent);
+                    color: var(--potatno-color-accent);
+                }
 
-.preview-port-item:hover {
-    background: var(--potatno-color-background-light);
-}
+                &:active {
+                    background-color: var(--potatno-color-background);
+                    scale: 0.98;
+                }
+            }
 
-.preview-port-item.active {
-    color: var(--potatno-color-accent);
-}
+            .select-button__options {
+                /* Defined as hover window of parent. */
+                position: absolute;
+                top: calc(100% + 5px);
+                left: 0px;
+                display: none;
 
-.preview-style-bar {
-    display: flex;
-    justify-content: flex-end;
-    padding: 2px 4px 0;
-}
+                flex-direction: column;
+                border: 1px solid var(--potatno-color-border);
+                border-radius: 2px;
+                background-color: var(--potatno-color-background);
+                overflow: hidden auto;
 
-.preview-style-select {
-    background: var(--potatno-color-background-light);
-    border: 1px solid var(--potatno-color-border);
-    border-radius: 3px;
-    color: var(--potatno-color-text);
-    font-family: var(--potatno-font-family);
-    font-size: var(--potatno-font-size-small);
-    padding: 0 2px;
-}
+                scrollbar-color: var(--potatno-color-scrollbar-thumb) var(--potatno-color-scrollbar-track);
+                scrollbar-width: thin;
 
-/* ── Node inline preview ── */
+                .select-button:focus-within & {
+                    display: flex;
+                }
 
-.node-preview-window {
-    background: var(--potatno-color-background-dark);
-    overflow: hidden;
-    padding: 6px;
-    border-top: 1px solid var(--potatno-color-border);
+                .option {
+                    display: flex;
+                    box-sizing: border-box;
+                    width: 100%;
+                    padding: 5px 12px 5px 9px;
+                    align-items: center;
+                    text-align: left;
+                    color: var(--potatno-color-text);
+                    cursor: pointer;
+                    transition: background-color 0.15s, scale 0.15s;
+
+                    &.active,
+                    &:active {
+                        background-color: var(--potatno-color-background-light);
+                    }
+
+                    &:active {
+                        scale: 0.98;
+                    }
+
+                    .option__icon {
+                        display: flex;
+                        align-items: center;
+                        width: 2ch;
+                        height: 15px;
+                        padding: 0 10px;
+
+                        text-align: center;
+
+                        /* Border defined to mark selected. */
+                        border-left: 3px solid var(--potatno-color-text);
+                        border-color: color-mix(in srgb, var(--potatno-color-text) 25%, var(--potatno-color-background));
+                        transition: border-color 0.15s;
+
+                        .option:hover & {
+                            border-color: var(--potatno-color-text);
+                        }
+
+                        .option.selected & {
+                            border-color: var(--potatno-color-accent);
+                        }
+                    }
+
+                    .option__name {
+                        flex: 1;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        white-space: nowrap;
+                    }
+                }
+            }
+        }
+    }
+
 }

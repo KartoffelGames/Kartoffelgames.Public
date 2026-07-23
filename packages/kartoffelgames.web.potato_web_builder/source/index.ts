@@ -1,5 +1,5 @@
 // Application
-export { PwbApplication } from './application/pwb-application.ts';
+export { PwbApplication, type PwbApplicationErrorListener } from './application/pwb-application.ts';
 
 // Component
 export type { IComponentOnAttributeChange, IComponentOnConnect, IComponentOnDeconstruct, IComponentOnDisconnect, IComponentOnUpdate } from './core/component/component.ts';

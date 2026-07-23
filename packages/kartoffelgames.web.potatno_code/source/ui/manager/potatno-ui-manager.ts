@@ -29,9 +29,8 @@ import { Exception } from '@kartoffelgames/core';
  * `@ComponentState` copy of it. This removes the version-token plumbing the old editor used to
  * keep fragmented component state in sync.
  */
-@Injection.injectable('singleton')
 export class PotatnoUiManager extends EventTarget {
-    private mActiveFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null;;
+    private mActiveFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null;
     private readonly mClipboard: PotatnoUiManagerClipboard;
     private readonly mConnections: PotatnoUiManagerConnections;
     private readonly mEventBuffer: Map<PotatnoUiManagerChangeEventTarget | null, PotatnoCodeUiManagerChangeType>;
@@ -41,7 +40,7 @@ export class PotatnoUiManager extends EventTarget {
     private readonly mHistory: PotatnoUiManagerHistory;
     private readonly mIntegrity: PotatnoUiManagerIntegrity;
     private readonly mPreview: PotatnoUiManagerPreview;
-    private mProject!: PotatnoProject<PotatnoProjectTypesDefinition> | null;
+    private readonly mProject: PotatnoProject<PotatnoProjectTypesDefinition>;
 
     /**
      * The currently active document function, or `null` when none is resolvable.
@@ -101,34 +100,36 @@ export class PotatnoUiManager extends EventTarget {
     }
 
     /**
-     * The current project, or `null` before initialization.
+     * The current project.
      */
-    public get project(): PotatnoProject<PotatnoProjectTypesDefinition> | null {
+    public get project(): PotatnoProject<PotatnoProjectTypesDefinition> {
         return this.mProject;
     }
 
     /**
      * Create a new, uninitialized manager. Call {@link initialize} before use.
      */
-    public constructor() {
+    public constructor(pProject: PotatnoProject<PotatnoProjectTypesDefinition>) {
         super();
 
-        // Create manager components.
-        this.mClipboard = new PotatnoUiManagerClipboard(this);
-        this.mIntegrity = new PotatnoUiManagerIntegrity(this);
-        this.mConnections = new PotatnoUiManagerConnections(this);
-        this.mGraph = new PotatnoUiManagerGraph(this);
-        this.mHistory = new PotatnoUiManagerHistory(this);
-        this.mPreview = new PotatnoUiManagerPreview(this);
-        this.mGrid = new PotatnoUiManagerGrid();
+        // Set project.
+        this.mProject = pProject;
 
         // Default values to "not set".
-        this.mProject = null;
         this.mActiveFunction = null;
 
         // Setup event buffer.
         this.mEventBuffer = new Map<PotatnoUiManagerChangeEventTarget | null, PotatnoCodeUiManagerChangeType>();
         this.mEventBufferDispatchRequest = -1;
+
+        // Create manager components.
+        this.mIntegrity = new PotatnoUiManagerIntegrity(this);
+        this.mConnections = new PotatnoUiManagerConnections(this);
+        this.mHistory = new PotatnoUiManagerHistory(this);
+        this.mPreview = new PotatnoUiManagerPreview(this);
+        this.mGrid = new PotatnoUiManagerGrid();
+        this.mClipboard = new PotatnoUiManagerClipboard(this);
+        this.mGraph = new PotatnoUiManagerGraph(this);
     }
 
     /**
@@ -186,31 +187,11 @@ export class PotatnoUiManager extends EventTarget {
     }
 
     /**
-     * Bind the manager to a project. Resets document and history.
-     *
-     * @param pProject - The project configuration backing the editor.
-     */
-    public initialize(pProject: PotatnoProject<PotatnoProjectTypesDefinition>): void {
-        // Lock for single initialization.
-        if (this.mProject) {
-            throw new Exception('Project was already initialized.', this);
-        }
-
-        this.mProject = pProject;
-        this.mGraph.setDocument(new PotatnoDocument(pProject));
-    }
-
-    /**
      * Activate a function by id.
      *
      * @param pFunctionId - Id of the function to activate.
      */
     public setActiveFunction(pFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition>): void {
-        // Only switch when a document is setup.
-        if (!this.mGraph.document) {
-            return;
-        }
-
         // Search for the active function.
         const lActiveFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | undefined = this.mGraph.document.functions.find((pDocumentFunction) => {
             return pDocumentFunction === pFunction;

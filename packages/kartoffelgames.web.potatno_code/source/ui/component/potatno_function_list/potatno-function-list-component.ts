@@ -42,10 +42,6 @@ export class PotatnoFunctionListComponent implements IComponentOnDeconstruct {
      * User function definitions available for creation.
      */
     public get userFunctionDefinitions(): Array<PotatnoFunctionDefinition<PotatnoProjectTypesDefinition>> {
-        if (!this.mManager.project) {
-            return new Array<PotatnoFunctionDefinition<PotatnoProjectTypesDefinition>>();
-        }
-
         return [...this.mManager.project.userFunctions.values()];
     }
 
@@ -63,14 +59,14 @@ export class PotatnoFunctionListComponent implements IComponentOnDeconstruct {
 
         // subscribe to any document or function changes to renew the current document function list.
         this.mUnsubscribe = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Document | PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.SpecialActiveFunction, () => {
-            this.documentFunctions = this.mManager.graph.document?.functions.map((pFunction) => {
+            this.documentFunctions = this.mManager.graph.document.functions.map((pFunction) => {
                 return {
                     id: pFunction.id,
                     label: pFunction.label,
                     isSystem: pFunction.isSystem,
                     function: pFunction
                 };
-            }) ?? new Array<PotatnoFunctionListComponentEntry>();
+            });
         });
     }
 

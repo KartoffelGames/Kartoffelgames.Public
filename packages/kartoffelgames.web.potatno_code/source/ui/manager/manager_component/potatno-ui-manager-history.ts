@@ -100,16 +100,11 @@ export class PotatnoUiManagerHistory {
      * Push the current document snapshot into history.
      */
     private pushHistory(): void {
-        const lDocument: PotatnoDocument<PotatnoProjectTypesDefinition> | null = this.mManager.graph.document;
-        if (!lDocument) {
-            return;
-        }
-
         // Slice current snapshot to current index. Removing old redo items.
         this.mSnapshots.splice(this.mSnapshotIndex + 1);
 
         // Serialize result and convert to string.
-        const lSerializerResult: PotatnoCodeFileSerializationResult = new PotatnoSerializer<PotatnoProjectTypesDefinition>().serialize(lDocument);
+        const lSerializerResult: PotatnoCodeFileSerializationResult = new PotatnoSerializer<PotatnoProjectTypesDefinition>().serialize(this.mManager.graph.document);
         const lSerializerResultString: string = JSON.stringify(lSerializerResult);
 
         // Read last item, if it has one, and compare the items.
@@ -137,12 +132,7 @@ export class PotatnoUiManagerHistory {
      * @param pSnapshot - Snapshot to deserialize and display.
      */
     private restoreHistory(pSnapshot: PotatnoCodeFileSerializationResult): void {
-        const lProject: PotatnoProject<PotatnoProjectTypesDefinition> | null = this.mManager.project;
-        if (!lProject) {
-            return;
-        }
-
         //  Deserialize snapshot into a new document and update document.
-        this.mManager.graph.setDocument(new PotatnoDeserializer<PotatnoProjectTypesDefinition>(lProject).deserialize(pSnapshot));
+        this.mManager.graph.setDocument(new PotatnoDeserializer<PotatnoProjectTypesDefinition>(this.mManager.project).deserialize(pSnapshot));
     }
 }

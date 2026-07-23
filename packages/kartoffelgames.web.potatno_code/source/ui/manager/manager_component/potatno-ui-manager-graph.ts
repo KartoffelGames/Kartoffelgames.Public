@@ -1,7 +1,7 @@
 import { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoDocumentNode, PotatnoDocumentNodeTransformation } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
-import type { PotatnoDocument } from '../../../document/potatno-document.ts';
+import { PotatnoDocument } from '../../../document/potatno-document.ts';
 import type { PotatnoNodeDefinition } from '../../../project/node_definition/potatno-node-definition.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import { PotatnoCodeUiManagerChangeType, type PotatnoUiManager } from '../potatno-ui-manager.ts';
@@ -11,13 +11,13 @@ import { PotatnoCodeUiManagerChangeType, type PotatnoUiManager } from '../potatn
  * Handles document changes.
  */
 export class PotatnoUiManagerGraph {
-    private mDocument: PotatnoDocument<PotatnoProjectTypesDefinition> | null;
+    private mDocument: PotatnoDocument<PotatnoProjectTypesDefinition>;
     private readonly mManager: PotatnoUiManager;
 
     /**
      * Document.
      */
-    public get document(): PotatnoDocument<PotatnoProjectTypesDefinition> | null {
+    public get document(): PotatnoDocument<PotatnoProjectTypesDefinition> {
         return this.mDocument;
     }
 
@@ -28,7 +28,9 @@ export class PotatnoUiManagerGraph {
      */
     public constructor(pManager: PotatnoUiManager) {
         this.mManager = pManager;
-        this.mDocument = null;
+
+        // Set initial document.
+        this.mDocument = new PotatnoDocument(pManager.project);
     }
 
     /**
@@ -201,7 +203,7 @@ export class PotatnoUiManagerGraph {
      * @param pNode - Node to update.
      * @param pUpdater - Update method of the node.
      */
-    public transformNode(pNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition> | null,  pUpdater: (pNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition>) => void): void {
+    public transformNode(pNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition> | null, pUpdater: (pNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition>) => void): void {
         // Skip node update when no node is set.
         if (!pNode) {
             return;
@@ -214,7 +216,7 @@ export class PotatnoUiManagerGraph {
         pUpdater(pNode);
 
         // Dispatch transformation change event only when actually something has changed.
-        if(lBeforeTransformation.width === pNode.transformation.width && lBeforeTransformation.height === pNode.transformation.height && lBeforeTransformation.x === pNode.transformation.x && lBeforeTransformation.y === pNode.transformation.y) {
+        if (lBeforeTransformation.width === pNode.transformation.width && lBeforeTransformation.height === pNode.transformation.height && lBeforeTransformation.x === pNode.transformation.x && lBeforeTransformation.y === pNode.transformation.y) {
             return;
         }
 
@@ -236,7 +238,7 @@ export class PotatnoUiManagerGraph {
 
         // Simple pass forward.
         pUpdater(pFunction);
-        
+
         // Dispatch changes.
         this.mManager.dispatch(PotatnoCodeUiManagerChangeType.FunctionUpdate, pFunction);
     }
@@ -275,7 +277,7 @@ export class PotatnoUiManagerGraph {
             const lNewDocumentFunctions: Array<PotatnoDocumentFunction<PotatnoProjectTypesDefinition>> = [...this.mDocument.functions];
 
             // Use the first function if currently no active is set.
-            if(!this.mManager.activeFunction){
+            if (!this.mManager.activeFunction) {
                 return lNewDocumentFunctions[0];
             }
 

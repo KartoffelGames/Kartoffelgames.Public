@@ -76,7 +76,7 @@ export class PotatnoFunctionPropertiesComponent implements IComponentOnDeconstru
         this.mUnsubscribe = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Document | PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.SpecialActiveFunction, () => {
             // Load all types. Usually types dont change.
             this.mProjectTypes.clear();
-            for (const [lTypeName] of this.mManager.project!.types.types) {
+            for (const [lTypeName] of this.mManager.project.types.types) {
                 this.mProjectTypes.add(lTypeName);
             }
 

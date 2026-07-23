@@ -90,11 +90,6 @@ export class PotatnoUiManagerIntegrity {
      * Re-run document validation and refresh the cached error list and highlight sets.
      */
     public revalidate(): void {
-        // Do nothing if document is not set.
-        if (!this.mManager.graph.document) {
-            return;
-        }
-
         // Set document as clean.
         this.mIsDirty = false;
 

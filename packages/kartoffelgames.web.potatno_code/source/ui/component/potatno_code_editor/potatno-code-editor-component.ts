@@ -36,7 +36,7 @@ export class PotatnoCodeEditorComponent implements IComponentOnDeconstruct {
      * Document state backing the editor.
      */
     @PwbExport
-    public get document(): PotatnoDocument<PotatnoProjectTypesDefinition> | null {
+    public get document(): PotatnoDocument<PotatnoProjectTypesDefinition> {
         return this.mManager.graph.document;
     } set document(pFile: PotatnoDocument<PotatnoProjectTypesDefinition>) {
         this.mManager.graph.setDocument(pFile as PotatnoDocument<PotatnoProjectTypesDefinition>);
@@ -73,17 +73,6 @@ export class PotatnoCodeEditorComponent implements IComponentOnDeconstruct {
         this.mUnsubscribe = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Document | PotatnoCodeUiManagerChangeType.SpecialActiveFunction, () => {
             this.mComponent.updater.updateAsync();
         });
-    }
-
-    /**
-     * Initialize the editor with a project.#
-     * 
-     * @param pProject - Project.
-     */
-    @PwbExport
-    public initializeProject(pProject: PotatnoProject<PotatnoProjectTypesDefinition>): void {
-        // TODO: remove once contexted injections are in place.
-        this.mManager.initialize(pProject);
     }
 
     /**

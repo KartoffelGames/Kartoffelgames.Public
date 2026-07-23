@@ -3,9 +3,11 @@ import { TestUtil } from '../../../utility/test-util.ts';
 
 // Funcitonal imports after mock.
 import { Injection } from '@kartoffelgames/core-dependency-injection';
+import { InteractionZone } from '@kartoffelgames/core-interaction-zone';
 import { expect } from '@kartoffelgames/core-test';
 import { ComponentRegister } from '../../../../source/core/component/component-register.ts';
 import { Component, type IComponentOnAttributeChange, type IComponentOnDeconstruct, type IComponentOnUpdate } from '../../../../source/core/component/component.ts';
+import { ComponentZoneInjection } from '../../../../source/core/component/component-zone-injection.ts';
 import { PwbComponent } from '../../../../source/core/component/pwb-component.decorator.ts';
 import { ComponentState } from '../../../../source/core/core_entity/component_state/component-state.ts';
 import { CoreEntityUpdateLoopError } from '../../../../source/core/core_entity/updater/core-entity-update-loop-error.ts';
@@ -402,6 +404,159 @@ Deno.test('PwbComponent--Functionality: Element reference', async (pContext) => 
 
         // Evaluation
         expect(lComponent).toBe(lComponentReference);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
+Deno.test('PwbComponent--Functionality: Parent zone injection', async (pContext) => {
+    await pContext.step('Inject value from direct parent zone', async () => {
+        // Setup. Define injection target and value.
+        class TestInjection {
+            public value: string = 'default';
+        }
+        const lInjectionValue: TestInjection = new TestInjection();
+
+        // Setup. Define component that reads the injection.
+        @PwbComponent({
+            selector: TestUtil.randomSelector()
+        })
+        class TestComponent {
+            private readonly mInjection: TestInjection;
+
+            public constructor(pInjection = Injection.use(TestInjection)) {
+                this.mInjection = pInjection;
+            }
+
+            @PwbExport
+            public injection(): TestInjection {
+                return this.mInjection;
+            }
+        }
+
+        // Setup. Create a parent zone that holds a component zone injection.
+        const lParentZone: InteractionZone = InteractionZone.create('ParentZone');
+        const lZoneInjection: ComponentZoneInjection = new ComponentZoneInjection();
+        lZoneInjection.setInjection(TestInjection, lInjectionValue);
+        lParentZone.setAttachment(Component.COMPONENT_INJECTION_ATTACHMENT_KEY, lZoneInjection);
+
+        // Process. Construct the component inside the parent zone.
+        const lComponentConstructor: CustomElementConstructor = ComponentRegister.ofConstructor(TestComponent as any).elementConstructor;
+        const lComponent: HTMLElement & TestComponent = lParentZone.execute(() => {
+            return new lComponentConstructor() as any;
+        });
+        document.body.appendChild(lComponent);
+        await TestUtil.waitForUpdate(lComponent);
+
+        // Evaluation.
+        expect(lComponent.injection()).toBe(lInjectionValue);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+
+    await pContext.step('Inject value from indirect parent zone', async () => {
+        // Setup. Define injection target and value.
+        class TestInjection {
+            public value: string = 'default';
+        }
+        const lInjectionValue: TestInjection = new TestInjection();
+
+        // Setup. Define component that reads the injection.
+        @PwbComponent({
+            selector: TestUtil.randomSelector()
+        })
+        class TestComponent {
+            private readonly mInjection: TestInjection;
+
+            public constructor(pInjection = Injection.use(TestInjection)) {
+                this.mInjection = pInjection;
+            }
+
+            @PwbExport
+            public injection(): TestInjection {
+                return this.mInjection;
+            }
+        }
+
+        // Setup. Create a nested zone hierarchy with the injection on the root zone.
+        const lRootZone: InteractionZone = InteractionZone.create('RootZone');
+        const lZoneInjection: ComponentZoneInjection = new ComponentZoneInjection();
+        lZoneInjection.setInjection(TestInjection, lInjectionValue);
+        lRootZone.setAttachment(Component.COMPONENT_INJECTION_ATTACHMENT_KEY, lZoneInjection);
+        const lMiddleZone: InteractionZone = lRootZone.execute(() => {
+            return InteractionZone.create('MiddleZone');
+        });
+
+        // Process. Construct the component inside the innermost zone.
+        const lComponentConstructor: CustomElementConstructor = ComponentRegister.ofConstructor(TestComponent as any).elementConstructor;
+        const lComponent: HTMLElement & TestComponent = lMiddleZone.execute(() => {
+            return new lComponentConstructor() as any;
+        });
+        document.body.appendChild(lComponent);
+        await TestUtil.waitForUpdate(lComponent);
+
+        // Evaluation.
+        expect(lComponent.injection()).toBe(lInjectionValue);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+
+    await pContext.step('Inject multiple values from parent zone', async () => {
+        // Setup. Define injection targets and values.
+        class TestInjectionOne {
+            public value: string = 'one';
+        }
+        class TestInjectionTwo {
+            public value: string = 'two';
+        }
+        const lInjectionValueOne: TestInjectionOne = new TestInjectionOne();
+        const lInjectionValueTwo: TestInjectionTwo = new TestInjectionTwo();
+
+        // Setup. Define component that reads both injections.
+        @PwbComponent({
+            selector: TestUtil.randomSelector()
+        })
+        class TestComponent {
+            private readonly mInjectionOne: TestInjectionOne;
+            private readonly mInjectionTwo: TestInjectionTwo;
+
+            public constructor(pInjectionOne = Injection.use(TestInjectionOne), pInjectionTwo = Injection.use(TestInjectionTwo)) {
+                this.mInjectionOne = pInjectionOne;
+                this.mInjectionTwo = pInjectionTwo;
+            }
+
+            @PwbExport
+            public injectionOne(): TestInjectionOne {
+                return this.mInjectionOne;
+            }
+
+            @PwbExport
+            public injectionTwo(): TestInjectionTwo {
+                return this.mInjectionTwo;
+            }
+        }
+
+        // Setup. Create a parent zone that holds both injections.
+        const lParentZone: InteractionZone = InteractionZone.create('ParentZone');
+        const lZoneInjection: ComponentZoneInjection = new ComponentZoneInjection();
+        lZoneInjection.setInjection(TestInjectionOne, lInjectionValueOne);
+        lZoneInjection.setInjection(TestInjectionTwo, lInjectionValueTwo);
+        lParentZone.setAttachment(Component.COMPONENT_INJECTION_ATTACHMENT_KEY, lZoneInjection);
+
+        // Process. Construct the component inside the parent zone.
+        const lComponentConstructor: CustomElementConstructor = ComponentRegister.ofConstructor(TestComponent as any).elementConstructor;
+        const lComponent: HTMLElement & TestComponent = lParentZone.execute(() => {
+            return new lComponentConstructor() as any;
+        });
+        document.body.appendChild(lComponent);
+        await TestUtil.waitForUpdate(lComponent);
+
+        // Evaluation.
+        expect(lComponent.injectionOne()).toBe(lInjectionValueOne);
+        expect(lComponent.injectionTwo()).toBe(lInjectionValueTwo);
 
         // Wait for any update to finish to prevent timer leaks.
         await TestUtil.waitForUpdate(lComponent);

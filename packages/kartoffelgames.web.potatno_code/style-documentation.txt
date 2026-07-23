@@ -9,4 +9,6 @@ Colored border of 3px on left. Full height.
 Between each Item are 10px gaps.
 
 -- Actions
-Scale to 0.98 on clicks.
+Scale to 0.98 or translate 1px, based on looks on clicks.
+ - Buttons usually Scale
+ - Action such as dropdowns usually translate.

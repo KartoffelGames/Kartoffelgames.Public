@@ -12,16 +12,16 @@
     <div class="node-body">
         $if(this.inputPorts.length > 0) {
             <div class="node-body__ports">    
-                $for(inPort of this.inputPorts) {
-                    <potatno-port [port]="this.inPort"/>
+                $for(port of this.inputPorts) {
+                    <potatno-port [port]="this.port"/>
                 }   
             </div>
         }
 
         $if(this.outputPorts.length > 0) {
             <div class="node-body__ports">
-                $for(outPort of this.outputPorts) {
-                    <potatno-port [port]="this.outPort"/>
+                $for(port of this.outputPorts) {
+                    <potatno-port [port]="this.port"/>
                 }
             </div>
         }
@@ -30,22 +30,18 @@
 
 $if(this.canPreview) {
     <div class="node-preview">
-        <div class="node-preview__toggle">
+        <div class="node-preview__toggle" (click)="this.togglePreview()">
             <div class="icon"/>
-        </div>
-
-        <div class="preview-eye-wrapper">
-            <button [className]="this.previewEyeClass">👁</button>
-            <div class="preview-port-menu">
-                <button [className]="this.previewNoneClass" (click)="this.selectPreviewPort(null)">None</button>
-                $for(port of this.valueOutputPorts) {
-                    <button class="preview-port-item {{ this.isPreviewedPort(this.port) ? 'active': '' }}" (click)="this.selectPreviewPort(this.port)">{{this.port.label}}</button>
-                }
-            </div>
         </div>
 
         $if(this.isPreviewActive) {
             <div class="preview-style-bar">
+                <select class="preview-style-select" (change)="this.updatePreview()">
+                    $for(port of this.previewPorts) {
+                        <option [value]="this.port.definitionId" [selected]="false">{{this.port.label}}</option>
+                    }
+                </select>
+
                 <select class="preview-style-select" (change)="this.onSelectPreviewStyle($event)">
                     $for(display of this.previewDisplays) {
                         <option [value]="this.display.id" [selected]="this.display.id === this.selectedDisplayId">{{this.display.label}}</option>

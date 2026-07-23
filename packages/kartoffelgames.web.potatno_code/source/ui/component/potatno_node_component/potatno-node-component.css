@@ -70,12 +70,16 @@
         border: 0px solid var(--node-border-color);
         border-width: 0 0 0 2px;
 
+        /* Click and hover animation */
+        transition: opacity 0.15s, scale 0.15s;
+
         &:hover {
             opacity: 0.75;
         }
 
         &:active {
             opacity: 0.5;
+            scale: 0.98;
         }
     }
 }
@@ -101,11 +105,19 @@
     .node-preview__toggle {
         position: relative;
         display: flex;
-        height: 15px;
         justify-content: center;
         align-items: center;
+        height: 15px;
         background-color: var(--potatno-color-background);
         cursor: pointer;
+
+        /* Click animation. */
+        transition: background-color 0.15s, translate 0.15s;
+
+        &:active {
+            background-color: var(--potatno-color-background-light);
+            translate: 0 1px;
+        }
 
         .icon {
             position: absolute;
@@ -115,6 +127,12 @@
             width: 10px;
             rotate: 45deg;
             translate: 0 -5px;
+            transition: border-color 0.15s;
+
+            /* Hover animation scoped to parent */
+            .node-preview__toggle:hover & {
+                border-color: var(--potatno-color-accent);
+            }
         }
     }
 }
@@ -122,8 +140,6 @@
 
 
 
-
-/* ── Open-function button ── */
 
 .preview-eye-btn {
     background: none;
@@ -213,13 +229,6 @@
 .node-preview-window {
     background: var(--potatno-color-background-dark);
     overflow: hidden;
-}
-
-.node-preview-window:empty {
-    display: none;
-}
-
-.node-preview-window:not(:empty) {
     padding: 6px;
     border-top: 1px solid var(--potatno-color-border);
 }

@@ -1030,12 +1030,16 @@ $if(this.left) {\r
         border: 0px solid var(--node-border-color);\r
         border-width: 0 0 0 2px;\r
 \r
+        /* Click and hover animation */\r
+        transition: opacity 0.15s, scale 0.15s;\r
+\r
         &:hover {\r
             opacity: 0.75;\r
         }\r
 \r
         &:active {\r
             opacity: 0.5;\r
+            scale: 0.98;\r
         }\r
     }\r
 }\r
@@ -1061,11 +1065,19 @@ $if(this.left) {\r
     .node-preview__toggle {\r
         position: relative;\r
         display: flex;\r
-        height: 15px;\r
         justify-content: center;\r
         align-items: center;\r
+        height: 15px;\r
         background-color: var(--potatno-color-background);\r
         cursor: pointer;\r
+\r
+        /* Click animation. */\r
+        transition: background-color 0.15s, translate 0.15s;\r
+\r
+        &:active {\r
+            background-color: var(--potatno-color-background-light);\r
+            translate: 0 1px;\r
+        }\r
 \r
         .icon {\r
             position: absolute;\r
@@ -1075,6 +1087,12 @@ $if(this.left) {\r
             width: 10px;\r
             rotate: 45deg;\r
             translate: 0 -5px;\r
+            transition: border-color 0.15s;\r
+\r
+            /* Hover animation scoped to parent */\r
+            .node-preview__toggle:hover & {\r
+                border-color: var(--potatno-color-accent);\r
+            }\r
         }\r
     }\r
 }\r
@@ -1082,8 +1100,6 @@ $if(this.left) {\r
 \r
 \r
 \r
-\r
-/* \u2500\u2500 Open-function button \u2500\u2500 */\r
 \r
 .preview-eye-btn {\r
     background: none;\r
@@ -1173,75 +1189,64 @@ $if(this.left) {\r
 .node-preview-window {\r
     background: var(--potatno-color-background-dark);\r
     overflow: hidden;\r
-}\r
-\r
-.node-preview-window:empty {\r
-    display: none;\r
-}\r
-\r
-.node-preview-window:not(:empty) {\r
     padding: 6px;\r
     border-top: 1px solid var(--potatno-color-border);\r
-}`;var Nn=`<!-- Resizeable part of node -->
-<potatno-resize-box #ResizeBox class="node {{this.hasError ? 'error' : ''}}" top="true" right="true" bottom="true" left="true" [snap]="25" [virtual]="true" (resize)="this.transformNodeData($event.value)">
-    <div class="node-header" style="--node-category-color: {{this.categoryColor}}">
-        <span class="node-header__icon">{{this.categoryIcon}}</span>
-        <span class="node-header__label">{{this.nodeLabel}}</span>
-
-        $if(this.isFunction) {
-            <div class="node-header__open-function" (click)="this.openFunction()">\u21AA</div>
-        }
-    </div>
-
-    <div class="node-body">
-        $if(this.inputPorts.length > 0) {
-            <div class="node-body__ports">    
-                $for(inPort of this.inputPorts) {
-                    <potatno-port [port]="this.inPort"/>
-                }   
-            </div>
-        }
-
-        $if(this.outputPorts.length > 0) {
-            <div class="node-body__ports">
-                $for(outPort of this.outputPorts) {
-                    <potatno-port [port]="this.outPort"/>
-                }
-            </div>
-        }
-    </div>    
-</potatno-resize-box>
-
-$if(this.canPreview) {
-    <div class="node-preview">
-        <div class="node-preview__toggle">
-            <div class="icon"/>
-        </div>
-
-        <div class="preview-eye-wrapper">
-            <button [className]="this.previewEyeClass">\u{1F441}</button>
-            <div class="preview-port-menu">
-                <button [className]="this.previewNoneClass" (click)="this.selectPreviewPort(null)">None</button>
-                $for(port of this.valueOutputPorts) {
-                    <button class="preview-port-item {{ this.isPreviewedPort(this.port) ? 'active': '' }}" (click)="this.selectPreviewPort(this.port)">{{this.port.label}}</button>
-                }
-            </div>
-        </div>
-
-        $if(this.isPreviewActive) {
-            <div class="preview-style-bar">
-                <select class="preview-style-select" (change)="this.onSelectPreviewStyle($event)">
-                    $for(display of this.previewDisplays) {
-                        <option [value]="this.display.id" [selected]="this.display.id === this.selectedDisplayId">{{this.display.label}}</option>
-                    }
-                </select>
-            </div>
-
-            <div class="node-preview-window" potatno-preview="this.previewDriver"></div>
-        }
-    </div>
-}
-        `;function Ss(){function p(l,n){return function(a){e(n,"addInitializer"),o(a,"An initializer"),l.push(a)}}function t(l,n,u,a,r,b,v,E,w){var f;switch(r){case 1:f="accessor";break;case 2:f="method";break;case 3:f="getter";break;case 4:f="setter";break;default:f="field"}var s={kind:f,name:v?"#"+n:n,static:b,private:v,metadata:E},m={v:!1};s.addInitializer=p(a,m);var i,h;r===0?v?(i=u.get,h=u.set):(i=function(){return this[n]},h=function(x){this[n]=x}):r===2?i=function(){return u.value}:((r===1||r===3)&&(i=function(){return u.get.call(this)}),(r===1||r===4)&&(h=function(x){u.set.call(this,x)})),s.access=i&&h?{get:i,set:h}:i?{get:i}:{set:h};try{return l(w,s)}finally{m.v=!0}}function e(l,n){if(l.v)throw new Error("attempted to call "+n+" after decoration was finished")}function o(l,n){if(typeof l!="function")throw new TypeError(n+" must be a function")}function c(l,n){var u=typeof n;if(l===1){if(u!=="object"||n===null)throw new TypeError("accessor decorators must return an object with get, set, or init properties or void 0");n.get!==void 0&&o(n.get,"accessor.get"),n.set!==void 0&&o(n.set,"accessor.set"),n.init!==void 0&&o(n.init,"accessor.init")}else if(u!=="function"){var a;throw l===0?a="field":l===10?a="class":a="method",new TypeError(a+" decorators must return a function or void 0")}}function d(l,n,u,a,r,b,v,E,w){var f=u[0],s,m,i;v?r===0||r===1?s={get:u[3],set:u[4]}:r===3?s={get:u[3]}:r===4?s={set:u[3]}:s={value:u[3]}:r!==0&&(s=Object.getOwnPropertyDescriptor(n,a)),r===1?i={get:s.get,set:s.set}:r===2?i=s.value:r===3?i=s.get:r===4&&(i=s.set);var h,x,C;if(typeof f=="function")h=t(f,a,s,E,r,b,v,w,i),h!==void 0&&(c(r,h),r===0?m=h:r===1?(m=h.init,x=h.get||i.get,C=h.set||i.set,i={get:x,set:C}):i=h);else for(var S=f.length-1;S>=0;S--){var M=f[S];if(h=t(M,a,s,E,r,b,v,w,i),h!==void 0){c(r,h);var A;r===0?A=h:r===1?(A=h.init,x=h.get||i.get,C=h.set||i.set,i={get:x,set:C}):i=h,A!==void 0&&(m===void 0?m=A:typeof m=="function"?m=[m,A]:m.push(A))}}if(r===0||r===1){if(m===void 0)m=function(I,D){return D};else if(typeof m!="function"){var F=m;m=function(I,D){for(var L=D,R=0;R<F.length;R++)L=F[R].call(I,L);return L}}else{var V=m;m=function(I,D){return V.call(I,D)}}l.push(m)}r!==0&&(r===1?(s.get=i.get,s.set=i.set):r===2?s.value=i:r===3?s.get=i:r===4&&(s.set=i),v?r===1?(l.push(function(I,D){return i.get.call(I,D)}),l.push(function(I,D){return i.set.call(I,D)})):r===2?l.push(i):l.push(function(I,D){return i.call(I,D)}):Object.defineProperty(n,a,s))}function g(l,n,u){for(var a=[],r,b,v=new Map,E=new Map,w=0;w<n.length;w++){var f=n[w];if(Array.isArray(f)){var s=f[1],m=f[2],i=f.length>3,h=s>=5,x,C;if(h?(x=l,s=s-5,b=b||[],C=b):(x=l.prototype,r=r||[],C=r),s!==0&&!i){var S=h?E:v,M=S.get(m)||0;if(M===!0||M===3&&s!==4||M===4&&s!==3)throw new Error("Attempted to decorate a public method/accessor that has the same name as a previously decorated public method/accessor. This is not currently supported by the decorators plugin. Property name was: "+m);!M&&s>2?S.set(m,s):S.set(m,!0)}d(a,x,f,m,s,h,i,C,u)}}return y(a,r),y(a,b),a}function y(l,n){n&&l.push(function(u){for(var a=0;a<n.length;a++)n[a].call(u);return u})}function T(l,n,u){if(n.length>0){for(var a=[],r=l,b=l.name,v=n.length-1;v>=0;v--){var E={v:!1};try{var w=n[v](r,{kind:"class",name:b,addInitializer:p(a,E),metadata:u})}finally{E.v=!0}w!==void 0&&(c(10,w),r=w)}return[P(r,u),function(){for(var f=0;f<a.length;f++)a[f].call(r)}]}}function P(l,n){return Object.defineProperty(l,Symbol.metadata||Symbol.for("Symbol.metadata"),{configurable:!0,enumerable:!0,value:n})}return function(n,u,a,r){if(r!==void 0)var b=r[Symbol.metadata||Symbol.for("Symbol.metadata")];var v=Object.create(b===void 0?null:b),E=g(n,u,v);return a.length||P(n,v),{e:E,get c(){return T(n,a,v)}}}}function Fn(p,t,e,o){return(Fn=Ss())(p,t,e,o)}var jn,Ln,Vn,Rn,_n,pr;jn=W({selector:"potatno-node",template:Nn,style:An,modules:[Ee],components:[Ye,Xt]}),Vn=bt("ResizeBox");var On=class{static{({e:[Rn,_n],c:[pr,Ln]}=Fn(this,[[k,3,"nodeData"],[Vn,1,"resizeBox"]],[jn]))}constructor(t=_.use(B),e=_.use(K)){this.mComponent=t,this.mManager=e,this.mNodeDefinition=null,this.mNodeData=null,this.mUnsubscribe=this.mManager.subscribe(O.Function|O.SpecialActiveFunction|O.Node|O.Connection,()=>{this.mComponent.updater.updateAsync()}),this.mUnsubscribeTransformation=this.mManager.subscribe(O.NodeTransform,o=>{o.item===this.nodeData&&this.updateComponentTransformation(this.nodeData)})}mComponent;mManager;mUnsubscribe;mUnsubscribeTransformation;mNodeDefinition;mNodeData;get nodeData(){return this.mNodeData}set nodeData(t){this.mNodeData=t,this.updateComponentTransformation(t)}#t=(_n(this),Rn(this));get resizeBox(){return this.#t}set resizeBox(t){this.#t=t}get hasError(){if(!this.nodeData)return!1;if(this.mManager.integrity.errorItems.has(this.nodeData))return!0;for(let t of this.nodeData.inputs.list)if(this.mManager.integrity.errorItems.has(t))return!0;for(let t of this.nodeData.outputs.list)if(this.mManager.integrity.errorItems.has(t))return!0;return!1}get isFunction(){return this.mNodeDefinition instanceof Tt}get canPreview(){return this.valueOutputPorts.length>0}get isPreviewActive(){return this.nodeData?.preview!==null}get previewEyeClass(){return this.isPreviewActive?"preview-eye-btn active":"preview-eye-btn"}get previewDisplays(){if(!this.nodeData)return[];let t=this.nodeData.project,e=t.getFunction(this.nodeData.function.definitionId);if(!e)return[];let o=this.nodeData.preview,c=o?this.nodeData.outputs.map.get(o.portId):void 0;if(c&&c.portType==="value")return this.createDisplayOptions(t,t.preview.availableDisplays(e,c.resolvedDataType));let d=new Set;for(let g of this.valueOutputPorts)for(let y of t.preview.availableDisplays(e,g.resolvedDataType))d.add(y);return this.createDisplayOptions(t,[...d])}get previewDriver(){let t=this.nodeData?.preview;if(!this.nodeData||!t)return null;let e=this.nodeData.outputs.map.get(t.portId);return e?this.mManager.preview.requestDriver(e,t.displayId):null}get valueOutputPorts(){return this.nodeData?[...this.nodeData.outputs.value]:[]}get selectedDisplayId(){return this.nodeData?.preview?.displayId??""}get previewNoneClass(){return this.isPreviewActive?"preview-port-item":"preview-port-item active"}get categoryColor(){return this.nodeData?this.mManager.generateStringColor(this.nodeDefinition?.category.name??""):""}get categoryIcon(){return this.nodeData?this.nodeDefinition?.category.icon??"":""}get nodeLabel(){return this.nodeData?.label??""}get nodeGridStyle(){let t=this.mManager.grid.gridSize;return`--pn-grid-size: ${t}px; --pn-grid-half-size: ${t/2}px; --pn-node-port-gap: ${t}px;`}get inputPorts(){return this.nodeData?this.nodeData.inputs.list:new Array}get outputPorts(){return this.nodeData?this.nodeData.outputs.list:new Array}get nodeDefinition(){if(!this.nodeData)return null;if(this.mNodeDefinition&&this.mNodeDefinition.id==this.nodeData.definitionId)return this.mNodeDefinition;if(!this.mManager.activeFunction)return null;let t=this.mManager.activeFunction.nodeDefinitions.find(e=>e.id===this.nodeData.definitionId);return t?(this.mNodeDefinition=t,t):null}onDeconstruct(){this.mUnsubscribe(),this.mUnsubscribeTransformation()}transformNodeData(t){this.mManager.graph.transformNode(this.nodeData,e=>{let o=e.transformation.width,c=e.transformation.height;e.resizeTo(t.width/this.mManager.grid.gridSize,t.height/this.mManager.grid.gridSize);let d=e.transformation.width-o,g=e.transformation.height-c;g!==0&&(t.resizeHandle&gt.top)>0&&e.moveTo(e.transformation.x,e.transformation.y-g),d!==0&&(t.resizeHandle&gt.left)>0&&e.moveTo(e.transformation.x-d,e.transformation.y)})}updateComponentTransformation(t){if(!t)return;let e=t.transformation.width*this.mManager.grid.gridSize,o=t.transformation.height*this.mManager.grid.gridSize;this.resizeBox.resize(e,o);let c=t.transformation.x*this.mManager.grid.gridSize,d=t.transformation.y*this.mManager.grid.gridSize;this.mComponent.element.style.setProperty("left",`${c}px`),this.mComponent.element.style.setProperty("top",`${d}px`)}openFunction(){this.mNodeDefinition instanceof Tt&&this.mManager.setActiveFunction(this.mNodeDefinition.function)}isPreviewedPort(t){return this.nodeData?.preview?.portId===t.definitionId}selectPreviewPort(t){if(t===null)return this.mManager.graph.updateNode(this.nodeData,o=>{o.preview=null});let e=this.previewDisplaysForPort(t);this.mManager.graph.updateNode(this.nodeData,o=>{if(o.preview?.portId===t.definitionId){o.preview=null;return}let c=o.preview&&e.includes(o.preview.displayId)?o.preview.displayId:e[0];c&&(o.preview={portId:t.definitionId,displayId:c})})}previewDisplaysForPort(t){if(!this.nodeData)return[];let e=this.nodeData.project.getFunction(this.nodeData.function.definitionId);return e?this.nodeData.project.preview.availableDisplays(e,t.resolvedDataType):[]}onSelectPreviewStyle(t){t.stopPropagation();let e=t.target.value;this.mManager.graph.updateNode(this.nodeData,o=>{o.preview&&(o.preview={portId:o.preview.portId,displayId:e})})}createDisplayOptions(t,e){return e.map(o=>({id:o,label:t.preview.getDisplay(o)?.name??o}))}static{Ln()}};var zn=`:host {\r
+}`;var Nn=`<!-- Resizeable part of node -->\r
+<potatno-resize-box #ResizeBox class="node {{this.hasError ? 'error' : ''}}" top="true" right="true" bottom="true" left="true" [snap]="25" [virtual]="true" (resize)="this.transformNodeData($event.value)">\r
+    <div class="node-header" style="--node-category-color: {{this.categoryColor}}">\r
+        <span class="node-header__icon">{{this.categoryIcon}}</span>\r
+        <span class="node-header__label">{{this.nodeLabel}}</span>\r
+\r
+        $if(this.isFunction) {\r
+            <div class="node-header__open-function" (click)="this.openFunction()">\u21AA</div>\r
+        }\r
+    </div>\r
+\r
+    <div class="node-body">\r
+        $if(this.inputPorts.length > 0) {\r
+            <div class="node-body__ports">    \r
+                $for(port of this.inputPorts) {\r
+                    <potatno-port [port]="this.port"/>\r
+                }   \r
+            </div>\r
+        }\r
+\r
+        $if(this.outputPorts.length > 0) {\r
+            <div class="node-body__ports">\r
+                $for(port of this.outputPorts) {\r
+                    <potatno-port [port]="this.port"/>\r
+                }\r
+            </div>\r
+        }\r
+    </div>    \r
+</potatno-resize-box>\r
+\r
+$if(this.canPreview) {\r
+    <div class="node-preview">\r
+        <div class="node-preview__toggle" (click)="this.togglePreview()">\r
+            <div class="icon"/>\r
+        </div>\r
+\r
+        $if(this.isPreviewActive) {\r
+            <div class="preview-style-bar">\r
+                <select class="preview-style-select" (change)="this.updatePreview()">\r
+                    $for(port of this.previewPorts) {\r
+                        <option [value]="this.port.definitionId" [selected]="false">{{this.port.label}}</option>\r
+                    }\r
+                </select>\r
+\r
+                <select class="preview-style-select" (change)="this.onSelectPreviewStyle($event)">\r
+                    $for(display of this.previewDisplays) {\r
+                        <option [value]="this.display.id" [selected]="this.display.id === this.selectedDisplayId">{{this.display.label}}</option>\r
+                    }\r
+                </select>\r
+            </div>\r
+\r
+            <div class="node-preview-window" potatno-preview="this.previewDriver"></div>\r
+        }\r
+    </div>\r
+}\r
+        `;function Ss(){function p(l,n){return function(a){e(n,"addInitializer"),o(a,"An initializer"),l.push(a)}}function t(l,n,u,a,r,b,v,E,w){var f;switch(r){case 1:f="accessor";break;case 2:f="method";break;case 3:f="getter";break;case 4:f="setter";break;default:f="field"}var s={kind:f,name:v?"#"+n:n,static:b,private:v,metadata:E},m={v:!1};s.addInitializer=p(a,m);var i,h;r===0?v?(i=u.get,h=u.set):(i=function(){return this[n]},h=function(x){this[n]=x}):r===2?i=function(){return u.value}:((r===1||r===3)&&(i=function(){return u.get.call(this)}),(r===1||r===4)&&(h=function(x){u.set.call(this,x)})),s.access=i&&h?{get:i,set:h}:i?{get:i}:{set:h};try{return l(w,s)}finally{m.v=!0}}function e(l,n){if(l.v)throw new Error("attempted to call "+n+" after decoration was finished")}function o(l,n){if(typeof l!="function")throw new TypeError(n+" must be a function")}function c(l,n){var u=typeof n;if(l===1){if(u!=="object"||n===null)throw new TypeError("accessor decorators must return an object with get, set, or init properties or void 0");n.get!==void 0&&o(n.get,"accessor.get"),n.set!==void 0&&o(n.set,"accessor.set"),n.init!==void 0&&o(n.init,"accessor.init")}else if(u!=="function"){var a;throw l===0?a="field":l===10?a="class":a="method",new TypeError(a+" decorators must return a function or void 0")}}function d(l,n,u,a,r,b,v,E,w){var f=u[0],s,m,i;v?r===0||r===1?s={get:u[3],set:u[4]}:r===3?s={get:u[3]}:r===4?s={set:u[3]}:s={value:u[3]}:r!==0&&(s=Object.getOwnPropertyDescriptor(n,a)),r===1?i={get:s.get,set:s.set}:r===2?i=s.value:r===3?i=s.get:r===4&&(i=s.set);var h,x,C;if(typeof f=="function")h=t(f,a,s,E,r,b,v,w,i),h!==void 0&&(c(r,h),r===0?m=h:r===1?(m=h.init,x=h.get||i.get,C=h.set||i.set,i={get:x,set:C}):i=h);else for(var S=f.length-1;S>=0;S--){var M=f[S];if(h=t(M,a,s,E,r,b,v,w,i),h!==void 0){c(r,h);var A;r===0?A=h:r===1?(A=h.init,x=h.get||i.get,C=h.set||i.set,i={get:x,set:C}):i=h,A!==void 0&&(m===void 0?m=A:typeof m=="function"?m=[m,A]:m.push(A))}}if(r===0||r===1){if(m===void 0)m=function(I,D){return D};else if(typeof m!="function"){var F=m;m=function(I,D){for(var L=D,R=0;R<F.length;R++)L=F[R].call(I,L);return L}}else{var V=m;m=function(I,D){return V.call(I,D)}}l.push(m)}r!==0&&(r===1?(s.get=i.get,s.set=i.set):r===2?s.value=i:r===3?s.get=i:r===4&&(s.set=i),v?r===1?(l.push(function(I,D){return i.get.call(I,D)}),l.push(function(I,D){return i.set.call(I,D)})):r===2?l.push(i):l.push(function(I,D){return i.call(I,D)}):Object.defineProperty(n,a,s))}function g(l,n,u){for(var a=[],r,b,v=new Map,E=new Map,w=0;w<n.length;w++){var f=n[w];if(Array.isArray(f)){var s=f[1],m=f[2],i=f.length>3,h=s>=5,x,C;if(h?(x=l,s=s-5,b=b||[],C=b):(x=l.prototype,r=r||[],C=r),s!==0&&!i){var S=h?E:v,M=S.get(m)||0;if(M===!0||M===3&&s!==4||M===4&&s!==3)throw new Error("Attempted to decorate a public method/accessor that has the same name as a previously decorated public method/accessor. This is not currently supported by the decorators plugin. Property name was: "+m);!M&&s>2?S.set(m,s):S.set(m,!0)}d(a,x,f,m,s,h,i,C,u)}}return y(a,r),y(a,b),a}function y(l,n){n&&l.push(function(u){for(var a=0;a<n.length;a++)n[a].call(u);return u})}function T(l,n,u){if(n.length>0){for(var a=[],r=l,b=l.name,v=n.length-1;v>=0;v--){var E={v:!1};try{var w=n[v](r,{kind:"class",name:b,addInitializer:p(a,E),metadata:u})}finally{E.v=!0}w!==void 0&&(c(10,w),r=w)}return[P(r,u),function(){for(var f=0;f<a.length;f++)a[f].call(r)}]}}function P(l,n){return Object.defineProperty(l,Symbol.metadata||Symbol.for("Symbol.metadata"),{configurable:!0,enumerable:!0,value:n})}return function(n,u,a,r){if(r!==void 0)var b=r[Symbol.metadata||Symbol.for("Symbol.metadata")];var v=Object.create(b===void 0?null:b),E=g(n,u,v);return a.length||P(n,v),{e:E,get c(){return T(n,a,v)}}}}function Fn(p,t,e,o){return(Fn=Ss())(p,t,e,o)}var jn,Ln,Vn,Rn,_n,pr;jn=W({selector:"potatno-node",template:Nn,style:An,modules:[Ee],components:[Ye,Xt]}),Vn=bt("ResizeBox");var On=class{static{({e:[Rn,_n],c:[pr,Ln]}=Fn(this,[[k,3,"nodeData"],[Vn,1,"resizeBox"]],[jn]))}constructor(t=_.use(B),e=_.use(K)){this.mComponent=t,this.mManager=e,this.mNodeDefinition=null,this.mNodeData=null,this.mUnsubscribe=this.mManager.subscribe(O.Function|O.SpecialActiveFunction|O.Node|O.Connection,()=>{this.mComponent.updater.updateAsync()}),this.mUnsubscribeTransformation=this.mManager.subscribe(O.NodeTransform,o=>{o.item===this.nodeData&&this.updateComponentTransformation(this.nodeData)})}mComponent;mManager;mUnsubscribe;mUnsubscribeTransformation;mNodeDefinition;mNodeData;get nodeData(){return this.mNodeData}set nodeData(t){this.mNodeData=t,this.updateComponentTransformation(t)}#t=(_n(this),Rn(this));get resizeBox(){return this.#t}set resizeBox(t){this.#t=t}get hasError(){if(!this.nodeData)return!1;if(this.mManager.integrity.errorItems.has(this.nodeData))return!0;for(let t of this.nodeData.inputs.list)if(this.mManager.integrity.errorItems.has(t))return!0;for(let t of this.nodeData.outputs.list)if(this.mManager.integrity.errorItems.has(t))return!0;return!1}get isFunction(){return this.mNodeDefinition instanceof Tt}get previewPorts(){if(!this.nodeData)return new Array;let t=this.nodeData.project.getFunction(this.nodeData.function.definitionId),e=new Map;return this.nodeData.outputs.list.filter(o=>{let c=o.resolvedDataType;if(e.has(c))return e.get(c);let d=this.nodeData.project.preview.availableDisplays(t,o.resolvedDataType);return e.set(c,d.length>0),e.get(c)})}get canPreview(){return this.previewPorts.length>0}get isPreviewActive(){return this.nodeData?.preview!==null}get previewDisplays(){if(!this.nodeData)return[];let t=this.nodeData.project,e=t.getFunction(this.nodeData.function.definitionId);if(!e)return[];let o=this.nodeData.preview,c=o?this.nodeData.outputs.map.get(o.portId):void 0;if(c&&c.portType==="value")return this.createDisplayOptions(t,t.preview.availableDisplays(e,c.resolvedDataType));let d=new Set;for(let g of this.nodeData.outputs.value)for(let y of t.preview.availableDisplays(e,g.resolvedDataType))d.add(y);return this.createDisplayOptions(t,[...d])}get previewDriver(){let t=this.nodeData?.preview;if(!this.nodeData||!t)return null;let e=this.nodeData.outputs.map.get(t.portId);return e?this.mManager.preview.requestDriver(e,t.displayId):null}get selectedDisplayId(){return this.nodeData?.preview?.displayId??""}get categoryColor(){return this.nodeData?this.mManager.generateStringColor(this.nodeDefinition?.category.name??""):""}get categoryIcon(){return this.nodeData?this.nodeDefinition?.category.icon??"":""}get nodeLabel(){return this.nodeData?.label??""}get inputPorts(){return this.nodeData?this.nodeData.inputs.list:new Array}get outputPorts(){return this.nodeData?this.nodeData.outputs.list:new Array}get nodeDefinition(){if(!this.nodeData)return null;if(this.mNodeDefinition&&this.mNodeDefinition.id==this.nodeData.definitionId)return this.mNodeDefinition;if(!this.mManager.activeFunction)return null;let t=this.mManager.activeFunction.nodeDefinitions.find(e=>e.id===this.nodeData.definitionId);return t?(this.mNodeDefinition=t,t):null}onDeconstruct(){this.mUnsubscribe(),this.mUnsubscribeTransformation()}transformNodeData(t){this.mManager.graph.transformNode(this.nodeData,e=>{let o=e.transformation.width,c=e.transformation.height;e.resizeTo(t.width/this.mManager.grid.gridSize,t.height/this.mManager.grid.gridSize);let d=e.transformation.width-o,g=e.transformation.height-c;g!==0&&(t.resizeHandle&gt.top)>0&&e.moveTo(e.transformation.x,e.transformation.y-g),d!==0&&(t.resizeHandle&gt.left)>0&&e.moveTo(e.transformation.x-d,e.transformation.y)})}updateComponentTransformation(t){if(!t)return;let e=t.transformation.width*this.mManager.grid.gridSize,o=t.transformation.height*this.mManager.grid.gridSize;this.resizeBox.resize(e,o);let c=t.transformation.x*this.mManager.grid.gridSize,d=t.transformation.y*this.mManager.grid.gridSize;this.mComponent.element.style.setProperty("left",`${c}px`),this.mComponent.element.style.setProperty("top",`${d}px`)}openFunction(){this.mNodeDefinition instanceof Tt&&this.mManager.setActiveFunction(this.mNodeDefinition.function)}selectPreviewPort(t){if(!t)return this.mManager.graph.updateNode(this.nodeData,e=>{e.preview=null});this.mManager.graph.updateNode(this.nodeData,e=>{let o=e.project.getFunction(e.function.definitionId),c=e.project.preview.availableDisplays(o,t.resolvedDataType);c.length===0&&(e.preview=null);let d=e.preview&&c.includes(e.preview.displayId)?e.preview.displayId:c[0];e.preview={portId:t.definitionId,displayId:d}})}togglePreview(){if(!this.nodeData)return;if(this.nodeData.preview)return this.selectPreviewPort(null);let t=this.previewPorts;return t.length===0?this.selectPreviewPort(null):this.selectPreviewPort(t[0])}isPreviewedPort(t){return this.nodeData?.preview?.portId===t.definitionId}onSelectPreviewStyle(t){t.stopPropagation();let e=t.target.value;this.mManager.graph.updateNode(this.nodeData,o=>{o.preview&&(o.preview={portId:o.preview.portId,displayId:e})})}createDisplayOptions(t,e){return e.map(o=>({id:o,label:t.preview.getDisplay(o)?.name??o}))}static{Ln()}};var zn=`:host {\r
     position: relative;\r
     flex: 1;\r
     display: flex;\r

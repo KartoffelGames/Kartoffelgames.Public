@@ -88,10 +88,40 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
     }
 
     /**
+     * Read the previewable ports of the node.
+     */
+    public get previewPorts(): Array<PotatnoDocumentPort<PotatnoProjectTypesDefinition>> {
+        if (!this.nodeData) {
+            return new Array<PotatnoDocumentPort<PotatnoProjectTypesDefinition>>();
+        }
+
+        // Read nodes parent function, function definition. It must be allways available.
+        const lFunctionDefinition = this.nodeData.project.getFunction(this.nodeData.function.definitionId)!;
+
+        // Create a type buffer to cache already checked types.
+        const lTypeBuffer: Map<string, boolean> = new Map<string, boolean>();
+        return this.nodeData.outputs.list.filter((pPort) => {
+            const lPortDataType: string = pPort.resolvedDataType;
+
+            // Try to read solution from buffer.
+            if (lTypeBuffer.has(lPortDataType)) {
+                return lTypeBuffer.get(lPortDataType);
+            }
+
+            // Read the available preview displays for the current port and store if any display is available into the buffer.
+            const lDisplays: Array<string> = this.nodeData!.project.preview.availableDisplays(lFunctionDefinition, pPort.resolvedDataType);
+            lTypeBuffer.set(lPortDataType, lDisplays.length > 0);
+
+            // Read it again out of the buffer to return it.
+            return lTypeBuffer.get(lPortDataType);
+        });
+    }
+
+    /**
      * Whether the node exposes a value output and can therefore host an inline preview.
      */
     public get canPreview(): boolean {
-        return this.valueOutputPorts.length > 0;
+        return this.previewPorts.length > 0;
     }
 
     /**
@@ -99,13 +129,6 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
      */
     public get isPreviewActive(): boolean {
         return this.nodeData?.preview !== null;
-    }
-
-    /**
-     * CSS class for the eye button, reflecting its active state.
-     */
-    public get previewEyeClass(): string {
-        return this.isPreviewActive ? 'preview-eye-btn active' : 'preview-eye-btn';
     }
 
     /**
@@ -129,7 +152,7 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
         }
 
         const lDisplays: Set<string> = new Set<string>();
-        for (const lPort of this.valueOutputPorts) {
+        for (const lPort of this.nodeData.outputs.value) {
             for (const lDisplay of lProject.preview.availableDisplays(lFunctionDefinition, lPort.resolvedDataType)) {
                 lDisplays.add(lDisplay);
             }
@@ -158,27 +181,10 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
     }
 
     /**
-     * The node's value output ports — the candidates for an inline preview.
-     */
-    public get valueOutputPorts(): Array<PotatnoDocumentPort<PotatnoProjectTypesDefinition>> {
-        if (!this.nodeData) {
-            return [];
-        }
-        return [...this.nodeData.outputs.value];
-    }
-
-    /**
      * The display id currently selected for the active preview, or '' when none is active.
      */
     public get selectedDisplayId(): string {
         return this.nodeData?.preview?.displayId ?? '';
-    }
-
-    /**
-     * CSS class for the "None" (disable) row — active when no preview is set.
-     */
-    public get previewNoneClass(): string {
-        return this.isPreviewActive ? 'preview-port-item' : 'preview-port-item active';
     }
 
     /**
@@ -207,15 +213,6 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
      */
     public get nodeLabel(): string {
         return this.nodeData?.label ?? '';
-    }
-
-    /**
-     * Inline CSS style for grid-sized node layout.
-     */
-    public get nodeGridStyle(): string {
-        const lGridSize: number = this.mManager.grid.gridSize;
-
-        return `--pn-grid-size: ${lGridSize}px; --pn-grid-half-size: ${lGridSize / 2}px; --pn-node-port-gap: ${lGridSize}px;`;
     }
 
     /**
@@ -372,9 +369,68 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
         this.mManager.setActiveFunction(this.mNodeDefinition.function);
     }
 
+    /**
+     * Choose which output port to preview. Re-selecting the active port turns the preview off.
+     *
+     * @param pPort - Port to preview.
+     */
+    public selectPreviewPort(pPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null): void {
+        // Reset preview if no port is selected.
+        if (!pPort) {
+            return this.mManager.graph.updateNode(this.nodeData, (pNode) => {
+                pNode.preview = null;
+            });
+        }
 
+        // Activate preview for the selected port.
+        this.mManager.graph.updateNode(this.nodeData, (pNode) => {
+            // Read nodes parent function, function definition. It must be allways available.
+            const lFunctionDefinition = pNode.project.getFunction(pNode.function.definitionId)!;
 
+            // Read the available preview displays for the selected port.
+            const lDisplays: Array<string> = pNode.project.preview.availableDisplays(lFunctionDefinition, pPort.resolvedDataType);
+            if (lDisplays.length === 0) {
+                // Bad logic to reset the preview, but the port should never be selectable in the first place.
+                pNode.preview = null;
+            }
 
+            // Keep the chosen display when it still applies, else default to the first available.
+            const lDisplayId: string = (() => {
+                if (pNode.preview && lDisplays.includes(pNode.preview.displayId)) {
+                    return pNode.preview.displayId;
+                }
+
+                return lDisplays[0];
+            })();
+
+            pNode.preview = { portId: pPort.definitionId, displayId: lDisplayId };
+        });
+    }
+
+    /**
+     * Toggle the current preview. If its enabled, simply disable it.
+     * If its disabled, try to select the first port as active preview.
+     */
+    public togglePreview(): void {
+        // Node data must be present.
+        if (!this.nodeData) {
+            return;
+        }
+
+        // Disable preview if a preview is selected.
+        if (this.nodeData.preview) {
+            return this.selectPreviewPort(null);
+        }
+
+        // Select the first available preview port.
+        const lPreviewablePorts: Array<PotatnoDocumentPort<PotatnoProjectTypesDefinition>> = this.previewPorts;
+        if (lPreviewablePorts.length === 0) {
+            return this.selectPreviewPort(null);
+        }
+
+        // Select the first preview able port as active preview.
+        return this.selectPreviewPort(lPreviewablePorts[0]);
+    }
 
 
 
@@ -387,54 +443,6 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
      */
     public isPreviewedPort(pPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>): boolean {
         return this.nodeData?.preview?.portId === pPort.definitionId;
-    }
-
-    /**
-     * Choose which output port to preview. Re-selecting the active port turns the preview off.
-     *
-     * @param pEvent - Click event from the port row.
-     * @param pPort - Port to preview.
-     */
-    public selectPreviewPort(pPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null): void {
-        // Reset preview if no port is selected.
-        if (pPort === null) {
-            return this.mManager.graph.updateNode(this.nodeData, (pNode) => {
-                pNode.preview = null;
-            });
-        }
-
-        const lDisplays: Array<string> = this.previewDisplaysForPort(pPort);
-        this.mManager.graph.updateNode(this.nodeData, (pNode) => {
-            // Toggle off when re-selecting the active port.
-            if (pNode.preview?.portId === pPort.definitionId) {
-                pNode.preview = null;
-                return;
-            }
-
-            // Keep the chosen display when it still applies, else default to the first available.
-            const lDisplayId: string | undefined = (pNode.preview && lDisplays.includes(pNode.preview.displayId)) ? pNode.preview.displayId : lDisplays[0];
-            if (lDisplayId) {
-                pNode.preview = { portId: pPort.definitionId, displayId: lDisplayId };
-            }
-        });
-    }
-
-    /**
-     * Display ids that can render the given value output port.
-     *
-     * @param pPort - Port whose preview displays should be listed.
-     */
-    private previewDisplaysForPort(pPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>): Array<string> {
-        if (!this.nodeData) {
-            return [];
-        }
-
-        const lFunctionDefinition = this.nodeData.project.getFunction(this.nodeData.function.definitionId);
-        if (!lFunctionDefinition) {
-            return [];
-        }
-
-        return this.nodeData.project.preview.availableDisplays(lFunctionDefinition, pPort.resolvedDataType);
     }
 
     /**

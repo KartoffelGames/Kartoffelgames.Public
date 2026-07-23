@@ -1,5 +1,7 @@
+import { InteractionZone } from '@kartoffelgames/core-interaction-zone';
 import { type ComponentInformationData, ComponentRegister } from '../core/component/component-register.ts';
 import type { Component, ComponentProcessor, ComponentProcessorConstructor } from '../core/component/component.ts';
+import { CoreEntityUpdateError } from '../core/core_entity/updater/core-entity-update-error.ts';
 
 /**
  * Application class that bundles multiple components together and serves as a root for the component tree.
@@ -8,7 +10,7 @@ import type { Component, ComponentProcessor, ComponentProcessorConstructor } fro
 export class PwbApplication {
     /**
      * Create a new applications.
-     * 
+     *
      * @param pCallback - Callback function that is executed withing the application context.
      * @param pTarget - Target element to append the application to. If not set, the application is not appended.
      */
@@ -27,13 +29,15 @@ export class PwbApplication {
 
     private readonly mContent: Array<Component>;
     private mCurrentTarget: Element | null;
+    private readonly mErrorEventListener: (pEvent: ErrorEvent) => void;
+    private readonly mErrorListener: Set<PwbApplicationErrorListener>;
     private readonly mFragment: DocumentFragment;
-    
+    private readonly mInteractionZone: InteractionZone;
+    private readonly mRejectionEventListener: (pEvent: PromiseRejectionEvent) => void;
+
     /**
      * Constructor.
      * Create a new application.
-     * 
-     * @param pConfiguration - Application configuration.
      */
     protected constructor() {
         // Create list of all content.
@@ -44,20 +48,44 @@ export class PwbApplication {
 
         // Current target is not set.
         this.mCurrentTarget = null;
+
+        // Create empty error listener list.
+        this.mErrorListener = new Set<PwbApplicationErrorListener>();
+
+        // Create the applications root interaction zone. Components are constructed within this zone so their
+        // update zones share it as a common ancestor and their errors can be attributed to this application.
+        this.mInteractionZone = InteractionZone.create('PwbApplication');
+
+        // Create bound global event listener that forward errors into the applications zone error handling.
+        this.mErrorEventListener = (pEvent: ErrorEvent): void => {
+            this.handleZoneError(pEvent, pEvent.error);
+        };
+        this.mRejectionEventListener = (pEvent: PromiseRejectionEvent): void => {
+            this.handleZoneError(pEvent, pEvent.reason);
+        };
+
+        // Permanently listen on global errors to handle any error originating from this applications zone.
+        globalThis.addEventListener('error', this.mErrorEventListener);
+        globalThis.addEventListener('unhandledrejection', this.mRejectionEventListener);
     }
 
     /**
      * Append content to app.
      * Component is constructed asynchron after beeing append with {@link appendTo}.
-     * 
+     *
      * @param pContentConstructor - Content constructor.
+     *
+     * @returns processor of the created component.
      */
     public addContent<TComponent extends ComponentProcessor>(pContentConstructor: ComponentProcessorConstructor<TComponent>): TComponent {
         // Get component html constructor from class.
         const lComponentConstructor: CustomElementConstructor = ComponentRegister.ofConstructor(pContentConstructor).elementConstructor;
 
-        // Read component manager from component element.
-        const lComponentInformation: ComponentInformationData = ComponentRegister.ofElement(new lComponentConstructor());
+        // Construct the component inside the applications interaction zone so its update zone becomes a
+        // descendant of the application zone.
+        const lComponentInformation: ComponentInformationData = this.mInteractionZone.execute(() => {
+            return ComponentRegister.ofElement(new lComponentConstructor());
+        });
 
         // Add component to content list.
         this.mContent.push(lComponentInformation.component);
@@ -71,9 +99,20 @@ export class PwbApplication {
     }
 
     /**
+     * Add a listener that is called with any error originating from this applications component tree.
+     * A listener can return true to prevent the error from being written to the console.
+     *
+     * @param pListener - Error listener.
+     */
+    public addErrorListener(pListener: PwbApplicationErrorListener): void {
+        // Add listener to list.
+        this.mErrorListener.add(pListener);
+    }
+
+    /**
      * Inserts css sttyles into a new created {@link HTMLStyleElement} and prepend it to this app.
      * This styles are global available but cant penetrate components shadow root barier.
-     * 
+     *
      * @param pStyle - Css style as string.
      */
     public addStyle(pStyle: string): void {
@@ -87,7 +126,7 @@ export class PwbApplication {
 
     /**
      * Appends this application to an element.
-     * 
+     *
      * @param pElement - Element.
      */
     public appendTo(pElement: Element): void {
@@ -97,7 +136,55 @@ export class PwbApplication {
     }
 
     /**
-     * Update targets content by appending a shadow root and reappending the content fragment. 
+     * Remove an error listener.
+     *
+     * @param pListener - Error listener.
+     */
+    public removeErrorListener(pListener: PwbApplicationErrorListener): void {
+        // Remove listener from list.
+        this.mErrorListener.delete(pListener);
+    }
+
+    /**
+     * Handle an error read from a global error event.
+     * Errors originating from this applications zone are dispatched to all registered listeners and written
+     * to the console unless a listener returns true to suppress it.
+     *
+     * @param pEvent - Global error event.
+     * @param pError - Error read from the event.
+     */
+    private handleZoneError(pEvent: Event, pError: unknown): void {
+        // Only handle errors wrapped by the update cycle.
+        if (!(pError instanceof CoreEntityUpdateError)) {
+            return;
+        }
+
+        // Only handle errors that originate from this applications interaction zone hierarchy.
+        if (!this.zoneBelongsToApplication(pError.zone)) {
+            return;
+        }
+
+        // Take over the default error handling for this error.
+        pEvent.preventDefault();
+
+        // Dispatch the original error to all registered listeners. A listener can return true to suppress
+        // the default console output.
+        let lSuppressConsoleOutput: boolean = false;
+        for (const lListener of this.mErrorListener) {
+            if (lListener(pError.cause) === true) {
+                lSuppressConsoleOutput = true;
+            }
+        }
+
+        // Output the error to the console unless a listener suppressed it.
+        if (!lSuppressConsoleOutput) {
+            // eslint-disable-next-line no-console
+            console.error(pError.cause);
+        }
+    }
+
+    /**
+     * Update targets content by appending a shadow root and reappending the content fragment.
      */
     private updateTarget(): void {
         if(!this.mCurrentTarget){
@@ -112,4 +199,32 @@ export class PwbApplication {
         // Update content by reappending the fragment.
         this.mCurrentTarget.shadowRoot!.appendChild(this.mFragment);
     }
+
+    /**
+     * Check if a zone is this applications zone or a descendant of it.
+     *
+     * @param pZone - Zone to check.
+     *
+     * @returns true when the zone belongs to this application.
+     */
+    private zoneBelongsToApplication(pZone: InteractionZone): boolean {
+        // Walk the zone hierarchy upwards until the applications zone is found.
+        let lZone: InteractionZone | null = pZone;
+        while (lZone !== null) {
+            if (lZone === this.mInteractionZone) {
+                return true;
+            }
+
+            lZone = lZone.parent;
+        }
+
+        // The applications zone is not part of the hierarchy.
+        return false;
+    }
 }
+
+/**
+ * Listener called with an error originating from a {@link PwbApplication}s component tree.
+ * Return true to prevent the error from being written to the console.
+ */
+export type PwbApplicationErrorListener = (pError: unknown) => boolean | void;

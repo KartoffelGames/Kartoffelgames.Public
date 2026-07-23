@@ -8,7 +8,7 @@ import { ComponentRegister } from '../../../../source/core/component/component-r
 import { Component, type IComponentOnAttributeChange, type IComponentOnDeconstruct, type IComponentOnUpdate } from '../../../../source/core/component/component.ts';
 import { PwbComponent } from '../../../../source/core/component/pwb-component.decorator.ts';
 import { ComponentState } from '../../../../source/core/core_entity/component_state/component-state.ts';
-import { UpdateLoopError } from '../../../../source/core/core_entity/updater/update-loop-error.ts';
+import { CoreEntityUpdateLoopError } from '../../../../source/core/core_entity/updater/core-entity-update-loop-error.ts';
 import type { IExpressionOnUpdate } from '../../../../source/core/module/expression_module/expression-module.ts';
 import { PwbExpressionModule } from '../../../../source/core/module/expression_module/pwb-expression-module.decorator.ts';
 import { PwbExport } from '../../../../source/module/export/pwb-export.decorator.ts';
@@ -563,7 +563,7 @@ Deno.test('PwbComponent--Functionality: Loop detection', async (pContext) => {
         lComponent.disable();
 
         // Evaluation.
-        expect(lError).toBeInstanceOf(UpdateLoopError);
+        expect(lError).toBeInstanceOf(CoreEntityUpdateLoopError);
 
         // Wait for any update to finish to prevent timer leaks.
         await TestUtil.waitForUpdate(lComponent);

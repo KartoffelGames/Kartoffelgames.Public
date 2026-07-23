@@ -3,11 +3,12 @@ import { InteractionZone, InteractionZoneEvent } from '@kartoffelgames/core-inte
 import { ComponentStateType } from '../component_state/component-state-type.enum.ts';
 import { ComponentState } from '../component_state/component-state.ts';
 import { CoreEntityUpdateCycle, type UpdateCycle, type UpdateCycleRunner } from './core-entiy-update-cycle.ts';
-import { UpdateLoopError } from './update-loop-error.ts';
+import { CoreEntityUpdateError } from './core-entity-update-error.ts';
+import { CoreEntityUpdateLoopError } from './core-entity-update-loop-error.ts';
 
 /**
  * Base Updater of any core entity. Handles automatic and manual update detection.
- * Integrates a loop detection to throw {@link UpdateLoopError} on to many continuous updates.
+ * Integrates a loop detection to throw {@link CoreEntityUpdateLoopError} on to many continuous updates.
  * 
  * @internal
  */
@@ -25,7 +26,7 @@ export class CoreEntityUpdater {
     }
     
     /**
-     * Stack cap for update loop detection. When the update stack exceeds this value, an UpdateLoopError is thrown.
+     * Stack cap for update loop detection. When the update stack exceeds this value, an CoreEntityUpdateLoopError is thrown.
      */
     public static get stackCap(): number {
         return CoreEntityUpdater.mStackCap;
@@ -167,7 +168,7 @@ export class CoreEntityUpdater {
     private executeTaskChain(pUpdateTask: InteractionZoneEvent<ComponentState>, pUpdateCycle: UpdateCycle, pUpdateState: boolean, pStack: Array<InteractionZoneEvent<ComponentState>>): boolean {
         // Throw if too many calles were chained.
         if (pStack.length > CoreEntityUpdater.stackCap) {
-            throw new UpdateLoopError('Call loop detected', pStack);
+            throw new CoreEntityUpdateLoopError('Call loop detected', pStack);
         }
 
         // Measure performance.
@@ -259,9 +260,11 @@ export class CoreEntityUpdater {
                 // We know that we should reshedule this task when any of the synchronos tasks throws a UpdateResheduleError error.
                 if (pError instanceof UpdateResheduleError && pRunningCycle.initiator === this) {
                     lResheduleTask = true;
+                } else {
+                    // Wrap the error together with the update zone and rethrow it. 
+                    // The error escapes the update cycle as an uncaught error so an error-event handler can catch it.
+                    throw new CoreEntityUpdateError(pError, this.zone);
                 }
-
-                // Ignore any other error. They are returned with the resolveAfterUpdate method.
             } finally {
                 // Clear running tasks after update.
                 this.mUpdateStates.async.hasRunningTask = false;

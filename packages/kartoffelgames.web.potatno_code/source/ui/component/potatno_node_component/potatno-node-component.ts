@@ -103,7 +103,7 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
 
         // Create a type buffer to cache already checked types.
         const lTypeBuffer: Map<string, boolean> = new Map<string, boolean>();
-        return this.nodeData.outputs.list.filter((pPort) => {
+        return this.nodeData.outputs.value.filter((pPort) => {
             const lPortDataType: string = pPort.resolvedDataType;
 
             // Try to read solution from buffer.
@@ -343,7 +343,7 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
         this.nodeTransformation.x = pNode.transformation.x;
         this.nodeTransformation.y = pNode.transformation.y;
         this.nodeTransformation.width = pNode.transformation.width;
-        this.nodeTransformation.height= pNode.transformation.height;
+        this.nodeTransformation.height = pNode.transformation.height;
     }
 
     /**
@@ -435,6 +435,11 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
 
             pNode.preview = { portId: pNode.preview!.portId, displayId: pDisplayId };
         });
+
+        // Hacky but doable. Reset current focus of icon to close menu.
+        if (document.activeElement instanceof HTMLElement) {
+            document.activeElement.blur();
+        }
     }
 }
 

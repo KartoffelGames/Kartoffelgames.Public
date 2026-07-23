@@ -30,7 +30,7 @@ export class PwbApplication {
     private readonly mContent: Array<Component>;
     private mCurrentTarget: Element | null;
     private readonly mErrorEventListener: (pEvent: ErrorEvent) => void;
-    private readonly mErrorListener: Set<PwbApplicationErrorListener>;
+    private readonly mErrorListener: Array<PwbApplicationErrorListener>;
     private readonly mFragment: DocumentFragment;
     private readonly mInteractionZone: InteractionZone;
     private readonly mRejectionEventListener: (pEvent: PromiseRejectionEvent) => void;
@@ -50,7 +50,7 @@ export class PwbApplication {
         this.mCurrentTarget = null;
 
         // Create empty error listener list.
-        this.mErrorListener = new Set<PwbApplicationErrorListener>();
+        this.mErrorListener = new Array<PwbApplicationErrorListener>();
 
         // Create the applications root interaction zone. Components are constructed within this zone so their
         // update zones share it as a common ancestor and their errors can be attributed to this application.
@@ -105,8 +105,13 @@ export class PwbApplication {
      * @param pListener - Error listener.
      */
     public addErrorListener(pListener: PwbApplicationErrorListener): void {
+        // Remove any potential dublicate listener.
+        if (this.mErrorListener.includes(pListener)) {
+            this.removeErrorListener(pListener);
+        }
+
         // Add listener to list.
-        this.mErrorListener.add(pListener);
+        this.mErrorListener.push(pListener);
     }
 
     /**
@@ -141,8 +146,14 @@ export class PwbApplication {
      * @param pListener - Error listener.
      */
     public removeErrorListener(pListener: PwbApplicationErrorListener): void {
+        // Try to get the current listener index.
+        const lListenerIndex: number = this.mErrorListener.indexOf(pListener);
+        if (lListenerIndex === -1) {
+            return;
+        }
+
         // Remove listener from list.
-        this.mErrorListener.delete(pListener);
+        this.mErrorListener.splice(lListenerIndex, 1);
     }
 
     /**
@@ -187,12 +198,12 @@ export class PwbApplication {
      * Update targets content by appending a shadow root and reappending the content fragment.
      */
     private updateTarget(): void {
-        if(!this.mCurrentTarget){
+        if (!this.mCurrentTarget) {
             return;
         }
 
         // Check if target has a shadow root. Attach one if not.
-        if(!this.mCurrentTarget.shadowRoot) {
+        if (!this.mCurrentTarget.shadowRoot) {
             this.mCurrentTarget.attachShadow({ mode: 'open' });
         }
 

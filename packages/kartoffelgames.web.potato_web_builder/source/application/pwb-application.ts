@@ -6,8 +6,6 @@ import type { Component, ComponentProcessor, ComponentProcessorConstructor } fro
  * Capsulates the component tree into a own shadow root to apply global styles and prevent style penetration from outside.
  */
 export class PwbApplication {
-    public static readonly CONFIGURATION_ATTACHMENT: symbol = Symbol('PwbApplicationConfigurationAttachment');
-
     /**
      * Create a new applications.
      * 

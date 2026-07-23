@@ -40,11 +40,10 @@ export class CoreEntityUpdater {
     private readonly mUpdateRunCache: WeakMap<UpdateCycleRunner, boolean>;
     private readonly mUpdateStates: UpdateInformation;
     
-
     /**
      * Updater zone.
      */
-    protected get zone(): InteractionZone {
+    public get zone(): InteractionZone {
         return this.mInteractionZone;
     }
 

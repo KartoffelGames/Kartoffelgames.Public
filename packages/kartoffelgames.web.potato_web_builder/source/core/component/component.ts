@@ -6,6 +6,7 @@ import { DataLevel } from '../data/data-level.ts';
 import type { IPwbExpressionModuleProcessorConstructor } from '../module/expression_module/expression-module.ts';
 import { StaticBuilder } from './builder/static-builder.ts';
 import { ComponentElement } from './component-element.ts';
+import type { ComponentZoneInjection } from './component-zone-injection.ts';
 import { ComponentModules } from './component-modules.ts';
 import { ComponentRegister } from './component-register.ts';
 import type { PwbTemplate } from './template/nodes/pwb-template.ts';
@@ -16,6 +17,11 @@ import { PwbTemplateParser } from './template/parser/pwb-template-parser.ts';
  * Handles initialisation of the component element and serves as a proxy between builder and the outside world.
  */
 export class Component extends CoreEntityUpdateable<ComponentProcessor> {
+    /**
+     * Attachment key used to read a {@link ComponentZoneInjection} from a components interaction zone hierarchy.
+     */
+    public static readonly COMPONENT_INJECTION_ATTACHMENT_KEY: symbol = Symbol('ComponentInjectionAttachment');
+
     private static readonly mTemplateCache: Dictionary<ComponentProcessorConstructor, PwbTemplate> = new Dictionary<ComponentProcessorConstructor, PwbTemplate>();
     private static readonly mXmlParser: PwbTemplateParser = new PwbTemplateParser();
     private readonly mComponentElement: ComponentElement;
@@ -64,6 +70,14 @@ export class Component extends CoreEntityUpdateable<ComponentProcessor> {
 
         // Initialize user object injections.
         this.setProcessorInjection(ComponentDataLevel, new ComponentDataLevel(this.mRootBuilder.values));
+
+        // Apply injections attached to the components interaction zone hierarchy.
+        const lComponentInjection: ComponentZoneInjection | null = this.updater.zone.getAttachment<ComponentZoneInjection>(Component.COMPONENT_INJECTION_ATTACHMENT_KEY);
+        if (lComponentInjection) {
+            for (const [lInjectionTarget, lInjectionValue] of lComponentInjection.injections) {
+                this.setProcessorInjection(lInjectionTarget, lInjectionValue);
+            }
+        }
     }
 
     /**

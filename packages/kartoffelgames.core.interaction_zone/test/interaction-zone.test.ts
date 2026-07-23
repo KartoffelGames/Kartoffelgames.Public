@@ -132,6 +132,60 @@ Deno.test('InteractionZone.current.pushInteraction()', async (pContext) => {
     });
 });
 
+Deno.test('InteractionZone.parent', async (pContext) => {
+    await pContext.step('Direct parent from creation zone', () => {
+        // Setup.
+        const lParentZone: InteractionZone = InteractionZone.create('Parent');
+
+        // Process. Create a zone inside the parent zones execution scope.
+        const lChildZone: InteractionZone = lParentZone.execute(() => {
+            return InteractionZone.create('Child');
+        });
+
+        // Evaluation.
+        expect(lChildZone.parent).toBe(lParentZone);
+    });
+
+    await pContext.step('Default zone as parent when created outside any zone', () => {
+        // Setup.
+        const lDefaultZone: InteractionZone = InteractionZone.current;
+
+        // Process.
+        const lZone: InteractionZone = InteractionZone.create('Root');
+
+        // Evaluation.
+        expect(lZone.parent).toBe(lDefaultZone);
+    });
+
+    await pContext.step('Indirect parent hierarchy', () => {
+        // Setup.
+        const lRootZone: InteractionZone = InteractionZone.create('Root');
+
+        // Process. Create a nested zone hierarchy.
+        const lChildZone: InteractionZone = lRootZone.execute(() => {
+            return InteractionZone.create('Child');
+        });
+        const lGrandChildZone: InteractionZone = lChildZone.execute(() => {
+            return InteractionZone.create('GrandChild');
+        });
+
+        // Evaluation.
+        expect(lGrandChildZone.parent).toBe(lChildZone);
+        expect(lGrandChildZone.parent!.parent).toBe(lRootZone);
+    });
+
+    await pContext.step('Default zone has no parent', () => {
+        // Setup.
+        const lDefaultZone: InteractionZone = InteractionZone.current;
+
+        // Process.
+        const lParentResult: InteractionZone | null = lDefaultZone.parent;
+
+        // Evaluation.
+        expect(lParentResult).toBeNull();
+    });
+});
+
 Deno.test('InteractionZone.name', async (pContext) => {
     await pContext.step('Default', () => {
         // Setup.

@@ -22,11 +22,12 @@ export class InteractionZone {
      * @returns new {@link InteractionZone} with zone as parent.
      */
     public static create(pName: string): InteractionZone {
-        return new InteractionZone(pName);
+        return new InteractionZone(pName, InteractionZone.current);
     }
 
     private readonly mInteractionListener: Map<InteractionListener<object>, InteractionZone>;
     private readonly mName: string;
+    private readonly mParent: InteractionZone | null;
     private mTriggerFilterBitmap: number;
 
     /**
@@ -37,6 +38,14 @@ export class InteractionZone {
     }
 
     /**
+     * Parent zone this zone was created in.
+     * The default zone has no parent.
+     */
+    public get parent(): InteractionZone | null {
+        return this.mParent;
+    }
+
+    /**
      * Constructor.
      * Creates new interaction zone. Detects all asynchron executions inside execution zone.
      * Except IndexDB calls.
@@ -44,10 +53,14 @@ export class InteractionZone {
      * Child changes triggers parent interaction zone but parent doesn't trigger child.
      * 
      * @param pName - Name of interaction zone.
+     * @param pParent - Parent zone the new zone is created in.
      */
-    private constructor(pName: string) {
+    private constructor(pName: string, pParent: InteractionZone | null = null) {
         // Set name of zone. Used only for debugging and labeling.
         this.mName = pName;
+
+        // Set parent zone.
+        this.mParent = pParent;
 
         // Create Trigger and their listener list.
         this.mTriggerFilterBitmap = ~0; // All trigger allowed by default.

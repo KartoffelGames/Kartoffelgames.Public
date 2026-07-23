@@ -25,6 +25,7 @@ export class InteractionZone {
         return new InteractionZone(pName, InteractionZone.current);
     }
 
+    private readonly mAttachments: WeakMap<symbol, any>;
     private readonly mInteractionListener: Map<InteractionListener<object>, InteractionZone>;
     private readonly mName: string;
     private readonly mParent: InteractionZone | null;
@@ -65,6 +66,9 @@ export class InteractionZone {
         // Create Trigger and their listener list.
         this.mTriggerFilterBitmap = ~0; // All trigger allowed by default.
         this.mInteractionListener = new Map<InteractionListener<object>, InteractionZone>();
+
+        // Create empty attachment map.
+        this.mAttachments = new WeakMap<symbol, any>();
     }
 
     /**
@@ -104,6 +108,29 @@ export class InteractionZone {
             // Reset to last zone.
             InteractionZone.mCurrentZone = lLastZone;
         }
+    }
+
+    /**
+     * Read an attachment value of this zone.
+     * When the attachment is not set on this zone, the parent zone hierarchy is searched recursively.
+     *
+     * @param pKey - Attachment key.
+     *
+     * @returns attachment value or undefined when it is not set in this zones hierarchy.
+     */
+    public getAttachment<T>(pKey: symbol): T | null {
+        // Return attachment value of this zone when it is set.
+        if (this.mAttachments.has(pKey)) {
+            return this.mAttachments.get(pKey) as T;
+        }
+
+        // Search the attachment value in the parent zone hierarchy.
+        if (this.mParent !== null) {
+            return this.mParent.getAttachment<T>(pKey);
+        }
+
+        // Return undefined when the attachment is not set in this zones hierarchy.
+        return null;
     }
 
     /**
@@ -160,6 +187,17 @@ export class InteractionZone {
 
         // Chainable.
         return this;
+    }
+
+    /**
+     * Set an attachment value on this zone.
+     *
+     * @param pKey - Attachment key.
+     * @param pValue - Attachment value.
+     */
+    public setAttachment<T>(pKey: symbol, pValue: T): void {
+        // Add attachment value to this zones attachment map.
+        this.mAttachments.set(pKey, pValue);
     }
 
     /**

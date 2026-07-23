@@ -186,6 +186,123 @@ Deno.test('InteractionZone.parent', async (pContext) => {
     });
 });
 
+Deno.test('InteractionZone.setAttachment()', async (pContext) => {
+    await pContext.step('Store attachment on zone', () => {
+        // Setup.
+        const lZone: InteractionZone = InteractionZone.create('Zone');
+        const lKey: symbol = Symbol('Key');
+        const lValue: number = 123;
+
+        // Process.
+        lZone.setAttachment<number>(lKey, lValue);
+
+        // Evaluation.
+        expect(lZone.getAttachment<number>(lKey)).toBe(lValue);
+    });
+
+    await pContext.step('Override existing attachment', () => {
+        // Setup.
+        const lZone: InteractionZone = InteractionZone.create('Zone');
+        const lKey: symbol = Symbol('Key');
+        const lValue: number = 456;
+
+        // Process.
+        lZone.setAttachment<number>(lKey, 123);
+        lZone.setAttachment<number>(lKey, lValue);
+
+        // Evaluation.
+        expect(lZone.getAttachment<number>(lKey)).toBe(lValue);
+    });
+});
+
+Deno.test('InteractionZone.getAttachment()', async (pContext) => {
+    await pContext.step('Get attachment of same zone', () => {
+        // Setup.
+        const lZone: InteractionZone = InteractionZone.create('Zone');
+        const lKey: symbol = Symbol('Key');
+        const lValue: string = 'Value';
+        lZone.setAttachment<string>(lKey, lValue);
+
+        // Process.
+        const lResult: string | null = lZone.getAttachment<string>(lKey);
+
+        // Evaluation.
+        expect(lResult).toBe(lValue);
+    });
+
+    await pContext.step('Get attachment from direct parent', () => {
+        // Setup.
+        const lKey: symbol = Symbol('Key');
+        const lValue: string = 'Value';
+        const lParentZone: InteractionZone = InteractionZone.create('Parent');
+        lParentZone.setAttachment<string>(lKey, lValue);
+
+        // Setup. Create a child zone inside the parent zones execution scope.
+        const lChildZone: InteractionZone = lParentZone.execute(() => {
+            return InteractionZone.create('Child');
+        });
+
+        // Process.
+        const lResult: string | null = lChildZone.getAttachment<string>(lKey);
+
+        // Evaluation.
+        expect(lResult).toBe(lValue);
+    });
+
+    await pContext.step('Get attachment from indirect parent', () => {
+        // Setup.
+        const lKey: symbol = Symbol('Key');
+        const lValue: string = 'Value';
+        const lRootZone: InteractionZone = InteractionZone.create('Root');
+        lRootZone.setAttachment<string>(lKey, lValue);
+
+        // Setup. Create a nested zone hierarchy.
+        const lChildZone: InteractionZone = lRootZone.execute(() => {
+            return InteractionZone.create('Child');
+        });
+        const lGrandChildZone: InteractionZone = lChildZone.execute(() => {
+            return InteractionZone.create('GrandChild');
+        });
+
+        // Process.
+        const lResult: string | null = lGrandChildZone.getAttachment<string>(lKey);
+
+        // Evaluation.
+        expect(lResult).toBe(lValue);
+    });
+
+    await pContext.step('Own attachment overrides parent attachment', () => {
+        // Setup.
+        const lKey: symbol = Symbol('Key');
+        const lParentZone: InteractionZone = InteractionZone.create('Parent');
+        lParentZone.setAttachment<string>(lKey, 'ParentValue');
+
+        // Setup. Create a child zone with its own attachment.
+        const lChildZone: InteractionZone = lParentZone.execute(() => {
+            return InteractionZone.create('Child');
+        });
+        lChildZone.setAttachment<string>(lKey, 'ChildValue');
+
+        // Process.
+        const lResult: string | null = lChildZone.getAttachment<string>(lKey);
+
+        // Evaluation.
+        expect(lResult).toBe('ChildValue');
+    });
+
+    await pContext.step('Undefined when not found in hierarchy', () => {
+        // Setup.
+        const lZone: InteractionZone = InteractionZone.create('Zone');
+        const lKey: symbol = Symbol('Key');
+
+        // Process.
+        const lResult: string | null = lZone.getAttachment<string>(lKey);
+
+        // Evaluation.
+        expect(lResult).toBeUndefined();
+    });
+});
+
 Deno.test('InteractionZone.name', async (pContext) => {
     await pContext.step('Default', () => {
         // Setup.

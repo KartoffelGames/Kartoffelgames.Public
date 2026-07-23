@@ -29,11 +29,9 @@ export class PwbApplication {
 
     private readonly mContent: Array<Component>;
     private mCurrentTarget: Element | null;
-    private readonly mErrorEventListener: (pEvent: ErrorEvent) => void;
     private readonly mErrorListener: Array<PwbApplicationErrorListener>;
     private readonly mFragment: DocumentFragment;
     private readonly mInteractionZone: InteractionZone;
-    private readonly mRejectionEventListener: (pEvent: PromiseRejectionEvent) => void;
 
     /**
      * Constructor.
@@ -56,17 +54,13 @@ export class PwbApplication {
         // update zones share it as a common ancestor and their errors can be attributed to this application.
         this.mInteractionZone = InteractionZone.create('PwbApplication');
 
-        // Create bound global event listener that forward errors into the applications zone error handling.
-        this.mErrorEventListener = (pEvent: ErrorEvent): void => {
-            this.handleZoneError(pEvent, pEvent.error);
-        };
-        this.mRejectionEventListener = (pEvent: PromiseRejectionEvent): void => {
-            this.handleZoneError(pEvent, pEvent.reason);
-        };
-
         // Permanently listen on global errors to handle any error originating from this applications zone.
-        globalThis.addEventListener('error', this.mErrorEventListener);
-        globalThis.addEventListener('unhandledrejection', this.mRejectionEventListener);
+        globalThis.addEventListener('error', (pEvent: ErrorEvent): void => {
+            this.handleZoneError(pEvent, pEvent.error);
+        });
+        globalThis.addEventListener('unhandledrejection', (pEvent: PromiseRejectionEvent): void => {
+            this.handleZoneError(pEvent, pEvent.reason);
+        });
     }
 
     /**

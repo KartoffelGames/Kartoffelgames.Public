@@ -1,6 +1,8 @@
+import type { InjectionConstructor } from '@kartoffelgames/core-dependency-injection';
 import { InteractionZone } from '@kartoffelgames/core-interaction-zone';
 import { type ComponentInformationData, ComponentRegister } from '../core/component/component-register.ts';
-import type { Component, ComponentProcessor, ComponentProcessorConstructor } from '../core/component/component.ts';
+import { Component, type ComponentProcessor, type ComponentProcessorConstructor } from '../core/component/component.ts';
+import { ComponentZoneInjection } from '../core/component/component-zone-injection.ts';
 import { CoreEntityUpdateError } from '../core/core_entity/updater/core-entity-update-error.ts';
 
 /**
@@ -27,6 +29,7 @@ export class PwbApplication {
         }
     }
 
+    private readonly mComponentZoneInjection: ComponentZoneInjection;
     private readonly mContent: Array<Component>;
     private mCurrentTarget: Element | null;
     private readonly mErrorListener: Array<PwbApplicationErrorListener>;
@@ -53,6 +56,11 @@ export class PwbApplication {
         // Create the applications root interaction zone. Components are constructed within this zone so their
         // update zones share it as a common ancestor and their errors can be attributed to this application.
         this.mInteractionZone = InteractionZone.create('PwbApplication');
+
+        // Create the component injection object and attach it to the applications zone so every component created
+        // within this application reads its injections from it.
+        this.mComponentZoneInjection = new ComponentZoneInjection();
+        this.mInteractionZone.setAttachment(Component.COMPONENT_INJECTION_ATTACHMENT_KEY, this.mComponentZoneInjection);
 
         // Permanently listen on global errors to handle any error originating from this applications zone.
         globalThis.addEventListener('error', (pEvent: ErrorEvent): void => {
@@ -148,6 +156,17 @@ export class PwbApplication {
 
         // Remove listener from list.
         this.mErrorListener.splice(lListenerIndex, 1);
+    }
+
+    /**
+     * Add an injection that is provided to every component created within this application.
+     *
+     * @param pInjectionTarget - Injection type.
+     * @param pInjectionValue - Actual injected value in replacement for {@link pInjectionTarget}.
+     */
+    public setInjection(pInjectionTarget: InjectionConstructor, pInjectionValue: any): void {
+        // Add injection to the applications component zone injection.
+        this.mComponentZoneInjection.setInjection(pInjectionTarget, pInjectionValue);
     }
 
     /**

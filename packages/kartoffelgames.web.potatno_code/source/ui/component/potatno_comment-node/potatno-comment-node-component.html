@@ -1,0 +1,62 @@
+<!-- Resizeable part of node -->
+<potatno-resize-box #ResizeBox class="node {{this.hasError ? 'error' : ''}}" top="true" right="true" bottom="true" left="true" [snap]="25" [virtual]="true" (resize)="this.transformNodeData($event.value)">
+    <div class="node-header" style="--node-category-color: {{this.categoryColor}}">
+        <span class="node-header__icon">{{this.categoryIcon}}</span>
+        <span class="node-header__label">{{this.nodeLabel}}</span>
+
+        $if(this.isFunction) {
+            <div class="node-header__open-function" (click)="this.openFunction()">↪</div>
+        }
+    </div>
+
+    <div class="node-body">
+        $if(this.inputPorts.length > 0) {
+            <div class="node-body__ports">    
+                $for(port of this.inputPorts) {
+                    <potatno-port [port]="this.port"/>
+                }   
+            </div>
+        }
+
+        $if(this.outputPorts.length > 0) {
+            <div class="node-body__ports">
+                $for(port of this.outputPorts) {
+                    <potatno-port [port]="this.port"/>
+                }
+            </div>
+        }
+    </div>    
+</potatno-resize-box>
+
+$if(this.canPreview) {
+    <div class="node-preview">
+        <div class="node-preview__toggle {{ this.isPreviewActive ? 'active' : '' }}" (click)="this.togglePreview()">
+            <div class="icon"/>
+        </div>
+
+        $if(this.isPreviewActive) {
+            <div class="node-preview__selections">
+                <div class="select-button" tabindex="-1">
+                    <div class="select-button__button">👁</div>
+                    <div class="select-button__options">
+                        $for(display of this.previewDisplays) {
+                            <div class="option {{ this.display.id === this.selectedDisplayId ? 'selected' : '' }}" (click)="this.selectPreviewDisplay(this.display.id)">
+                                <div class="option__icon">👁</div>
+                                <div class="option__name">{{this.display.label}}</div>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <select class="select" (change)="this.updatePreview()">
+                    $for(port of this.previewPorts) {
+                        <option [value]="this.port.definitionId" [selected]="false">{{this.port.label}}</option>
+                    }
+                </select>
+            </div>
+
+            <div class="node-preview__window" potatno-preview="this.previewDriver"></div>
+        }
+    </div>
+}
+        

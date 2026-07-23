@@ -1,0 +1,310 @@
+:host {
+    display: block;
+    font-family: var(--potatno-font-family);
+    font-size: var(--potatno-font-size);
+
+    --node-border-radius: 2px;
+    --node-border-color: color-mix(in srgb, var(--potatno-color-text) 30%, var(--potatno-color-background));
+    --node-preview-select-height: 24px;
+}
+
+.node {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+
+    box-shadow: 0 2px 8px var(--potatno-color-shadow);
+    overflow: visible;
+    user-select: none;
+
+    &.error {
+        --resize-box-handle-color: var(--potatno-color-error);
+        box-shadow: 0 0 5px 0px var(--potatno-color-error), 0 2px 8px var(--potatno-color-shadow);
+    }
+}
+
+.node-header {
+    display: flex;
+    align-items: center;
+    color: var(--potatno-color-text);
+    background-color: var(--node-category-color);
+    font-weight: bold;
+    font-size: var(--potatno-font-size-small);
+    cursor: grab;
+
+    /* Move only the header out of the resize handle visible range. */
+    margin: 2px 2px 0 2px;
+    height: calc(var(--potatno-grid-size) - 2px);
+
+    &:active {
+        cursor: grabbing;
+    }
+
+    .node-header__icon {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: calc(var(--potatno-grid-size) - 2px);
+        mix-blend-mode: color-dodge;
+    }
+
+    .node-header__label {
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        mix-blend-mode: color-dodge;
+    }
+
+    .node-header__open-function {
+        flex-shrink: 0;
+        display: flex;
+        justify-content: center;
+        width: calc(var(--potatno-grid-size) - 2px);
+        font-size: var(--potatno-font-size-small);
+        mix-blend-mode: color-dodge;
+        cursor: pointer;
+
+        /* Small cool seperator */
+        border: 0px solid var(--node-border-color);
+        border-width: 0 0 0 2px;
+
+        /* Click and hover animation */
+        transition: opacity 0.15s, scale 0.15s;
+
+        &:hover {
+            opacity: 0.75;
+        }
+
+        &:active {
+            opacity: 0.5;
+            scale: 0.98;
+        }
+    }
+}
+
+.node-body {
+    flex: 1;
+    display: flex;
+    gap: 0 20px;
+    background-color: var(--potatno-color-background);
+
+    .node-body__ports {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+    }
+}
+
+.node-preview {
+    border: 1px solid var(--node-border-color);
+    border-width: 0 1px 1px 1px;
+
+    .node-preview__toggle {
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: calc(var(--potatno-grid-size) / 2);
+        background-color: var(--potatno-color-background);
+        cursor: pointer;
+
+        /* Click animation. */
+        transition: background-color 0.15s, translate 0.15s;
+
+        &:active {
+            background-color: var(--potatno-color-background-light);
+            translate: 0 1px;
+        }
+
+        .icon {
+            position: absolute;
+            box-sizing: border-box;
+            left: 50%;
+            border: 0px solid var(--node-border-color);
+            border-width: 0px 1px 1px 0;
+            height: 10px;
+            width: 10px;
+            transform: translate(-50%, -3px) rotate(45deg);
+            transition: border-color 0.15s, transform 0.15s;
+
+            /* Passive size set for the inner arrow. */
+            padding: 2px;
+
+            /* Inner arrow */
+            &::before {
+                content: '';
+                display: block;
+                border: 0px solid var(--node-border-color);
+                border-width: 0px 1px 1px 0;
+                height: 100%;
+                width: 100%;
+                transition: border-color 0.15s;
+            }
+
+            /* Hover animation scoped to parent */
+            .node-preview__toggle:hover & {
+                border-color: var(--potatno-color-accent);
+
+                &::before {
+                    border-color: var(--potatno-color-accent);
+                }
+            }
+
+            .node-preview__toggle.active & {
+                transform: translate(-50%, 3px) rotate(-135deg);
+            }
+        }
+    }
+
+    .node-preview__window {
+        background: var(--potatno-color-background-dark);
+        overflow: hidden;
+
+        /* The whole preview area has a total grid height of 6. [6 - toggle-height - select-height] */
+        max-height: calc((var(--potatno-grid-size) * 5.5) - var(--node-preview-select-height));
+    }
+
+    .node-preview__selections {
+        box-sizing: border-box;
+        display: flex;
+        justify-content: space-between;
+        background-color: var(--potatno-color-background);
+        border-top: 1px solid var(--potatno-color-border);
+        padding: 2px;
+        gap: 2px;
+
+        /* Height minus border */
+        height: calc(var(--node-preview-select-height) - 1px);
+
+        .select {
+            flex: 1;
+            box-sizing: border-box;
+            height: 100%;
+            min-width: 0;
+            padding: 0px 2px;
+            background: var(--potatno-color-background-light);
+            font-size: var(--potatno-font-size-small);
+            color: var(--potatno-color-text);
+
+            /* Custom borders for animations*/
+            border: 1px solid var(--potatno-color-border);
+            border-radius: 2px;
+            outline: none;
+            transition: border-color 0.15s;
+
+            &:focus {
+                border-color: var(--potatno-color-accent);
+            }
+        }
+
+        .select-button {
+            position: relative;
+            flex: 0;
+            height: 100%;
+
+            .select-button__button {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-sizing: border-box;
+                height: 100%;
+                aspect-ratio: 1 / 1;
+                color: var(--potatno-color-text);
+                font-size: var(--potatno-font-size-small);
+                cursor: pointer;
+
+                /* Transition items. */
+                border: 1px dashed var(--potatno-color-border);
+                border-radius: 2px;
+                background-color: var(--potatno-color-background-light);
+
+                &:hover {
+                    border-color: var(--potatno-color-accent);
+                    color: var(--potatno-color-accent);
+                }
+
+                &:active {
+                    background-color: var(--potatno-color-background);
+                    scale: 0.98;
+                }
+            }
+
+            .select-button__options {
+                /* Defined as hover window of parent. */
+                position: absolute;
+                top: calc(100% + 5px);
+                left: 0px;
+                display: none;
+
+                flex-direction: column;
+                border: 1px solid var(--potatno-color-border);
+                border-radius: 2px;
+                background-color: var(--potatno-color-background);
+                overflow: hidden auto;
+
+                scrollbar-color: var(--potatno-color-scrollbar-thumb) var(--potatno-color-scrollbar-track);
+                scrollbar-width: thin;
+
+                .select-button:focus-within & {
+                    display: flex;
+                }
+
+                .option {
+                    display: flex;
+                    box-sizing: border-box;
+                    width: 100%;
+                    padding: 5px 12px 5px 9px;
+                    align-items: center;
+                    text-align: left;
+                    color: var(--potatno-color-text);
+                    cursor: pointer;
+                    transition: background-color 0.15s, scale 0.15s;
+
+                    &.active,
+                    &:active {
+                        background-color: var(--potatno-color-background-light);
+                    }
+
+                    &:active {
+                        scale: 0.98;
+                    }
+
+                    .option__icon {
+                        display: flex;
+                        align-items: center;
+                        width: 2ch;
+                        height: 15px;
+                        padding: 0 10px;
+
+                        text-align: center;
+
+                        /* Border defined to mark selected. */
+                        border-left: 3px solid var(--potatno-color-text);
+                        border-color: color-mix(in srgb, var(--potatno-color-text) 25%, var(--potatno-color-background));
+                        transition: border-color 0.15s;
+
+                        .option:hover & {
+                            border-color: var(--potatno-color-text);
+                        }
+
+                        .option.selected & {
+                            border-color: var(--potatno-color-accent);
+                        }
+                    }
+
+                    .option__name {
+                        flex: 1;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        white-space: nowrap;
+                    }
+                }
+            }
+        }
+    }
+
+}

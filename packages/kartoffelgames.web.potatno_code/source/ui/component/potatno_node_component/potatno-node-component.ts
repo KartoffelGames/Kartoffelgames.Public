@@ -266,6 +266,11 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
         const lStartingXCoordinate: number = this.nodeData.transformation.x * this.mManager.grid.gridSize;
         const lStartingYCoordinate: number = this.nodeData.transformation.y * this.mManager.grid.gridSize;
 
+        // Scale of any transformed parent: ratio of rendered (actual size) to layout (unscaled) size.
+        const lComponentSize: DOMRect = this.mComponent.element.getBoundingClientRect();
+        const lScaleX: number = this.mComponent.element.offsetWidth ? lComponentSize.width / this.mComponent.element.offsetWidth : 1;
+        const lScaleY: number = this.mComponent.element.offsetHeight ? lComponentSize.height / this.mComponent.element.offsetHeight : 1;
+
         // Save the starting pointer coordinates to only transform the actual movement.
         const lStartX = pEvent.clientX;
         const lStartY = pEvent.clientY;
@@ -273,8 +278,9 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
         // Resize magic listener (●'◡'●)つ━☆・*。
         const lPointerMoveListener = (pMoveEvent: PointerEvent): void => {
             // Resize from top-left corner: moving left/up increases size.
-            const lMovementChangeX: number = (pMoveEvent.clientX - lStartX);
-            const lMovementChangeY: number = (pMoveEvent.clientY - lStartY);
+            // Divide by scale to convert mouse movement into scale actual drag.
+            const lMovementChangeX: number = (pMoveEvent.clientX - lStartX) / lScaleX;
+            const lMovementChangeY: number = (pMoveEvent.clientY - lStartY) / lScaleY;
 
             // Change window size but clamp it down to a minimum size.
             let lX: number = (lStartingXCoordinate + lMovementChangeX) / this.mManager.grid.gridSize;

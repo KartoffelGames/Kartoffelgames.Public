@@ -205,8 +205,14 @@ export class PotatnoResizeBoxComponent {
 
         // Save current size so the current pointer position determinates exactly this size.
         const lComponentSize: DOMRect = this.mComponentElement.getBoundingClientRect();
-        const lStartingWidth: number = lComponentSize.width;
-        const lStartingHeight: number = lComponentSize.height;
+
+        // Scale of any transformed parent: ratio of rendered (rect) to layout (offset) size.
+        const lScaleX: number = this.mComponentElement.offsetWidth ? lComponentSize.width / this.mComponentElement.offsetWidth : 1;
+        const lScaleY: number = this.mComponentElement.offsetHeight ? lComponentSize.height / this.mComponentElement.offsetHeight : 1;
+
+        // Start from the layout size, as thats what gets used as width and height.
+        const lStartingWidth: number = lComponentSize.width / lScaleX;
+        const lStartingHeight: number = lComponentSize.height / lScaleY;
 
         // Save the starting pointer coordinates to only resize be the actual movement.
         const lStartX = pEvent.clientX;
@@ -233,9 +239,9 @@ export class PotatnoResizeBoxComponent {
 
         // Resize magic listener (●'◡'●)つ━☆・*。
         const lPointerMoveListener = (pMoveEvent: PointerEvent): void => {
-            // Resize from top-left corner: moving left/up increases size.
-            const lMovementChangeX: number = (pMoveEvent.clientX - lStartX) * lVerticalInvertion;
-            const lMovementChangeY: number = (pMoveEvent.clientY - lStartY) * lHorizontalInvertion;
+            // Resize from top-left corner: moving left/up increases size. Divide by scale to convert screen movement into layout pixels.
+            const lMovementChangeX: number = ((pMoveEvent.clientX - lStartX) / lScaleX) * lVerticalInvertion;
+            const lMovementChangeY: number = ((pMoveEvent.clientY - lStartY) / lScaleY) * lHorizontalInvertion;
 
             // Change window size but clamp it down to a minimum size.
             let lWidth: number = lStartingWidth + lMovementChangeX;

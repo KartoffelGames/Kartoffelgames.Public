@@ -1,7 +1,7 @@
 <!-- Resizeable part of node -->
 <div class="node {{this.hasError ? 'error' : ''}}" style="--node-width: {{ this.nodeTransformation.width }}; --node-height: {{ this.nodeTransformation.height }};">
-    <div class="node-header" style="--node-category-color: {{this.categoryColor}}">
-        <span class="node-header__icon">{{this.categoryIcon}}</span>
+    <div class="node-header" style="--node-category-color: {{this.nodeColor}}">
+        <span class="node-header__icon">{{this.nodeIcon}}</span>
         <span class="node-header__label">{{this.nodeLabel}}</span>
 
         $if(this.isFunction) {
@@ -28,7 +28,7 @@
     </div>
 
     $if(this.canPreview) {
-        <div class="node-preview-toggle {{ this.isPreviewActive ? 'active' : '' }}" (click)="this.togglePreview()">
+        <div class="node-preview-toggle {{ this.isPreviewActive ? 'active' : '' }}" (click)="this.selectPreviewPort()">
             <div class="icon"/>
         </div>
     }
@@ -41,7 +41,7 @@ $if(this.isPreviewActive) {
                 <div class="select-button__button">👁</div>
                 <div class="select-button__options">
                     $for(display of this.previewDisplays) {
-                        <div class="option {{ this.display.id === this.selectedDisplayId ? 'selected' : '' }}" (click)="this.selectPreviewDisplay(this.display.id)">
+                        <div class="option {{ this.display.id === this.previewDisplayId ? 'selected' : '' }}" (click)="this.selectPreviewDisplay(this.display.id)">
                             <div class="option__icon">👁</div>
                             <div class="option__name">{{this.display.label}}</div>
                         </div>
@@ -49,9 +49,9 @@ $if(this.isPreviewActive) {
                 </div>
             </div>
 
-            <select class="select" (change)="this.updatePreview()">
+            <select class="select" (change)="this.selectPreviewPort($event.target.value)">
                 $for(port of this.previewPorts) {
-                    <option [value]="this.port.definitionId" [selected]="false">{{this.port.label}}</option>
+                    <option [value]="this.port.definitionId" [selected]="this.port.definitionId === this.previewPortId">{{this.port.label}}</option>
                 }
             </select>
         </div>

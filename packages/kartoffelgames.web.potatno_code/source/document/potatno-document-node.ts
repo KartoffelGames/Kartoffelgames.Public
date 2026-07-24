@@ -171,8 +171,8 @@ export class PotatnoDocumentNode<TProjectTypes extends PotatnoProjectTypesDefini
      * Move the node to a new grid position.
      */
     public moveTo(pX: number, pY: number): void {
-        this.mTransformation.x = pX;
-        this.mTransformation.y = pY;
+        this.mTransformation.x = Math.round(pX);
+        this.mTransformation.y = Math.round(pY);
     }
 
     /**

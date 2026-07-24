@@ -266,60 +266,6 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
     }
 
     /**
-     * Handle pointer down on a rendered node for selection and dragging.
-     *
-     * @param pEvent - Pointer event from the node element.
-     * @param pNode - Node that received the pointer down.
-     */
-    public onNodePointerDown(pEvent: PointerEvent, pNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition>): void {
-        for (const lPathItem of pEvent.composedPath()) {
-            if (lPathItem instanceof HTMLElement && lPathItem.tagName.toLowerCase() === 'potatno-port') {
-                return;
-            }
-        }
-
-        pEvent.stopPropagation();
-        this.closeAddNodePopup();
-
-        if (pEvent.button !== 0) {
-            return;
-        }
-
-        if (pEvent.ctrlKey) {
-            if (this.mSelectedNodes.has(pNode)) {
-                this.mSelectedNodes.delete(pNode);
-            } else {
-                this.mSelectedNodes.add(pNode);
-            }
-        } else if (!this.mSelectedNodes.has(pNode)) {
-            this.mSelectedNodes.clear();
-            this.mSelectedNodes.add(pNode);
-        }
-
-        const lGridSize: number = this.mManager.grid.gridSize;
-        const lOrigins: Map<PotatnoDocumentNode<PotatnoProjectTypesDefinition>, NodeDragOrigin> = new Map<PotatnoDocumentNode<PotatnoProjectTypesDefinition>, NodeDragOrigin>();
-
-        for (const lNode of this.mSelectedNodes) {
-            lOrigins.set(lNode, {
-                originX: lNode.transformation.x * lGridSize,
-                originY: lNode.transformation.y * lGridSize
-            });
-        }
-
-        // if (pNode.category === NodeCategory.Comment) {
-        //     this.addCommentContainedNodeOrigins(pNode, lOrigins);
-        // }
-
-        this.mInteractionState = {
-            mode: 'dragging-node',
-            origins: lOrigins,
-            startX: pEvent.clientX,
-            startY: pEvent.clientY
-        };
-        this.startDocumentPointerTracking();
-    }
-
-    /**
      * Insert the node definition chosen in the add-node popup at the popup's world position.
      *
      * @param pEvent - Component event carrying the selected node definition.
@@ -348,11 +294,6 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
             lState.startX = pEvent.clientX;
             lState.startY = pEvent.clientY;
             this.mTransformVersion++;
-            return;
-        }
-
-        if (lState.mode === 'dragging-node') {
-            this.dragSelectedNodes(pEvent, lState);
             return;
         }
 
@@ -461,27 +402,6 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
         }
 
         this.mSelectedNodes.clear();
-    }
-
-    /**
-     * Drag the selected nodes according to the current pointer position.
-     *
-     * @param pEvent - Pointer event from the document.
-     * @param pState - Active node drag state.
-     */
-    private dragSelectedNodes(pEvent: PointerEvent, pState: Extract<GraphInteractionState, { mode: 'dragging-node'; }>): void {
-        const lZoom: number = this.mManager.grid.zoom;
-        const lGridSize: number = this.mManager.grid.gridSize;
-        const lDx: number = (pEvent.clientX - pState.startX) / lZoom;
-        const lDy: number = (pEvent.clientY - pState.startY) / lZoom;
-
-        // Move each dragged node through the manager so the connection layer redraws its wires to follow.
-        for (const [lNode, lOrigin] of pState.origins) {
-            const lSnapped: Point = this.mManager.grid.snapToGrid(lOrigin.originX + lDx, lOrigin.originY + lDy);
-            this.mManager.graph.transformNode(lNode, (pNode) => {
-                pNode.moveTo(Math.round(lSnapped.x / lGridSize), Math.round(lSnapped.y / lGridSize));
-            });
-        }
     }
 
     /**

@@ -249,6 +249,56 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
     }
 
     /**
+     * Handle pointer down on the resize corners handle.
+     *
+     * @param pEvent - Pointer event from the resize handle.
+     */
+    public dragNode(pEvent: PointerEvent): void {
+        // Cant transform without 
+        if (!this.nodeData) {
+            return;
+        }
+
+        pEvent.preventDefault();
+        pEvent.stopPropagation();
+
+        // Save current size so the current pointer position determinates exactly this size.
+        const lStartingXCoordinate: number = this.nodeData.transformation.x * this.mManager.grid.gridSize;
+        const lStartingYCoordinate: number = this.nodeData.transformation.y * this.mManager.grid.gridSize;
+
+        // Save the starting pointer coordinates to only transform the actual movement.
+        const lStartX = pEvent.clientX;
+        const lStartY = pEvent.clientY;
+
+        // Resize magic listener (●'◡'●)つ━☆・*。
+        const lPointerMoveListener = (pMoveEvent: PointerEvent): void => {
+            // Resize from top-left corner: moving left/up increases size.
+            const lMovementChangeX: number = (pMoveEvent.clientX - lStartX);
+            const lMovementChangeY: number = (pMoveEvent.clientY - lStartY);
+
+            // Change window size but clamp it down to a minimum size.
+            let lX: number = (lStartingXCoordinate + lMovementChangeX) / this.mManager.grid.gridSize;
+            let lY: number = (lStartingYCoordinate + lMovementChangeY) / this.mManager.grid.gridSize;
+
+            // And then update component size.
+            this.mManager.graph.transformNode(this.nodeData, (pNode) => {
+                pNode.moveTo(lX, lY);
+            });
+        };
+
+        // Pointer up listener, cleaning up temporary listener.
+        const lPointerUpListener = (): void => {
+            // Remove temporary mouse move listener.
+            document.removeEventListener('pointermove', lPointerMoveListener);
+            document.removeEventListener('pointerup', lPointerUpListener);
+        };
+
+        // Add temporary mouse move listener.
+        document.addEventListener('pointermove', lPointerMoveListener);
+        document.addEventListener('pointerup', lPointerUpListener);
+    }
+
+    /**
      * Detach the manager subscription.
      */
     public onDeconstruct(): void {

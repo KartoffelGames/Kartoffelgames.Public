@@ -287,7 +287,6 @@
                     color: var(--potatno-color-text);
                     cursor: pointer;
                     transition: background-color 0.15s, scale 0.15s;
-                    z-index: 100;
 
                     &.active,
                     &:active {

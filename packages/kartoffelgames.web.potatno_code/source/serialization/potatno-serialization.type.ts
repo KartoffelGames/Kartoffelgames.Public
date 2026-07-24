@@ -119,7 +119,7 @@ export type SerializedNodePreview = {
     /**
      * Definition id of the value output port to preview.
      */
-    portId: string;
+    portDefinitionId: string;
 
     /**
      * Id of the registered display that should render the previewed value.

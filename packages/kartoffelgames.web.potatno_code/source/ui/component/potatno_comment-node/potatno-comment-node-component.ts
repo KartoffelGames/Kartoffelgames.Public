@@ -154,7 +154,7 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct {
         }
 
         const lBinding = this.nodeData.preview;
-        const lPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | undefined = lBinding ? this.nodeData.outputs.map.get(lBinding.portId) : undefined;
+        const lPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | undefined = lBinding ? this.nodeData.outputs.map.get(lBinding.portDefinitionId) : undefined;
         if (lPort && lPort.portType === 'value') {
             return createDisplayOptions(lProject, lProject.preview.availableDisplays(lFunctionDefinition, lPort.resolvedDataType));
         }
@@ -180,7 +180,7 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct {
             return null;
         }
 
-        const lPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | undefined = this.nodeData.outputs.map.get(lPreview.portId);
+        const lPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | undefined = this.nodeData.outputs.map.get(lPreview.portDefinitionId);
         if (!lPort) {
             return null;
         }
@@ -411,7 +411,7 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct {
                 return lDisplays[0];
             })();
 
-            pNode.preview = { portId: pPort.definitionId, displayId: lDisplayId };
+            pNode.preview = { portDefinitionId: pPort.definitionId, displayId: lDisplayId };
         });
     }
 
@@ -448,7 +448,7 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct {
     public selectPreviewDisplay(pDisplayId: string): void {
         this.mManager.graph.updateNode(this.nodeData, (pNode) => {
             if (pNode.preview) {
-                pNode.preview = { portId: pNode.preview.portId, displayId: pDisplayId };
+                pNode.preview = { portDefinitionId: pNode.preview.portDefinitionId, displayId: pDisplayId };
             }
         });
     }

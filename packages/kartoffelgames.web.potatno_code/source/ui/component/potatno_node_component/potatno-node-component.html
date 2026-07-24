@@ -51,7 +51,7 @@ $if(this.isPreviewActive) {
 
             <select class="select" (change)="this.selectPreviewPort($event.target.value)">
                 $for(port of this.previewPorts) {
-                    <option [value]="this.port.definitionId" [selected]="this.port.definitionId === this.previewPortId">{{this.port.label}}</option>
+                    <option [value]="this.port.definitionId" [selected]="this.port.definitionId === this.previewPortDefinitionId">{{this.port.label}}</option>
                 }
             </select>
         </div>

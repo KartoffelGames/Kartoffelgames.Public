@@ -126,7 +126,10 @@ export class PotatnoSerializer<TProjectTypes extends PotatnoProjectTypesDefiniti
             }
 
             // Copy as it is likly changed after serialization.
-            return structuredClone(pNode.preview);
+            return {
+                portDefinitionId: pNode.preview.portDefinitionId,
+                displayId: pNode.preview.displayId
+            };
         })();
 
         return {

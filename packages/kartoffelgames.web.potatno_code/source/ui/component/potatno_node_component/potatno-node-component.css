@@ -43,7 +43,7 @@
     font-weight: bold;
     font-size: var(--potatno-font-size-small);
     cursor: grab;
-    
+
 
     &:active {
         cursor: grabbing;
@@ -166,9 +166,11 @@
     position: relative;
     top: calc(var(--potatno-grid-size) / 2);
 
+    display: flex;
+    flex-direction: column;
+    background-color: var(--potatno-color-background);
     box-shadow: 0 2px 8px var(--potatno-color-shadow);
     border: 1px solid var(--node-border-color);
-    border-width: 0 1px 1px 1px;
 
     /* Small attached line */
     &::before {
@@ -176,13 +178,15 @@
         position: absolute;
         top: calc(var(--potatno-grid-size) / -2);
         left: 50%;
-        
+
         display: block;
         height: calc(var(--potatno-grid-size) / 2);
         border: 1px solid var(--node-border-color);
     }
 
     .node-preview__window {
+        flex: 1;
+        padding: 5px;
         background: var(--potatno-color-background-dark);
         overflow: hidden;
 
@@ -194,12 +198,10 @@
         box-sizing: border-box;
         display: flex;
         justify-content: space-between;
-        background-color: var(--potatno-color-background);
-        border-top: 1px solid var(--potatno-color-border);
-        padding: 2px;
         gap: 2px;
 
         /* Height minus border */
+        flex-shrink: 0;
         height: calc(var(--node-preview-select-height) - 1px);
 
         .select {
@@ -213,9 +215,9 @@
             color: var(--potatno-color-text);
 
             /* Custom borders for animations*/
-            border: 1px solid var(--potatno-color-border);
-            border-radius: 2px;
             outline: none;
+            border: none;
+            border-bottom: 1px solid var(--potatno-color-border);
             transition: border-color 0.15s;
 
             &:focus {
@@ -240,8 +242,8 @@
                 cursor: pointer;
 
                 /* Transition items. */
-                border: 1px dashed var(--potatno-color-border);
-                border-radius: 2px;
+                border: none;
+                border-bottom: 1px solid var(--potatno-color-border);
                 background-color: var(--potatno-color-background-light);
 
                 &:hover {
@@ -263,10 +265,9 @@
                 display: none;
 
                 flex-direction: column;
-                border: 1px solid var(--potatno-color-border);
-                border-radius: 2px;
                 background-color: var(--potatno-color-background);
                 overflow: hidden auto;
+                border: 1px solid var(--potatno-color-border);
 
                 scrollbar-color: var(--potatno-color-scrollbar-thumb) var(--potatno-color-scrollbar-track);
                 scrollbar-width: thin;

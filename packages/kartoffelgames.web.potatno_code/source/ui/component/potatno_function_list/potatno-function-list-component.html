@@ -14,19 +14,17 @@
 
     $if(this.userFunctionDefinitions.length > 0) {
         <div class="list-actions">
-            $if(this.showPopup) {
-                <div class="popup">
-                    <div class="popup__header">Select Function Type</div>
-                    $for(functionDefinition of this.userFunctionDefinitions) {
-                        <div class="popup__item" (click)="this.createFunction(this.functionDefinition)">
-                            <div class="icon">ƒ</div>
-                            <div>{{this.functionDefinition.label}}</div>
-                        </div>
-                    }
+            <div class="popup {{ this.showPopup ? 'active' : ''}}">
+                <div class="popup__header">Select Function Type</div>
+                $for(functionDefinition of this.userFunctionDefinitions) {
+                    <div class="popup__item" (click)="this.createFunction(this.functionDefinition)">
+                        <div class="icon">ƒ</div>
+                        <div>{{this.functionDefinition.label}}</div>
+                    </div>
+                }
 
-                    <div class="popup__overlay" (click)="this.showPopup = !this.showPopup"></div>
-                </div>
-            }
+                <div class="popup__overlay" (click)="this.showPopup = !this.showPopup"></div>
+            </div>
             
             <div class="add-action" (click)="this.showPopup = !this.showPopup">
                 <div>+</div>

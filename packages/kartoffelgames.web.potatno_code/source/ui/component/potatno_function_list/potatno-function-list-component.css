@@ -164,6 +164,13 @@
 
     overflow: hidden;
 
+    /* Hide and show mechanic */
+    display: none;
+
+    &.active {
+        display: block;
+    }
+
     /* Fullview overlay. */
     .popup__overlay {
         position: fixed;

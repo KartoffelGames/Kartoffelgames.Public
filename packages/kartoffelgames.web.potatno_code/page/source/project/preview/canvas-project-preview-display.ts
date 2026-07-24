@@ -3,8 +3,7 @@ import { PotatnoPreviewFunctionExecutor, type PotatnoPreviewResultType } from '.
 import type { CanvasProjectTypesDefinition } from '../canvas-project-types-definition.ts';
 
 export class CanvasProjectPreviewDisplay<TExecutorResultType extends PotatnoPreviewResultType<CanvasProjectTypesDefinition>> extends PotatnoPreviewDisplay<CanvasProjectTypesDefinition, HTMLCanvasElement, CanvasProjectPreViewDisplayParameter, TExecutorResultType, CanvasProjectPreViewDisplayResultTypes, CanvasProjectPreViewDisplayResult> {
-    private static readonly PREVIEW_HEIGHT: number = 48;
-    private static readonly PREVIEW_WIDTH: number = 48;
+    private static readonly PREVIEW_PIXEL_SIZE: number = 7.5;
 
     /**
      * Construtor.
@@ -17,10 +16,8 @@ export class CanvasProjectPreviewDisplay<TExecutorResultType extends PotatnoPrev
             name: 'Canvas 2D',
             generate: (): HTMLCanvasElement => {
                 const lCanvas: HTMLCanvasElement = document.createElement('canvas');
-                lCanvas.width = CanvasProjectPreviewDisplay.PREVIEW_WIDTH;
-                lCanvas.height = CanvasProjectPreviewDisplay.PREVIEW_HEIGHT;
                 lCanvas.style.width = '100%';
-                lCanvas.style.maxHeight = '100%';
+                lCanvas.style.height = '100%';
                 lCanvas.style.imageRendering = 'pixelated';
                 return lCanvas;
             },
@@ -54,8 +51,17 @@ export class CanvasProjectPreviewDisplay<TExecutorResultType extends PotatnoPrev
             return;
         }
 
-        const lWidth: number = pElement.width;
-        const lHeight: number = pElement.height;
+        const lWidth: number = Math.max(1, Math.round(pElement.clientWidth / CanvasProjectPreviewDisplay.PREVIEW_PIXEL_SIZE));
+        const lHeight: number = Math.max(1, Math.round(pElement.clientHeight / CanvasProjectPreviewDisplay.PREVIEW_PIXEL_SIZE));
+
+        // Resize the canvas only when the resolution actually changed.
+        if (pElement.width !== lWidth) {
+            pElement.width = lWidth;
+        }
+        if (pElement.height !== lHeight) {
+            pElement.height = lHeight;
+        }
+
         const lImageData: ImageData = lContext.createImageData(lWidth, lHeight);
         const lPixels: Uint8ClampedArray = lImageData.data;
 

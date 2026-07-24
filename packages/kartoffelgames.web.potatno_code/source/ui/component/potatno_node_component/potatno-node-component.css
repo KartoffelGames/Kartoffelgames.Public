@@ -190,8 +190,8 @@
         background: var(--potatno-color-background-dark);
         overflow: hidden;
 
-        /* The whole preview area has a max grid height of 6. [6 - toggle-height - select-height] */
-        max-height: calc((var(--potatno-grid-size) * 5.5) - var(--node-preview-select-height));
+        /* The whole preview area has a grid height of 6. [6 - toggle-height - select-height] */
+        height: calc((var(--potatno-grid-size) * 5.5) - var(--node-preview-select-height));
     }
 
     .node-preview__selections {

@@ -20,7 +20,7 @@ export class CanvasProjectPreviewDisplay<TExecutorResultType extends PotatnoPrev
                 lCanvas.width = CanvasProjectPreviewDisplay.PREVIEW_WIDTH;
                 lCanvas.height = CanvasProjectPreviewDisplay.PREVIEW_HEIGHT;
                 lCanvas.style.width = '100%';
-                lCanvas.style.height = '100%';
+                lCanvas.style.maxHeight = '100%';
                 lCanvas.style.imageRendering = 'pixelated';
                 return lCanvas;
             },

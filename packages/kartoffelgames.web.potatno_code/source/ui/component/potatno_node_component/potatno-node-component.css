@@ -185,12 +185,12 @@
     }
 
     .node-preview__window {
-        flex: 1;
+        display: flex;
         padding: 5px;
         background: var(--potatno-color-background-dark);
         overflow: hidden;
 
-        /* The whole preview area has a total grid height of 6. [6 - toggle-height - select-height] */
+        /* The whole preview area has a max grid height of 6. [6 - toggle-height - select-height] */
         max-height: calc((var(--potatno-grid-size) * 5.5) - var(--node-preview-select-height));
     }
 

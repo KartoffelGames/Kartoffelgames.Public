@@ -171,16 +171,6 @@
         display: block;
     }
 
-    /* Fullview overlay. */
-    .popup__overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        z-index: 99;
-    }
-
     .popup__header {
         padding: 6px 12px;
         color: var(--potatno-color-text);
@@ -195,10 +185,6 @@
         color: var(--potatno-color-text);
         cursor: pointer;
         transition: color 0.15s, background-color 0.15s, scale 0.15s;
-
-        /* Only set it to relative so the z-index has an effect */
-        position: relative;
-        z-index: 100;
 
         &:hover {
             color: var(--potatno-color-accent);

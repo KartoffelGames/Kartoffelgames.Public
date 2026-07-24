@@ -13,7 +13,7 @@
     </div>
 
     $if(this.userFunctionDefinitions.length > 0) {
-        <div class="list-actions">
+        <div class="list-actions" tabindex="-1" (focusout)="this.showPopup = false">
             <div class="popup {{ this.showPopup ? 'active' : ''}}">
                 <div class="popup__header">Select Function Type</div>
                 $for(functionDefinition of this.userFunctionDefinitions) {
@@ -22,10 +22,8 @@
                         <div>{{this.functionDefinition.label}}</div>
                     </div>
                 }
-
-                <div class="popup__overlay" (click)="this.showPopup = !this.showPopup"></div>
             </div>
-            
+
             <div class="add-action" (click)="this.showPopup = !this.showPopup">
                 <div>+</div>
                 <div>Add Function</div>

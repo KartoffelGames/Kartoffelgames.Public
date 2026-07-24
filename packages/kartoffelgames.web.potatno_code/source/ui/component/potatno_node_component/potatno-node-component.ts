@@ -95,6 +95,12 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
     }
 
     /**
+     * Is the preview display selection open.
+     */
+    @ComponentState.state()
+    public accessor isPreviewDisplaySelectionOpen: boolean;
+
+    /**
      * Category display color.
      */
     public get nodeColor(): string {
@@ -219,6 +225,7 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
         this.mManager = pManager;
         this.mNodeDefinition = null;
         this.mNodeData = null;
+        this.isPreviewDisplaySelectionOpen = false;
 
         // Define default transformation.
         this.nodeTransformation = {

@@ -4,10 +4,10 @@ import type { PotatnoDocumentNode } from '../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../document/potatno-document-port.ts';
 import type { PotatnoDocumentValidationResult } from '../document/potatno-document-validation-result.ts';
 import type { PotatnoDocument } from '../document/potatno-document.ts';
-import { FlowConjunctionNodeDefinition } from '../project/node_definition/potatno-flow-conjunction-node-definition.ts';
+import { PotatnoFlowConjunctionNodeDefinition } from '../project/node_definition/potatno-flow-conjunction-node-definition.ts';
 import { PotatnoFunctionNodeDefinition } from '../project/node_definition/potatno-function-node-definition.ts';
 import type { PotatnoCodeGeneratorInputPort, PotatnoCodeGeneratorOutputPort, PotatnoNodeDefinition } from '../project/node_definition/potatno-node-definition.ts';
-import { ValueConjunctionNodeDefinition } from '../project/node_definition/potatno-value-conjunction-node-definition.ts';
+import { PotatnoValueConjunctionNodeDefinition } from '../project/node_definition/potatno-value-conjunction-node-definition.ts';
 import type { PotatnoProjectTypesDefinition } from '../project/potatno-project-types-definition.ts';
 import type { PotatnoProject } from '../project/potatno-project.ts';
 import { PotatnoCodeGeneratorDocumentResult } from './result/potatno-code-generator-document-result.ts';
@@ -534,7 +534,7 @@ export class PotatnoCodeGenerator<TProjectTypes extends PotatnoProjectTypesDefin
 
         for (const lOutputPort of pInputPort.connectedPorts) {
             // Port does not belong to a conjunction. Push the real upstream output port directly.
-            if (lOutputPort.node.definitionId !== FlowConjunctionNodeDefinition.DEFINITION_ID) {
+            if (lOutputPort.node.definitionId !== PotatnoFlowConjunctionNodeDefinition.DEFINITION_ID) {
                 lResults.push(lOutputPort);
                 continue;
             }
@@ -642,7 +642,7 @@ export class PotatnoCodeGenerator<TProjectTypes extends PotatnoProjectTypesDefin
         const lIncommingConnection: PotatnoDocumentPort<TProjectTypes> = pInputPort.connectedPorts.values().next().value!;
 
         // Port does not belong to a conjunction. Return it.
-        if (lIncommingConnection.node.definitionId !== ValueConjunctionNodeDefinition.DEFINITION_ID) {
+        if (lIncommingConnection.node.definitionId !== PotatnoValueConjunctionNodeDefinition.DEFINITION_ID) {
             return lIncommingConnection;
         }
 

@@ -1,4 +1,7 @@
 import { Exception } from '@kartoffelgames/core';
+import { PotatnoFlowConjunctionNodeDefinition } from '../project/node_definition/potatno-flow-conjunction-node-definition.ts';
+import { PotatnoNodeDefinition } from '../project/node_definition/potatno-node-definition.ts';
+import { PotatnoValueConjunctionNodeDefinition } from '../project/node_definition/potatno-value-conjunction-node-definition.ts';
 import type { PotatnoPortDefinition, PotatnoPortDefinitionDirection, PotatnoPortDefinitionType } from '../project/potatno-port-definition.ts';
 import type { PotatnoProjectGenericType, PotatnoProjectTypeNames, PotatnoProjectTypesDefinition } from '../project/potatno-project-types-definition.ts';
 import type { PotatnoProject } from '../project/potatno-project.ts';
@@ -175,13 +178,46 @@ export class PotatnoDocumentNode<TProjectTypes extends PotatnoProjectTypesDefini
     /**
      * Resize the node (comment nodes).
      */
-    public resizeTo(pWidth: number, pHeight: number): void {
-        // Min size to [4, 4] so the UI cant break for [0, 0] sized nodes.
-        this.mTransformation.width = Math.max(6, pWidth);
+    public resizeTo(_pWidth: number, _pHeight: number): void {
+        // Find the definition in the function's available node definitions.
+        const lNodeDefinition: PotatnoNodeDefinition<TProjectTypes> | undefined = this.mFunction.nodeDefinitions.find((pNodeDefinition) => {
+            return pNodeDefinition.id === this.mDefinitionId;
+        });
 
-        // Restrict min height to 1 + max port count.
-        const lMinHeight = 1 + Math.max(this.mInputs.list.length, this.mOutputs.list.length);
-        this.mTransformation.height = Math.max(lMinHeight, pHeight);
+        const [lWidth, lHeight] = (() => {
+            switch (true) {
+                // TODO: Not implemented yet
+                //case lNodeDefinition instanceof PotatnoCommentNodeDefinition: {
+                //    // Restrict comments to be minimal 2 width and height. 
+                //    return [
+                //        Math.max(2, pWidth),
+                //        Math.max(2, pHeight)
+                //    ];
+                //}
+
+                // Conjunctions are allways 1,1.
+                case lNodeDefinition instanceof PotatnoValueConjunctionNodeDefinition:
+                case lNodeDefinition instanceof PotatnoFlowConjunctionNodeDefinition: {
+                    return [1, 1];
+                }
+
+                // Default nodes, restricted by their ports.
+                case lNodeDefinition instanceof PotatnoNodeDefinition: {
+                    return [
+                        // Allways width of 6
+                        6,
+
+                        // Nodes height are set based on port count.
+                        Math.max(this.mInputs.list.length, this.mOutputs.list.length)
+                    ];
+                }
+            }
+            return [0, 0];
+        })();
+
+        // Set size.
+        this.mTransformation.width = lWidth;
+        this.mTransformation.height = lHeight;
     }
 
     /**
@@ -203,7 +239,11 @@ export class PotatnoDocumentNode<TProjectTypes extends PotatnoProjectTypesDefini
         const lNodeRegions: ReadonlySet<string> = pIncomingRegions ?? new Set<string>();
 
         // Find the definition in the function's available node definitions.
-        const lNodeDefinition = this.mFunction.nodeDefinitions.find((pDef) => pDef.id === this.mDefinitionId);
+        const lNodeDefinition: PotatnoNodeDefinition<TProjectTypes> | undefined = this.mFunction.nodeDefinitions.find((pNodeDefinition) => {
+            return pNodeDefinition.id === this.mDefinitionId;
+        });
+
+        // Validate based on the found node definition.
         if (!lNodeDefinition) {
             lValidationResult.pushError(new PotatnoDocumentPortValidationError(`Node "${this.mLabel}" definition "${this.mDefinitionId}" could not be found.`, this));
         } else {

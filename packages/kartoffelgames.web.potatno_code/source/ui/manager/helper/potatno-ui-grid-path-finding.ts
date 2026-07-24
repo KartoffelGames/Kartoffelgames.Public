@@ -1,6 +1,7 @@
-import { Astar, type AstarResult, Exception, type AstarPathInformation } from '@kartoffelgames/core';
+import { Astar, Exception, type AstarPathInformation, type AstarResult } from '@kartoffelgames/core';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
+import { PotatnoNodeDefinition } from '../../../project/node_definition/potatno-node-definition.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 
 /**
@@ -91,7 +92,7 @@ export class PotatnoUiGridPathFinding extends Astar<PotatnoUiManagerGridPathFind
 
     /**
      * Add or update the node areas for a node.
-     * 
+     *
      * @param pNode - Node.
      */
     public updateNodeArea(pNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition>): void {
@@ -102,7 +103,28 @@ export class PotatnoUiGridPathFinding extends Astar<PotatnoUiManagerGridPathFind
         const lPositionX: number = pNode.transformation.x;
         const lPositionY: number = pNode.transformation.y;
         const lWidth: number = pNode.transformation.width;
-        const lHeight: number = pNode.transformation.height;
+        let lHeight: number = pNode.transformation.height;
+
+        // Read the node definition.
+        const lNodeDefinition: PotatnoNodeDefinition<PotatnoProjectTypesDefinition> | undefined = pNode.function.nodeDefinitions.find((pNodeDefinition) => {
+            return pNodeDefinition.id === pNode.definitionId;
+        });
+
+        // Based on the node definition type, add additional sizes that the UI applies.
+        if (lNodeDefinition) {
+            switch (true) {
+                // TODO: Conjunctions.
+
+                // Those nodes can have a preview. Default add one height for the "toggle preview"-button and additional 6 for the actual enabled preview.
+                case lNodeDefinition instanceof PotatnoNodeDefinition: {
+                    // Header height.
+                    lHeight += 1;
+
+                    // Additional preview buttons and window height.
+                    lHeight += pNode.preview !== null ? 7 : 1;
+                }
+            }
+        }
 
         // Read current grid area.
         const lNewNodeArea: Array<PotatnoUiManagerGridPathFindingNodeId> = new Array<PotatnoUiManagerGridPathFindingNodeId>();

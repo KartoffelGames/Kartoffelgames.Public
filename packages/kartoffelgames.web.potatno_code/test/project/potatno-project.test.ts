@@ -1,7 +1,7 @@
 import { expect } from '@kartoffelgames/core-test';
-import { FlowConjunctionNodeDefinition } from '../../source/project/node_definition/potatno-flow-conjunction-node-definition.ts';
+import { PotatnoFlowConjunctionNodeDefinition } from '../../source/project/node_definition/potatno-flow-conjunction-node-definition.ts';
 import { PotatnoStaticNodeDefinition } from '../../source/project/node_definition/potatno-static-node-definition.ts';
-import { ValueConjunctionNodeDefinition } from '../../source/project/node_definition/potatno-value-conjunction-node-definition.ts';
+import { PotatnoValueConjunctionNodeDefinition } from '../../source/project/node_definition/potatno-value-conjunction-node-definition.ts';
 import { PotatnoFunctionDefinition, PotatnoFunctionDefinitionStatics } from '../../source/project/potatno-function-definition.ts';
 import { PotatnoImportDefinition } from '../../source/project/potatno-import-definition.ts';
 import { PotatnoProjectTypesDefinition } from '../../source/project/potatno-project-types-definition.ts';
@@ -109,8 +109,8 @@ Deno.test('new PotatnoProject()', async (pContext) => {
         const lIds: Array<string> = lProject.nodeDefinitions.map((pDef) => pDef.id);
 
         // Evaluation.
-        expect(lIds).toContain(FlowConjunctionNodeDefinition.DEFINITION_ID);
-        expect(lIds).toContain(ValueConjunctionNodeDefinition.DEFINITION_ID);
+        expect(lIds).toContain(PotatnoFlowConjunctionNodeDefinition.DEFINITION_ID);
+        expect(lIds).toContain(PotatnoValueConjunctionNodeDefinition.DEFINITION_ID);
     });
 });
 

@@ -2,7 +2,7 @@ import { Exception } from '@kartoffelgames/core';
 import type { PotatnoProjectTypesDefinition } from '../potatno-project-types-definition.ts';
 import { PotatnoNodeDefinition } from './potatno-node-definition.ts';
 
-export class ValueConjunctionNodeDefinition<TProjectTypes extends PotatnoProjectTypesDefinition> extends PotatnoNodeDefinition<TProjectTypes> {
+export class PotatnoValueConjunctionNodeDefinition<TProjectTypes extends PotatnoProjectTypesDefinition> extends PotatnoNodeDefinition<TProjectTypes> {
     /**
      * Stable definition id for this built-in node. Exposed so the code
      * generator can detect conjunction nodes and skip them during walks.
@@ -14,7 +14,7 @@ export class ValueConjunctionNodeDefinition<TProjectTypes extends PotatnoProject
      */
     public constructor() {
         super({
-            id: ValueConjunctionNodeDefinition.DEFINITION_ID,
+            id: PotatnoValueConjunctionNodeDefinition.DEFINITION_ID,
             label: 'Value Conjunction',
             category: {
                 name: 'Conjunction',
@@ -29,7 +29,7 @@ export class ValueConjunctionNodeDefinition<TProjectTypes extends PotatnoProject
                         pAddPort({ label: 'out', id: 'out', portType: 'value', dataType: '<T>' });
                     }
                 },
-                code: () => { throw new Exception('Conjunction node code generators should never be called.', ValueConjunctionNodeDefinition); }
+                code: () => { throw new Exception('Conjunction node code generators should never be called.', PotatnoValueConjunctionNodeDefinition); }
             }
         });
     }

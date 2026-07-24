@@ -1,9 +1,9 @@
 import type { PotatnoCodeGeneratorDocumentResult } from '../parser/result/potatno-code-generator-document-result.ts';
 import { PotatnoPreview } from '../preview/potatno-preview.ts';
-import { FlowConjunctionNodeDefinition } from './node_definition/potatno-flow-conjunction-node-definition.ts';
+import { PotatnoFlowConjunctionNodeDefinition } from './node_definition/potatno-flow-conjunction-node-definition.ts';
 import type { PotatnoNodeDefinition } from './node_definition/potatno-node-definition.ts';
 import type { PotatnoStaticNodeDefinition } from './node_definition/potatno-static-node-definition.ts';
-import { ValueConjunctionNodeDefinition } from './node_definition/potatno-value-conjunction-node-definition.ts';
+import { PotatnoValueConjunctionNodeDefinition } from './node_definition/potatno-value-conjunction-node-definition.ts';
 import type { PotatnoFunctionDefinition } from './potatno-function-definition.ts';
 import type { PotatnoImportDefinition } from './potatno-import-definition.ts';
 import type { PotatnoProjectTypesDefinition } from './potatno-project-types-definition.ts';
@@ -94,8 +94,8 @@ export class PotatnoProject<TProjectTypes extends PotatnoProjectTypesDefinition>
         this.mEntryPoint = pEntryFunction;
 
         // Built-in conjunction pass-through nodes are always available in every project.
-        this.addNodeDefinition(new FlowConjunctionNodeDefinition());
-        this.addNodeDefinition(new ValueConjunctionNodeDefinition());
+        this.addNodeDefinition(new PotatnoFlowConjunctionNodeDefinition());
+        this.addNodeDefinition(new PotatnoValueConjunctionNodeDefinition());
     }
 
     /**

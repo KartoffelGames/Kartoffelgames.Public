@@ -209,7 +209,7 @@
             box-sizing: border-box;
             height: 100%;
             min-width: 0;
-            padding: 0px 2px;
+            padding: 0px 10px;
             background: var(--potatno-color-background-light);
             font-size: var(--potatno-font-size-small);
             color: var(--potatno-color-text);

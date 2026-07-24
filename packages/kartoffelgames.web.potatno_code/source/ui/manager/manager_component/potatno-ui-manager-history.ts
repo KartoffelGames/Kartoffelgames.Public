@@ -1,6 +1,4 @@
-import type { PotatnoDocument } from '../../../document/potatno-document.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
-import type { PotatnoProject } from '../../../project/potatno-project.ts';
 import { PotatnoDeserializer } from '../../../serialization/potatno-deserializer.ts';
 import type { PotatnoCodeFileSerializationResult } from '../../../serialization/potatno-serialization.type.ts';
 import { PotatnoSerializer } from '../../../serialization/potatno-serializer.ts';

@@ -9,7 +9,7 @@ import type { PotatnoCodeFileSerializationResult } from './serialization/potatno
 import { PotatnoSerializer } from './serialization/potatno-serializer.ts';
 import themeCss from './ui/component/potatno-theme.css' with { type: 'text' };
 import { PotatnoCodeEditorComponent } from './ui/component/potatno_code_editor/potatno-code-editor-component.ts';
-import { PotatnoUiManager } from "./ui/manager/potatno-ui-manager.ts";
+import { PotatnoUiManager } from './ui/manager/potatno-ui-manager.ts';
 
 /*
  * TODO: UI
@@ -57,7 +57,7 @@ export class PotatnoCodeApplication<TProjectTypes extends PotatnoProjectTypesDef
         this.addStyle(applicationCss);
 
         // Create and add ui manager to the applications injections.
-        this.setInjection(PotatnoUiManager, new PotatnoUiManager(pProject as unknown as PotatnoProject<PotatnoProjectTypesDefinition>))
+        this.setInjection(PotatnoUiManager, new PotatnoUiManager(pProject as unknown as PotatnoProject<PotatnoProjectTypesDefinition>));
 
         // Add the editor component and store the element reference.
         this.mCodeEditor = this.addContent(PotatnoCodeEditorComponent) as unknown as PotatnoCodeEditorComponent;

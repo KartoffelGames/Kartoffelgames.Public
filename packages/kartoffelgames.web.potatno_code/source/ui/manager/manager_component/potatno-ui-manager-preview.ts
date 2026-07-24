@@ -7,6 +7,8 @@ import type { PotatnoPreviewDisplayItem } from '../../../preview/potatno-preview
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import { PotatnoCodeUiManagerChangeType, type PotatnoUiManager } from '../potatno-ui-manager.ts';
 
+// TODO: Cleanup preview driver for each target.
+
 /**
  * Owner of every live preview driver. Each previewable document item — a node with a preview opt-in
  * or a document function shown in the main panel — maps to at most one {@link PotatnoPreviewDriver}.

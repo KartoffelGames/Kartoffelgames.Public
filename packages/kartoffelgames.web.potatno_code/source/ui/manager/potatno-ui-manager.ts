@@ -1,8 +1,6 @@
-import { Injection } from '@kartoffelgames/core-dependency-injection';
 import type { IPotatnoDocumentItem } from '../../document/i-potatno-document-item.interface.ts';
 import type { PotatnoDocumentFunction } from '../../document/potatno-document-function.ts';
-import { PotatnoDocument } from '../../document/potatno-document.ts';
-import { type PotatnoFunctionDefinition, PotatnoFunctionDefinitionStatics } from '../../project/potatno-function-definition.ts';
+import type { PotatnoDocument } from '../../document/potatno-document.ts';
 import type { PotatnoProjectTypesDefinition } from '../../project/potatno-project-types-definition.ts';
 import type { PotatnoProject } from '../../project/potatno-project.ts';
 import { PotatnoUiManagerClipboard } from './manager_component/potatno-ui-manager-clipboard.ts';
@@ -12,22 +10,9 @@ import { PotatnoUiManagerGrid } from './manager_component/potatno-ui-manager-gri
 import { PotatnoUiManagerHistory } from './manager_component/potatno-ui-manager-history.ts';
 import { PotatnoUiManagerIntegrity } from './manager_component/potatno-ui-manager-integrity.ts';
 import { PotatnoUiManagerPreview } from './manager_component/potatno-ui-manager-preview.ts';
-import { Exception } from '@kartoffelgames/core';
 
 /**
  * Central, shared state owner for the whole Potatno-code editor UI.
- *
- * Every UI component injects this singleton ({@link Injection.use}) instead of receiving its
- * data through a chain of template bindings. The manager holds the current project and document,
- * the active function, validation results, undo/redo history and the preview lifecycle. All
- * document mutations funnel through its methods so the side effects — re-validation, history
- * snapshots, preview rebuilds — happen in one place.
- *
- * It extends {@link EventTarget} and fires a typed {@link PotatnoCodeUiManagerChangeType} event for
- * every meaningful change. Components subscribe via {@link subscribe} and call their own
- * `updater.update()` in response, so they refresh from the shared state without owning a private
- * `@ComponentState` copy of it. This removes the version-token plumbing the old editor used to
- * keep fragmented component state in sync.
  */
 export class PotatnoUiManager extends EventTarget {
     private mActiveFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null;

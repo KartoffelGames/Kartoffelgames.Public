@@ -1,6 +1,6 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { Component, PwbComponent, PwbExport, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
-import { PwbChild } from "../../../../../kartoffelgames.web.potato_web_builder/source/module/pwb_child/pwb-child.decorator.ts";
+import { PwbChild } from '../../../../../kartoffelgames.web.potato_web_builder/source/module/pwb_child/pwb-child.decorator.ts';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import type { PotatnoPreviewDriver } from '../../../preview/potatno-preview-driver.ts';
@@ -10,7 +10,7 @@ import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-pro
 import type { PotatnoProject } from '../../../project/potatno-project.ts';
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, type PotatnoCodeUiManagerUnsubscribe } from '../../manager/potatno-ui-manager.ts';
 import { PotatnoPreviewModule } from '../../module/potatno-preview.module.ts';
-import { PotatnoResizeBoxComponent, PotatnoResizeBoxComponentResize, PotatnoResizeBoxComponentResizeDirection } from '../potatno-resize-box/potatno-resize-box-component.ts';
+import { PotatnoResizeBoxComponent, type PotatnoResizeBoxComponentResize, PotatnoResizeBoxComponentResizeDirection } from '../potatno-resize-box/potatno-resize-box-component.ts';
 import { PotatnoPortComponent } from '../potatno_port/potatno-port-component.ts';
 import nodeCss from './potatno-comment-node-component.css' with { type: 'text' };
 import nodeTemplate from './potatno-comment-node-component.html' with { type: 'text' };
@@ -151,7 +151,7 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct {
                     label: pProject.preview.getDisplay(pDisplayId)?.name ?? pDisplayId
                 };
             });
-        }
+        };
 
         const lBinding = this.nodeData.preview;
         const lPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | undefined = lBinding ? this.nodeData.outputs.map.get(lBinding.portDefinitionId) : undefined;

@@ -4,7 +4,6 @@ import type { PotatnoDocumentFunction } from '../../../document/potatno-document
 import type { PotatnoDocument } from '../../../document/potatno-document.ts';
 import type { PotatnoFunctionDefinition } from '../../../project/potatno-function-definition.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
-import type { PotatnoProject } from '../../../project/potatno-project.ts';
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, type PotatnoCodeUiManagerUnsubscribe } from '../../manager/potatno-ui-manager.ts';
 import { PotatnoFunctionListComponent } from '../potatno_function_list/potatno-function-list-component.ts';
 import { PotatnoNodeGraph } from '../potatno_node_graph/potatno-node-graph.ts';

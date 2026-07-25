@@ -43,7 +43,7 @@ export class CanvasProject extends PotatnoProject<CanvasProjectTypesDefinition> 
                         return `${pName}_${pIndex}`;
                     },
                     name: (pName: string) => {
-                        return pName.replace(/[^A-Za-z0-9_]/, '');
+                        return pName.replaceAll(/[^A-Za-z0-9_]/g, '');
                     },
                     hook: (pValueId: string): string => {
                         return `/*[${pValueId}]*/`;

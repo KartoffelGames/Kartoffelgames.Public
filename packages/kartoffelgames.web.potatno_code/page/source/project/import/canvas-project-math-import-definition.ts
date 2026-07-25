@@ -74,6 +74,22 @@ export class CanvasProjectMathImportDefinition extends PotatnoImportDefinition<C
             }
         }));
         this.addNode(new PotatnoStaticNodeDefinition({
+            id: 'Math.ceil',
+            label: 'Math.ceil',
+            category: { name: 'Function' },
+            ports: {
+                inputs: [
+                    { label: 'value', id: 'value', portType: 'value', dataType: 'number' }
+                ],
+                outputs: [
+                    { label: 'result', id: 'result', portType: 'value', dataType: 'number' }
+                ]
+            },
+            generators: {
+                code: (pContext): string => `const ${pContext.outputs['result'].value} = Math.ceil(${pContext.inputs['value'].value});`
+            }
+        }));
+        this.addNode(new PotatnoStaticNodeDefinition({
             id: 'Math.random',
             label: 'Math.random',
             category: { name: 'Function' },
@@ -117,6 +133,58 @@ export class CanvasProjectMathImportDefinition extends PotatnoImportDefinition<C
             },
             generators: {
                 code: (pContext): string => `const ${pContext.outputs['result'].value} = Math.cos(${pContext.inputs['value'].value});`
+            }
+        }));
+        this.addNode(new PotatnoStaticNodeDefinition({
+            id: 'Math.min',
+            label: 'Math.min',
+            category: { name: 'Function' },
+            ports: {
+                inputs: [
+                    { label: 'a', id: 'a', portType: 'value', dataType: 'number' },
+                    { label: 'b', id: 'b', portType: 'value', dataType: 'number' }
+                ],
+                outputs: [
+                    { label: 'result', id: 'result', portType: 'value', dataType: 'number' }
+                ]
+            },
+            generators: {
+                code: (pContext): string => `const ${pContext.outputs['result'].value} = Math.min(${pContext.inputs['a'].value}, ${pContext.inputs['b'].value});`
+            }
+        }));
+        this.addNode(new PotatnoStaticNodeDefinition({
+            id: 'Math.max',
+            label: 'Math.max',
+            category: { name: 'Function' },
+            ports: {
+                inputs: [
+                    { label: 'a', id: 'a', portType: 'value', dataType: 'number' },
+                    { label: 'b', id: 'b', portType: 'value', dataType: 'number' }
+                ],
+                outputs: [
+                    { label: 'result', id: 'result', portType: 'value', dataType: 'number' }
+                ]
+            },
+            generators: {
+                code: (pContext): string => `const ${pContext.outputs['result'].value} = Math.max(${pContext.inputs['a'].value}, ${pContext.inputs['b'].value});`
+            }
+        }));
+        this.addNode(new PotatnoStaticNodeDefinition({
+            id: 'Math.clamp',
+            label: 'Math.clamp',
+            category: { name: 'Function' },
+            ports: {
+                inputs: [
+                    { label: 'value', id: 'value', portType: 'value', dataType: 'number' },
+                    { label: 'min', id: 'min', portType: 'value', dataType: 'number' },
+                    { label: 'max', id: 'max', portType: 'value', dataType: 'number' }
+                ],
+                outputs: [
+                    { label: 'result', id: 'result', portType: 'value', dataType: 'number' }
+                ]
+            },
+            generators: {
+                code: (pContext): string => `const ${pContext.outputs['result'].value} = Math.min(Math.max(${pContext.inputs['value'].value}, ${pContext.inputs['min'].value}), ${pContext.inputs['max'].value});`
             }
         }));
     }

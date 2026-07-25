@@ -1,5 +1,5 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import { Component, ComponentEventEmitter, ComponentState, PwbComponent, PwbComponentEvent, PwbExport, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
+import { Component, type ComponentEventEmitter, ComponentState, PwbComponent, PwbComponentEvent, PwbExport, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import type { PotatnoPreviewDriver } from '../../../preview/potatno-preview-driver.ts';
@@ -269,8 +269,8 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
         pEvent.stopPropagation();
 
         // Save current size so the current pointer position determinates exactly this size.
-        const lStartingXCoordinate: number = this.nodeData.transformation.x * this.mManager.grid.gridSize;
-        const lStartingYCoordinate: number = this.nodeData.transformation.y * this.mManager.grid.gridSize;
+        const lStartingCoordinateX: number = this.nodeData.transformation.x * this.mManager.grid.gridSize;
+        const lStartingCoordinateY: number = this.nodeData.transformation.y * this.mManager.grid.gridSize;
 
         let lCurrentX: number = this.nodeData.transformation.x;
         let lCurrentY: number = this.nodeData.transformation.y;
@@ -292,8 +292,8 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
             const lMovementChangeY: number = (pMoveEvent.clientY - lStartY) / lScaleY;
 
             // Change window size but clamp it down to a minimum size.
-            let lX: number = Math.round((lStartingXCoordinate + lMovementChangeX) / this.mManager.grid.gridSize);
-            let lY: number = Math.round((lStartingYCoordinate + lMovementChangeY) / this.mManager.grid.gridSize);
+            const lX: number = Math.round((lStartingCoordinateX + lMovementChangeX) / this.mManager.grid.gridSize);
+            const lY: number = Math.round((lStartingCoordinateY + lMovementChangeY) / this.mManager.grid.gridSize);
 
             // Skip any movement when nothing has changed.
             if (lCurrentX === lX && lCurrentY === lY) {
@@ -560,8 +560,8 @@ export class PotatnoNodeComponentMove {
      * @param pY - Moved y distance.
      */
     public constructor(pX: number, pY: number) {
-        this.mX = pY;
-        this.mY = pX;
+        this.mX = pX;
+        this.mY = pY;
     }
 }
 

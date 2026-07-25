@@ -7,7 +7,7 @@ import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-pro
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, type PotatnoCodeUiManagerUnsubscribe } from '../../manager/potatno-ui-manager.ts';
 import { PotatnoNodeSelectionPopupComponent } from '../potatno-node-selection-popup/potatno-node-selection-popup-component.ts';
 import { PotatnoConnectionLayerComponent } from '../potatno_connection_layer/potatno-connection-layer-component.ts';
-import { PotatnoNodeComponent } from '../potatno_node_component/potatno-node-component.ts';
+import { PotatnoNodeComponent, type PotatnoNodeComponentMove } from '../potatno_node_component/potatno-node-component.ts';
 import graphCss from './potatno-node-graph.css' with { type: 'text' };
 import graphTemplate from './potatno-node-graph.html' with { type: 'text' };
 
@@ -459,6 +459,29 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
         this.mSelectedNodes.clear();
         this.mSelectedNodes.add(lNode);
         this.closeAddNodePopup();
+    }
+
+    /**
+     * Move all selected nodes into the same direction.
+     * The source node is not moved.
+     * 
+     * @param pSourceNode - Node that initialized the movement.
+     * @param pMovement - The movement distance.
+     */
+    public moveAllSelected(pSourceNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition>, pMovement: PotatnoNodeComponentMove): void {
+        console.log(pMovement);
+        
+        for (const lSelectedNode of this.mSelectedNodes) {
+            // Skip moving the source node.
+            if (lSelectedNode === pSourceNode) {
+                continue;
+            }
+
+            // Move the selected node in the move direction.
+            this.mManager.graph.transformNode(lSelectedNode, (pNode) => {
+                pNode.moveTo(pNode.transformation.x + pMovement.x, pNode.transformation.y + pMovement.y);
+            });
+        }
     }
 
     /**

@@ -5,7 +5,7 @@
     <potatno-connection-layer/>
 
     $for(node of this.nodes) {
-        <potatno-node class="grid-content__node {{this.selectedNode.has(this.node) ? 'selected' : ''}}" [nodeData]="this.node"/>
+        <potatno-node class="grid-content__node {{this.selectedNode.has(this.node) ? 'selected' : ''}}" [nodeData]="this.node" (drag)="this.moveAllSelected(this.node, $event.value)"/>
     }
 </div>
 

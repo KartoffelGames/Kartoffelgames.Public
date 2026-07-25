@@ -23,13 +23,13 @@ export class PotatnoResizeBoxComponent {
     private accessor mConfiguration: PotatnoResizeBoxComponentConfiguration;
 
     /**
-     * Emitted with the definition the user picked, for the host to insert.
+     * Emitted when the user resizes with a handle.
      */
     @PwbComponentEvent('resize')
     private accessor mResize!: ComponentEventEmitter<PotatnoResizeBoxComponentResize>;
 
     /**
-     * Emitted with the definition the user picked, for the host to insert.
+     * Emitted when the user ends a resize.
      */
     @PwbComponentEvent('resize-end')
     private accessor mResizeEnd!: ComponentEventEmitter<PotatnoResizeBoxComponentResize>;

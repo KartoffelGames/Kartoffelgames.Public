@@ -6,6 +6,8 @@
 .selection-popup {
     display: flex;
     flex-direction: column;
+
+    /* Fixed values also defined as constants in the component itself!!! */
     max-height: 320px;
     width: 280px;
 

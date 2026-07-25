@@ -13,6 +13,6 @@ $if(this.showSelectionBox) {
     <div class="selection-box" [style]="this.selectionBoxStyle"></div>
 }
 
-$if(this.showAddNodePopup) {
-    <potatno-node-selection-popup [style]="this.addNodePopupStyle" (node-select)="this.onAddNodePopupNodeSelect($event)"/>
+$if(this.popupPosition !== null) {
+    <potatno-node-selection-popup style="left: {{this.popupPosition.screenX}}px; top: {{this.popupPosition.screenY}}px;" (node-select)="this.createNodeOnPopupPosition($event.value)"/>
 }

@@ -18,6 +18,9 @@ import addNodePopupTemplate from './potatno-node-selection-popup-component.html'
     components: [PotatnoResizeBoxComponent]
 })
 export class PotatnoNodeSelectionPopupComponent implements IComponentOnConnect, IComponentOnUpdate {
+    public static readonly POPUP_WIDTH: number = 280;
+    public static readonly POPUP_HEIGHT: number = 320;
+
     private readonly mComponent: Component;
     private readonly mManager: PotatnoUiManager;
 

@@ -397,15 +397,6 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
     }
 
     /**
-     * Prevent node dragging from starting through a port click.
-     *
-     * @param pEvent - Pointer event from the port.
-     */
-    public stopEventPropagation(pEvent: PointerEvent): void {
-        pEvent.stopPropagation();
-    }
-
-    /**
      * Create the temporary connection path for a native drag position.
      *
      * @param pClientX - Viewport x coordinate.

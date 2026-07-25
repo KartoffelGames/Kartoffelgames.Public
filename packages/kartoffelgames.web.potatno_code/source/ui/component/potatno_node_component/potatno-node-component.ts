@@ -42,7 +42,7 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
     /**
      * Emitted with the definition the user picked, for the host to insert.
      */
-    @PwbComponentEvent('drag')
+    @PwbComponentEvent('node-drag')
     private accessor mDrag!: ComponentEventEmitter<PotatnoNodeComponentMove>;
 
     /**
@@ -260,15 +260,14 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
      * @param pEvent - Pointer event from the resize handle.
      */
     public dragNode(pEvent: PointerEvent): void {
-        // Cant transform without 
+        // Cant transform without node data.
         if (!this.nodeData) {
             return;
         }
 
         pEvent.preventDefault();
-        pEvent.stopPropagation();
 
-        // Save current size so the current pointer position determinates exactly this size.
+        // Save current coordinate so the current pointer position determinates exactly this coordinate.
         const lStartingCoordinateX: number = this.nodeData.transformation.x * this.mManager.grid.gridSize;
         const lStartingCoordinateY: number = this.nodeData.transformation.y * this.mManager.grid.gridSize;
 
@@ -284,14 +283,15 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
         const lStartX = pEvent.clientX;
         const lStartY = pEvent.clientY;
 
-        // Resize magic listener (●'◡'●)つ━☆・*。
+        // Drag magic listener (●'◡'●)つ━☆・*。
         const lPointerMoveListener = (pMoveEvent: PointerEvent): void => {
-            // Resize from top-left corner: moving left/up increases size.
+            pMoveEvent.stopPropagation();
+
             // Divide by scale to convert mouse movement into scale actual drag.
             const lMovementChangeX: number = (pMoveEvent.clientX - lStartX) / lScaleX;
             const lMovementChangeY: number = (pMoveEvent.clientY - lStartY) / lScaleY;
 
-            // Change window size but clamp it down to a minimum size.
+            // Calculate position inside grid. Round to keep movement in "center".
             const lX: number = Math.round((lStartingCoordinateX + lMovementChangeX) / this.mManager.grid.gridSize);
             const lY: number = Math.round((lStartingCoordinateY + lMovementChangeY) / this.mManager.grid.gridSize);
 
@@ -300,7 +300,7 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
                 return;
             }
 
-            // And then update component size.
+            // And then update node position.
             this.mManager.graph.transformNode(this.nodeData, (pNode) => {
                 pNode.moveTo(lX, lY);
             });

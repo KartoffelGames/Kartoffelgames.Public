@@ -1,7 +1,7 @@
 <div class="port-wrapper {{this.portDirection}}" style="--type-color: {{this.portColor}}" (dragover)="this.onDragOver($event)" (drop)="this.onDrop($event)">
 
     <!-- Actual port handle. -->
-    <div class="port" draggable="true" [title]="this.portType" (dragstart)="this.onDragStart($event)" (dragend)="this.onDragEnd($event)" (pointerdown)="this.stopEventPropagation($event)">
+    <div class="port" draggable="true" [title]="this.portType" (dragstart)="this.onDragStart($event)" (dragend)="this.onDragEnd($event)">
         <div class="port__handle">
             <div class="port-handle {{this.portHandleClasses}}"></div>
         </div>
@@ -11,7 +11,7 @@
     <svg #dragConnection class="port-drag-connetion" xmlns="http://www.w3.org/2000/svg"></svg>
 
     $if(this.showValueInput) {
-        <div class="port-values" (pointerdown)="this.stopEventPropagation($event)">
+        <div class="port-values">
 
             <div class="port-values__field">
                 $for(inputDefinition of this.inputDefinitions) {

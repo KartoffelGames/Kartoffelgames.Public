@@ -469,8 +469,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      * @param pMovement - The movement distance.
      */
     public moveAllSelected(pSourceNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition>, pMovement: PotatnoNodeComponentMove): void {
-        console.log(pMovement);
-        
+        // Iterate and move all selected nodes.
         for (const lSelectedNode of this.mSelectedNodes) {
             // Skip moving the source node.
             if (lSelectedNode === pSourceNode) {
@@ -481,6 +480,28 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
             this.mManager.graph.transformNode(lSelectedNode, (pNode) => {
                 pNode.moveTo(pNode.transformation.x + pMovement.x, pNode.transformation.y + pMovement.y);
             });
+        }
+    }
+
+    /**
+     * Handle pointer down on a rendered node for selection and dragging.
+     *
+     * @param pEvent - Pointer event from the node element.
+     * @param pNode - Node that received the pointer down.
+     */
+    public selectNode(pEvent: PointerEvent, pNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition>): void {
+        pEvent.stopPropagation();
+        this.closeAddNodePopup();
+
+        if (pEvent.ctrlKey) {
+            if (this.mSelectedNodes.has(pNode)) {
+                this.mSelectedNodes.delete(pNode);
+            } else {
+                this.mSelectedNodes.add(pNode);
+            }
+        } else if (!this.mSelectedNodes.has(pNode)) {
+            this.mSelectedNodes.clear();
+            this.mSelectedNodes.add(pNode);
         }
     }
 

@@ -1,5 +1,5 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import { Component, ComponentState, PwbComponent, PwbExport, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
+import { Component, ComponentEventEmitter, ComponentState, PwbComponent, PwbComponentEvent, PwbExport, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import type { PotatnoPreviewDriver } from '../../../preview/potatno-preview-driver.ts';
@@ -38,6 +38,12 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
     public get canPreview(): boolean {
         return this.previewPorts.length > 0;
     }
+
+    /**
+     * Emitted with the definition the user picked, for the host to insert.
+     */
+    @PwbComponentEvent('drag')
+    private accessor mDrag!: ComponentEventEmitter<PotatnoNodeComponentMove>;
 
     /**
      * CSS class string for the error state.
@@ -266,6 +272,9 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
         const lStartingXCoordinate: number = this.nodeData.transformation.x * this.mManager.grid.gridSize;
         const lStartingYCoordinate: number = this.nodeData.transformation.y * this.mManager.grid.gridSize;
 
+        let lCurrentX: number = this.nodeData.transformation.x;
+        let lCurrentY: number = this.nodeData.transformation.y;
+
         // Scale of any transformed parent: ratio of rendered (actual size) to layout (unscaled) size.
         const lComponentSize: DOMRect = this.mComponent.element.getBoundingClientRect();
         const lScaleX: number = this.mComponent.element.offsetWidth ? lComponentSize.width / this.mComponent.element.offsetWidth : 1;
@@ -283,13 +292,25 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
             const lMovementChangeY: number = (pMoveEvent.clientY - lStartY) / lScaleY;
 
             // Change window size but clamp it down to a minimum size.
-            let lX: number = (lStartingXCoordinate + lMovementChangeX) / this.mManager.grid.gridSize;
-            let lY: number = (lStartingYCoordinate + lMovementChangeY) / this.mManager.grid.gridSize;
+            let lX: number = Math.round((lStartingXCoordinate + lMovementChangeX) / this.mManager.grid.gridSize);
+            let lY: number = Math.round((lStartingYCoordinate + lMovementChangeY) / this.mManager.grid.gridSize);
+
+            // Skip any movement when nothing has changed.
+            if (lCurrentX === lX && lCurrentY === lY) {
+                return;
+            }
 
             // And then update component size.
             this.mManager.graph.transformNode(this.nodeData, (pNode) => {
                 pNode.moveTo(lX, lY);
             });
+
+            // Dispatch drag event.
+            this.mDrag.dispatchEvent(new PotatnoNodeComponentMove(lX - lCurrentX, lY - lCurrentY));
+
+            // Save new current position.
+            lCurrentX = lX;
+            lCurrentY = lY;
         };
 
         // Pointer up listener, cleaning up temporary listener.
@@ -507,6 +528,40 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
         // Reset previewable ports and displays.
         this.previewPorts = this.getPreviewablePorts(this.nodeData!);
         this.previewDisplays = this.getPreviewDisplays(pNode.preview?.portDefinitionId ?? null);
+    }
+}
+
+/**
+ * Event data of dragged distance.
+ */
+export class PotatnoNodeComponentMove {
+    private readonly mX: number;
+    private readonly mY: number;
+
+    /**
+     * Moved x distance.
+     */
+    public get x(): number {
+        return this.mX;
+    }
+
+
+    /**
+     * Moved y distance.
+     */
+    public get y(): number {
+        return this.mY;
+    }
+
+    /**
+     * Constructor.
+     * 
+     * @param pX - Moved x distance.
+     * @param pY - Moved y distance.
+     */
+    public constructor(pX: number, pY: number) {
+        this.mX = pY;
+        this.mY = pX;
     }
 }
 

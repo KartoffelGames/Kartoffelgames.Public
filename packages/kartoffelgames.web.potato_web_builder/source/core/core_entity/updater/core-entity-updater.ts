@@ -1,5 +1,6 @@
 import { Stack } from '@kartoffelgames/core';
 import { InteractionZone, InteractionZoneEvent } from '@kartoffelgames/core-interaction-zone';
+import { ComponentZoneConfiguration } from '../../component/component-zone-configuration.ts';
 import { ComponentStateType } from '../component_state/component-state-type.enum.ts';
 import { ComponentState } from '../component_state/component-state.ts';
 import { CoreEntityUpdateCycle, type UpdateCycle, type UpdateCycleRunner } from './core-entiy-update-cycle.ts';
@@ -13,33 +14,16 @@ import { CoreEntityUpdateLoopError } from './core-entity-update-loop-error.ts';
  * @internal
  */
 export class CoreEntityUpdater {
-    private static mFrameTime: number = 100;
-    private static mStackCap: number = 100;
+    private static readonly DEFAULT_FRAME_TIME: number = Number.MAX_SAFE_INTEGER;
+    private static readonly STACK_CAP: number = 100;
 
-    /**
-     * Frame time for update reshedule. When a update takes longer than this value, it is resheduled to the next frame. Value in milliseconds.
-     */
-    public static get frameTime(): number {
-        return CoreEntityUpdater.mFrameTime;
-    } static set frameTime(pValue: number) {
-        CoreEntityUpdater.mFrameTime = pValue;
-    }
-    
-    /**
-     * Stack cap for update loop detection. When the update stack exceeds this value, an CoreEntityUpdateLoopError is thrown.
-     */
-    public static get stackCap(): number {
-        return CoreEntityUpdater.mStackCap;
-    } static set stackCap(pValue: number) {
-        CoreEntityUpdater.mStackCap = pValue;
-    }
-
+    private readonly mFrameTime: number;
     private readonly mInteractionZone: InteractionZone;
     private readonly mManualComponentState: ComponentState<symbol>;
     private readonly mUpdateFunction: UpdateListener;
     private readonly mUpdateRunCache: WeakMap<UpdateCycleRunner, boolean>;
     private readonly mUpdateStates: UpdateInformation;
-    
+
     /**
      * Updater zone.
      */
@@ -57,6 +41,15 @@ export class CoreEntityUpdater {
 
         // Init updater settings.
         this.mUpdateFunction = pParameter.onUpdate;
+
+        // Set default frametime before reading from confguration because its beautiful. <3
+        this.mFrameTime = CoreEntityUpdater.DEFAULT_FRAME_TIME;
+
+        // Try to read a active configuration from the current zone and apply its configurated frametime.
+        const lZoneConfiguration: ComponentZoneConfiguration | null = InteractionZone.current.getAttachment<ComponentZoneConfiguration>(ComponentZoneConfiguration.ATTACHMENT_KEY);
+        if (lZoneConfiguration) {
+            this.mFrameTime = lZoneConfiguration.guaranteedFrameTime;
+        }
 
         // Create isolated or default zone from found parent interaction zone.
         this.mManualComponentState = new ComponentState<symbol>(Symbol('Manual Update'));
@@ -166,15 +159,15 @@ export class CoreEntityUpdater {
      */
     private executeTaskChain(pUpdateTask: InteractionZoneEvent<ComponentState>, pUpdateCycle: UpdateCycle, pUpdateState: boolean, pStack: Array<InteractionZoneEvent<ComponentState>>): boolean {
         // Throw if too many calles were chained.
-        if (pStack.length > CoreEntityUpdater.stackCap) {
+        if (pStack.length > CoreEntityUpdater.STACK_CAP) {
             throw new CoreEntityUpdateLoopError('Call loop detected', pStack);
         }
 
         // Measure performance.
         const lStartPerformance = performance.now();
 
-        // Reshedule task when frame time exceeds MAX_FRAME_TIME. Update called next frame.
-        if (!pUpdateCycle.forcedSync && lStartPerformance - pUpdateCycle.startTime > CoreEntityUpdater.frameTime) {
+        // Reshedule task when frame time exceeds this updaters frame time. Update called next frame.
+        if (!pUpdateCycle.forcedSync && lStartPerformance - pUpdateCycle.startTime > this.mFrameTime) {
             throw new UpdateResheduleError();
         }
 

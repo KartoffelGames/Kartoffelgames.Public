@@ -19,10 +19,6 @@ import '../../source/module/export/export-extension.ts';
 import { ComponentRegister } from '../../source/core/component/component-register.ts';
 import { Component, type ComponentProcessor } from '../../source/core/component/component.ts';
 import type { CoreEntityProcessorConstructor } from '../../source/core/core_entity/core-entity.ts';
-import { CoreEntityUpdater } from '../../source/core/core_entity/updater/core-entity-updater.ts';
-
-// Define update metrics.
-CoreEntityUpdater.frameTime = Number.MAX_SAFE_INTEGER;
 
 export class TestUtil {
     /**

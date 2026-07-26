@@ -6,8 +6,8 @@ import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { InteractionZone } from '@kartoffelgames/core-interaction-zone';
 import { expect } from '@kartoffelgames/core-test';
 import { ComponentRegister } from '../../../../source/core/component/component-register.ts';
+import { ComponentZoneConfiguration } from '../../../../source/core/component/component-zone-configuration.ts';
 import { Component, type IComponentOnAttributeChange, type IComponentOnDeconstruct, type IComponentOnUpdate } from '../../../../source/core/component/component.ts';
-import { ComponentZoneInjection } from '../../../../source/core/component/component-zone-injection.ts';
 import { PwbComponent } from '../../../../source/core/component/pwb-component.decorator.ts';
 import { ComponentState } from '../../../../source/core/core_entity/component_state/component-state.ts';
 import { CoreEntityUpdateLoopError } from '../../../../source/core/core_entity/updater/core-entity-update-loop-error.ts';
@@ -437,9 +437,9 @@ Deno.test('PwbComponent--Functionality: Parent zone injection', async (pContext)
 
         // Setup. Create a parent zone that holds a component zone injection.
         const lParentZone: InteractionZone = InteractionZone.create('ParentZone');
-        const lZoneInjection: ComponentZoneInjection = new ComponentZoneInjection();
+        const lZoneInjection: ComponentZoneConfiguration = new ComponentZoneConfiguration();
         lZoneInjection.setInjection(TestInjection, lInjectionValue);
-        lParentZone.setAttachment(Component.COMPONENT_INJECTION_ATTACHMENT_KEY, lZoneInjection);
+        lParentZone.setAttachment(ComponentZoneConfiguration.ATTACHMENT_KEY, lZoneInjection);
 
         // Process. Construct the component inside the parent zone.
         const lComponentConstructor: CustomElementConstructor = ComponentRegister.ofConstructor(TestComponent as any).elementConstructor;
@@ -482,9 +482,9 @@ Deno.test('PwbComponent--Functionality: Parent zone injection', async (pContext)
 
         // Setup. Create a nested zone hierarchy with the injection on the root zone.
         const lRootZone: InteractionZone = InteractionZone.create('RootZone');
-        const lZoneInjection: ComponentZoneInjection = new ComponentZoneInjection();
+        const lZoneInjection: ComponentZoneConfiguration = new ComponentZoneConfiguration();
         lZoneInjection.setInjection(TestInjection, lInjectionValue);
-        lRootZone.setAttachment(Component.COMPONENT_INJECTION_ATTACHMENT_KEY, lZoneInjection);
+        lRootZone.setAttachment(ComponentZoneConfiguration.ATTACHMENT_KEY, lZoneInjection);
         const lMiddleZone: InteractionZone = lRootZone.execute(() => {
             return InteractionZone.create('MiddleZone');
         });
@@ -541,10 +541,10 @@ Deno.test('PwbComponent--Functionality: Parent zone injection', async (pContext)
 
         // Setup. Create a parent zone that holds both injections.
         const lParentZone: InteractionZone = InteractionZone.create('ParentZone');
-        const lZoneInjection: ComponentZoneInjection = new ComponentZoneInjection();
+        const lZoneInjection: ComponentZoneConfiguration = new ComponentZoneConfiguration();
         lZoneInjection.setInjection(TestInjectionOne, lInjectionValueOne);
         lZoneInjection.setInjection(TestInjectionTwo, lInjectionValueTwo);
-        lParentZone.setAttachment(Component.COMPONENT_INJECTION_ATTACHMENT_KEY, lZoneInjection);
+        lParentZone.setAttachment(ComponentZoneConfiguration.ATTACHMENT_KEY, lZoneInjection);
 
         // Process. Construct the component inside the parent zone.
         const lComponentConstructor: CustomElementConstructor = ComponentRegister.ofConstructor(TestComponent as any).elementConstructor;

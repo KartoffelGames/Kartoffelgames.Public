@@ -21,7 +21,7 @@ export { InstructionModule } from './core/module/instruction_module/instruction-
 // Component Injections
 export { ComponentElement } from './core/component/component-element.ts';
 export { Component } from './core/component/component.ts';
-export { ComponentZoneInjection } from './core/component/component-zone-injection.ts';
+export { ComponentZoneConfiguration } from './core/component/component-zone-configuration.ts';
 export { ComponentDataLevel } from './core/data/component-data-level.ts';
 
 // Modules

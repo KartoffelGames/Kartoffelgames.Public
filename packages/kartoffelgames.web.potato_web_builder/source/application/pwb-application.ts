@@ -1,8 +1,8 @@
 import type { InjectionConstructor } from '@kartoffelgames/core-dependency-injection';
 import { InteractionZone } from '@kartoffelgames/core-interaction-zone';
 import { type ComponentInformationData, ComponentRegister } from '../core/component/component-register.ts';
-import { Component, type ComponentProcessor, type ComponentProcessorConstructor } from '../core/component/component.ts';
-import { ComponentZoneInjection } from '../core/component/component-zone-injection.ts';
+import { ComponentZoneConfiguration } from '../core/component/component-zone-configuration.ts';
+import type { Component, ComponentProcessor, ComponentProcessorConstructor } from '../core/component/component.ts';
 import { CoreEntityUpdateError } from '../core/core_entity/updater/core-entity-update-error.ts';
 
 /**
@@ -29,7 +29,7 @@ export class PwbApplication {
         }
     }
 
-    private readonly mComponentZoneInjection: ComponentZoneInjection;
+    private readonly mComponentZoneConfiguration: ComponentZoneConfiguration;
     private readonly mContent: Array<Component>;
     private mCurrentTarget: Element | null;
     private readonly mErrorListener: Array<PwbApplicationErrorListener>;
@@ -57,10 +57,10 @@ export class PwbApplication {
         // update zones share it as a common ancestor and their errors can be attributed to this application.
         this.mInteractionZone = InteractionZone.create('PwbApplication');
 
-        // Create the component injection object and attach it to the applications zone so every component created
-        // within this application reads its injections from it.
-        this.mComponentZoneInjection = new ComponentZoneInjection();
-        this.mInteractionZone.setAttachment(Component.COMPONENT_INJECTION_ATTACHMENT_KEY, this.mComponentZoneInjection);
+        // Create the component zone configuration object and attach it to the applications zone,
+        // so every component created within this application reads its  update configuration from it.
+        this.mComponentZoneConfiguration = new ComponentZoneConfiguration();
+        this.mInteractionZone.setAttachment(ComponentZoneConfiguration.ATTACHMENT_KEY, this.mComponentZoneConfiguration);
 
         // Permanently listen on global errors to handle any error originating from this applications zone.
         globalThis.addEventListener('error', (pEvent: ErrorEvent): void => {
@@ -165,8 +165,7 @@ export class PwbApplication {
      * @param pInjectionValue - Actual injected value in replacement for {@link pInjectionTarget}.
      */
     public setInjection(pInjectionTarget: InjectionConstructor, pInjectionValue: any): void {
-        // Add injection to the applications component zone injection.
-        this.mComponentZoneInjection.setInjection(pInjectionTarget, pInjectionValue);
+        this.mComponentZoneConfiguration.setInjection(pInjectionTarget, pInjectionValue);
     }
 
     /**

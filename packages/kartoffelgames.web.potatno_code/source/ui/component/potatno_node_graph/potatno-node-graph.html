@@ -14,5 +14,5 @@ $if(this.selectBox !== null) {
 }
 
 $if(this.popupPosition !== null) {
-    <potatno-node-selection-popup style="left: {{this.popupPosition.screenX}}px; top: {{this.popupPosition.screenY}}px;" (node-select)="this.createNodeOnPopupPosition($event.value)"/>
+    <potatno-node-selection-popup style="left: {{this.popupPosition.local.x}}px; top: {{this.popupPosition.local.y}}px;" (node-select)="this.createNodeOnPopupPosition($event.value)"/>
 }

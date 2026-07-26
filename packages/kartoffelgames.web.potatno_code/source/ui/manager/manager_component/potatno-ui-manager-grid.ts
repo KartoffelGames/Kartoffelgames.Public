@@ -1,3 +1,4 @@
+import { PotatnoCodeUiManagerChangeType, PotatnoUiManager } from "../potatno-ui-manager.ts";
 
 /**
  * Ui manager grid component.
@@ -8,6 +9,7 @@ export class PotatnoUiManagerGrid {
     private static readonly MAX_ZOOM: number = 2.0;
     private static readonly MIN_ZOOM: number = 0.25;
 
+    private readonly mManager: PotatnoUiManager;
     private mPanX: number;
     private mPanY: number;
     private mZoom: number;
@@ -45,7 +47,9 @@ export class PotatnoUiManagerGrid {
      *
      * @param pGridSize - Grid size in pixels.
      */
-    public constructor() {
+    public constructor(pManager: PotatnoUiManager) {
+        this.mManager = pManager;
+
         this.mPanX = 0;
         this.mPanY = 0;
         this.mZoom = 1.0;
@@ -60,6 +64,9 @@ export class PotatnoUiManagerGrid {
     public pan(pDeltaX: number, pDeltaY: number): void {
         this.mPanX += pDeltaX;
         this.mPanY += pDeltaY;
+
+        // Dispatch grid change.
+        this.mManager.dispatch(PotatnoCodeUiManagerChangeType.SpecialGrid, null);
     }
 
     /**
@@ -91,5 +98,8 @@ export class PotatnoUiManagerGrid {
         // Adjust pan so that the world point remains under the same screen position.
         this.mPanX = pScreenX - lWorldX * this.mZoom;
         this.mPanY = pScreenY - lWorldY * this.mZoom;
+
+        // Dispatch grid change.
+        this.mManager.dispatch(PotatnoCodeUiManagerChangeType.SpecialGrid, null);
     }
 }

@@ -112,7 +112,7 @@ export class PotatnoUiManager extends EventTarget {
         this.mConnections = new PotatnoUiManagerConnections(this);
         this.mHistory = new PotatnoUiManagerHistory(this);
         this.mPreview = new PotatnoUiManagerPreview(this);
-        this.mGrid = new PotatnoUiManagerGrid();
+        this.mGrid = new PotatnoUiManagerGrid(this);
         this.mClipboard = new PotatnoUiManagerClipboard(this);
         this.mGraph = new PotatnoUiManagerGraph(this);
     }
@@ -261,6 +261,7 @@ export const PotatnoCodeUiManagerChangeType = {
     // Specials #F00000
     Special: 0xF00000,
     SpecialActiveFunction: 0x100000,
+    SpecialGrid: 0x200000
 } as const;
 export type PotatnoCodeUiManagerChangeType = typeof PotatnoCodeUiManagerChangeType[keyof typeof PotatnoCodeUiManagerChangeType] | number;
 

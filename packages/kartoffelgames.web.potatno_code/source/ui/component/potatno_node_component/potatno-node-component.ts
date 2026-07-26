@@ -143,6 +143,9 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
 
         // Resync nodes transformation on change.
         this.resyncComponent(pNode);
+
+        // Syncron update to reduce popping.
+        this.mComponent.updater.update();
     }
 
     /**

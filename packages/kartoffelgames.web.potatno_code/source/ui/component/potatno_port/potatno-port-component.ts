@@ -110,8 +110,8 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
 
         this.mPort = pPort;
 
-        // Manually update.
-        this.mComponent.updater.updateAsync();
+        // Manually update. Synchron.
+        this.mComponent.updater.update();
     }
 
     /**

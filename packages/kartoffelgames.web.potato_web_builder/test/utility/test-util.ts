@@ -32,8 +32,25 @@ export class TestUtil {
         // Get component.
         const lComponent: HTMLElement = new lComponentConstructor() as any;
 
+        // The component builds on connect (append to document). Catch that error with a global error listener.
+        let lConnectError: Error | null = null;
+        const lErrorListener = (pEvent: ErrorEvent): void => {
+            pEvent.preventDefault();
+            lConnectError = pEvent.error ?? new Error(pEvent.message);
+        };
+        globalThis.window.addEventListener('error', lErrorListener);
+
         // Connect to a document to trigger updates.
-        document.body.appendChild(lComponent);
+        try {
+            document.body.appendChild(lComponent);
+        } finally {
+            globalThis.window.removeEventListener('error', lErrorListener);
+        }
+
+        // Rethrow errors catched on global error listener.
+        if (lConnectError) {
+            throw lConnectError;
+        }
 
         // Wait for any update to happen.
         await TestUtil.waitForUpdate(lComponent);

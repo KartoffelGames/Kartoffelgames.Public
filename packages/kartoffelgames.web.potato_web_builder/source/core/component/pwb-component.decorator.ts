@@ -44,10 +44,6 @@ export function PwbComponent(pParameter: HtmlComponentParameter): ClassDecorator
                 if (pParameter.style) {
                     this.mComponent.addStyle(pParameter.style);
                 }
-
-                // Trigger sync update on construction to prevent poping when using as standalone component.
-                // Trigger even on Manual.
-                this.mComponent.updater.update();
             }
 
             /**

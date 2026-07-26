@@ -20,6 +20,7 @@ export class Component extends CoreEntityUpdateable<ComponentProcessor> {
     private static readonly mTemplateCache: Dictionary<ComponentProcessorConstructor, PwbTemplate> = new Dictionary<ComponentProcessorConstructor, PwbTemplate>();
     private static readonly mXmlParser: PwbTemplateParser = new PwbTemplateParser();
     private readonly mComponentElement: ComponentElement;
+    private mIsUpdated: boolean;
     private readonly mRootBuilder: StaticBuilder;
 
     /**
@@ -55,6 +56,9 @@ export class Component extends CoreEntityUpdateable<ComponentProcessor> {
         }
 
         const lTemplate: PwbTemplate = Component.mTemplateCache.get(pParameter.processorConstructor)!.clone();
+
+        // Not built until the first update happens.
+        this.mIsUpdated = false;
 
         // Create component element.
         this.mComponentElement = new ComponentElement(pParameter.htmlElement);
@@ -102,6 +106,12 @@ export class Component extends CoreEntityUpdateable<ComponentProcessor> {
      * Called when component get attached to DOM.
      */
     public connected(): void {
+        // Build the component once when it was not already built. 
+        // When created by a builder, the builder triggers an update before appending.
+        if (!this.mIsUpdated) {
+            this.updater.update();
+        }
+
         // Call processor event after updating.
         this.call<IComponentOnConnect, 'onConnect'>('onConnect');
     }
@@ -134,6 +144,11 @@ export class Component extends CoreEntityUpdateable<ComponentProcessor> {
      * @returns True when any update happened, false when all values stayed the same.
      */
     protected onUpdate(): boolean {
+        // Mark as built. Small runtime performance by checking before setting.
+        if (!this.mIsUpdated) {
+            this.mIsUpdated = true;
+        }
+
         // Update and callback after update.
         if (this.mRootBuilder.update()) {
             // Call component processor on update function.

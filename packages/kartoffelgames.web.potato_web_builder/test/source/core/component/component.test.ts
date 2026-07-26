@@ -202,7 +202,7 @@ Deno.test('PwbComponent--Functionality: Add local styles', async (pContext) => {
     });
 });
 
-Deno.test('PwbComponent--Functionality: Initial update on creation', async (pContext) => {
+Deno.test('PwbComponent--Functionality: Initial update on connect', async (pContext) => {
     await pContext.step('Default', async () => {
         // Setup.
         const lInitialValue: string = 'Initial value';
@@ -216,9 +216,8 @@ Deno.test('PwbComponent--Functionality: Initial update on creation', async (pCon
             public value: string = lInitialValue;
         }
 
-        // Process. Create element.
-        const lComponentConstructor: CustomElementConstructor = ComponentRegister.ofConstructor(TestComponent as any).elementConstructor;
-        const lComponent: HTMLElement = new lComponentConstructor() as any;
+        // Process. Create element. The component builds itself when it is connected to the dom.
+        const lComponent: HTMLElement = await TestUtil.createComponent(TestComponent);
 
         // Evaluation.
         expect(lComponent).toBeComponentStructure([

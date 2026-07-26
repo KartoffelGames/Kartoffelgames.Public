@@ -99,7 +99,8 @@ export class PotatnoPreviewDisplay<TProjectTypes extends PotatnoProjectTypesDefi
     }
 
     /**
-     * Whether this display can render values of the given type — an adapter exists for it.
+     * Whether this display can render values of the given type.
+     * Meaning that an adapter exists for it.
      *
      * @param pTypeName - The type name to check.
      *
@@ -147,7 +148,7 @@ export class PotatnoPreviewDisplay<TProjectTypes extends PotatnoProjectTypesDefi
 }
 
 /**
- * Per-type adapter record contract — the union of types a display can render.
+ * Per-type adapter record.
  */
 export type PotatnoPreviewDisplayTypeAdapters<TResultType extends string, TResult> = {
     [K in TResultType]: PotatnoPreviewDisplayTypeAdapter<TResult>;

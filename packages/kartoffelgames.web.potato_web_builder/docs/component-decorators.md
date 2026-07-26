@@ -291,16 +291,16 @@ import { PwbComponent, PwbChild, PwbExport } from '@kartoffelgames/web-potato-we
 })
 class FormComponent {
     @PwbChild('emailInput')
-    public accessor emailInput!: HTMLInputElement;
+    public accessor emailInput!: HTMLInputElement | null;
 
     @PwbExport
     public focusEmail(): void {
-        this.emailInput.focus();
+        this.emailInput?.focus();
     }
 }
 ```
 
-The `#emailInput` attribute registers the `<input>` element in the component data store. The `@PwbChild('emailInput')` decorator creates a getter that retrieves this reference.
+The `#emailInput` attribute registers the `<input>` element in the component data store. The `@PwbChild('emailInput')` decorator creates a getter that retrieves this reference. The getter resolves the reference lazily on each access and returns `null` when the element is not currently registered, so the property type is `HTMLInputElement | null`.
 
 ### Multiple Child References
 
@@ -314,22 +314,28 @@ The `#emailInput` attribute registers the `<input>` element in the component dat
 })
 class MultiRef {
     @PwbChild('firstInput')
-    public accessor firstInput!: HTMLInputElement;
+    public accessor firstInput!: HTMLInputElement | null;
 
     @PwbChild('secondInput')
-    public accessor secondInput!: HTMLInputElement;
+    public accessor secondInput!: HTMLInputElement | null;
 }
 ```
 
-### Error Handling
+### Missing Children
 
-If the specified child name does not match any `#name` in the template, accessing the property throws:
+`@PwbChild` resolves the reference on each access. When no element with the given `#name` is currently registered, the accessor returns `null` instead of throwing. This happens when:
 
+- the name does not match any `#name` in the template.
+- the element has not been built yet. For example, a bound input setter that runs *before* the component's first build (bindings are applied before the component builds its view).
+- the element is currently removed. For example, an element inside a `$if` block that is not rendered.
+
+Always null-check the reference, or only access it once the view is built (for example in `onUpdate` or `onConnect`):
+
+```typescript
+this.emailInput?.focus();
 ```
-Can't find child "wrongName".
-```
 
-Using `@PwbChild` outside of a component class throws:
+Using `@PwbChild` outside of a component class still throws:
 
 ```
 PwbChild target class is not a component.
@@ -343,7 +349,7 @@ PwbChild target class is not a component.
 class BaseForm {
     @PwbExport
     @PwbChild('submitBtn')
-    public accessor submitBtn!: HTMLButtonElement;
+    public accessor submitBtn!: HTMLButtonElement | null;
 }
 
 @PwbComponent({
@@ -356,4 +362,4 @@ class ExtendedForm extends BaseForm { }
 ### Restrictions
 
 - Cannot be used on static properties.
-- The referenced element must exist in the template when the property is accessed.
+- Resolves to `null` when the referenced element is not currently part of the built template.

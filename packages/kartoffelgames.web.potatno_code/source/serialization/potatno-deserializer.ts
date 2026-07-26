@@ -111,7 +111,7 @@ export class PotatnoDeserializer<TProjectTypes extends PotatnoProjectTypesDefini
                 return pFunction.addNodeByDefinition(lDefinition, pData.transformation);
             }
 
-            // Definition is gone — reconstruct from the serialized port snapshot.
+            // Definition is gone. Reconstruct from the serialized port snapshot.
             const lInputPorts: Array<PotatnoDocumentNodePortConfiguration<TProjectTypes>> = pData.ports.filter((pPort) => pPort.direction === 'input').map((pPort) => {
                 return {
                     dataType: pPort.dataType,

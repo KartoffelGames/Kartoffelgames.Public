@@ -29,7 +29,7 @@ export class FileApiFileSystem extends FileSystem {
      *
      * @param pParentReference - The reference (path) of the parent directory.
      * @param pName - The name of the item within the parent directory.
-     * @param _pReference - The reference of the item to delete (unused — parent + name is sufficient for FileApi).
+     * @param _pReference - The reference of the item to delete (unused).
      *
      * @returns `true` if the item was deleted, `false` if it did not exist.
      */

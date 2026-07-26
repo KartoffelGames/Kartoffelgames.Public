@@ -59,9 +59,7 @@ export class PotatnoPreviewFunctionExecutor<TProjectTypes extends PotatnoProject
     }
 
     /**
-     * Compile the generator result into a per-iteration build result. The whole document result is
-     * passed — entry function plus every dependency declaration — so previews of graphs calling
-     * user functions have those in scope.
+     * Compile the generator result into a executable function.
      *
      * @param pGeneratorResult - The document-level code generator result.
      * @param pPortTarget - The previewed port plus its resolved value identifier, or `null` for a function-level preview.
@@ -100,9 +98,7 @@ export type PotatnoPreviewFunctionExecutorBuildContext<TProjectTypes extends Pot
 };
 
 /**
- * Iteration callable produced by the build callback and invoked per iteration. The result shape is
- * `unknown` so async executors (WebGPU dispatch, audio worklet) fit alongside compiled JS — the
- * driver awaits every result and coerces it through the display's type adapter.
+ * Executable function for a "compiled" graph function.
  */
 export type PotatnoPreviewFunctionExecutorCallable<TParams> = (pParameters: TParams) => unknown | Promise<unknown>;
 

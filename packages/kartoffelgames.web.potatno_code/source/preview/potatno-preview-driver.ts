@@ -55,8 +55,8 @@ export class PotatnoPreviewDriver<TProjectTypes extends PotatnoProjectTypesDefin
     }
 
     /**
-     * Run one render pass with the last compiled callable. Never compiles — an unrefreshed or
-     * unresolved driver is skipped, keeping the previously rendered preview visible.
+     * Run one render pass with the last compiled callable. 
+     * Never compiles a graph. It only executes a cached execution instance.
      *
      * @returns A promise resolving when the display's update pass completes.
      */
@@ -109,13 +109,13 @@ export class PotatnoPreviewDriver<TProjectTypes extends PotatnoProjectTypesDefin
             lPortTarget = this.resolvePortTarget(lGeneratorResult, this.mTarget);
 
             // When no port was found, abort!
-            if(!lPortTarget) {
+            if (!lPortTarget) {
                 // Stop execution of updates and cancel refresh.
                 this.mCachedCallable = null;
                 return;
             }
         }
-        
+
         // Build the result.
         const lBuildResult: PotatnoPreviewFunctionExecutorBuildResult<Record<string, unknown>, PotatnoPreviewResultType<TProjectTypes>> = this.mDisplay.executor.compile(lGeneratorResult, lPortTarget);
 
@@ -194,8 +194,7 @@ export class PotatnoPreviewDriver<TProjectTypes extends PotatnoProjectTypesDefin
 }
 
 /**
- * Compiled iteration callable handed to the display's `update` loop — parameter merge and adapter
- * coercion baked in.
+ * Compiled and executable function pointer of a graph function. 
  */
 type PotatnoPreviewDriverCallable = (pParameters: Record<string, unknown>) => Promise<unknown>;
 

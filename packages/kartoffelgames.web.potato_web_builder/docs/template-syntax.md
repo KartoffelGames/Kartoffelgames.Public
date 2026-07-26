@@ -432,8 +432,8 @@ The `#name` syntax registers a DOM element reference by name, accessible through
 })
 class RefDemo {
     @PwbChild('myInput')
-    public accessor myInput!: HTMLInputElement;
+    public accessor myInput!: HTMLInputElement | null;
 }
 ```
 
-See [Component Decorators](./component-decorators.md) for details on `@PwbChild`.
+The reference resolves to `null` while the element is not part of the built template. See [Component Decorators](./component-decorators.md) for details on `@PwbChild`.

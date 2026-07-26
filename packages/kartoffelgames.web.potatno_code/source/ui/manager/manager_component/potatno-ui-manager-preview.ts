@@ -10,15 +10,7 @@ import { PotatnoCodeUiManagerChangeType, type PotatnoUiManager } from '../potatn
 // TODO: Cleanup preview driver for each target.
 
 /**
- * Owner of every live preview driver. Each previewable document item — a node with a preview opt-in
- * or a document function shown in the main panel — maps to at most one {@link PotatnoPreviewDriver}.
- * Components request a driver via {@link nodeDriver} / {@link functionDriver}; a weak list of all
- * live drivers is recompiled on a structural change ({@link refresh}) and rendered every frame
- * ({@link execute}).
- *
- * Drivers are self-contained — building the preview element, regenerating and compiling the code
- * and rendering all happen inside the driver. This component only decides when each driver
- * refreshes and executes, and which driver belongs to which document item.
+ * Handles the UI previews by caching its driver and manages references and cleanup.
  */
 export class PotatnoUiManagerPreview {
     private readonly mDriverActivity: WeakMap<PotatnoPreviewDriver<PotatnoProjectTypesDefinition>, boolean>;

@@ -464,7 +464,6 @@ export class PotatnoCodeGenerator<TProjectTypes extends PotatnoProjectTypesDefin
 
     /**
      * Collect the real upstream flow output ports connected to a node's flow inputs.
-     * A single flow input may fan in from multiple upstream output ports, and each one may itself be on a chain of flow conjunctions that fan further out — those are resolved through to the real (non-conjunction) source ports.
      *
      * @param pNode - The node whose flow-input upstream source ports to collect.
      *

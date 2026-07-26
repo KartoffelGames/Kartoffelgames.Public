@@ -21,12 +21,12 @@ Deno.test('PwbChild--Functionality: Read id child', async (pContext) => {
         class TestComponent {
             @PwbExport
             @PwbChild(lIdName)
-            public accessor idChild!: HTMLDivElement;
+            public accessor idChild!: HTMLDivElement | null;
         }
 
         // Setup. Create element.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
-        const lComponentIdChild: HTMLDivElement = lComponent.idChild;
+        const lComponentIdChild: HTMLDivElement | null = lComponent.idChild;
         const lRealIdChild: HTMLDivElement = TestUtil.getComponentNode(lComponent, 'div');
 
         // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
@@ -43,14 +43,17 @@ Deno.test('PwbChild--Functionality: Read child inside a bound setter before the 
         const lInnerId: string = 'InnerChild';
         const lChildSelector: string = TestUtil.randomSelector();
 
-        // Setup. Child component whose exported input setter reaches into its own @PwbChild view.
+        // Captures what the childs @PwbChild resolves to while its setter runs before the first build.
+        let lInnerWhileBinding: HTMLDivElement | null | undefined = undefined;
+
+        // Setup. Child component whose exported input setter reads its own @PwbChild view.
         @PwbComponent({
             selector: lChildSelector,
             template: `<div #${lInnerId}/>`
         })
         class ChildComponent {
             @PwbChild(lInnerId)
-            public accessor inner!: HTMLDivElement;
+            public accessor inner!: HTMLDivElement | null;
 
             private mValue: string = '';
 
@@ -60,8 +63,8 @@ Deno.test('PwbChild--Functionality: Read child inside a bound setter before the 
             } set value(pValue: string) {
                 this.mValue = pValue;
 
-                // Reaches into the components own view. Only available once the component is built.
-                this.inner.setAttribute('data-value', pValue);
+                // The view is not built yet on the initial binding, so the child is not resolvable.
+                lInnerWhileBinding = this.inner;
             }
         }
 
@@ -76,15 +79,10 @@ Deno.test('PwbChild--Functionality: Read child inside a bound setter before the 
         }
 
         // Process. Create the parent. The childs binding is applied before the child is built.
-        let lErrorMessage: string | null = null;
-        try {
-            await TestUtil.createComponent(ParentComponent);
-        } catch (pError) {
-            lErrorMessage = (pError as Error).message;
-        }
+        await TestUtil.createComponent(ParentComponent);
 
-        // Evaluation. The child view is not built yet, so its @PwbChild can not be resolved.
-        expect(lErrorMessage).toBe(`Can't find child "${lInnerId}".`);
+        // Evaluation. Reading a not-yet-built child returns null instead of throwing.
+        expect(lInnerWhileBinding).toBeNull();
     });
 });
 
@@ -101,7 +99,7 @@ Deno.test('PwbChild--Functionality: Read child after build when created by a par
         })
         class ChildComponent {
             @PwbChild(lInnerId)
-            public accessor inner!: HTMLDivElement;
+            public accessor inner!: HTMLDivElement | null;
 
             private mValue: string = '';
 
@@ -114,7 +112,7 @@ Deno.test('PwbChild--Functionality: Read child after build when created by a par
 
             public onUpdate(): void {
                 // The view is built when onUpdate runs, so the child is available.
-                this.inner.setAttribute('data-value', this.mValue);
+                this.inner?.setAttribute('data-value', this.mValue);
             }
         }
 
@@ -154,7 +152,7 @@ Deno.test('PwbChild--Functionality: Forbidden static property use', async (pCont
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             class TestComponent {
                 @PwbChild('Name')
-                public static accessor idChild: HTMLDivElement;
+                public static accessor idChild: HTMLDivElement | null;
             }
         };
 
@@ -176,17 +174,14 @@ Deno.test('PwbChild--Functionality: Read with wrong id child name', async (pCont
         class TestComponent {
             @PwbExport
             @PwbChild(lWrongName)
-            public accessor idChild!: HTMLDivElement;
+            public accessor idChild!: HTMLDivElement | null;
         }
 
         // Setup. Create element.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
-        const lErrorFunction = () => {
-            return lComponent.idChild;
-        };
 
-        // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
-        expect(lErrorFunction).toThrow(`Can't find child "${lWrongName}".`);
+        // Evaluation. A child that does not exist resolves to null instead of throwing.
+        expect(lComponent.idChild).toBeNull();
 
         // Wait for any update to finish to prevent timer leaks.
         await TestUtil.waitForUpdate(lComponent);
@@ -198,7 +193,7 @@ Deno.test('PwbChild--Functionality: Child decorator on non-Component object', as
         // Setup. Define class.
         class TestClass {
             @PwbChild('SomeName')
-            public accessor child!: HTMLElement;
+            public accessor child!: HTMLElement | null;
         }
 
         // Process. Create class and read child.
@@ -221,7 +216,7 @@ Deno.test('PwbChild--Functionality: Read inherited id child', async (pContext) =
         class ParentClass {
             @PwbExport
             @PwbChild(lIdName)
-            public accessor idChild!: HTMLDivElement;
+            public accessor idChild!: HTMLDivElement | null;
         }
 
         // Setup. Define component.
@@ -233,7 +228,7 @@ Deno.test('PwbChild--Functionality: Read inherited id child', async (pContext) =
 
         // Setup. Create element.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
-        const lComponentIdChild: HTMLDivElement = lComponent.idChild;
+        const lComponentIdChild: HTMLDivElement | null = lComponent.idChild;
         const lRealIdChild: HTMLDivElement = TestUtil.getComponentNode(lComponent, 'div');
 
         // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
@@ -259,7 +254,7 @@ Deno.test('PwbChild--Functionality: Remove id child', async (pContext) => {
         class TestComponent {
             @PwbExport
             @PwbChild(lIdName)
-            public accessor idChild!: HTMLDivElement;
+            public accessor idChild!: HTMLDivElement | null;
 
             @PwbExport
             @ComponentState.state()
@@ -270,12 +265,9 @@ Deno.test('PwbChild--Functionality: Remove id child', async (pContext) => {
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
         lComponent.showChild = false;
         await TestUtil.waitForUpdate(lComponent);
-        const lErrorFunction = () => {
-            return lComponent.idChild;
-        };
 
-        // Evaluation.
-        expect(lErrorFunction).toThrow(`Can't find child "${lIdName}".`);
+        // Evaluation. Once removed, the child resolves to null instead of throwing.
+        expect(lComponent.idChild).toBeNull();
 
         // Wait for any update to finish to prevent timer leaks.
         await TestUtil.waitForUpdate(lComponent);

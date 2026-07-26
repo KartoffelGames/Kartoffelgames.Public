@@ -1,11 +1,6 @@
 /**
- * Registry of valid project-level types together with their default values, conversion rules and
- * editor input metadata.
- *
- * The generic captures the JS value shape of each registered type (extracted from the
- * `default.value` field at the call site). This lets type-aware consumers — most notably the
- * preview type adapters — recover the original JS type for a given type name without runtime
- * lookups.
+ * Registry of valid project-level types together with their default values, 
+ * conversion rules and editor input metadata.
  *
  * @typeParam TValueMap - Map of type name to its representative JS value shape.
  * @typeParam TTypeName - Union of registered type names inferred from `TValueMap`.

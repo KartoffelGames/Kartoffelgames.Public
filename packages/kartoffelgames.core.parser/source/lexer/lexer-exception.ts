@@ -5,8 +5,6 @@ import { Exception } from '@kartoffelgames/core';
  * 
  * @typeParam T - Exception target type.
  * 
- * @see — https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error
- * 
  * @public
  */
 export class LexerException<T> extends Exception<T> {

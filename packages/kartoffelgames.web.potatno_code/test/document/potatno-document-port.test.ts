@@ -701,7 +701,7 @@ Deno.test('PotatnoDocumentPort - Validation', async (pContext) => {
     });
 
     await pContext.step('Output value generic unresolved', () => {
-        // Setup. Only `a` connected, `b` left unconnected — output cannot resolve `<T>`.
+        // Setup. Only `a` connected, `b` left unconnected, output cannot resolve `<T>`.
         const { function: lFunction, defaultEntry: lDefaultEntry } = PotatnoHelper.setupCalculatorDocument();
         const lPickNode = PotatnoHelper.addProjectNode(lFunction, 'Pick');
         lDefaultEntry.outputs.value.find((pPort) => pPort.definitionId === 'a')!

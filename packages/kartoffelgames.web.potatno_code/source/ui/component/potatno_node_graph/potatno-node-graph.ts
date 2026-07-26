@@ -50,7 +50,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      * selecting pointer move so the bound `selectionBoxStyle` re-renders and the box tracks the cursor.
      */
     @ComponentState.state({ complexValue: true })
-    private accessor mSelectionBoxScreen: SelectionBoxScreen | null;
+    private accessor mSelectionBoxScreen: PotatnoNodeGraphSelectBox | null;
 
     /**
      * State for the add-node popup opened from the graph context menu.
@@ -518,7 +518,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
     /**
      * Select all nodes intersecting the current selection box.
      */
-    private selectNodesInBox(pBox: SelectionBoxScreen): void {
+    private selectNodesInBox(pBox: PotatnoNodeGraphSelectBox): void {
         const lActiveFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null = this.mManager.activeFunction;
         if (!lActiveFunction) {
             return;
@@ -573,11 +573,6 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
     }
 }
 
-export type NodeViewState = {
-    node: PotatnoDocumentNode<PotatnoProjectTypesDefinition>;
-    selected: boolean;
-};
-
 type GraphInteractionState =
     | { mode: 'idle'; }
     | { mode: 'panning'; startX: number; startY: number; }
@@ -597,7 +592,7 @@ type Point = {
     y: number;
 };
 
-type SelectionBoxScreen = {
+type PotatnoNodeGraphSelectBox = {
     x1: number;
     x2: number;
     y1: number;

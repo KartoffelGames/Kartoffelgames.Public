@@ -2,10 +2,14 @@ import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { Component, ComponentState, PwbComponent, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
+import { PotatnoCommentNodeDefinition } from "../../../project/node_definition/potatno-comment-node-definition.ts";
+import { PotatnoFlowConjunctionNodeDefinition } from "../../../project/node_definition/potatno-flow-conjunction-node-definition.ts";
 import type { PotatnoNodeDefinition } from '../../../project/node_definition/potatno-node-definition.ts';
+import { PotatnoValueConjunctionNodeDefinition } from "../../../project/node_definition/potatno-value-conjunction-node-definition.ts";
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, type PotatnoCodeUiManagerUnsubscribe } from '../../manager/potatno-ui-manager.ts';
 import { PotatnoNodeSelectionPopupComponent } from '../potatno-node-selection-popup/potatno-node-selection-popup-component.ts';
+import { PotatnoCommentNodeComponent } from "../potatno_comment-node/potatno-comment-node-component.ts";
 import { PotatnoConnectionLayerComponent } from '../potatno_connection_layer/potatno-connection-layer-component.ts';
 import { PotatnoNodeComponent, type PotatnoNodeComponentMove } from '../potatno_node_component/potatno-node-component.ts';
 import graphCss from './potatno-node-graph.css' with { type: 'text' };
@@ -20,7 +24,7 @@ import graphTemplate from './potatno-node-graph.html' with { type: 'text' };
     selector: 'potatno-node-graph',
     template: graphTemplate,
     style: graphCss,
-    components: [PotatnoNodeSelectionPopupComponent, PotatnoNodeComponent, PotatnoConnectionLayerComponent,]
+    components: [PotatnoNodeSelectionPopupComponent, PotatnoNodeComponent, PotatnoCommentNodeComponent, PotatnoConnectionLayerComponent,]
 })
 export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDeconstruct {
     private static readonly ZOOM_STRENGTH: number = 0.1;
@@ -99,8 +103,8 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
         this.selectBox = null;
 
         // Add user events directly to the component element.
-        pComponent.element.addEventListener('pointerdown', (pEvent) => { this.onCanvasPointerDown(pEvent); });
-        pComponent.element.addEventListener('wheel', (pEvent) => { this.onCanvasWheel(pEvent); });
+        pComponent.element.addEventListener('pointerdown', (pEvent) => { this.onPointerDown(pEvent); });
+        pComponent.element.addEventListener('wheel', (pEvent) => { this.onScroll(pEvent); });
 
         // Suppress the native menu; the right-click interaction itself is handled in the pointerdown.
         pComponent.element.addEventListener('contextmenu', (pEvent) => { pEvent.preventDefault(); });
@@ -150,7 +154,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      *
      * @param pEvent - Pointer event from the graph wrapper.
      */
-    public onCanvasPointerDown(pEvent: PointerEvent): void {
+    private onPointerDown(pEvent: PointerEvent): void {
         this.popupPosition = null;
 
         switch (pEvent.button) {
@@ -186,7 +190,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      *
      * @param pEvent - Wheel event from the graph wrapper.
      */
-    public onCanvasWheel(pEvent: WheelEvent): void {
+    private onScroll(pEvent: WheelEvent): void {
         pEvent.preventDefault();
 
         // Get zoom direction and set a zoom strength constant.
@@ -223,6 +227,27 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
         // After creation, select the new node as sole node.
         this.clearSelection();
         this.mSelectedNodes.add(lNode);
+    }
+
+    /**
+     * Get type of node.
+     * 
+     * @param pNode - Document node reference.
+     * 
+     * @returns the typename of a node. 
+     */
+    public typeOfNode(pNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition>): PotatnoNodeGraphComponentNodeType {
+        switch (pNode.definitionId) {
+            // Comments
+            case PotatnoCommentNodeDefinition.DEFINITION_ID: return 'comment';
+
+            // Both conjunctions share the same type.
+            case PotatnoValueConjunctionNodeDefinition.DEFINITION_ID:
+            case PotatnoFlowConjunctionNodeDefinition.DEFINITION_ID: return 'conjunction';
+
+            // Anything else are nodes.
+            default: return 'node';
+        }
     }
 
     /**
@@ -464,7 +489,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      *
      * @returns grid pixel coordinates.
      */
-    public convertLocalToGridCoordinate(pLocalX: number, pLocalY: number): { x: number; y: number; } {
+    private convertLocalToGridCoordinate(pLocalX: number, pLocalY: number): { x: number; y: number; } {
         return {
             x: (pLocalX - this.mManager.grid.panX) / this.mManager.grid.zoom,
             y: (pLocalY - this.mManager.grid.panY) / this.mManager.grid.zoom
@@ -553,3 +578,5 @@ type PotatnoNodeGraphComponentGridRectange = {
     bottom: number;
     left: number;
 };
+
+type PotatnoNodeGraphComponentNodeType = 'node' | 'comment' | 'conjunction';

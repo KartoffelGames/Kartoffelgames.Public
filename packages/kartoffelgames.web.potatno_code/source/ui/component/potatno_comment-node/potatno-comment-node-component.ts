@@ -20,7 +20,7 @@ import nodeTemplate from './potatno-comment-node-component.html' with { type: 't
  * Handles resize and position on its own.
  */
 @PwbComponent({
-    selector: 'potatno-node',
+    selector: 'potatno-comment-node',
     template: nodeTemplate,
     style: nodeCss,
     modules: [PotatnoPreviewModule],

@@ -56,6 +56,11 @@ export class PotatnoConnectionLayerComponent implements IComponentOnDeconstruct 
      * @param pEvent - Context menu event from the SVG layer.
      */
     public onConnectionDelete(pEvent: MouseEvent): void {
+        // Must be right button.
+        if (pEvent.button !== 2) {
+            return;
+        }
+
         if (!(pEvent.target instanceof Element)) {
             return;
         }
@@ -147,7 +152,7 @@ export class PotatnoConnectionLayerComponent implements IComponentOnDeconstruct 
             for (const lOutputPort of lNode.outputs.list) {
                 for (const lConnectedPort of lOutputPort.connectedPorts) {
                     const lConnectionId: number = lConnectionIndex++;
-                    
+
                     // store the connection to later delete it by id.
                     this.mConnectionRegistry.set(lConnectionId, {
                         sourcePort: lOutputPort,

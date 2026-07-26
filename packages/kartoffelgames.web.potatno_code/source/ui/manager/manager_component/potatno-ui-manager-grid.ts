@@ -1,7 +1,7 @@
 
 /**
  * Ui manager grid component.
- * Owns grid sizing and rendered port component lookup for the graph UI.
+ * Owns grid sizing and panning.
  */
 export class PotatnoUiManagerGrid {
     private static readonly GRID_SIZE: number = 25;
@@ -52,33 +52,6 @@ export class PotatnoUiManagerGrid {
     }
 
     /**
-     * Get a CSS background style string that renders the grid pattern.
-     * The grid accounts for the current pan and zoom values.
-     *
-     * @returns CSS background property value for the grid pattern.
-     */
-    public getGridBackgroundCss(): string {
-        const lScaledGrid: number = PotatnoUiManagerGrid.GRID_SIZE * this.mZoom;
-        const lOffsetX: number = this.mPanX % lScaledGrid;
-        const lOffsetY: number = this.mPanY % lScaledGrid;
-        
-        return [
-            `background-size: ${lScaledGrid}px ${lScaledGrid}px`,
-            `background-position: ${lOffsetX}px ${lOffsetY}px`,
-        ].join('; ');
-    }
-
-    /**
-     * Get a CSS transform string representing the current pan and zoom state.
-     * Intended for use on the grid/content container.
-     *
-     * @returns CSS transform value string.
-     */
-    public getTransformCss(): string {
-        return `translate(${this.mPanX}px, ${this.mPanY}px) scale(${this.mZoom})`;
-    }
-
-    /**
      * Update pan offset by the given deltas.
      *
      * @param pDeltaX - Horizontal delta in screen pixels.
@@ -87,37 +60,6 @@ export class PotatnoUiManagerGrid {
     public pan(pDeltaX: number, pDeltaY: number): void {
         this.mPanX += pDeltaX;
         this.mPanY += pDeltaY;
-    }
-
-    /**
-     * Convert screen coordinates to world coordinates by reversing the
-     * pan and zoom transforms.
-     *
-     * @param pScreenX - X position in screen pixels.
-     * @param pScreenY - Y position in screen pixels.
-     *
-     * @returns World coordinates.
-     */
-    public screenToWorld(pScreenX: number, pScreenY: number): { x: number; y: number; } {
-        return {
-            x: (pScreenX - this.mPanX) / this.mZoom,
-            y: (pScreenY - this.mPanY) / this.mZoom
-        };
-    }
-
-    /**
-     * Snap the given world coordinates to the nearest grid point.
-     *
-     * @param pWorldX - X position in world coordinates.
-     * @param pWorldY - Y position in world coordinates.
-     *
-     * @returns Snapped world coordinates.
-     */
-    public snapToGrid(pWorldX: number, pWorldY: number): { x: number; y: number; } {
-        return {
-            x: Math.round(pWorldX / PotatnoUiManagerGrid.GRID_SIZE) * PotatnoUiManagerGrid.GRID_SIZE,
-            y: Math.round(pWorldY / PotatnoUiManagerGrid.GRID_SIZE) * PotatnoUiManagerGrid.GRID_SIZE
-        };
     }
 
     /**

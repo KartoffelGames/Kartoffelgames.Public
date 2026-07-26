@@ -9,8 +9,8 @@
     }
 </div>
 
-$if(this.showSelectionBox) {
-    <div class="selection-box" [style]="this.selectionBoxStyle"></div>
+$if(this.selectBox !== null) {
+    <div class="selection-box" style="left: {{this.selectBox.x}}px; top: {{this.selectBox.y}}px; width: {{this.selectBox.width}}px; height: {{this.selectBox.height}}px;"></div>
 }
 
 $if(this.popupPosition !== null) {

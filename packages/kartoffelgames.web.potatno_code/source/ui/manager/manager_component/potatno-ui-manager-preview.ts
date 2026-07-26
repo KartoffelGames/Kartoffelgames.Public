@@ -56,7 +56,7 @@ export class PotatnoUiManagerPreview {
 
         // In-place edits keep the same items: recompile live drivers after a debounce.
         let lDebounce: number = 0;
-        const lStructuralEvents: number = PotatnoCodeUiManagerChangeType.Connection | PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.Node;
+        const lStructuralEvents: number = PotatnoCodeUiManagerChangeType.Connection | PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.NodeAdd | PotatnoCodeUiManagerChangeType.NodeDelete | PotatnoCodeUiManagerChangeType.NodeUpdate;
         this.mManager.subscribe(lStructuralEvents, () => {
             globalThis.clearTimeout(lDebounce);
             lDebounce = globalThis.setTimeout(() => this.refresh(), 1000) as unknown as number;

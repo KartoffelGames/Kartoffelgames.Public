@@ -4,8 +4,8 @@ import { PotatnoNodeDefinition } from './potatno-node-definition.ts';
 
 export class PotatnoFlowConjunctionNodeDefinition<TProjectTypes extends PotatnoProjectTypesDefinition> extends PotatnoNodeDefinition<TProjectTypes> {
     /**
-     * Stable definition id for this built-in node. Exposed so the code
-     * generator can detect conjunction nodes and skip them during walks.
+     * Stable definition id for this built-in node.
+     * Exposed so the code generator can detect conjunction nodes and skip them during walks.
      */
     public static readonly DEFINITION_ID: string = '23e9319b-3b62-4dd8-858a-17d97ddee94e';
 

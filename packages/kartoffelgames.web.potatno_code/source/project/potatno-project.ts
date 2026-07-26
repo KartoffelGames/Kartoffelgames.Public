@@ -1,5 +1,6 @@
 import type { PotatnoCodeGeneratorDocumentResult } from '../parser/result/potatno-code-generator-document-result.ts';
 import { PotatnoPreview } from '../preview/potatno-preview.ts';
+import { PotatnoCommentNodeDefinition } from "./node_definition/potatno-comment-node-definition.ts";
 import { PotatnoFlowConjunctionNodeDefinition } from './node_definition/potatno-flow-conjunction-node-definition.ts';
 import type { PotatnoNodeDefinition } from './node_definition/potatno-node-definition.ts';
 import type { PotatnoStaticNodeDefinition } from './node_definition/potatno-static-node-definition.ts';
@@ -93,9 +94,10 @@ export class PotatnoProject<TProjectTypes extends PotatnoProjectTypesDefinition>
         // Add endpoint function definition.
         this.mEntryPoint = pEntryFunction;
 
-        // Built-in conjunction pass-through nodes are always available in every project.
+        // Built-in conjunction pass-through nodes and comments are always available in every project.
         this.addNodeDefinition(new PotatnoFlowConjunctionNodeDefinition());
         this.addNodeDefinition(new PotatnoValueConjunctionNodeDefinition());
+        this.addNodeDefinition(new PotatnoCommentNodeDefinition());
     }
 
     /**

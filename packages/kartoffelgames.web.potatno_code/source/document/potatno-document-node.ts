@@ -1,4 +1,5 @@
 import { Exception } from '@kartoffelgames/core';
+import { PotatnoCommentNodeDefinition } from "../project/node_definition/potatno-comment-node-definition.ts";
 import { PotatnoFlowConjunctionNodeDefinition } from '../project/node_definition/potatno-flow-conjunction-node-definition.ts';
 import { PotatnoNodeDefinition } from '../project/node_definition/potatno-node-definition.ts';
 import { PotatnoValueConjunctionNodeDefinition } from '../project/node_definition/potatno-value-conjunction-node-definition.ts';
@@ -178,7 +179,7 @@ export class PotatnoDocumentNode<TProjectTypes extends PotatnoProjectTypesDefini
     /**
      * Resize the node (comment nodes).
      */
-    public resizeTo(_pWidth: number, _pHeight: number): void {
+    public resizeTo(pWidth: number, pHeight: number): void {
         // Find the definition in the function's available node definitions.
         const lNodeDefinition: PotatnoNodeDefinition<TProjectTypes> | undefined = this.mFunction.nodeDefinitions.find((pNodeDefinition) => {
             return pNodeDefinition.id === this.mDefinitionId;
@@ -186,14 +187,13 @@ export class PotatnoDocumentNode<TProjectTypes extends PotatnoProjectTypesDefini
 
         const [lWidth, lHeight] = (() => {
             switch (true) {
-                // TODO: Not implemented yet
-                //case lNodeDefinition instanceof PotatnoCommentNodeDefinition: {
-                //    // Restrict comments to be minimal 2 width and height. 
-                //    return [
-                //        Math.max(2, pWidth),
-                //        Math.max(2, pHeight)
-                //    ];
-                //}
+                // Restrict comments to be minimal 2 width and height. 
+                case lNodeDefinition instanceof PotatnoCommentNodeDefinition: {
+                    return [
+                        Math.max(2, pWidth),
+                        Math.max(2, pHeight)
+                    ];
+                }
 
                 // Conjunctions are allways 1,1.
                 case lNodeDefinition instanceof PotatnoValueConjunctionNodeDefinition:

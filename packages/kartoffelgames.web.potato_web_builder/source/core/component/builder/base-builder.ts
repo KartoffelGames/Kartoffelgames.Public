@@ -114,43 +114,6 @@ export abstract class BaseBuilder<TTemplates extends IPwbTemplateNode = IPwbTemp
     }
 
     /**
-     * Create new html element.
-     * When the element is a custom element, it invokes the custom element constructor instead of an unknown html element.
-     * 
-     * Ignores all attribute and expression informations and only uses the tagname information.
-     * 
-     * @param pXmlElement - Xml content node.
-     */
-    protected createHtmlElement(pXmlElement: PwbTemplateXmlNode): Element {
-        const lTagname: string = pXmlElement.tagName;
-
-        if (typeof lTagname !== 'string') {
-            throw lTagname;
-        }
-
-        // On custom element
-        if (lTagname.includes('-')) {
-            // Get custom element.
-            const lCustomElement: any = globalThis.customElements.get(lTagname);
-
-            // Create custom element.
-            if (typeof lCustomElement !== 'undefined') {
-                // Create new custom element.
-                return new lCustomElement();
-            }
-        }
-
-        const lNamespaceObject: PwbTemplateTextNode | null = pXmlElement.getAttribute('xmlns');
-        if (lNamespaceObject && !lNamespaceObject.containsExpression) {
-            // Create new element with namespace.
-            return document.createElementNS(lNamespaceObject.values[0] as string, lTagname);
-        } else {
-            // Create new element without namespace.
-            return document.createElement(lTagname);
-        }
-    }
-
-    /**
      * Create html text node.
      * 
      * @param pText - Text.

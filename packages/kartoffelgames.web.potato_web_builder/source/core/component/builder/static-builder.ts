@@ -2,6 +2,7 @@ import { DataLevel } from '../../data/data-level.ts';
 import type { AttributeModule } from '../../module/attribute_module/attribute-module.ts';
 import type { ExpressionModule } from '../../module/expression_module/expression-module.ts';
 import type { ComponentModules } from '../component-modules.ts';
+import { ComponentRegister } from '../component-register.ts';
 import type { IPwbTemplateNode } from '../template/nodes/i-pwb-template-node.interface.ts';
 import { PwbTemplateInstructionNode } from '../template/nodes/pwb-template-instruction-node.ts';
 import { PwbTemplateTextNode } from '../template/nodes/pwb-template-text-node.ts';
@@ -112,16 +113,27 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
      * @param pParentContent - Parent of template.
      */
     private buildStaticTemplate(pElementTemplate: PwbTemplateXmlNode, pParentContent: BuilderContent): void {
-        // Build element and append to builder.
-        const lHtmlNode: Element = this.createHtmlElement(pElementTemplate);
-        this.content.insert(lHtmlNode, 'BottomOf', pParentContent);
+        // Build element.
+        const { element: lHtmlElement, isComponent: lIsComponent } = this.createHtmlElement(pElementTemplate);
+
+        // Collect the attribute modules created for this element so their bindings can be applied before a component update.
+        let lElementAttributeModules: Array<AttributeModule> | null = null;
+        if (lIsComponent) {
+            lElementAttributeModules = new Array<AttributeModule>();
+        }
 
         for (const lAttributeTemplate of pElementTemplate.attributes) {
             // Read static module.
-            const lStaticModule: AttributeModule | null = this.modules.createAttributeModule(lAttributeTemplate, lHtmlNode, this.values);
+            const lStaticModule: AttributeModule | null = this.modules.createAttributeModule(lAttributeTemplate, lHtmlElement, this.values);
             if (lStaticModule) {
                 // Link modules.
                 this.content.linkAttributeModule(lStaticModule);
+
+                // Performance. Only set when its a component.
+                if (lIsComponent) {
+                    lElementAttributeModules!.push(lStaticModule);
+                }
+
                 continue;
             }
 
@@ -150,20 +162,32 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
                 }
 
                 // Link attribute template with text node list.
-                this.content.linkAttributeNodes(lAttributeTemplate, lHtmlNode, lAttributeTextNodeList);
+                this.content.linkAttributeNodes(lAttributeTemplate, lHtmlElement, lAttributeTextNodeList);
 
                 continue;
             }
 
             // If it is not a static module nor an expression attribute, add it as simple text attribute.
-            lHtmlNode.setAttribute(lAttributeTemplate.name, lAttributeTemplate.values.toString());
+            lHtmlElement.setAttribute(lAttributeTemplate.name, lAttributeTemplate.values.toString());
+        }
+
+        // When the element is a pwb component, execute its static modules and update it before it gets append to the document.
+        // Reduces poping to near zero.
+        if (lIsComponent) {
+            // Update attribute module of child component. That sets the data bindings before the update.
+            for (const lComponentAttributeModule of lElementAttributeModules!) {
+                lComponentAttributeModule.update();
+            }
+
+            // Executes components initial update synchronously, so it gets updated in inside the current update cycle.
+            ComponentRegister.ofElement(lHtmlElement as HTMLElement).component.updater.update();
         }
 
         // Append element to parent.
-        this.content.insert(lHtmlNode, 'BottomOf', pParentContent);
+        this.content.insert(lHtmlElement, 'BottomOf', pParentContent);
 
         // Build childs.
-        this.buildTemplate(pElementTemplate.childList, lHtmlNode);
+        this.buildTemplate(pElementTemplate.childList, lHtmlElement);
     }
 
     /**
@@ -213,6 +237,54 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
             this.content.linkExpressionModule(lExpressionModule);
         }
     }
+
+    /**
+     * Create new html element.
+     * When the element is a custom element, it invokes the custom element constructor instead of an unknown html element.
+     * 
+     * Ignores all attribute and expression informations and only uses the tagname information.
+     * 
+     * @param pXmlElement - Xml content node.
+     */
+    private createHtmlElement(pXmlElement: PwbTemplateXmlNode): StaticBuilderElement {
+        const lTagname: string = pXmlElement.tagName;
+
+        // On custom element
+        if (lTagname.includes('-')) {
+            // Get custom element.
+            const lCustomElement: any = globalThis.customElements.get(lTagname);
+
+            // Create custom element when its a registered custom component.
+            if (typeof lCustomElement !== 'undefined') {
+                const lCustomComponent: HTMLElement = new lCustomElement();
+
+                // Create new custom element.
+                return {
+                    element: lCustomComponent,
+                    isComponent: ComponentRegister.elementIsComponent(lCustomComponent)
+                };
+            }
+        }
+
+        const lNamespaceObject: PwbTemplateTextNode | null = pXmlElement.getAttribute('xmlns');
+        if (lNamespaceObject && !lNamespaceObject.containsExpression) {
+            // Create new element with namespace.
+            return {
+                element: document.createElementNS(lNamespaceObject.values[0] as string, lTagname),
+                isComponent: false
+            };
+        } else {
+            // Create new element without namespace.
+            return {
+                element: document.createElement(lTagname),
+                isComponent: false
+            };
+        }
+    }
 }
+type StaticBuilderElement = {
+    element: Element;
+    isComponent: boolean;
+};
 
 export type StaticPwbTemplate = PwbTemplate | PwbTemplateTextNode | PwbTemplateXmlNode | PwbTemplateInstructionNode;

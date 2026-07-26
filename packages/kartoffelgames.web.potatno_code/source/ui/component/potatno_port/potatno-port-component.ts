@@ -43,7 +43,7 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
      * SVG element used for the temporary drag wire.
      */
     @PwbChild('dragConnection')
-    public accessor dragConnectionSvg!: SVGSVGElement;
+    public accessor dragConnectionSvg!: SVGSVGElement | null;
 
     /**
      * Whether this port currently has a validation error.
@@ -296,7 +296,9 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
         pEvent.preventDefault();
 
         // Clear drag state.
-        this.dragConnectionSvg.innerHTML = '';
+        if (this.dragConnectionSvg) {
+            this.dragConnectionSvg.innerHTML = '';
+        }
         this.mComponent.updater.updateAsync();
     }
 
@@ -454,7 +456,7 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
      */
     private renderDragWire(pClientX: number, pClientY: number): void {
         // Check if something is dragged.
-        if (!PotatnoPortComponent.mDraggedPortInformation) {
+        if (!PotatnoPortComponent.mDraggedPortInformation || !this.dragConnectionSvg) {
             return;
         }
 

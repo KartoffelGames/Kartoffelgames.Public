@@ -25,7 +25,7 @@ export class PotatnoConnectionLayerComponent implements IComponentOnDeconstruct 
      * SVG element that hosts the connection paths.
      */
     @PwbChild('svgLayer')
-    public accessor svgLayer!: SVGSVGElement;
+    public accessor svgLayer!: SVGSVGElement | null;
 
     /**
      * Create the connection layer.
@@ -131,6 +131,11 @@ export class PotatnoConnectionLayerComponent implements IComponentOnDeconstruct 
      * Render the current graph connections into the SVG layer.
      */
     private renderConnections(): void {
+        // Render connection cant be called before component is not rendered.
+        if(!this.svgLayer){
+            return;
+        }
+
         // Clear all paths.
         this.svgLayer.innerHTML = '';
         this.mConnectionRegistry.clear();

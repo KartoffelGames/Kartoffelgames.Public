@@ -34,7 +34,7 @@ export class PotatnoNodeSelectionPopupComponent implements IComponentOnConnect, 
      * Search field element, focused when the popup opens.
      */
     @PwbChild('searchInput')
-    public accessor searchInput!: HTMLInputElement;
+    public accessor searchInput!: HTMLInputElement | null;
 
     /**
      * Emitted with the definition the user picked, for the host to insert.
@@ -72,7 +72,7 @@ export class PotatnoNodeSelectionPopupComponent implements IComponentOnConnect, 
      * Focus the search field when the popup opens.
      */
     public onConnect(): void {
-        this.searchInput.focus();
+        this.searchInput?.focus();
     }
 
     /**

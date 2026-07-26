@@ -1,5 +1,5 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import { Component, PwbComponent, PwbExport, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
+import { Component, PwbComponent, PwbExport, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import { PwbChild } from '../../../../../kartoffelgames.web.potato_web_builder/source/module/pwb_child/pwb-child.decorator.ts';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
@@ -26,13 +26,14 @@ import nodeTemplate from './potatno-comment-node-component.html' with { type: 't
     modules: [PotatnoPreviewModule],
     components: [PotatnoPortComponent, PotatnoResizeBoxComponent]
 })
-export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct {
+export class PotatnoCommentNodeComponent implements IComponentOnConnect, IComponentOnDeconstruct {
     private readonly mComponent: Component;
     private readonly mManager: PotatnoUiManager;
     private readonly mUnsubscribe: PotatnoCodeUiManagerUnsubscribe;
     private readonly mUnsubscribeTransformation: PotatnoCodeUiManagerUnsubscribe;
     private mNodeDefinition: PotatnoNodeDefinition<PotatnoProjectTypesDefinition> | null;
     private mNodeData: PotatnoDocumentNode<PotatnoProjectTypesDefinition> | null;
+    private mViewReady: boolean;
 
     /**
      * The domain node object to render.
@@ -47,7 +48,7 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct {
     }
 
     @PwbChild('ResizeBox')
-    private accessor resizeBox!: PotatnoResizeBoxComponent & Element;
+    private accessor resizeBox!: PotatnoResizeBoxComponent & Element | null;
 
     /**
      * CSS class string for the error state.
@@ -287,6 +288,7 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct {
         this.mManager = pManager;
         this.mNodeDefinition = null;
         this.mNodeData = null;
+        this.mViewReady = false;
 
         this.mUnsubscribe = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.SpecialActiveFunction | PotatnoCodeUiManagerChangeType.Node | PotatnoCodeUiManagerChangeType.Connection, () => {
             this.mComponent.updater.updateAsync();
@@ -301,6 +303,17 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct {
             // Calculate the current size of the component.
             this.updateComponentTransformation(this.nodeData);
         });
+    }
+
+    /**
+     * Apply the initial component transformation once the view is built and connected.
+     * The resize box (@PwbChild) only exists after the component built its view, so this can not run in the
+     * nodeData setter on the initial binding, which is applied before the first build. From now on the view
+     * exists, so later rebinds apply the transformation directly in the setter.
+     */
+    public onConnect(): void {
+        this.mViewReady = true;
+        this.updateComponentTransformation(this.nodeData);
     }
 
     /**
@@ -352,10 +365,12 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct {
             return;
         }
 
-        // Calculate 
-        const lNodeWidth: number = pNode.transformation.width * this.mManager.grid.gridSize;
-        const lNodeHeight: number = pNode.transformation.height * this.mManager.grid.gridSize;
-        this.resizeBox.resize(lNodeWidth, lNodeHeight);
+        // Calculate and update node size.
+        if (this.resizeBox) {
+            const lNodeWidth: number = pNode.transformation.width * this.mManager.grid.gridSize;
+            const lNodeHeight: number = pNode.transformation.height * this.mManager.grid.gridSize;
+            this.resizeBox.resize(lNodeWidth, lNodeHeight);
+        }
 
         // Set the node position on the actual component.
         const lNodeX: number = pNode.transformation.x * this.mManager.grid.gridSize;

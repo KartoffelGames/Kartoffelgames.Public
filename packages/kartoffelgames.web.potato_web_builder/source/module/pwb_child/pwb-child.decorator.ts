@@ -7,8 +7,8 @@ import { ComponentDataLevel } from '../../core/data/component-data-level.ts';
  * AtScript. Id child 
  * @param pIdChildName - Name of id child.
  */
-export function PwbChild<TElement extends Element>(pIdChildName: string): ClassAccessorDecorator<any, TElement> {
-    return (_pTarget: ClassAccessorDecoratorTarget<any, TElement>, pContext: ClassAccessorDecoratorContext): ClassAccessorDecoratorResult<any, TElement> => {
+export function PwbChild<TElement extends Element>(pIdChildName: string): ClassAccessorDecorator<any, TElement | null> {
+    return (_pTarget: ClassAccessorDecoratorTarget<any, TElement | null>, pContext: ClassAccessorDecoratorContext): ClassAccessorDecoratorResult<any, TElement | null> => {
         // Check if real decorator on static property.
         if (pContext.static) {
             throw new Exception('Child decorator is not for a static property.', PwbChild);
@@ -33,7 +33,7 @@ export function PwbChild<TElement extends Element>(pIdChildName: string): ClassA
                 if (lIdChild instanceof Element) {
                     return lIdChild as TElement;
                 } else {
-                    throw new Exception(`Can't find child "${pIdChildName}".`, this);
+                    return null;
                 }
             }
         };

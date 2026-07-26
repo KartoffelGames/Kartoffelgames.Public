@@ -268,7 +268,20 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
             document.removeEventListener('pointerup', lPointerUpListener);
 
             if (pMode === 'selecting' && this.selectBox) {
-                this.selectNodesInBox(this.selectBox);
+                // Convert the nodebox into grid pixel space.
+                const lTopLeft: PotatnoNodeGraphComponentPoint = this.convertLocalToGridCoordinate(this.selectBox.x, this.selectBox.y);
+                const lBottomRight: PotatnoNodeGraphComponentPoint = this.convertLocalToGridCoordinate(this.selectBox.x + this.selectBox.width, this.selectBox.y + this.selectBox.height);
+
+                // And from the pixel space into grid coordinates. No need to round numbers as it correcter to not do it.
+                const lGridSize: number = this.mManager.grid.gridSize;
+                this.selectNodesInRectangle({
+                    top: lTopLeft.y / lGridSize,
+                    right: lBottomRight.x / lGridSize,
+                    bottom: lBottomRight.y / lGridSize,
+                    left: lTopLeft.x / lGridSize,
+                });
+
+                // And clear select box after that.
                 this.selectBox = null;
             }
         };
@@ -449,7 +462,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      * @param pLocalX - X position in local pixels.
      * @param pLocalY - Y position in local pixels.
      *
-     * @returns World coordinates.
+     * @returns grid pixel coordinates.
      */
     public convertLocalToGridCoordinate(pLocalX: number, pLocalY: number): { x: number; y: number; } {
         return {
@@ -491,23 +504,20 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
     /**
      * Select all nodes intersecting the current selection box.
      */
-    private selectNodesInBox(pBox: PotatnoNodeGraphComponentSelectBox): void {
+    private selectNodesInRectangle(pSelectionRectangle: PotatnoNodeGraphComponentGridRectange): void {
         const lActiveFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null = this.mManager.activeFunction;
         if (!lActiveFunction) {
             return;
         }
 
-        const lTopLeft: PotatnoNodeGraphComponentPoint = this.convertLocalToGridCoordinate(pBox.x, pBox.y);
-        const lBottomRight: PotatnoNodeGraphComponentPoint = this.convertLocalToGridCoordinate(pBox.x + pBox.width, pBox.y + pBox.height);
-        const lGridSize: number = this.mManager.grid.gridSize;
-
         for (const lNode of lActiveFunction.nodes) {
-            const lNodeX: number = lNode.transformation.x * lGridSize;
-            const lNodeY: number = lNode.transformation.y * lGridSize;
-            const lNodeRight: number = lNodeX + lNode.transformation.width * lGridSize;
-            const lNodeBottom: number = lNodeY + lNode.transformation.height * lGridSize;
+            const lNodeTop: number = lNode.transformation.y;
+            const lNodeLeft: number = lNode.transformation.x;
+            const lNodeRight: number = lNodeLeft + lNode.transformation.width;
+            const lNodeBottom: number = lNodeTop + lNode.transformation.height;
 
-            if (lNodeX < lBottomRight.x && lNodeRight > lTopLeft.x && lNodeY < lBottomRight.y && lNodeBottom > lTopLeft.y) {
+            // Check for partially intersection
+            if (lNodeLeft < pSelectionRectangle.right && lNodeRight > pSelectionRectangle.left && lNodeTop < pSelectionRectangle.bottom && lNodeBottom > pSelectionRectangle.top) {
                 this.mSelectedNodes.add(lNode);
             }
         }
@@ -535,4 +545,11 @@ type PotatnoNodeGraphComponentSelectBox = {
     y: number;
     width: number;
     height: number;
+};
+
+type PotatnoNodeGraphComponentGridRectange = {
+    top: number;
+    right: number;
+    bottom: number;
+    left: number;
 };

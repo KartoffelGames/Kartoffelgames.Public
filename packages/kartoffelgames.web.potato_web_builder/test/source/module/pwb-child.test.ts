@@ -37,6 +37,113 @@ Deno.test('PwbChild--Functionality: Read id child', async (pContext) => {
     });
 });
 
+Deno.test('PwbChild--Functionality: Read child inside a bound setter before the view is built', async (pContext) => {
+    await pContext.step('Default', async () => {
+        // Setup. Values.
+        const lInnerId: string = 'InnerChild';
+        const lChildSelector: string = TestUtil.randomSelector();
+
+        // Setup. Child component whose exported input setter reaches into its own @PwbChild view.
+        @PwbComponent({
+            selector: lChildSelector,
+            template: `<div #${lInnerId}/>`
+        })
+        class ChildComponent {
+            @PwbChild(lInnerId)
+            public accessor inner!: HTMLDivElement;
+
+            private mValue: string = '';
+
+            @PwbExport
+            public get value(): string {
+                return this.mValue;
+            } set value(pValue: string) {
+                this.mValue = pValue;
+
+                // Reaches into the components own view. Only available once the component is built.
+                this.inner.setAttribute('data-value', pValue);
+            }
+        }
+
+        // Setup. Parent binds a value onto the child so the childs setter runs while the parent builds it.
+        @PwbComponent({
+            selector: TestUtil.randomSelector(),
+            template: `<${lChildSelector} [value]="this.parentValue"/>`,
+            components: [ChildComponent]
+        })
+        class ParentComponent {
+            public parentValue: string = 'from-parent';
+        }
+
+        // Process. Create the parent. The childs binding is applied before the child is built.
+        let lErrorMessage: string | null = null;
+        try {
+            await TestUtil.createComponent(ParentComponent);
+        } catch (pError) {
+            lErrorMessage = (pError as Error).message;
+        }
+
+        // Evaluation. The child view is not built yet, so its @PwbChild can not be resolved.
+        expect(lErrorMessage).toBe(`Can't find child "${lInnerId}".`);
+    });
+});
+
+Deno.test('PwbChild--Functionality: Read child after build when created by a parent', async (pContext) => {
+    await pContext.step('Default', async () => {
+        // Setup. Values.
+        const lInnerId: string = 'InnerChild';
+        const lChildSelector: string = TestUtil.randomSelector();
+
+        // Setup. Child component that accesses its own @PwbChild after the build, in onUpdate.
+        @PwbComponent({
+            selector: lChildSelector,
+            template: `<div #${lInnerId}>{{ this.value }}</div>`
+        })
+        class ChildComponent {
+            @PwbChild(lInnerId)
+            public accessor inner!: HTMLDivElement;
+
+            private mValue: string = '';
+
+            @PwbExport
+            public get value(): string {
+                return this.mValue;
+            } set value(pValue: string) {
+                this.mValue = pValue;
+            }
+
+            public onUpdate(): void {
+                // The view is built when onUpdate runs, so the child is available.
+                this.inner.setAttribute('data-value', this.mValue);
+            }
+        }
+
+        // Setup. Parent binds a value onto the child.
+        @PwbComponent({
+            selector: TestUtil.randomSelector(),
+            template: `<${lChildSelector} [value]="this.parentValue"/>`,
+            components: [ChildComponent]
+        })
+        class ParentComponent {
+            public parentValue: string = 'from-parent';
+        }
+
+        // Process. Create the parent.
+        const lComponent: HTMLElement = await TestUtil.createComponent(ParentComponent);
+
+        // Read the child element from the parent shadow root and its inner @PwbChild view.
+        const lChild: HTMLElement = lComponent.shadowRoot!.querySelector(lChildSelector) as HTMLElement;
+        expect(lChild).not.toBeNull();
+        const lInner: HTMLDivElement = lChild.shadowRoot!.querySelector('div') as HTMLDivElement;
+
+        // Evaluation. The child rendered and its view was updated with the bound value after the build.
+        expect(lInner.getAttribute('data-value')).toBe('from-parent');
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
 Deno.test('PwbChild--Functionality: Forbidden static property use', async (pContext) => {
     await pContext.step('Forbidden static property use', () => {
         // Process.

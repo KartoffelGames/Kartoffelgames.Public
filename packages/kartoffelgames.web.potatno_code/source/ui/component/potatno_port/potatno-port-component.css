@@ -218,7 +218,7 @@
                 .output & {
                     &::after {
                         right: 1px;
-                        border-left: var(--pn-node-port-tip-size) solid var(--potatno-port-color);
+                        border-left: calc(var(--potatno-port-flow-size) / 3) solid var(--potatno-port-color);
                     }
 
                     &.connected::after {
@@ -239,7 +239,7 @@
 
                     &::after {
                         left: 1px;
-                        border-right: var(--pn-node-port-tip-size) solid var(--potatno-port-color);
+                        border-right: calc(var(--potatno-port-flow-size) / 3) solid var(--potatno-port-color);
                     }
 
                     &.connected::after {

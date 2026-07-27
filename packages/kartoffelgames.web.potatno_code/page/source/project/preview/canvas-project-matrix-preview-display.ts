@@ -89,7 +89,7 @@ export class CanvasProjectMatrixPreviewDisplay<TExecutorResultType extends Potat
             lCellElement.style.background = 'var(--potatno-color-background-dark)';
             lCellElement.style.border = '1px solid var(--potatno-color-border)';
             lCellElement.style.boxSizing = 'border-box';
-            lCellElement.style.color = 'var(--pn-text-primary)';
+            lCellElement.style.color = 'var(--potatno-color-text)';
             lCellElement.style.display = 'flex';
             lCellElement.style.justifyContent = 'center';
             lCellElement.style.minWidth = '0';

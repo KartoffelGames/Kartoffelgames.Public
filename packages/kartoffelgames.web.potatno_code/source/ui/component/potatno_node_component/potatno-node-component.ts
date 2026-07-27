@@ -1,5 +1,5 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import { Component, type ComponentEventEmitter, ComponentState, PwbComponent, PwbComponentEvent, PwbExport, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
+import { Component, ComponentState, PwbComponent, PwbComponentEvent, PwbExport, type ComponentEventEmitter, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import type { PotatnoPreviewDriver } from '../../../preview/potatno-preview-driver.ts';
@@ -9,7 +9,6 @@ import type { PotatnoFunctionDefinition } from '../../../project/potatno-functio
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, type PotatnoCodeUiManagerUnsubscribe } from '../../manager/potatno-ui-manager.ts';
 import { PotatnoPreviewModule } from '../../module/potatno-preview.module.ts';
-import { PotatnoResizeBoxComponent } from '../potatno-resize-box/potatno-resize-box-component.ts';
 import { PotatnoPortComponent } from '../potatno_port/potatno-port-component.ts';
 import nodeCss from './potatno-node-component.css' with { type: 'text' };
 import nodeTemplate from './potatno-node-component.html' with { type: 'text' };
@@ -23,7 +22,7 @@ import nodeTemplate from './potatno-node-component.html' with { type: 'text' };
     template: nodeTemplate,
     style: nodeCss,
     modules: [PotatnoPreviewModule],
-    components: [PotatnoPortComponent, PotatnoResizeBoxComponent]
+    components: [PotatnoPortComponent]
 })
 export class PotatnoNodeComponent implements IComponentOnDeconstruct {
     private readonly mComponent: Component;

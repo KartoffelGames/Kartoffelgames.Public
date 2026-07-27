@@ -63,6 +63,9 @@
     pointer-events: all;
     z-index: 10;
 
+    /* Make it slightly passthrough so drawn lines can be seen */
+    opacity: 0.75;
+
     &::after {
         content: '';
         position: absolute;

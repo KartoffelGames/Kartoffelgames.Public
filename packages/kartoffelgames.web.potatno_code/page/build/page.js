@@ -750,6 +750,9 @@ $if(this.left) {\r
     pointer-events: all;\r
     z-index: 10;\r
 \r
+    /* Make it slightly passthrough so drawn lines can be seen */\r
+    opacity: 0.75;\r
+\r
     &::after {\r
         content: '';\r
         position: absolute;\r
@@ -1421,7 +1424,7 @@ $if(this.isPreviewActive) {\r
         border-radius: 2px;\r
 \r
         &.selected {\r
-            filter: drop-shadow(0px 0px 5px var(--potatno-color-accent));\r
+            filter: drop-shadow(0px 0px 3px var(--potatno-color-accent));\r
         }\r
     }\r
 }\r

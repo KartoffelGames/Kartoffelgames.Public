@@ -172,6 +172,9 @@
     box-shadow: 0 2px 8px var(--potatno-color-shadow);
     border: 1px solid var(--node-border-color);
 
+    /* Previews can size bigger than the node itself and expanding. Limit the width here. */
+    width: calc(var(--potatno-grid-size) * var(--node-width) - 2px);
+
     /* Small attached line */
     &::before {
         content: '';

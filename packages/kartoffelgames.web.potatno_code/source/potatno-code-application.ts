@@ -11,11 +11,6 @@ import themeCss from './ui/component/potatno-theme.css' with { type: 'text' };
 import { PotatnoCodeEditorComponent } from './ui/component/potatno_code_editor/potatno-code-editor-component.ts';
 import { PotatnoUiManager } from './ui/manager/potatno-ui-manager.ts';
 
-/*
- * TODO: UI
- * - PWB should somehow be able to inject object for dependency injection with a PwbApplication. That whould be very sick.
- */
-
 /**
  * Main entry point for the potatno-code visual editor application.
  * Extends PwbApplication to provide a pre-configured editor component

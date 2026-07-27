@@ -3,6 +3,7 @@ import type { PotatnoDocumentNode } from '../../../document/potatno-document-nod
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import { PotatnoNodeDefinition } from '../../../project/node_definition/potatno-node-definition.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
+import { PotatnoCommentNodeDefinition } from "../../../project/node_definition/potatno-comment-node-definition.ts";
 
 /**
  * A* path finding for grid connections.
@@ -113,6 +114,11 @@ export class PotatnoUiGridPathFinding extends Astar<PotatnoUiManagerGridPathFind
         // Based on the node definition type, add additional sizes that the UI applies.
         if (lNodeDefinition) {
             switch (true) {
+                // Comments never take up space.
+                case lNodeDefinition instanceof PotatnoCommentNodeDefinition: {
+                    return;
+                }
+
                 // TODO: Conjunctions.
 
                 // Those nodes can have a preview. Default add one height for the "toggle preview"-button and additional 6 for the actual enabled preview.

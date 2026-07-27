@@ -35,7 +35,7 @@
 </div>
 
 $if(this.isPreviewActive) {
-    <div class="node-preview">
+    <div class="node-preview" style="--node-width: {{ this.nodeTransformation.width }};">
         <div class="node-preview__selections">
             <div class="select-button {{ this.isPreviewDisplaySelectionOpen ? 'active' : '' }}" tabindex="-1" (focusout)="this.isPreviewDisplaySelectionOpen = false">
                 <div class="select-button__button" (click)="this.isPreviewDisplaySelectionOpen = !this.isPreviewDisplaySelectionOpen">👁</div>

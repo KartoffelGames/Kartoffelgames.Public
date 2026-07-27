@@ -42,6 +42,8 @@ export class PotatnoDocumentFunction<TProjectTypes extends PotatnoProjectTypesDe
      * Get all node definitions that can be dynamicly added or deleted by the user into this function.
      */
     public get dynamicNodeDefinitions(): ReadonlyArray<PotatnoNodeDefinition<TProjectTypes>> {
+        // TODO: Also filter for recursion of the same function.
+
         // Read the function definition from project.
         const lFunctionDefinition: PotatnoFunctionDefinition<TProjectTypes> | undefined = this.mProject.getFunction(this.definitionId);
         if (!lFunctionDefinition) {

@@ -100,7 +100,7 @@ export type PotatnoPreviewFunctionExecutorBuildContext<TProjectTypes extends Pot
 /**
  * Executable function for a "compiled" graph function.
  */
-export type PotatnoPreviewFunctionExecutorCallable<TParams> = (pParameters: TParams) => unknown | Promise<unknown>;
+export type PotatnoPreviewFunctionExecutorCallable<TParams> = (pParameters: TParams) => unknown;
 
 /**
  * Result of one `build` call.

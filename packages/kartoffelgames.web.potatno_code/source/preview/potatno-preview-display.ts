@@ -142,7 +142,7 @@ export class PotatnoPreviewDisplay<TProjectTypes extends PotatnoProjectTypesDefi
      *
      * @returns A promise resolving when the update pass is complete, or `void` for synchronous updates.
      */
-    public update(pElement: TElement, pExecutor: PotatnoPreviewDisplayExecutorCallable<TParams, TResult>): void | Promise<void> {
+    public update(pElement: TElement, pExecutor: PotatnoPreviewDisplayExecutorCallable<TParams, TResult>): void {
         return this.mUpdate(pElement, pExecutor);
     }
 }
@@ -163,12 +163,12 @@ export type PotatnoPreviewDisplayTypeAdapter<TResult> = (pValue: any) => TResult
  * Driver-wrapped iteration callable handed to the display's `update` loop. Adapter coercion is
  * already baked in.
  */
-export type PotatnoPreviewDisplayExecutorCallable<TParams, TResult> = (pParameters: TParams) => Promise<TResult>;
+export type PotatnoPreviewDisplayExecutorCallable<TParams, TResult> = (pParameters: TParams) => TResult;
 
 /**
  * Display update callback. Owns the per-render iteration loop and writes results into the element.
  */
-export type PotatnoPreviewDisplayUpdate<TElement extends Element, TParams, TResult> = (pElement: TElement, pExecutor: PotatnoPreviewDisplayExecutorCallable<TParams, TResult>) => void | Promise<void>;
+export type PotatnoPreviewDisplayUpdate<TElement extends Element, TParams, TResult> = (pElement: TElement, pExecutor: PotatnoPreviewDisplayExecutorCallable<TParams, TResult>) => void;
 
 /**
  * Constructor parameters for PotatnoPreviewDisplay.

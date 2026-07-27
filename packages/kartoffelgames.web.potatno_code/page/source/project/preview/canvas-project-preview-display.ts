@@ -5,6 +5,9 @@ import type { CanvasProjectTypesDefinition } from '../canvas-project-types-defin
 export class CanvasProjectPreviewDisplay<TExecutorResultType extends PotatnoPreviewResultType<CanvasProjectTypesDefinition>> extends PotatnoPreviewDisplay<CanvasProjectTypesDefinition, HTMLCanvasElement, CanvasProjectPreViewDisplayParameter, TExecutorResultType, CanvasProjectPreViewDisplayResultTypes, CanvasProjectPreViewDisplayResult> {
     private static readonly PREVIEW_PIXEL_SIZE: number = 7.5;
 
+    private readonly mCanvasImageData: WeakMap<HTMLCanvasElement, ImageData>;
+    private readonly mCanvasContext: WeakMap<HTMLCanvasElement, CanvasRenderingContext2D>;
+
     /**
      * Construtor.
      * 
@@ -37,6 +40,9 @@ export class CanvasProjectPreviewDisplay<TExecutorResultType extends PotatnoPrev
                 await this.updateCanvasPreview(pElement, pExecutor);
             }
         });
+
+        this.mCanvasImageData = new WeakMap<HTMLCanvasElement, ImageData>();
+        this.mCanvasContext = new WeakMap<HTMLCanvasElement, CanvasRenderingContext2D>();
     }
 
     /**
@@ -46,30 +52,32 @@ export class CanvasProjectPreviewDisplay<TExecutorResultType extends PotatnoPrev
      * @param pExecutor - Preview executor callable.
      */
     private async updateCanvasPreview(pElement: HTMLCanvasElement, pExecutor: PotatnoPreviewDisplayExecutorCallable<CanvasProjectPreViewDisplayParameter, CanvasProjectPreViewDisplayResult>): Promise<void> {
-        const lContext: CanvasRenderingContext2D | null = pElement.getContext('2d');
-        if (!lContext) {
-            return;
+        if (!this.mCanvasContext.has(pElement)) {
+            this.mCanvasContext.set(pElement, pElement.getContext('2d')!);
         }
+
+        const lContext: CanvasRenderingContext2D = this.mCanvasContext.get(pElement)!;
 
         const lWidth: number = Math.max(1, Math.round(pElement.clientWidth / CanvasProjectPreviewDisplay.PREVIEW_PIXEL_SIZE));
         const lHeight: number = Math.max(1, Math.round(pElement.clientHeight / CanvasProjectPreviewDisplay.PREVIEW_PIXEL_SIZE));
 
-        // Resize the canvas only when the resolution actually changed.
-        if (pElement.width !== lWidth) {
+        // Resize the canvas and reread image data only when the resolution actually changed or no image data is setup.
+        if (pElement.width !== lWidth || pElement.height !== lHeight || !this.mCanvasImageData.has(pElement)) {
             pElement.width = lWidth;
-        }
-        if (pElement.height !== lHeight) {
             pElement.height = lHeight;
+
+            // Update image data.
+            this.mCanvasImageData.set(pElement, lContext.createImageData(lWidth, lHeight))
         }
 
-        const lImageData: ImageData = lContext.createImageData(lWidth, lHeight);
+        const lImageData: ImageData = this.mCanvasImageData.get(pElement)!
         const lPixels: Uint8ClampedArray = lImageData.data;
 
         for (let lY = 0; lY < lHeight; lY++) {
             for (let lX = 0; lX < lWidth; lX++) {
                 const lNormalizedX: number = lX / lWidth;
                 const lNormalizedY: number = lY / lHeight;
-                const lRgb: [number, number, number] = await Promise.resolve(pExecutor({ x: lNormalizedX, y: lNormalizedY }));
+                const lRgb: [number, number, number] = pExecutor({ x: lNormalizedX, y: lNormalizedY });
 
                 const lOffset: number = (lY * lWidth + lX) * 4;
                 lPixels[lOffset] = Math.floor(Math.max(0, Math.min(1, lRgb[0] || 0)) * 255);

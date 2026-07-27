@@ -106,7 +106,7 @@ export class CanvasProjectMatrixPreviewDisplay<TExecutorResultType extends Potat
                 const lIndex: number = lY * CanvasProjectMatrixPreviewDisplay.MATRIX_SIZE + lX;
                 const lNormalizedX: number = CanvasProjectMatrixPreviewDisplay.MATRIX_SIZE === 1 ? 0 : lX / (CanvasProjectMatrixPreviewDisplay.MATRIX_SIZE - 1);
                 const lNormalizedY: number = CanvasProjectMatrixPreviewDisplay.MATRIX_SIZE === 1 ? 0 : lY / (CanvasProjectMatrixPreviewDisplay.MATRIX_SIZE - 1);
-                const lResult: Array<string> = await Promise.resolve(pExecutor({ x: lNormalizedX, y: lNormalizedY }));
+                const lResult: Array<string> =pExecutor({ x: lNormalizedX, y: lNormalizedY });
 
                 pElement.children[lIndex].textContent = lResult.join('\n');
             }

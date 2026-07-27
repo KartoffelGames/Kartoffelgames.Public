@@ -94,6 +94,9 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
         this.mUnsubscribe();
     }
 
+    /**
+     * Resync component once the component is connected.
+     */
     public onConnect(): void {
         if (!this.nodeData) {
             return;

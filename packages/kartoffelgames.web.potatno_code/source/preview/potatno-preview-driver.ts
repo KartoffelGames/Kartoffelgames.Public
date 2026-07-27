@@ -57,15 +57,13 @@ export class PotatnoPreviewDriver<TProjectTypes extends PotatnoProjectTypesDefin
     /**
      * Run one render pass with the last compiled callable. 
      * Never compiles a graph. It only executes a cached execution instance.
-     *
-     * @returns A promise resolving when the display's update pass completes.
      */
-    public async execute(): Promise<void> {
+    public execute(): void {
         if (!this.mCachedCallable) {
             return;
         }
 
-        await this.mDisplay.update(this.element, this.mCachedCallable);
+        this.mDisplay.update(this.element, this.mCachedCallable);
     }
 
     /**
@@ -130,8 +128,8 @@ export class PotatnoPreviewDriver<TProjectTypes extends PotatnoProjectTypesDefin
 
         // Per-call parameters: executor defaults, overlaid by user-specified values, overlaid by
         // whatever the display supplies for the iteration.
-        this.mCachedCallable = async (pParameters: Record<string, unknown>): Promise<unknown> => {
-            return lAdapter(await lBuildResult.execute({ ...this.mDisplay.executor.defaultParameters, ...this.mSpecifiedParameters, ...pParameters }));
+        this.mCachedCallable = (pParameters: Record<string, unknown>): unknown => {
+            return lAdapter(lBuildResult.execute({ ...this.mDisplay.executor.defaultParameters, ...this.mSpecifiedParameters, ...pParameters }));
         };
     }
 
@@ -196,6 +194,6 @@ export class PotatnoPreviewDriver<TProjectTypes extends PotatnoProjectTypesDefin
 /**
  * Compiled and executable function pointer of a graph function. 
  */
-type PotatnoPreviewDriverCallable = (pParameters: Record<string, unknown>) => Promise<unknown>;
+type PotatnoPreviewDriverCallable = (pParameters: Record<string, unknown>) => unknown;
 
 export type PotatnoPreviewDriverDisplay<TProjectTypes extends PotatnoProjectTypesDefinition> = PotatnoPreviewDisplay<TProjectTypes, Element, any, any, any, any>;

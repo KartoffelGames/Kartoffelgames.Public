@@ -207,8 +207,8 @@ export class PotatnoDocumentNode<TProjectTypes extends PotatnoProjectTypesDefini
                         // Allways width of 6
                         6,
 
-                        // Nodes height are set based on port count.
-                        Math.max(this.mInputs.list.length, this.mOutputs.list.length)
+                        // Nodes height are set based on port count and one for the header.
+                        Math.max(this.mInputs.list.length, this.mOutputs.list.length) + 1
                     ];
                 }
             }

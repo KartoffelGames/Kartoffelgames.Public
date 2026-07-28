@@ -122,7 +122,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
         this.mUnsubscribeFunctionChange = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Document | PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.SpecialActiveFunction, () => {
             this.popupPosition = null;
             this.selectBox = null;
-            this.clearSelection();
+            this.selectNodes([], false);
         });
 
         // On adding or deletion of nodes, only update the view, nothing more.
@@ -162,7 +162,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
             case 0: {
                 // Clear selection
                 if (!pEvent.ctrlKey) {
-                    this.clearSelection();
+                    this.selectNodes([], false);
                 }
 
                 // Start a selection box.
@@ -225,8 +225,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
         this.popupPosition = null;
 
         // After creation, select the new node as sole node.
-        this.clearSelection();
-        this.mSelectedNodes.add(lNode);
+        this.selectNodes([lNode], false);
     }
 
     /**
@@ -288,7 +287,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
         };
 
         // Pointer up listener, applying the selection and cleaning up temporary listeners.
-        const lPointerUpListener = (): void => {
+        const lPointerUpListener = (pEvent: PointerEvent): void => {
             document.removeEventListener('pointermove', lPointerMoveListener);
             document.removeEventListener('pointerup', lPointerUpListener);
 
@@ -299,12 +298,15 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
 
                 // And from the pixel space into grid coordinates. No need to round numbers as it correcter to not do it.
                 const lGridSize: number = this.mManager.grid.gridSize;
-                this.selectNodesInRectangle({
+                const lSelectedNodes: Array<PotatnoDocumentNode<PotatnoProjectTypesDefinition>> = this.getNodesInRectangle({
                     top: lTopLeft.y / lGridSize,
                     right: lBottomRight.x / lGridSize,
                     bottom: lBottomRight.y / lGridSize,
                     left: lTopLeft.x / lGridSize,
                 });
+
+                // Select all nodes.
+                this.selectNodes(lSelectedNodes, pEvent.ctrlKey);
 
                 // And clear select box after that.
                 this.selectBox = null;
@@ -348,7 +350,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
                     this.mManager.graph.removeNode(lNode);
                 }
 
-                this.clearSelection();
+                this.selectNodes([], false);
                 return;
             }
         }
@@ -431,31 +433,63 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      * @param pEvent - Pointer event from the node element.
      * @param pNode - Node that received the pointer down.
      */
-    public selectNode(pNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition>, pEvent: PointerEvent,): void {
+    public selectNodes(pNodes: Array<PotatnoDocumentNode<PotatnoProjectTypesDefinition>>, pAddativeSelection: boolean | PointerEvent): void {
         this.popupPosition = null;
 
-        pEvent.stopPropagation();
-
-        // Comment nodes also select all wrapped nodes. 
-        // TODO: Also deselect on deselection.
-        if (pNode.definitionId === PotatnoCommentNodeDefinition.DEFINITION_ID) {
-            this.selectNodesInRectangle({
-                top: pNode.transformation.y,
-                right: pNode.transformation.x + pNode.transformation.width,
-                bottom: pNode.transformation.y + pNode.transformation.height,
-                left: pNode.transformation.x
-            });
+        // Convert boolean|event into boolean.
+        let lAddativeSelection: boolean = !!pAddativeSelection;
+        if (pAddativeSelection instanceof PointerEvent) {
+            pAddativeSelection.stopPropagation();
+            lAddativeSelection = pAddativeSelection.ctrlKey;
         }
 
-        if (pEvent.ctrlKey) {
-            if (this.mSelectedNodes.has(pNode)) {
-                this.mSelectedNodes.delete(pNode);
+        const lEncounteredNodes: Set<PotatnoDocumentNode<PotatnoProjectTypesDefinition>> = new Set<PotatnoDocumentNode<PotatnoProjectTypesDefinition>>();
+
+        // Clear previous selections when its not a addative selection.
+        if (!lAddativeSelection) {
+            // Special single node selection. Happens when nodes are selected and should now be moved.
+            // Only triggers when the single selected node is already selected.
+            if (pNodes.length === 1 && this.mSelectedNodes.has(pNodes.at(0)!)) {
+                // If a single node is selected without an addative selection, prefill encountered nodes with the current selection.
+                for (const lSelectedNode of this.mSelectedNodes) {
+                    lEncounteredNodes.add(lSelectedNode);
+                }
             } else {
-                this.mSelectedNodes.add(pNode);
+                // If not handles as a special selection node, just clear the previous selection.
+                this.mSelectedNodes.clear();
             }
-        } else if (!this.mSelectedNodes.has(pNode)) {
-            this.clearSelection();
-            this.mSelectedNodes.add(pNode);
+        }
+
+        // Copy nodes, they get expanded while iterating.
+        const lTargetNodes: Array<PotatnoDocumentNode<PotatnoProjectTypesDefinition>> = [...pNodes];
+
+        // Iterate all 
+        for (let lTargetNodeIndex: number = 0; lTargetNodeIndex < lTargetNodes.length; lTargetNodeIndex++) {
+            const lNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition> = lTargetNodes[lTargetNodeIndex];
+
+            // Skip dublicate selections.
+            if (lEncounteredNodes.has(lNode)) {
+                continue;
+            }
+
+            lEncounteredNodes.add(lNode);
+
+            // If node is a comment, add all containing nodes into selection queue.
+            if (lNode.definitionId === PotatnoCommentNodeDefinition.DEFINITION_ID) {
+                lTargetNodes.push(...this.getNodesInRectangle({
+                    top: lNode.transformation.y,
+                    right: lNode.transformation.x + lNode.transformation.width,
+                    bottom: lNode.transformation.y + lNode.transformation.height,
+                    left: lNode.transformation.x
+                }));
+            }
+
+            // Eighter select a node or deselect when it is already selected.
+            if (this.mSelectedNodes.has(lNode)) {
+                this.mSelectedNodes.delete(lNode);
+            } else {
+                this.mSelectedNodes.add(lNode);
+            }
         }
 
         this.mComponent.updater.updateAsync();
@@ -509,14 +543,6 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
     }
 
     /**
-     * Clear selection and update view.
-     */
-    private clearSelection(): void {
-        this.mSelectedNodes.clear();
-        this.mComponent.updater.updateAsync();
-    }
-
-    /**
      * Paste copied nodes into the active graph.
      */
     private pasteFromClipboard(): void {
@@ -532,19 +558,19 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
         }
 
         // Reselect pasted nodes.
-        this.clearSelection();
-        for (const lNode of lPastedNodes) {
-            this.mSelectedNodes.add(lNode);
-        }
+        this.selectNodes(lPastedNodes, false);
     }
 
     /**
      * Select all nodes intersecting a rectange in grid space.
      */
-    private selectNodesInRectangle(pSelectionRectangle: PotatnoNodeGraphComponentGridRectange): void {
+    private getNodesInRectangle(pSelectionRectangle: PotatnoNodeGraphComponentGridRectange): Array<PotatnoDocumentNode<PotatnoProjectTypesDefinition>> {
+        const lSelectedNodes: Array<PotatnoDocumentNode<PotatnoProjectTypesDefinition>> = new Array<PotatnoDocumentNode<PotatnoProjectTypesDefinition>>();
+
+        // Skip when no active function i selected.
         const lActiveFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null = this.mManager.activeFunction;
         if (!lActiveFunction) {
-            return;
+            return lSelectedNodes;
         }
 
         for (const lNode of lActiveFunction.nodes) {
@@ -556,13 +582,15 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
             // Check for partially intersection
             if (lNodeLeft < pSelectionRectangle.right && lNodeRight > pSelectionRectangle.left && lNodeTop < pSelectionRectangle.bottom && lNodeBottom > pSelectionRectangle.top) {
                 // Check that selection range is not fully inside node.
-                if(pSelectionRectangle.top > lNodeTop && pSelectionRectangle.right < lNodeRight && pSelectionRectangle.bottom < lNodeBottom && pSelectionRectangle.left > lNodeLeft){
-                    return;
+                if (pSelectionRectangle.top > lNodeTop && pSelectionRectangle.right < lNodeRight && pSelectionRectangle.bottom < lNodeBottom && pSelectionRectangle.left > lNodeLeft) {
+                    continue;
                 }
 
-                this.mSelectedNodes.add(lNode);
+                lSelectedNodes.push(lNode);
             }
         }
+
+        return lSelectedNodes;
     }
 }
 

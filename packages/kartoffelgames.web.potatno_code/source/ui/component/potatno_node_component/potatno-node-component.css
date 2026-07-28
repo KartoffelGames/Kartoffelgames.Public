@@ -38,12 +38,11 @@
     display: flex;
     align-items: center;
     height: var(--potatno-grid-size);
-    color: var(--potatno-color-text);
+    color: var(--potatno-color-text-contrast);
     background-color: var(--node-category-color);
     font-weight: bold;
     font-size: var(--potatno-font-size-small);
     cursor: grab;
-
 
     &:active {
         cursor: grabbing;
@@ -55,7 +54,6 @@
         align-items: center;
         justify-content: center;
         width: calc(var(--potatno-grid-size) - 2px);
-        mix-blend-mode: color-dodge;
     }
 
     .node-header__label {
@@ -63,7 +61,6 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        mix-blend-mode: color-dodge;
     }
 
     .node-header__open-function {
@@ -72,7 +69,6 @@
         justify-content: center;
         width: calc(var(--potatno-grid-size) - 2px);
         font-size: var(--potatno-font-size-small);
-        mix-blend-mode: color-dodge;
         cursor: pointer;
 
         /* Small cool seperator */

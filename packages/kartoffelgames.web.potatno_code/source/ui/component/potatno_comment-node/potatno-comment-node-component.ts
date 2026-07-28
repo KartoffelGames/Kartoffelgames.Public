@@ -260,7 +260,7 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
      */
     public escapeEditMode(pEvent: KeyboardEvent): void {
         // Close edit mode when escape is pressed.
-        if (pEvent.key === "Escape") {
+        if (pEvent.key === "Escape" || pEvent.key === "Enter" ) {
             pEvent.preventDefault();
             this.editMode = false;
         }

@@ -190,8 +190,8 @@ export class PotatnoDocumentNode<TProjectTypes extends PotatnoProjectTypesDefini
                 // Restrict comments to be minimal 2 width and height. 
                 case lNodeDefinition instanceof PotatnoCommentNodeDefinition: {
                     return [
-                        Math.max(2, pWidth),
-                        Math.max(2, pHeight)
+                        Math.max(6, pWidth),
+                        Math.max(6, pHeight)
                     ];
                 }
 

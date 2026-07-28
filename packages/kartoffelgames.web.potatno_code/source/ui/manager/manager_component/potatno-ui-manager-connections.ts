@@ -33,6 +33,17 @@ export class PotatnoUiManagerConnections {
         this.mGridElement = null;
         this.mPathFinder = new PotatnoUiGridPathFinding();
 
+        let lDebounceHandle: number = 0;
+        const lDebouncedUpdate = () => {
+            if (lDebounceHandle > 0) {
+                globalThis.cancelAnimationFrame(lDebounceHandle);
+            }
+
+            globalThis.requestAnimationFrame(() => {
+                this.updatePaths();
+            });
+        };
+
         // Register node transformation change event.
         this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Node | PotatnoCodeUiManagerChangeType.SpecialActiveFunction, (pEvent: PotatnoUiManagerChangeEvent) => {
             // Update ever node when document is set.
@@ -51,7 +62,7 @@ export class PotatnoUiManagerConnections {
                 }
 
                 // And at the end... redo anything :(
-                this.updatePaths();
+                lDebouncedUpdate();
 
                 return;
             }
@@ -70,11 +81,11 @@ export class PotatnoUiManagerConnections {
             }
 
             // And at the end... redo anything :(
-            this.updatePaths();
+            lDebouncedUpdate();
         });
 
         this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Connection, () => {
-            this.updatePaths();
+            lDebouncedUpdate();
         });
     }
 

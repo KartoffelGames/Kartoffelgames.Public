@@ -1,12 +1,11 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import { Component, ComponentEventEmitter, IComponentOnConnect, PwbChild, PwbComponent, PwbComponentEvent, PwbExport, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
+import { Component, ComponentEventEmitter, ComponentState, IComponentOnConnect, IComponentOnUpdate, PwbChild, PwbComponent, PwbComponentEvent, PwbExport, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, type PotatnoCodeUiManagerUnsubscribe } from '../../manager/potatno-ui-manager.ts';
 import { PotatnoResizeBoxComponent, PotatnoResizeBoxComponentResizeDirection, type PotatnoResizeBoxComponentResize } from '../potatno-resize-box/potatno-resize-box-component.ts';
 import nodeCss from './potatno-comment-node-component.css' with { type: 'text' };
 import nodeTemplate from './potatno-comment-node-component.html' with { type: 'text' };
-import { white } from "jsr:@std/internal@^1.0.12/styles";
 
 /**
  * Comment node component for the potatno-code visual editor.
@@ -18,11 +17,15 @@ import { white } from "jsr:@std/internal@^1.0.12/styles";
     style: nodeCss,
     components: [PotatnoResizeBoxComponent]
 })
-export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, IComponentOnConnect {
+export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, IComponentOnConnect, IComponentOnUpdate {
     private readonly mComponent: Component;
     private readonly mManager: PotatnoUiManager;
     private readonly mUnsubscribe: PotatnoCodeUiManagerUnsubscribe;
     private mNodeData: PotatnoDocumentNode<PotatnoProjectTypesDefinition> | null;
+    private mDoubleClickState: PotatnoCommentNodeComponentDoubleClickState | null;
+
+    @ComponentState.state()
+    public accessor editMode: Boolean;
 
     /**
      * The domain node object to render.
@@ -63,7 +66,20 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
      */
     public get comment(): string {
         return this.nodeData?.label ?? '';
+    } set comment(pComment: string) {
+        // Skip update.
+        if (!this.nodeData) {
+            return;
+        }
+
+        this.nodeData.label = pComment;
     }
+
+    /**
+     * The comment input.
+     */
+    @PwbChild('CommentInput')
+    public accessor commentInput!: HTMLInputElement | null;
 
     /**
      * Create the node component.
@@ -75,6 +91,8 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
         this.mComponent = pComponent;
         this.mManager = pManager;
         this.mNodeData = null;
+        this.mDoubleClickState = null;
+        this.editMode = false;
 
         this.mUnsubscribe = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Node, (pItem) => {
             // Only trigger a transformation if its affects the current node data.
@@ -85,13 +103,6 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
             // Calculate the current size of the component.
             this.resyncComponent(this.nodeData!);
         });
-    }
-
-    /**
-     * Detach the manager subscription.
-     */
-    public onDeconstruct(): void {
-        this.mUnsubscribe();
     }
 
     /**
@@ -106,13 +117,79 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
     }
 
     /**
+     * Detach the manager subscription.
+     */
+    public onDeconstruct(): void {
+        this.mUnsubscribe();
+    }
+
+
+    /**
+     * Focus input element and select all text on an update, when its not already focused.
+     */
+    public onUpdate(): void {
+        // Skip if not rendered.
+        if (!this.commentInput) {
+            return;
+        }
+
+        // Skip if its already focused.
+        if (this.getFocusedElement(document) === this.commentInput) {
+            return;
+        }
+
+        this.commentInput.select();
+    }
+
+    /**
+     * Deep find the actual selected element inside layers of shadow roots.
+     * 
+     * @param root - Root document or shadow root.
+     * 
+     * @returns the focused element or null if no element is focused. 
+     */
+    private getFocusedElement(root: Document | ShadowRoot): Element | null {
+        // Check root for active.
+        const rootsActiveElement: Element | null = root.activeElement;
+        if (!rootsActiveElement) {
+            return null;
+        }
+
+        // Not a host element. So it is the actual focused.
+        if (!rootsActiveElement.shadowRoot) {
+            return rootsActiveElement;
+        }
+
+        // Recursive call into the host elements shadow root.
+        return this.getFocusedElement(rootsActiveElement.shadowRoot);
+    }
+
+    /**
      * Handle pointer down on the resize corners handle.
      *
      * @param pEvent - Pointer event from the resize handle.
      */
-    public dragNode(pEvent: PointerEvent): void {
+    public dragNodeOrEnableEdit(pEvent: PointerEvent): void {
         // Cant transform without node data.
         if (!this.nodeData) {
+            return;
+        }
+
+        // Start a timer when its not already started.
+        if (!this.mDoubleClickState) {
+            // The timer does reset the itself set double click state.
+            this.mDoubleClickState = {
+                timer: globalThis.setTimeout(() => {
+                    this.mDoubleClickState = null;
+                }, 300)
+            };
+        } else {
+            // Enable edit mode when a double click state was set.
+            this.editMode = true;
+        }
+
+        // Prevent dragging on edit mode.
+        if (this.editMode) {
             return;
         }
 
@@ -174,6 +251,19 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
         // Add temporary mouse move listener.
         document.addEventListener('pointermove', lPointerMoveListener);
         document.addEventListener('pointerup', lPointerUpListener);
+    }
+
+    /**
+     * Escape edit mode on esc button press.
+     * 
+     * @param pEvent - Keyboard event.
+     */
+    public escapeEditMode(pEvent: KeyboardEvent): void {
+        // Close edit mode when escape is pressed.
+        if (pEvent.key === "Escape") {
+            pEvent.preventDefault();
+            this.editMode = false;
+        }
     }
 
     /**
@@ -262,3 +352,7 @@ export class PotatnoNodeComponentMove {
         this.mY = pY;
     }
 }
+
+type PotatnoCommentNodeComponentDoubleClickState = {
+    timer: number;
+};

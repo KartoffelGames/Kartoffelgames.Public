@@ -1,8 +1,15 @@
 <!-- Resizeable part of node -->
 <potatno-resize-box #ResizeBox class="node" top="true" right="true" bottom="true" left="true" [snap]="25" [virtual]="true" (resize)="this.transformNodeData($event.value)">
-    <div class="node-header" (pointerdown)="this.dragNode($event)">
+    <div class="node-header" (pointerdown)="this.dragNodeOrEnableEdit($event)">
         <span class="node-header__icon">✎</span>
-        <span class="node-header__label">{{this.comment}}</span>
+
+        $if(this.editMode) {
+            <input #CommentInput class="node-header__comment-edit" [(value)]="this.comment" (blur)="this.editMode = false;" (keydown)="this.escapeEditMode($event)"/>
+        }
+        $if(!this.editMode) {
+            <span class="node-header__comment">{{this.comment}}</span>
+        }
+        
     </div>
 
     <div class="node-body"/>

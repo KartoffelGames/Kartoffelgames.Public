@@ -431,9 +431,21 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      * @param pEvent - Pointer event from the node element.
      * @param pNode - Node that received the pointer down.
      */
-    public selectNode(pEvent: PointerEvent, pNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition>): void {
-        pEvent.stopPropagation();
+    public selectNode(pNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition>, pEvent: PointerEvent,): void {
         this.popupPosition = null;
+
+        pEvent.stopPropagation();
+
+        // Comment nodes also select all wrapped nodes. 
+        // TODO: Also deselect on deselection.
+        if (pNode.definitionId === PotatnoCommentNodeDefinition.DEFINITION_ID) {
+            this.selectNodesInRectangle({
+                top: pNode.transformation.y,
+                right: pNode.transformation.x + pNode.transformation.width,
+                bottom: pNode.transformation.y + pNode.transformation.height,
+                left: pNode.transformation.x
+            });
+        }
 
         if (pEvent.ctrlKey) {
             if (this.mSelectedNodes.has(pNode)) {
@@ -527,7 +539,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
     }
 
     /**
-     * Select all nodes intersecting the current selection box.
+     * Select all nodes intersecting a rectange in grid space.
      */
     private selectNodesInRectangle(pSelectionRectangle: PotatnoNodeGraphComponentGridRectange): void {
         const lActiveFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null = this.mManager.activeFunction;

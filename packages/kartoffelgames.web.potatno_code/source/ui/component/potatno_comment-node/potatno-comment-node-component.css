@@ -51,12 +51,16 @@
         mix-blend-mode: color-dodge;
     }
 
-    .node-header__label {
+    .node-header__comment {
         flex: 1;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
         mix-blend-mode: color-dodge;
+    }
+
+    .node-header__comment-edit {
+        flex: 1;
     }
 }
 

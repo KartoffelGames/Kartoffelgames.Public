@@ -555,6 +555,11 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
 
             // Check for partially intersection
             if (lNodeLeft < pSelectionRectangle.right && lNodeRight > pSelectionRectangle.left && lNodeTop < pSelectionRectangle.bottom && lNodeBottom > pSelectionRectangle.top) {
+                // Check that selection range is not fully inside node.
+                if(pSelectionRectangle.top > lNodeTop && pSelectionRectangle.right < lNodeRight && pSelectionRectangle.bottom < lNodeBottom && pSelectionRectangle.left > lNodeLeft){
+                    return;
+                }
+
                 this.mSelectedNodes.add(lNode);
             }
         }

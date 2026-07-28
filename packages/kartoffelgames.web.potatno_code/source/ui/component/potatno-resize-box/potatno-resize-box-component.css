@@ -25,6 +25,9 @@
     transition: border-color 0.15s;
     z-index: 1;
 
+    /* Whatever the parent does. Allways allow pointer events for handles. */
+    pointer-events: all;
+
     /*
      * General handle size and cursor for any direction.
      */

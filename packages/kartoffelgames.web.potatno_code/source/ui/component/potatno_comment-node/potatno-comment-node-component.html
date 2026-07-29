@@ -15,4 +15,9 @@
     <div class="node-body"/>
 </potatno-resize-box>
 
-<div style="--zoom-factor: {{this.gridZoom}}; --comment-node-height: {{this.nodeData?.transformation.height}}; --comment-node-width: {{this.nodeData?.transformation.width}};" class="bigview {{this.enableBigview ? 'enabled' : ''}}">{{this.comment}}</div>
+<div style="--zoom-factor: {{this.gridZoom}}; --comment-node-height: {{this.nodeData?.transformation.height}}; --comment-node-width: {{this.nodeData?.transformation.width}};" class="satellite-view {{this.enableBigview ? 'enabled' : ''}}">
+    <!-- Div needed to decouple inner text from size restriction of satellite-view flex -->
+    <div>
+        <div class="satellite-view__text">{{this.comment}}</div>
+    </div>
+</div>

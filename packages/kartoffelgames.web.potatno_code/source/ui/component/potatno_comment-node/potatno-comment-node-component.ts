@@ -109,15 +109,15 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
         this.mNodeData = null;
         this.mDoubleClickState = null;
         this.editMode = false;
+        this.enableBigview = false;
+        this.gridZoom = 0;
+
+        // Resinitialize zoom level.
+        this.updateForZoomLevel();
 
         // Enable big view of comment when viewed from far away.
-        this.enableBigview = pManager.grid.zoom < 0.25;
-        this.gridZoom = pManager.grid.zoom;
         this.mUnsubscribeGrid = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.SpecialGrid, () => {
-            this.enableBigview = pManager.grid.zoom < 0.25;
-            if (this.enableBigview) {
-                this.gridZoom = pManager.grid.zoom;
-            }
+            this.updateForZoomLevel();
         });
 
         this.mUnsubscribe = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Node, (pItem) => {
@@ -342,6 +342,20 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
             const lNodeHeight: number = pNode.transformation.height * this.mManager.grid.gridSize;
             this.resizeBox.resize(lNodeWidth, lNodeHeight);
         }
+
+        this.mComponent.updater.updateAsync();
+    }
+
+    private updateForZoomLevel(): void {
+        // Enable satellite view on higher zoom level.
+        this.enableBigview = this.mManager.grid.zoom < 0.25;
+
+        // Only update zoom level when the satellite view is enabled
+        if (this.enableBigview) {
+            this.gridZoom = this.mManager.grid.zoom;
+        }
+
+        this.mComponent.element.style.setProperty('z-index', (this.enableBigview ? 9999 : -1).toString());
     }
 }
 

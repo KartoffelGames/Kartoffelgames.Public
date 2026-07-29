@@ -11,8 +11,9 @@ import { PotatnoCodeUiManagerChangeType, type PotatnoUiManager } from '../potatn
  * Handles the UI previews by caching its driver and manages references and cleanup.
  */
 export class PotatnoUiManagerPreview {
-    private readonly mDriverActivity: WeakMap<PotatnoPreviewDriver<PotatnoProjectTypesDefinition>, boolean>;
     private readonly mDriverElements: WeakMap<WeakRef<PotatnoPreviewDriver<PotatnoProjectTypesDefinition>>, Element>;
+    private readonly mDriverElementVisible: WeakMap<PotatnoPreviewDriver<PotatnoProjectTypesDefinition>, boolean>;
+    private readonly mDriverElementBigEnough: WeakMap<PotatnoPreviewDriver<PotatnoProjectTypesDefinition>, boolean>;
     private readonly mDriverList: Array<WeakRef<PotatnoPreviewDriver<PotatnoProjectTypesDefinition>>>;
     private readonly mDrivers: WeakMap<IPotatnoDocumentItem<PotatnoProjectTypesDefinition>, PotatnoPreviewDriver<PotatnoProjectTypesDefinition>>;
     private readonly mElementDriver: WeakMap<Element, WeakRef<PotatnoPreviewDriver<PotatnoProjectTypesDefinition>>>;
@@ -32,7 +33,8 @@ export class PotatnoUiManagerPreview {
 
         // Different mappings
         this.mDrivers = new WeakMap<IPotatnoDocumentItem<PotatnoProjectTypesDefinition>, PotatnoPreviewDriver<PotatnoProjectTypesDefinition>>();
-        this.mDriverActivity = new WeakMap<PotatnoPreviewDriver<PotatnoProjectTypesDefinition>, boolean>();
+        this.mDriverElementVisible = new WeakMap<PotatnoPreviewDriver<PotatnoProjectTypesDefinition>, boolean>();
+        this.mDriverElementBigEnough = new WeakMap<PotatnoPreviewDriver<PotatnoProjectTypesDefinition>, boolean>();
 
         // Mapping between elements and driver.
         this.mDriverElements = new WeakMap<WeakRef<PotatnoPreviewDriver<PotatnoProjectTypesDefinition>>, Element>();
@@ -44,12 +46,34 @@ export class PotatnoUiManagerPreview {
             this.mDriverList.splice(0, this.mDriverList.length);
         });
 
-        // In-place edits keep the same items: recompile live drivers after a debounce.
-        let lDebounce: number = 0;
+        // Recompile live drivers after a debounce.
+        let lDebounceStructureChanges: number = 0;
         const lStructuralEvents: number = PotatnoCodeUiManagerChangeType.Connection | PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.NodeAdd | PotatnoCodeUiManagerChangeType.NodeDelete | PotatnoCodeUiManagerChangeType.NodeUpdate;
         this.mManager.subscribe(lStructuralEvents, () => {
-            globalThis.clearTimeout(lDebounce);
-            lDebounce = globalThis.setTimeout(() => this.refresh(), 1000) as unknown as number;
+            globalThis.clearTimeout(lDebounceStructureChanges);
+            lDebounceStructureChanges = globalThis.setTimeout(() => this.refresh(), 1000) as unknown as number;
+        });
+
+        // Check for preview element sizes on grid zooms.
+        let lDebounceGridTransformChanges: number = 0;
+        this.mManager.subscribe(PotatnoCodeUiManagerChangeType.SpecialGrid, () => {
+            globalThis.clearTimeout(lDebounceGridTransformChanges);
+            lDebounceGridTransformChanges = globalThis.setTimeout(() => {
+                // Iterate all known drivers.
+                for (const lDriverReference of this.mDriverList) {
+                    // Deref the driver reference
+                    const lDriver: PotatnoPreviewDriver<PotatnoProjectTypesDefinition> | undefined = lDriverReference.deref();
+                    if (!lDriver) {
+                        continue;
+                    }
+
+                    // Get size of driver element.
+                    const lElementSize: DOMRect = lDriver.element.getBoundingClientRect();
+
+                    // Disable element when on size is smaller than 30px.
+                    this.mDriverElementBigEnough.set(lDriver, !(lElementSize.width < 30 || lElementSize.height < 30));
+                }
+            }, 300) as unknown as number;
         });
 
         // Register a intersection observer that listens on preview elements in view.
@@ -68,7 +92,7 @@ export class PotatnoUiManagerPreview {
                 }
 
                 // Update activity of driver.
-                this.mDriverActivity.set(lDriver, lEntry.isIntersecting);
+                this.mDriverElementVisible.set(lDriver, lEntry.isIntersecting);
             }
         });
     }
@@ -87,8 +111,13 @@ export class PotatnoUiManagerPreview {
                 return;
             }
 
-            // Skip drivers not in view.
-            if (!this.mDriverActivity.get(lDriver)) {
+            // Skip drivers not in view. And only when explicit set to be disabled.
+            if (this.mDriverElementVisible.get(lDriver) === false) {
+                return;
+            }
+
+            // Skip drivers not big enough. And only when explicit set to be disabled.
+            if (this.mDriverElementBigEnough.get(lDriver) === false) {
                 return;
             }
 

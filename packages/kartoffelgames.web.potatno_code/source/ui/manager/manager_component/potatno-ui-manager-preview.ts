@@ -109,17 +109,17 @@ export class PotatnoUiManagerPreview {
             // Deref the driver reference
             const lDriver: PotatnoPreviewDriver<PotatnoProjectTypesDefinition> | undefined = lDriverReference.deref();
             if (!lDriver) {
-                return;
+                continue;
             }
 
             // Skip drivers not in view. And only when explicit set to be disabled.
             if (this.mDriverElementVisible.get(lDriver) === false) {
-                return;
+                continue;
             }
 
             // Skip drivers not big enough. And only when explicit set to be disabled.
             if (this.mDriverElementBigEnough.get(lDriver) === false) {
-                return;
+                continue;
             }
 
             // Execute driver and ignore errors.

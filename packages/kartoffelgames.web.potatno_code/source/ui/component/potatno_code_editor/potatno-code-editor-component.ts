@@ -77,7 +77,7 @@ export class PotatnoCodeEditorComponent implements IComponentOnDeconstruct {
      * @returns A promise resolving once the current render pass finishes.
      */
     @PwbExport
-    public async triggerPreviewUpdate(): Promise<void> {
+    public triggerPreviewUpdate(): void {
         return this.mManager.preview.execute();
     }
 

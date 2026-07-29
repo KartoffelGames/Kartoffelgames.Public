@@ -1,5 +1,5 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import { Component, ComponentEventEmitter, ComponentState, IComponentOnConnect, IComponentOnUpdate, PwbChild, PwbComponent, PwbComponentEvent, PwbExport, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
+import { Component, ComponentState, PwbChild, PwbComponent, PwbComponentEvent, PwbExport, type ComponentEventEmitter, type IComponentOnConnect, type IComponentOnDeconstruct, type IComponentOnUpdate } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, type PotatnoCodeUiManagerUnsubscribe } from '../../manager/potatno-ui-manager.ts';
@@ -19,23 +19,37 @@ import nodeTemplate from './potatno-comment-node-component.html' with { type: 't
 })
 export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, IComponentOnConnect, IComponentOnUpdate {
     private readonly mComponent: Component;
+    private mDoubleClickState: PotatnoCommentNodeComponentDoubleClickState | null;
     private readonly mManager: PotatnoUiManager;
+    private mNodeData: PotatnoDocumentNode<PotatnoProjectTypesDefinition> | null;
     private readonly mUnsubscribe: PotatnoCodeUiManagerUnsubscribe;
     private readonly mUnsubscribeGrid: PotatnoCodeUiManagerUnsubscribe;
-    private mNodeData: PotatnoDocumentNode<PotatnoProjectTypesDefinition> | null;
-    private mDoubleClickState: PotatnoCommentNodeComponentDoubleClickState | null;
+
+    /**
+     * Node display label.
+     */
+    public get comment(): string {
+        return this.nodeData?.label ?? '';
+    } set comment(pComment: string) {
+        // Skip update.
+        if (!this.nodeData) {
+            return;
+        }
+
+        this.nodeData.label = pComment;
+    }
 
     /**
      * If comment text is in edit mode.
      */
     @ComponentState.state()
-    public accessor editMode: Boolean;
+    public accessor editMode: boolean;
 
     /**
      * If comment is viewed from far away.
      */
     @ComponentState.state()
-    public accessor enableBigview: Boolean;
+    public accessor enableBigview: boolean;
 
     /**
      * The domain node object to render.
@@ -60,6 +74,12 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
     }
 
     /**
+     * The comment input.
+     */
+    @PwbChild('CommentInput')
+    private accessor mCommentInput!: HTMLInputElement | null;
+
+    /**
      * Emitted with the definition the user picked, for the host to insert.
      */
     @PwbComponentEvent('node-drag')
@@ -69,27 +89,7 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
      * The actual resizeable element.
      */
     @PwbChild('ResizeBox')
-    private accessor resizeBox!: PotatnoResizeBoxComponent & Element | null;
-
-    /**
-     * Node display label.
-     */
-    public get comment(): string {
-        return this.nodeData?.label ?? '';
-    } set comment(pComment: string) {
-        // Skip update.
-        if (!this.nodeData) {
-            return;
-        }
-
-        this.nodeData.label = pComment;
-    }
-
-    /**
-     * The comment input.
-     */
-    @PwbChild('CommentInput')
-    public accessor commentInput!: HTMLInputElement | null;
+    private accessor mResizeBox!: PotatnoResizeBoxComponent & Element | null;
 
     /**
      * Current zoom of grid.
@@ -156,39 +156,39 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
      */
     public onUpdate(): void {
         // Skip if not rendered.
-        if (!this.commentInput) {
+        if (!this.mCommentInput) {
             return;
         }
 
         // Skip if its already focused.
-        if (this.getFocusedElement(document) === this.commentInput) {
+        if (this.getFocusedElement(document) === this.mCommentInput) {
             return;
         }
 
-        this.commentInput.select();
+        this.mCommentInput.select();
     }
 
     /**
      * Deep find the actual selected element inside layers of shadow roots.
      * 
-     * @param root - Root document or shadow root.
+     * @param pRoot - Root document or shadow root.
      * 
      * @returns the focused element or null if no element is focused. 
      */
-    private getFocusedElement(root: Document | ShadowRoot): Element | null {
+    private getFocusedElement(pRoot: Document | ShadowRoot): Element | null {
         // Check root for active.
-        const rootsActiveElement: Element | null = root.activeElement;
-        if (!rootsActiveElement) {
+        const lRootsActiveElement: Element | null = pRoot.activeElement;
+        if (!lRootsActiveElement) {
             return null;
         }
 
         // Not a host element. So it is the actual focused.
-        if (!rootsActiveElement.shadowRoot) {
-            return rootsActiveElement;
+        if (!lRootsActiveElement.shadowRoot) {
+            return lRootsActiveElement;
         }
 
         // Recursive call into the host elements shadow root.
-        return this.getFocusedElement(rootsActiveElement.shadowRoot);
+        return this.getFocusedElement(lRootsActiveElement.shadowRoot);
     }
 
     /**
@@ -287,7 +287,7 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
      */
     public escapeEditMode(pEvent: KeyboardEvent): void {
         // Close edit mode when escape is pressed.
-        if (pEvent.key === "Escape" || pEvent.key === "Enter") {
+        if (pEvent.key === 'Escape' || pEvent.key === 'Enter') {
             pEvent.preventDefault();
             this.editMode = false;
         }
@@ -337,10 +337,10 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
         this.mComponent.element.style.setProperty('top', `${lNodeY}px`);
 
         // Calculate and update node size.
-        if (this.resizeBox) {
+        if (this.mResizeBox) {
             const lNodeWidth: number = pNode.transformation.width * this.mManager.grid.gridSize;
             const lNodeHeight: number = pNode.transformation.height * this.mManager.grid.gridSize;
-            this.resizeBox.resize(lNodeWidth, lNodeHeight);
+            this.mResizeBox.resize(lNodeWidth, lNodeHeight);
         }
 
         this.mComponent.updater.updateAsync();

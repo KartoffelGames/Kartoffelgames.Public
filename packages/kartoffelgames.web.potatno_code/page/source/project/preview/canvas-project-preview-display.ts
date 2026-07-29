@@ -5,8 +5,8 @@ import type { CanvasProjectTypesDefinition } from '../canvas-project-types-defin
 export class CanvasProjectPreviewDisplay<TExecutorResultType extends PotatnoPreviewResultType<CanvasProjectTypesDefinition>> extends PotatnoPreviewDisplay<CanvasProjectTypesDefinition, HTMLCanvasElement, CanvasProjectPreViewDisplayParameter, TExecutorResultType, CanvasProjectPreViewDisplayResultTypes, CanvasProjectPreViewDisplayResult> {
     private static readonly PREVIEW_PIXEL_SIZE: number = 7.5;
 
-    private readonly mCanvasImageData: WeakMap<HTMLCanvasElement, ImageData>;
     private readonly mCanvasContext: WeakMap<HTMLCanvasElement, CanvasRenderingContext2D>;
+    private readonly mCanvasImageData: WeakMap<HTMLCanvasElement, ImageData>;
 
     /**
      * Construtor.
@@ -67,10 +67,10 @@ export class CanvasProjectPreviewDisplay<TExecutorResultType extends PotatnoPrev
             pElement.height = lHeight;
 
             // Update image data.
-            this.mCanvasImageData.set(pElement, lContext.createImageData(lWidth, lHeight))
+            this.mCanvasImageData.set(pElement, lContext.createImageData(lWidth, lHeight));
         }
 
-        const lImageData: ImageData = this.mCanvasImageData.get(pElement)!
+        const lImageData: ImageData = this.mCanvasImageData.get(pElement)!;
         const lPixels: Uint8ClampedArray = lImageData.data;
 
         for (let lY = 0; lY < lHeight; lY++) {

@@ -1,6 +1,6 @@
 import { expect } from '@kartoffelgames/core-test';
 import type { PotatnoTestProjectTypesDefinition } from '../../helper/potatno_test_project/potatno-test-project-types-definition.ts';
-import { PotatnoFlowConjunctionNodeDefinition } from "../../../source/project/node_definition/potatno-flow-conjunction-node-definition.ts";
+import { PotatnoFlowConjunctionNodeDefinition } from '../../../source/project/node_definition/potatno-flow-conjunction-node-definition.ts';
 
 Deno.test('FlowConjunctionNodeDefinition.DEFINITION_ID', async (pContext) => {
     await pContext.step('Returns stable definition id', () => {

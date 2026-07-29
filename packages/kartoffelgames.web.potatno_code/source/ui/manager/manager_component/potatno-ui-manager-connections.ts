@@ -1,5 +1,4 @@
 import { Exception } from '@kartoffelgames/core';
-import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
@@ -33,7 +32,7 @@ export class PotatnoUiManagerConnections {
         this.mGridElement = null;
         this.mPathFinder = new PotatnoUiGridPathFinding();
 
-        let lDebounceHandle: number = 0;
+        const lDebounceHandle: number = 0;
         const lDebouncedUpdate = () => {
             if (lDebounceHandle > 0) {
                 globalThis.cancelAnimationFrame(lDebounceHandle);

@@ -228,7 +228,7 @@ Deno.test('PotatnoPreviewDisplay.generate()', async (pContext) => {
 });
 
 Deno.test('PotatnoPreviewDisplay.update()', async (pContext) => {
-    await pContext.step('Calls configured update callback', async () => {
+    await pContext.step('Calls configured update callback', () => {
         // Setup.
         const lElement = { name: 'PreviewElement' } as unknown as Element;
         let lCapturedElement: Element | null = null;
@@ -242,14 +242,14 @@ Deno.test('PotatnoPreviewDisplay.update()', async (pContext) => {
             generate: (): Element => {
                 return lElement;
             },
-            update: async (pElement, pExecutor): Promise<void> => {
+            update: (pElement, pExecutor): void => {
                 lCapturedElement = pElement;
-                lCapturedValue = await pExecutor({});
+                lCapturedValue = pExecutor({});
             }
         });
 
         // Process.
-        await lDisplay.update(lElement, async (): Promise<number> => 9);
+        lDisplay.update(lElement, (): number => 9);
 
         // Evaluation.
         expect(lCapturedElement).toBe(lElement);

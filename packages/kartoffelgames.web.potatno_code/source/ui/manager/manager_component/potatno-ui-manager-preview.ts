@@ -11,9 +11,9 @@ import { PotatnoCodeUiManagerChangeType, type PotatnoUiManager } from '../potatn
  * Handles the UI previews by caching its driver and manages references and cleanup.
  */
 export class PotatnoUiManagerPreview {
-    private readonly mDriverElements: WeakMap<WeakRef<PotatnoPreviewDriver<PotatnoProjectTypesDefinition>>, Element>;
-    private readonly mDriverElementVisible: WeakMap<PotatnoPreviewDriver<PotatnoProjectTypesDefinition>, boolean>;
     private readonly mDriverElementBigEnough: WeakMap<PotatnoPreviewDriver<PotatnoProjectTypesDefinition>, boolean>;
+    private readonly mDriverElementVisible: WeakMap<PotatnoPreviewDriver<PotatnoProjectTypesDefinition>, boolean>;
+    private readonly mDriverElements: WeakMap<WeakRef<PotatnoPreviewDriver<PotatnoProjectTypesDefinition>>, Element>;
     private readonly mDriverList: Array<WeakRef<PotatnoPreviewDriver<PotatnoProjectTypesDefinition>>>;
     private readonly mDrivers: WeakMap<IPotatnoDocumentItem<PotatnoProjectTypesDefinition>, PotatnoPreviewDriver<PotatnoProjectTypesDefinition>>;
     private readonly mElementDriver: WeakMap<Element, WeakRef<PotatnoPreviewDriver<PotatnoProjectTypesDefinition>>>;
@@ -103,10 +103,11 @@ export class PotatnoUiManagerPreview {
      *
      * @returns A promise resolving once every driver finished its render pass.
      */
-    public async execute(): Promise<void> {
-        const lExecutionList: Array<Promise<void>> = this.mDriverList.map(async (pDriverReference) => {
+    public execute(): void {
+        // Iterate all known drivers.
+        for (const lDriverReference of this.mDriverList) {
             // Deref the driver reference
-            const lDriver: PotatnoPreviewDriver<PotatnoProjectTypesDefinition> | undefined = pDriverReference.deref();
+            const lDriver: PotatnoPreviewDriver<PotatnoProjectTypesDefinition> | undefined = lDriverReference.deref();
             if (!lDriver) {
                 return;
             }
@@ -123,15 +124,12 @@ export class PotatnoUiManagerPreview {
 
             // Execute driver and ignore errors.
             try {
-                await lDriver.execute();
+                lDriver.execute();
             } catch (pError) {
                 // eslint-disable-next-line no-console
                 console.error('[PotatnoUiManagerPreview] Driver render failed:', pError);
             }
-        });
-
-        // Wait for all driver executions to finish.
-        await Promise.all(lExecutionList);
+        }
     }
 
     /**

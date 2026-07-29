@@ -85,9 +85,9 @@ void gRenderFrame();
 /**
  * Render all node previews on every animation frame.
  */
-async function gRenderFrame(): Promise<void> {
+function gRenderFrame(): void {
     try {
-        await gApp.update();
+        gApp.update();
     } catch (lError) {
         void lError;
     }

@@ -2,8 +2,6 @@
 import type { DataLevel } from '../../data/data-level.ts';
 import type { ComponentModules } from '../component-modules.ts';
 import type { IPwbTemplateNode } from '../template/nodes/i-pwb-template-node.interface.ts';
-import type { PwbTemplateTextNode } from '../template/nodes/pwb-template-text-node.ts';
-import type { PwbTemplateXmlNode } from '../template/nodes/pwb-template-xml-node.ts';
 import type { BaseBuilderData } from './data/base-builder-data.ts';
 
 /**

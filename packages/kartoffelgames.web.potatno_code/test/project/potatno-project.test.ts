@@ -286,8 +286,8 @@ Deno.test('PotatnoProject.nodeDefinitions', async (pContext) => {
         // Setup. Process.
         const lProject = gNewBareProject();
 
-        // Evaluation. Two built-in conjunction nodes are always present.
-        expect(lProject.nodeDefinitions.length).toBe(2);
+        // Evaluation. Two built-in conjunction and one comment nodes are always present.
+        expect(lProject.nodeDefinitions.length).toBe(3);
     });
 
     await pContext.step('Returns added node definitions plus conjunctions', () => {
@@ -305,7 +305,7 @@ Deno.test('PotatnoProject.nodeDefinitions', async (pContext) => {
         lProject.addNodeDefinition(lAddedDefinition);
 
         // Evaluation.
-        expect(lProject.nodeDefinitions.length).toBe(3);
+        expect(lProject.nodeDefinitions.length).toBe(4);
         expect(lProject.nodeDefinitions.map((pDef) => pDef.id)).toContain('Marker');
     });
 });

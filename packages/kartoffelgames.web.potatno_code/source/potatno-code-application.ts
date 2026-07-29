@@ -95,7 +95,7 @@ export class PotatnoCodeApplication<TProjectTypes extends PotatnoProjectTypesDef
      * @returns A promise resolving once the current render pass finishes, so a frame loop can
      * await it and avoid overlapping renders.
      */
-    public async update(): Promise<void> {
-        return this.mCodeEditor.triggerPreviewUpdate();
+    public update(): void {
+        this.mCodeEditor.triggerPreviewUpdate();
     }
 }

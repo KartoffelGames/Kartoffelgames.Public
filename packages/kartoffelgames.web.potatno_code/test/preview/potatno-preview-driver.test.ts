@@ -71,7 +71,7 @@ Deno.test('PotatnoPreviewDriver.element', async (pContext) => {
 });
 
 Deno.test('PotatnoPreviewDriver.execute()', async (pContext) => {
-    await pContext.step('No-ops before refresh created a callable', async () => {
+    await pContext.step('No-ops before refresh created a callable', () => {
         // Setup.
         let lUpdateCallCount: number = 0;
         const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
@@ -86,13 +86,13 @@ Deno.test('PotatnoPreviewDriver.execute()', async (pContext) => {
         const lDriver = new PotatnoPreviewDriver(lDisplay, lFunction);
 
         // Process.
-        await lDriver.execute();
+        lDriver.execute();
 
         // Evaluation.
         expect(lUpdateCallCount).toBe(0);
     });
 
-    await pContext.step('Runs display update with cached callable', async () => {
+    await pContext.step('Runs display update with cached callable', () => {
         // Setup.
         const { function: lFunction, defaultEntry: lDefaultEntry, defaultExit: lDefaultExit } = PotatnoHelper.setupCalculatorDocument();
         const lElement = { name: 'PreviewElement' } as unknown as Element;
@@ -121,9 +121,9 @@ Deno.test('PotatnoPreviewDriver.execute()', async (pContext) => {
             generate: (): Element => {
                 return lElement;
             },
-            update: async (pElement, pExecutor): Promise<void> => {
+            update: (pElement, pExecutor): void => {
                 expect(pElement).toBe(lElement);
-                lCapturedValue = await pExecutor({ display: 3 });
+                lCapturedValue = pExecutor({ display: 3 });
             }
         });
         const lDriver = lDisplay.createDriver(lFunction);
@@ -131,7 +131,7 @@ Deno.test('PotatnoPreviewDriver.execute()', async (pContext) => {
         lDriver.refresh();
 
         // Process.
-        await lDriver.execute();
+        lDriver.execute();
 
         // Evaluation.
         expect(lCapturedValue).toBe(12);
@@ -195,7 +195,7 @@ Deno.test('PotatnoPreviewDriver.refresh()', async (pContext) => {
         expect(lCapturedTarget!.value).toBe(lExpectedValue);
     });
 
-    await pContext.step('Skips execution when display does not allow compiled result type', async () => {
+    await pContext.step('Skips execution when display does not allow compiled result type', () => {
         // Setup.
         const { function: lFunction, defaultEntry: lDefaultEntry, defaultExit: lDefaultExit } = PotatnoHelper.setupCalculatorDocument();
         let lUpdateCallCount: number = 0;
@@ -229,7 +229,7 @@ Deno.test('PotatnoPreviewDriver.refresh()', async (pContext) => {
 
         // Process.
         lDriver.refresh();
-        await lDriver.execute();
+        lDriver.execute();
 
         // Evaluation.
         expect(lUpdateCallCount).toBe(0);
@@ -237,7 +237,7 @@ Deno.test('PotatnoPreviewDriver.refresh()', async (pContext) => {
 });
 
 Deno.test('PotatnoPreviewDriver.specifyParameters()', async (pContext) => {
-    await pContext.step('Merges parameters over defaults and previous specified values', async () => {
+    await pContext.step('Merges parameters over defaults and previous specified values', () => {
         // Setup.
         const { function: lFunction, defaultEntry: lDefaultEntry, defaultExit: lDefaultExit } = PotatnoHelper.setupCalculatorDocument();
         let lCapturedParameters: Record<string, unknown> | null = null;
@@ -266,9 +266,9 @@ Deno.test('PotatnoPreviewDriver.specifyParameters()', async (pContext) => {
             generate: (): Element => {
                 return { name: 'PreviewElement' } as unknown as Element;
             },
-            update: async (pElement, pExecutor): Promise<void> => {
+            update: (pElement, pExecutor): void => {
                 void pElement;
-                await pExecutor({ value: 5, display: 6 });
+                pExecutor({ value: 5, display: 6 });
             }
         });
         const lDriver = lDisplay.createDriver(lFunction);
@@ -277,7 +277,7 @@ Deno.test('PotatnoPreviewDriver.specifyParameters()', async (pContext) => {
         lDriver.refresh();
 
         // Process.
-        await lDriver.execute();
+        lDriver.execute();
 
         // Evaluation.
         expect(lCapturedParameters).toEqual({ base: 1, value: 5, user: 3, display: 6 });

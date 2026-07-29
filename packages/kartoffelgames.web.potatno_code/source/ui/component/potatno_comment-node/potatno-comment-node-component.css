@@ -109,15 +109,29 @@
     --comment-node-height: 6;
     --comment-node-width: 6;
 
+    /* Let the text overflow */
+    display: none;
+    align-items: center;
+    justify-content: center;
+
     color: white;
     position: absolute;
     top: 0;
     left: 0;
-    width: calc(var(--potatno-grid-size) * var(--comment-node-width) * 1px);
-    height: calc(var(--potatno-grid-size) * var(--comment-node-height) * 1px);
-    font-size: calc(120px / var(--zoom-factor));
+    width: calc(var(--potatno-grid-size) * var(--comment-node-width));
+    height: calc(var(--potatno-grid-size) * var(--comment-node-height));
+
+    /* Automatic sizing text based on zoomlevel. */
+    line-height: calc(40px / var(--zoom-factor));
+    font-size: calc(40px / var(--zoom-factor));
+    text-align: center;
 
     /* Disable all interaction. */
     user-select: none;
     pointer-events: none;
+
+    /* Let the text overflow */
+    &.enabled {
+        display: flex;
+    }
 }

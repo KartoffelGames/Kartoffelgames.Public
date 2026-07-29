@@ -90,7 +90,7 @@
         padding: 0;
         margin: 0;
         border: none;
-        outline: 1px transparent;        
+        outline: 1px transparent;
         background-color: transparent;
 
         /* Input boxes override anything :( */
@@ -102,4 +102,22 @@
 
 .node-body {
     flex: 1;
+}
+
+.bigview {
+    --zoom-factor: 1;
+    --comment-node-height: 6;
+    --comment-node-width: 6;
+
+    color: white;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: calc(var(--potatno-grid-size) * var(--comment-node-width) * 1px);
+    height: calc(var(--potatno-grid-size) * var(--comment-node-height) * 1px);
+    font-size: calc(120px / var(--zoom-factor));
+
+    /* Disable all interaction. */
+    user-select: none;
+    pointer-events: none;
 }

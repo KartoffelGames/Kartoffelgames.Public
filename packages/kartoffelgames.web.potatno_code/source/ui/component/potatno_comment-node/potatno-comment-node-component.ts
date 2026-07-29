@@ -21,11 +21,21 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
     private readonly mComponent: Component;
     private readonly mManager: PotatnoUiManager;
     private readonly mUnsubscribe: PotatnoCodeUiManagerUnsubscribe;
+    private readonly mUnsubscribeGrid: PotatnoCodeUiManagerUnsubscribe;
     private mNodeData: PotatnoDocumentNode<PotatnoProjectTypesDefinition> | null;
     private mDoubleClickState: PotatnoCommentNodeComponentDoubleClickState | null;
 
+    /**
+     * If comment text is in edit mode.
+     */
     @ComponentState.state()
     public accessor editMode: Boolean;
+
+    /**
+     * If comment is viewed from far away.
+     */
+    @ComponentState.state()
+    public accessor enableBigview: Boolean;
 
     /**
      * The domain node object to render.
@@ -82,6 +92,12 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
     public accessor commentInput!: HTMLInputElement | null;
 
     /**
+     * Current zoom of grid.
+     */
+    @ComponentState.state()
+    public accessor gridZoom: number;
+
+    /**
      * Create the node component.
      *
      * @param pComponent - Injected component reference, used to trigger self-updates.
@@ -93,6 +109,16 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
         this.mNodeData = null;
         this.mDoubleClickState = null;
         this.editMode = false;
+
+        // Enable big view of comment when viewed from far away.
+        this.enableBigview = pManager.grid.zoom < 0.25;
+        this.gridZoom = pManager.grid.zoom;
+        this.mUnsubscribeGrid = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.SpecialGrid, () => {
+            this.enableBigview = pManager.grid.zoom < 0.25;
+            if (this.enableBigview) {
+                this.gridZoom = pManager.grid.zoom;
+            }
+        });
 
         this.mUnsubscribe = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Node, (pItem) => {
             // Only trigger a transformation if its affects the current node data.
@@ -121,6 +147,7 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
      */
     public onDeconstruct(): void {
         this.mUnsubscribe();
+        this.mUnsubscribeGrid();
     }
 
 
@@ -260,7 +287,7 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
      */
     public escapeEditMode(pEvent: KeyboardEvent): void {
         // Close edit mode when escape is pressed.
-        if (pEvent.key === "Escape" || pEvent.key === "Enter" ) {
+        if (pEvent.key === "Escape" || pEvent.key === "Enter") {
             pEvent.preventDefault();
             this.editMode = false;
         }

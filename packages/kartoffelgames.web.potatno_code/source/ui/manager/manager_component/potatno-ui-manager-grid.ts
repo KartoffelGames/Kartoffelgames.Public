@@ -7,7 +7,7 @@ import { PotatnoCodeUiManagerChangeType, PotatnoUiManager } from "../potatno-ui-
 export class PotatnoUiManagerGrid {
     private static readonly GRID_SIZE: number = 25;
     private static readonly MAX_ZOOM: number = 2.0;
-    private static readonly MIN_ZOOM: number = 0.25;
+    private static readonly MIN_ZOOM: number = 0.1;
 
     private readonly mManager: PotatnoUiManager;
     private mPanX: number;

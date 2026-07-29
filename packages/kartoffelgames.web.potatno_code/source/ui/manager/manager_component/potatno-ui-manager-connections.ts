@@ -143,14 +143,13 @@ export class PotatnoUiManagerConnections {
         // Find index of port in the node port list.
         const lPortIndex: number = (() => {
             // Count index until found, or port is not found i guess.
-            let lIndex: number = 0;
-            for (; lIndex < lNodePortList.length; lIndex++) {
+            for (let lIndex: number = 0; lIndex < lNodePortList.length; lIndex++) {
                 if (lNodePortList[lIndex] === pPort) {
-                    break;
+                    return lIndex;
                 }
             }
 
-            return lIndex;
+            return 0;
         })();
 
         // Get the X coordinate based on the node and port direction.

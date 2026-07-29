@@ -7,8 +7,6 @@ import type { PotatnoPreviewDisplayItem } from '../../../preview/potatno-preview
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import { PotatnoCodeUiManagerChangeType, type PotatnoUiManager } from '../potatno-ui-manager.ts';
 
-// TODO: Cleanup preview driver for each target.
-
 /**
  * Handles the UI previews by caching its driver and manages references and cleanup.
  */
@@ -145,6 +143,12 @@ export class PotatnoUiManagerPreview {
         const lCurrentDriver: PotatnoPreviewDriver<PotatnoProjectTypesDefinition> | undefined = this.mDrivers.get(pTarget);
         if (lCurrentDriver && lCurrentDriver.display.id === pDisplayId) {
             return lCurrentDriver;
+        }
+
+        // Clear the old driver.
+        if (lCurrentDriver) {
+            // Read driver referenc through drivers element and unregister.
+            this.unregister(this.mElementDriver.get(lCurrentDriver.element)!);
         }
 
         // If it not, generate a new driver.

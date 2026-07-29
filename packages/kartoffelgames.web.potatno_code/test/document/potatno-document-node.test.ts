@@ -1,6 +1,9 @@
 import { expect } from '@kartoffelgames/core-test';
+import { PotatnoCommentNodeDefinition } from '../../source/project/node_definition/potatno-comment-node-definition.ts';
+import { PotatnoFlowConjunctionNodeDefinition } from '../../source/project/node_definition/potatno-flow-conjunction-node-definition.ts';
 import { PotatnoStaticNodeDefinition } from '../../source/project/node_definition/potatno-static-node-definition.ts';
 import { PotatnoFunctionNodeDefinition } from '../../source/project/node_definition/potatno-function-node-definition.ts';
+import { PotatnoValueConjunctionNodeDefinition } from '../../source/project/node_definition/potatno-value-conjunction-node-definition.ts';
 import type { PotatnoDocumentFunction } from '../../source/document/potatno-document-function.ts';
 import type { PotatnoDocumentNode } from '../../source/document/potatno-document-node.ts';
 import { PotatnoHelper } from '../helper/potatno-helper.ts';
@@ -50,9 +53,9 @@ Deno.test('PotatnoDocumentNode.constructor()', async (pContext) => {
     });
 
     await pContext.step('Stores transformation', () => {
-        // Setup. The node stores whatever transformation it is created with.
+        // Setup. A comment node is the only freely-sizable node, so it stores the given size verbatim.
         const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
-        const lDefinition = PotatnoHelper.TEST_PROJECT.nodeDefinitions.find((pDef) => pDef.id === 'Add')!;
+        const lDefinition = PotatnoHelper.TEST_PROJECT.nodeDefinitions.find((pDef) => pDef.id === PotatnoCommentNodeDefinition.DEFINITION_ID)!;
 
         // Process.
         const lNode = lFunction.addNodeByDefinition(lDefinition, { x: 5, y: 6, width: 7, height: 8 });
@@ -175,13 +178,13 @@ Deno.test('PotatnoDocumentNode.label', async (pContext) => {
 
 Deno.test('PotatnoDocumentNode.transformation', async (pContext) => {
     await pContext.step('Returns the stored transformation', () => {
-        // Setup. Process.
+        // Setup. Process. A comment node stores its size verbatim, so the getter returns it unchanged.
         const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
-        const lDefinition = PotatnoHelper.TEST_PROJECT.nodeDefinitions.find((pDef) => pDef.id === 'Add')!;
-        const lAddNode = lFunction.addNodeByDefinition(lDefinition, { x: 5, y: 6, width: 7, height: 8 });
+        const lDefinition = PotatnoHelper.TEST_PROJECT.nodeDefinitions.find((pDef) => pDef.id === PotatnoCommentNodeDefinition.DEFINITION_ID)!;
+        const lCommentNode = lFunction.addNodeByDefinition(lDefinition, { x: 5, y: 6, width: 7, height: 8 });
 
         // Evaluation.
-        expect(lAddNode.transformation).toEqual({ x: 5, y: 6, width: 7, height: 8 });
+        expect(lCommentNode.transformation).toEqual({ x: 5, y: 6, width: 7, height: 8 });
     });
 });
 
@@ -325,7 +328,38 @@ Deno.test('PotatnoDocumentNode.moveTo()', async (pContext) => {
 });
 
 Deno.test('PotatnoDocumentNode.resizeTo()', async (pContext) => {
-    await pContext.step('Updates width and height', () => {
+    // A comment node is freely resizable, only bound by a 6x6 minimum.
+    await pContext.step('Comment node - freely resizes to any size above the minimum', () => {
+        // Setup.
+        const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
+        const lDefinition = PotatnoHelper.TEST_PROJECT.nodeDefinitions.find((pDef) => pDef.id === PotatnoCommentNodeDefinition.DEFINITION_ID)!;
+        const lCommentNode = lFunction.addNodeByDefinition(lDefinition, { x: 0, y: 0, width: 6, height: 6 });
+
+        // Process.
+        lCommentNode.resizeTo(20, 30);
+
+        // Evaluation.
+        expect(lCommentNode.transformation.width).toBe(20);
+        expect(lCommentNode.transformation.height).toBe(30);
+    });
+
+    await pContext.step('Comment node - clamps width and height to a minimum of 6', () => {
+        // Setup.
+        const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
+        const lDefinition = PotatnoHelper.TEST_PROJECT.nodeDefinitions.find((pDef) => pDef.id === PotatnoCommentNodeDefinition.DEFINITION_ID)!;
+        const lCommentNode = lFunction.addNodeByDefinition(lDefinition, { x: 0, y: 0, width: 6, height: 6 });
+
+        // Process.
+        lCommentNode.resizeTo(1, 2);
+
+        // Evaluation.
+        expect(lCommentNode.transformation.width).toBe(6);
+        expect(lCommentNode.transformation.height).toBe(6);
+    });
+
+    // A normal node has a fixed width of 6 and a height derived from its port count; the
+    // requested size is ignored entirely.
+    await pContext.step('Normal node - width is fixed to 6 regardless of the requested width', () => {
         // Setup.
         const { defaultEntry: lDefaultEntry } = PotatnoHelper.setupCalculatorDocument();
 
@@ -333,31 +367,48 @@ Deno.test('PotatnoDocumentNode.resizeTo()', async (pContext) => {
         lDefaultEntry.resizeTo(20, 30);
 
         // Evaluation.
-        expect(lDefaultEntry.transformation.width).toBe(20);
-        expect(lDefaultEntry.transformation.height).toBe(30);
-    });
-
-    await pContext.step('Clamps width to minimum 6', () => {
-        // Setup.
-        const { defaultEntry: lDefaultEntry } = PotatnoHelper.setupCalculatorDocument();
-
-        // Process.
-        lDefaultEntry.resizeTo(1, 10);
-
-        // Evaluation.
         expect(lDefaultEntry.transformation.width).toBe(6);
     });
 
-    await pContext.step('Clamps height to minimum of max input and output port count plus header', () => {
+    await pContext.step('Normal node - height is fixed to max input/output port count plus header', () => {
         // Setup.
         const { defaultEntry: lDefaultEntry } = PotatnoHelper.setupCalculatorDocument();
-        const lMinHeight = Math.max(lDefaultEntry.inputs.list.length, lDefaultEntry.outputs.list.length);
+        const lPortHeight = Math.max(lDefaultEntry.inputs.list.length, lDefaultEntry.outputs.list.length) + 1;
 
-        // Process.
-        lDefaultEntry.resizeTo(10, 1);
+        // Process. The requested height is ignored; the node always snaps to its port-derived height.
+        lDefaultEntry.resizeTo(20, 30);
 
         // Evaluation.
-        expect(lDefaultEntry.transformation.height).toBe(lMinHeight + 1);
+        expect(lDefaultEntry.transformation.height).toBe(lPortHeight);
+    });
+
+    // A conjunction node is always a fixed 1x1, no matter what size is requested.
+    await pContext.step('Value conjunction node - is always 1x1', () => {
+        // Setup.
+        const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
+        const lDefinition = PotatnoHelper.TEST_PROJECT.nodeDefinitions.find((pDef) => pDef.id === PotatnoValueConjunctionNodeDefinition.DEFINITION_ID)!;
+        const lConjunctionNode = lFunction.addNodeByDefinition(lDefinition, { x: 0, y: 0, width: 1, height: 1 });
+
+        // Process.
+        lConjunctionNode.resizeTo(20, 30);
+
+        // Evaluation.
+        expect(lConjunctionNode.transformation.width).toBe(1);
+        expect(lConjunctionNode.transformation.height).toBe(1);
+    });
+
+    await pContext.step('Flow conjunction node - is always 1x1', () => {
+        // Setup.
+        const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
+        const lDefinition = PotatnoHelper.TEST_PROJECT.nodeDefinitions.find((pDef) => pDef.id === PotatnoFlowConjunctionNodeDefinition.DEFINITION_ID)!;
+        const lConjunctionNode = lFunction.addNodeByDefinition(lDefinition, { x: 0, y: 0, width: 1, height: 1 });
+
+        // Process.
+        lConjunctionNode.resizeTo(20, 30);
+
+        // Evaluation.
+        expect(lConjunctionNode.transformation.width).toBe(1);
+        expect(lConjunctionNode.transformation.height).toBe(1);
     });
 });
 

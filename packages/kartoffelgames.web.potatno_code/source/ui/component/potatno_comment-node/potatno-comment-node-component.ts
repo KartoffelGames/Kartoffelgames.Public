@@ -52,6 +52,12 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
     public accessor enableBigview: boolean;
 
     /**
+     * Current zoom of grid.
+     */
+    @ComponentState.state()
+    public accessor gridZoom: number;
+
+    /**
      * The domain node object to render.
      */
     @PwbExport
@@ -92,12 +98,6 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
     private accessor mResizeBox!: PotatnoResizeBoxComponent & Element | null;
 
     /**
-     * Current zoom of grid.
-     */
-    @ComponentState.state()
-    public accessor gridZoom: number;
-
-    /**
      * Create the node component.
      *
      * @param pComponent - Injected component reference, used to trigger self-updates.
@@ -129,66 +129,6 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
             // Calculate the current size of the component.
             this.resyncComponent(this.nodeData!);
         });
-    }
-
-    /**
-     * Resync component once the component is connected.
-     */
-    public onConnect(): void {
-        if (!this.nodeData) {
-            return;
-        }
-
-        this.resyncComponent(this.nodeData);
-    }
-
-    /**
-     * Detach the manager subscription.
-     */
-    public onDeconstruct(): void {
-        this.mUnsubscribe();
-        this.mUnsubscribeGrid();
-    }
-
-
-    /**
-     * Focus input element and select all text on an update, when its not already focused.
-     */
-    public onUpdate(): void {
-        // Skip if not rendered.
-        if (!this.mCommentInput) {
-            return;
-        }
-
-        // Skip if its already focused.
-        if (this.getFocusedElement(document) === this.mCommentInput) {
-            return;
-        }
-
-        this.mCommentInput.select();
-    }
-
-    /**
-     * Deep find the actual selected element inside layers of shadow roots.
-     * 
-     * @param pRoot - Root document or shadow root.
-     * 
-     * @returns the focused element or null if no element is focused. 
-     */
-    private getFocusedElement(pRoot: Document | ShadowRoot): Element | null {
-        // Check root for active.
-        const lRootsActiveElement: Element | null = pRoot.activeElement;
-        if (!lRootsActiveElement) {
-            return null;
-        }
-
-        // Not a host element. So it is the actual focused.
-        if (!lRootsActiveElement.shadowRoot) {
-            return lRootsActiveElement;
-        }
-
-        // Recursive call into the host elements shadow root.
-        return this.getFocusedElement(lRootsActiveElement.shadowRoot);
     }
 
     /**
@@ -282,7 +222,7 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
 
     /**
      * Escape edit mode on esc button press.
-     * 
+     *
      * @param pEvent - Keyboard event.
      */
     public escapeEditMode(pEvent: KeyboardEvent): void {
@@ -294,9 +234,45 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
     }
 
     /**
+     * Resync component once the component is connected.
+     */
+    public onConnect(): void {
+        if (!this.nodeData) {
+            return;
+        }
+
+        this.resyncComponent(this.nodeData);
+    }
+
+    /**
+     * Detach the manager subscription.
+     */
+    public onDeconstruct(): void {
+        this.mUnsubscribe();
+        this.mUnsubscribeGrid();
+    }
+
+    /**
+     * Focus input element and select all text on an update, when its not already focused.
+     */
+    public onUpdate(): void {
+        // Skip if not rendered.
+        if (!this.mCommentInput) {
+            return;
+        }
+
+        // Skip if its already focused.
+        if (this.getFocusedElement(document) === this.mCommentInput) {
+            return;
+        }
+
+        this.mCommentInput.select();
+    }
+
+    /**
      * Resize the node data to the set resize data.
      * The node resize restriction applies.
-     * 
+     *
      * @param pResize - Resize data.
      */
     public transformNodeData(pResize: PotatnoResizeBoxComponentResize): void {
@@ -325,9 +301,32 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
     }
 
     /**
+     * Deep find the actual selected element inside layers of shadow roots.
+     *
+     * @param pRoot - Root document or shadow root.
+     *
+     * @returns the focused element or null if no element is focused.
+     */
+    private getFocusedElement(pRoot: Document | ShadowRoot): Element | null {
+        // Check root for active.
+        const lRootsActiveElement: Element | null = pRoot.activeElement;
+        if (!lRootsActiveElement) {
+            return null;
+        }
+
+        // Not a host element. So it is the actual focused.
+        if (!lRootsActiveElement.shadowRoot) {
+            return lRootsActiveElement;
+        }
+
+        // Recursive call into the host elements shadow root.
+        return this.getFocusedElement(lRootsActiveElement.shadowRoot);
+    }
+
+    /**
      * Update the actual component size and position and read all available preview ports.
-     * 
-     * @param pNode - Node data. 
+     *
+     * @param pNode - Node data.
      */
     private resyncComponent(pNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition>): void {
         // Set the node position on the actual component.
@@ -384,7 +383,7 @@ export class PotatnoNodeComponentMove {
 
     /**
      * Constructor.
-     * 
+     *
      * @param pX - Moved x distance.
      * @param pY - Moved y distance.
      */

@@ -16,7 +16,7 @@ import graphTemplate from './potatno-node-graph.html' with { type: 'text' };
 
 /**
  * Interactive node graph for the active Potatno document function.
- * 
+ *
  * A little wierd and intertwined on how and when the ui updates.
  */
 @PwbComponent({
@@ -29,12 +29,18 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
     private static readonly ZOOM_STRENGTH: number = 0.1;
 
     private readonly mComponent: Component;
+    private mIsMouseInsideGrid: boolean;
+    private readonly mKeyboardHandler: (pEvent: KeyboardEvent) => void;
     private readonly mManager: PotatnoUiManager;
     private readonly mSelectedNodes: Set<PotatnoDocumentNode<PotatnoProjectTypesDefinition>>;
-    private readonly mKeyboardHandler: (pEvent: KeyboardEvent) => void;
-    private mIsMouseInsideGrid: boolean;
     private readonly mUnsubscribeFunctionChange: PotatnoCodeUiManagerUnsubscribe;
     private readonly mUnsubscribeGraphChange: PotatnoCodeUiManagerUnsubscribe;
+
+    /**
+     * State for the add-node popup opened from the graph context menu.
+     */
+    @ComponentState.state()
+    public accessor popupPosition: PotatnoNodeGraphComponentNodeSelectionPopupPosition | null;
 
     /**
      * Screen-space rectangle of the drag selection box (top-left position and size). Reassigned
@@ -43,12 +49,6 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      */
     @ComponentState.state({ complexValue: true })
     public accessor selectBox: PotatnoNodeGraphComponentSelectBox | null;
-
-    /**
-     * State for the add-node popup opened from the graph context menu.
-     */
-    @ComponentState.state()
-    public accessor popupPosition: PotatnoNodeGraphComponentNodeSelectionPopupPosition | null;
 
     /**
      * Grid background style for the current graph transform.
@@ -127,76 +127,6 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
     }
 
     /**
-     * Register global graph listeners and subscribe to manager changes.
-     */
-    public onConnect(): void {
-        // Set this element as main grid element.
-        this.mManager.connections.gridElement = this.mComponent.element;
-    }
-
-    /**
-     * Remove graph listeners and pending frame work.
-     */
-    public onDeconstruct(): void {
-        this.mUnsubscribeFunctionChange();
-        this.mUnsubscribeGraphChange();
-
-        document.removeEventListener('keydown', this.mKeyboardHandler);
-    }
-
-    /**
-     * Handle pointer down on empty graph space for panning, selection or the add-node popup.
-     *
-     * @param pEvent - Pointer event from the graph wrapper.
-     */
-    private onPointerDown(pEvent: PointerEvent): void {
-        this.popupPosition = null;
-
-        switch (pEvent.button) {
-            // Left click.
-            case 0: {
-                // Clear selection
-                if (!pEvent.ctrlKey) {
-                    this.selectNodes([], false);
-                }
-
-                // Start a selection box.
-                this.pointerDrag(pEvent, 'selecting');
-                return;
-            }
-
-            // Middle click.
-            case 1: {
-                pEvent.preventDefault();
-                this.pointerDrag(pEvent, 'panning');
-                return;
-            }
-
-            // Right click.
-            case 2: {
-                this.openAddNodePopupAtPointer(pEvent.clientX, pEvent.clientY);
-                return;
-            }
-        }
-    }
-
-    /**
-     * Handle wheel zoom on the graph.
-     *
-     * @param pEvent - Wheel event from the graph wrapper.
-     */
-    private onScroll(pEvent: WheelEvent): void {
-        pEvent.preventDefault();
-
-        // Get zoom direction and set a zoom strength constant.
-        const lZoomDirection: number = pEvent.deltaY > 0 ? -1 : 1;
-
-        // Zoom away or to the mouse position.
-        const lLocalPosition: PotatnoNodeGraphComponentPoint = this.convertGlobalToGridPosition(pEvent.clientX, pEvent.clientY);
-        this.mManager.grid.zoomAt(lLocalPosition.x, lLocalPosition.y, lZoomDirection * PotatnoNodeGraph.ZOOM_STRENGTH);
-    }
-
-    /**
      * Insert the node definition chosen in the add-node popup at the popup's world position.
      *
      * @param pEvent - Component event carrying the selected node definition.
@@ -220,11 +150,117 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
     }
 
     /**
+     * Move all selected nodes into the same direction.
+     * The source node is not moved.
+     *
+     * @param pSourceNode - Node that initialized the movement.
+     * @param pMovement - The movement distance.
+     */
+    public moveAllSelected(pSourceNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition>, pMovement: PotatnoNodeComponentMove): void {
+        // Iterate and move all selected nodes.
+        for (const lSelectedNode of this.mSelectedNodes) {
+            // Skip moving the source node.
+            if (lSelectedNode === pSourceNode) {
+                continue;
+            }
+
+            // Move the selected node in the move direction.
+            this.mManager.graph.transformNode(lSelectedNode, (pNode) => {
+                pNode.moveTo(pNode.transformation.x + pMovement.x, pNode.transformation.y + pMovement.y);
+            });
+        }
+    }
+
+    /**
+     * Register global graph listeners and subscribe to manager changes.
+     */
+    public onConnect(): void {
+        // Set this element as main grid element.
+        this.mManager.connections.gridElement = this.mComponent.element;
+    }
+
+    /**
+     * Remove graph listeners and pending frame work.
+     */
+    public onDeconstruct(): void {
+        this.mUnsubscribeFunctionChange();
+        this.mUnsubscribeGraphChange();
+
+        document.removeEventListener('keydown', this.mKeyboardHandler);
+    }
+
+    /**
+     * Handle pointer down on a rendered node for selection and dragging.
+     *
+     * @param pEvent - Pointer event from the node element.
+     * @param pNode - Node that received the pointer down.
+     */
+    public selectNodes(pNodes: Array<PotatnoDocumentNode<PotatnoProjectTypesDefinition>>, pAddativeSelection: boolean | PointerEvent): void {
+        this.popupPosition = null;
+
+        // Convert boolean|event into boolean.
+        let lAddativeSelection: boolean = !!pAddativeSelection;
+        if (pAddativeSelection instanceof PointerEvent) {
+            pAddativeSelection.stopPropagation();
+            lAddativeSelection = pAddativeSelection.ctrlKey;
+        }
+
+        const lEncounteredNodes: Set<PotatnoDocumentNode<PotatnoProjectTypesDefinition>> = new Set<PotatnoDocumentNode<PotatnoProjectTypesDefinition>>();
+
+        // Clear previous selections when its not a addative selection.
+        if (!lAddativeSelection) {
+            // Special single node selection. Happens when nodes are selected and should now be moved.
+            // Only triggers when the single selected node is already selected.
+            if (pNodes.length === 1 && this.mSelectedNodes.has(pNodes.at(0)!)) {
+                // If a single node is selected without an addative selection, prefill encountered nodes with the current selection.
+                for (const lSelectedNode of this.mSelectedNodes) {
+                    lEncounteredNodes.add(lSelectedNode);
+                }
+            } else {
+                // If not handles as a special selection node, just clear the previous selection.
+                this.mSelectedNodes.clear();
+            }
+        }
+
+        // Copy nodes, they get expanded while iterating.
+        const lTargetNodes: Array<PotatnoDocumentNode<PotatnoProjectTypesDefinition>> = [...pNodes];
+
+        // Iterate all. The list is expanded in place while iterating, for-of visits appended nodes too.
+        for (const lNode of lTargetNodes) {
+            // Skip dublicate selections.
+            if (lEncounteredNodes.has(lNode)) {
+                continue;
+            }
+
+            lEncounteredNodes.add(lNode);
+
+            // If node is a comment, add all containing nodes into selection queue.
+            if (lNode.definitionId === PotatnoCommentNodeDefinition.DEFINITION_ID) {
+                lTargetNodes.push(...this.getNodesInRectangle({
+                    top: lNode.transformation.y,
+                    right: lNode.transformation.x + lNode.transformation.width,
+                    bottom: lNode.transformation.y + lNode.transformation.height,
+                    left: lNode.transformation.x
+                }));
+            }
+
+            // Eighter select a node or deselect when it is already selected.
+            if (this.mSelectedNodes.has(lNode)) {
+                this.mSelectedNodes.delete(lNode);
+            } else {
+                this.mSelectedNodes.add(lNode);
+            }
+        }
+
+        this.mComponent.updater.updateAsync();
+    }
+
+    /**
      * Get type of node.
-     * 
+     *
      * @param pNode - Document node reference.
-     * 
-     * @returns the typename of a node. 
+     *
+     * @returns the typename of a node.
      */
     public typeOfNode(pNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition>): PotatnoNodeGraphComponentNodeType {
         switch (pNode.definitionId) {
@@ -241,76 +277,65 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
     }
 
     /**
-     * Run a pointer drag interaction (panning or selecting) until the pointer is released.
-     * Registers local document pointer listeners and releases both on pointer up.
+     * Calculate pointer coordinates relative to the grid wrapper.
      *
-     * @param pEvent - Pointer down event that started the drag.
-     * @param pMode - Kind of drag to perform.
+     * @param pClientX - Viewport X coordinate.
+     * @param pClientY - Viewport Y coordinate.
+     *
+     * @returns Local graph wrapper coordinates.
      */
-    private pointerDrag(pEvent: PointerEvent, pMode: 'panning' | 'selecting'): void {
-        // Staring position of the selection box in local graph space.
-        const lStaringPosition: PotatnoNodeGraphComponentPoint = this.convertGlobalToGridPosition(pEvent.clientX, pEvent.clientY);
-        let lLastPosition: PotatnoNodeGraphComponentPoint = lStaringPosition;
-
-        // Drag magic listener (●'◡'●)つ━☆・*。
-        const lPointerMoveListener = (pMoveEvent: PointerEvent): void => {
-            const lCurrentPosition: PotatnoNodeGraphComponentPoint = this.convertGlobalToGridPosition(pMoveEvent.clientX, pMoveEvent.clientY);
-            switch (pMode) {
-                case 'panning': {
-                    this.mManager.grid.pan(lCurrentPosition.x - lLastPosition.x, lCurrentPosition.y - lLastPosition.y);
-                    break;
-                }
-
-                case 'selecting': {
-                    // Recalculate the box directly as top-left position plus size, so the template can use it as is.
-                    this.selectBox = {
-                        x: Math.min(lStaringPosition.x, lCurrentPosition.x),
-                        y: Math.min(lStaringPosition.y, lCurrentPosition.y),
-                        width: Math.abs(lCurrentPosition.x - lStaringPosition.x),
-                        height: Math.abs(lCurrentPosition.y - lStaringPosition.y)
-                    };
-                    break;
-                }
-            };
-
-            // Save current position as last position.
-            lLastPosition = lCurrentPosition;
+    private convertGlobalToGridPosition(pClientX: number, pClientY: number): PotatnoNodeGraphComponentPoint {
+        const lRect: DOMRect = this.mComponent.element.getBoundingClientRect();
+        return {
+            x: pClientX - lRect.left,
+            y: pClientY - lRect.top
         };
-
-        // Pointer up listener, applying the selection and cleaning up temporary listeners.
-        const lPointerUpListener = (pEvent: PointerEvent): void => {
-            document.removeEventListener('pointermove', lPointerMoveListener);
-            document.removeEventListener('pointerup', lPointerUpListener);
-
-            if (pMode === 'selecting' && this.selectBox) {
-                // Convert the nodebox into grid pixel space.
-                const lTopLeft: PotatnoNodeGraphComponentPoint = this.convertLocalToGridCoordinate(this.selectBox.x, this.selectBox.y);
-                const lBottomRight: PotatnoNodeGraphComponentPoint = this.convertLocalToGridCoordinate(this.selectBox.x + this.selectBox.width, this.selectBox.y + this.selectBox.height);
-
-                // And from the pixel space into grid coordinates. No need to round numbers as it correcter to not do it.
-                const lGridSize: number = this.mManager.grid.gridSize;
-                const lSelectedNodes: Array<PotatnoDocumentNode<PotatnoProjectTypesDefinition>> = this.getNodesInRectangle({
-                    top: lTopLeft.y / lGridSize,
-                    right: lBottomRight.x / lGridSize,
-                    bottom: lBottomRight.y / lGridSize,
-                    left: lTopLeft.x / lGridSize,
-                });
-
-                // Select all nodes.
-                this.selectNodes(lSelectedNodes, pEvent.ctrlKey);
-
-                // And clear select box after that.
-                this.selectBox = null;
-            }
-        };
-
-        // Add temporary pointer listeners.
-        document.addEventListener('pointermove', lPointerMoveListener);
-        document.addEventListener('pointerup', lPointerUpListener);
     }
 
     /**
-     * Handle graph keyboard shortcuts. 
+     * Convert local coordinates to grid coordinates by reversing the pan and zoom transforms.
+     *
+     * @param pLocalX - X position in local pixels.
+     * @param pLocalY - Y position in local pixels.
+     *
+     * @returns grid pixel coordinates.
+     */
+    private convertLocalToGridCoordinate(pLocalX: number, pLocalY: number): { x: number; y: number; } {
+        return {
+            x: (pLocalX - this.mManager.grid.panX) / this.mManager.grid.zoom,
+            y: (pLocalY - this.mManager.grid.panY) / this.mManager.grid.zoom
+        };
+    }
+
+    /**
+     * Select all nodes intersecting a rectange in grid space.
+     */
+    private getNodesInRectangle(pSelectionRectangle: PotatnoNodeGraphComponentGridRectange): Array<PotatnoDocumentNode<PotatnoProjectTypesDefinition>> {
+        const lSelectedNodes: Array<PotatnoDocumentNode<PotatnoProjectTypesDefinition>> = new Array<PotatnoDocumentNode<PotatnoProjectTypesDefinition>>();
+
+        // Iterate all nodes to check intersections.
+        for (const lNode of this.mManager.activeFunction.nodes) {
+            const lNodeTop: number = lNode.transformation.y;
+            const lNodeLeft: number = lNode.transformation.x;
+            const lNodeRight: number = lNodeLeft + lNode.transformation.width;
+            const lNodeBottom: number = lNodeTop + lNode.transformation.height;
+
+            // Check for partially intersection
+            if (lNodeLeft < pSelectionRectangle.right && lNodeRight > pSelectionRectangle.left && lNodeTop < pSelectionRectangle.bottom && lNodeBottom > pSelectionRectangle.top) {
+                // Check that selection range is not fully inside node.
+                if (pSelectionRectangle.top > lNodeTop && pSelectionRectangle.right < lNodeRight && pSelectionRectangle.bottom < lNodeBottom && pSelectionRectangle.left > lNodeLeft) {
+                    continue;
+                }
+
+                lSelectedNodes.push(lNode);
+            }
+        }
+
+        return lSelectedNodes;
+    }
+
+    /**
+     * Handle graph keyboard shortcuts.
      * Only active when the pointer is over this graph and input field isnt focused.
      *
      * @param pEvent - Keyboard event from the document.
@@ -381,109 +406,55 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
     }
 
     /**
-     * Calculate pointer coordinates relative to the grid wrapper.
+     * Handle pointer down on empty graph space for panning, selection or the add-node popup.
      *
-     * @param pClientX - Viewport X coordinate.
-     * @param pClientY - Viewport Y coordinate.
-     *
-     * @returns Local graph wrapper coordinates.
+     * @param pEvent - Pointer event from the graph wrapper.
      */
-    private convertGlobalToGridPosition(pClientX: number, pClientY: number): PotatnoNodeGraphComponentPoint {
-        const lRect: DOMRect = this.mComponent.element.getBoundingClientRect();
-        return {
-            x: pClientX - lRect.left,
-            y: pClientY - lRect.top
-        };
-    }
-
-    /**
-     * Move all selected nodes into the same direction.
-     * The source node is not moved.
-     *
-     * @param pSourceNode - Node that initialized the movement.
-     * @param pMovement - The movement distance.
-     */
-    public moveAllSelected(pSourceNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition>, pMovement: PotatnoNodeComponentMove): void {
-        // Iterate and move all selected nodes.
-        for (const lSelectedNode of this.mSelectedNodes) {
-            // Skip moving the source node.
-            if (lSelectedNode === pSourceNode) {
-                continue;
-            }
-
-            // Move the selected node in the move direction.
-            this.mManager.graph.transformNode(lSelectedNode, (pNode) => {
-                pNode.moveTo(pNode.transformation.x + pMovement.x, pNode.transformation.y + pMovement.y);
-            });
-        }
-    }
-
-    /**
-     * Handle pointer down on a rendered node for selection and dragging.
-     *
-     * @param pEvent - Pointer event from the node element.
-     * @param pNode - Node that received the pointer down.
-     */
-    public selectNodes(pNodes: Array<PotatnoDocumentNode<PotatnoProjectTypesDefinition>>, pAddativeSelection: boolean | PointerEvent): void {
+    private onPointerDown(pEvent: PointerEvent): void {
         this.popupPosition = null;
 
-        // Convert boolean|event into boolean.
-        let lAddativeSelection: boolean = !!pAddativeSelection;
-        if (pAddativeSelection instanceof PointerEvent) {
-            pAddativeSelection.stopPropagation();
-            lAddativeSelection = pAddativeSelection.ctrlKey;
-        }
-
-        const lEncounteredNodes: Set<PotatnoDocumentNode<PotatnoProjectTypesDefinition>> = new Set<PotatnoDocumentNode<PotatnoProjectTypesDefinition>>();
-
-        // Clear previous selections when its not a addative selection.
-        if (!lAddativeSelection) {
-            // Special single node selection. Happens when nodes are selected and should now be moved.
-            // Only triggers when the single selected node is already selected.
-            if (pNodes.length === 1 && this.mSelectedNodes.has(pNodes.at(0)!)) {
-                // If a single node is selected without an addative selection, prefill encountered nodes with the current selection.
-                for (const lSelectedNode of this.mSelectedNodes) {
-                    lEncounteredNodes.add(lSelectedNode);
+        switch (pEvent.button) {
+            // Left click.
+            case 0: {
+                // Clear selection
+                if (!pEvent.ctrlKey) {
+                    this.selectNodes([], false);
                 }
-            } else {
-                // If not handles as a special selection node, just clear the previous selection.
-                this.mSelectedNodes.clear();
+
+                // Start a selection box.
+                this.pointerDrag(pEvent, 'selecting');
+                return;
+            }
+
+            // Middle click.
+            case 1: {
+                pEvent.preventDefault();
+                this.pointerDrag(pEvent, 'panning');
+                return;
+            }
+
+            // Right click.
+            case 2: {
+                this.openAddNodePopupAtPointer(pEvent.clientX, pEvent.clientY);
+                return;
             }
         }
+    }
 
-        // Copy nodes, they get expanded while iterating.
-        const lTargetNodes: Array<PotatnoDocumentNode<PotatnoProjectTypesDefinition>> = [...pNodes];
+    /**
+     * Handle wheel zoom on the graph.
+     *
+     * @param pEvent - Wheel event from the graph wrapper.
+     */
+    private onScroll(pEvent: WheelEvent): void {
+        pEvent.preventDefault();
 
-        // Iterate all 
-        for (let lTargetNodeIndex: number = 0; lTargetNodeIndex < lTargetNodes.length; lTargetNodeIndex++) {
-            const lNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition> = lTargetNodes[lTargetNodeIndex];
+        // Get zoom direction and set a zoom strength constant.
+        const lZoomDirection: number = pEvent.deltaY > 0 ? -1 : 1;
 
-            // Skip dublicate selections.
-            if (lEncounteredNodes.has(lNode)) {
-                continue;
-            }
-
-            lEncounteredNodes.add(lNode);
-
-            // If node is a comment, add all containing nodes into selection queue.
-            if (lNode.definitionId === PotatnoCommentNodeDefinition.DEFINITION_ID) {
-                lTargetNodes.push(...this.getNodesInRectangle({
-                    top: lNode.transformation.y,
-                    right: lNode.transformation.x + lNode.transformation.width,
-                    bottom: lNode.transformation.y + lNode.transformation.height,
-                    left: lNode.transformation.x
-                }));
-            }
-
-            // Eighter select a node or deselect when it is already selected.
-            if (this.mSelectedNodes.has(lNode)) {
-                this.mSelectedNodes.delete(lNode);
-            } else {
-                this.mSelectedNodes.add(lNode);
-            }
-        }
-
-        this.mComponent.updater.updateAsync();
+        // Zoom away or to the mouse position.
+        const lLocalPosition: PotatnoNodeGraphComponentPoint = this.convertGlobalToGridPosition(pEvent.clientX, pEvent.clientY);
+        this.mManager.grid.zoomAt(lLocalPosition.x, lLocalPosition.y, lZoomDirection * PotatnoNodeGraph.ZOOM_STRENGTH);
     }
 
     /**
@@ -499,7 +470,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
         const lGridLocalPosition: PotatnoNodeGraphComponentPoint = this.convertGlobalToGridPosition(pClientX, pClientY);
         const lGridPosition: PotatnoNodeGraphComponentPoint = this.convertLocalToGridCoordinate(lGridLocalPosition.x, lGridLocalPosition.y);
 
-        // Small 8px padding to the position to grids edges. 
+        // Small 8px padding to the position to grids edges.
         const lGridPositionPadding: number = 8;
 
         // Clamp position of popup so it does not overflow out of right or bottom.
@@ -519,21 +490,6 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
     }
 
     /**
-     * Convert local coordinates to grid coordinates by reversing the pan and zoom transforms.
-     *
-     * @param pLocalX - X position in local pixels.
-     * @param pLocalY - Y position in local pixels.
-     *
-     * @returns grid pixel coordinates.
-     */
-    private convertLocalToGridCoordinate(pLocalX: number, pLocalY: number): { x: number; y: number; } {
-        return {
-            x: (pLocalX - this.mManager.grid.panX) / this.mManager.grid.zoom,
-            y: (pLocalY - this.mManager.grid.panY) / this.mManager.grid.zoom
-        };
-    }
-
-    /**
      * Paste copied nodes into the active graph.
      */
     private pasteFromClipboard(): void {
@@ -548,30 +504,72 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
     }
 
     /**
-     * Select all nodes intersecting a rectange in grid space.
+     * Run a pointer drag interaction (panning or selecting) until the pointer is released.
+     * Registers local document pointer listeners and releases both on pointer up.
+     *
+     * @param pEvent - Pointer down event that started the drag.
+     * @param pMode - Kind of drag to perform.
      */
-    private getNodesInRectangle(pSelectionRectangle: PotatnoNodeGraphComponentGridRectange): Array<PotatnoDocumentNode<PotatnoProjectTypesDefinition>> {
-        const lSelectedNodes: Array<PotatnoDocumentNode<PotatnoProjectTypesDefinition>> = new Array<PotatnoDocumentNode<PotatnoProjectTypesDefinition>>();
+    private pointerDrag(pEvent: PointerEvent, pMode: 'panning' | 'selecting'): void {
+        // Staring position of the selection box in local graph space.
+        const lStaringPosition: PotatnoNodeGraphComponentPoint = this.convertGlobalToGridPosition(pEvent.clientX, pEvent.clientY);
+        let lLastPosition: PotatnoNodeGraphComponentPoint = lStaringPosition;
 
-        // Iterate all nodes to check intersections.
-        for (const lNode of this.mManager.activeFunction.nodes) {
-            const lNodeTop: number = lNode.transformation.y;
-            const lNodeLeft: number = lNode.transformation.x;
-            const lNodeRight: number = lNodeLeft + lNode.transformation.width;
-            const lNodeBottom: number = lNodeTop + lNode.transformation.height;
-
-            // Check for partially intersection
-            if (lNodeLeft < pSelectionRectangle.right && lNodeRight > pSelectionRectangle.left && lNodeTop < pSelectionRectangle.bottom && lNodeBottom > pSelectionRectangle.top) {
-                // Check that selection range is not fully inside node.
-                if (pSelectionRectangle.top > lNodeTop && pSelectionRectangle.right < lNodeRight && pSelectionRectangle.bottom < lNodeBottom && pSelectionRectangle.left > lNodeLeft) {
-                    continue;
+        // Drag magic listener (●'◡'●)つ━☆・*。
+        const lPointerMoveListener = (pMoveEvent: PointerEvent): void => {
+            const lCurrentPosition: PotatnoNodeGraphComponentPoint = this.convertGlobalToGridPosition(pMoveEvent.clientX, pMoveEvent.clientY);
+            switch (pMode) {
+                case 'panning': {
+                    this.mManager.grid.pan(lCurrentPosition.x - lLastPosition.x, lCurrentPosition.y - lLastPosition.y);
+                    break;
                 }
 
-                lSelectedNodes.push(lNode);
-            }
-        }
+                case 'selecting': {
+                    // Recalculate the box directly as top-left position plus size, so the template can use it as is.
+                    this.selectBox = {
+                        x: Math.min(lStaringPosition.x, lCurrentPosition.x),
+                        y: Math.min(lStaringPosition.y, lCurrentPosition.y),
+                        width: Math.abs(lCurrentPosition.x - lStaringPosition.x),
+                        height: Math.abs(lCurrentPosition.y - lStaringPosition.y)
+                    };
+                    break;
+                }
+            };
 
-        return lSelectedNodes;
+            // Save current position as last position.
+            lLastPosition = lCurrentPosition;
+        };
+
+        // Pointer up listener, applying the selection and cleaning up temporary listeners.
+        const lPointerUpListener = (pEvent: PointerEvent): void => {
+            document.removeEventListener('pointermove', lPointerMoveListener);
+            document.removeEventListener('pointerup', lPointerUpListener);
+
+            if (pMode === 'selecting' && this.selectBox) {
+                // Convert the nodebox into grid pixel space.
+                const lTopLeft: PotatnoNodeGraphComponentPoint = this.convertLocalToGridCoordinate(this.selectBox.x, this.selectBox.y);
+                const lBottomRight: PotatnoNodeGraphComponentPoint = this.convertLocalToGridCoordinate(this.selectBox.x + this.selectBox.width, this.selectBox.y + this.selectBox.height);
+
+                // And from the pixel space into grid coordinates. No need to round numbers as it correcter to not do it.
+                const lGridSize: number = this.mManager.grid.gridSize;
+                const lSelectedNodes: Array<PotatnoDocumentNode<PotatnoProjectTypesDefinition>> = this.getNodesInRectangle({
+                    top: lTopLeft.y / lGridSize,
+                    right: lBottomRight.x / lGridSize,
+                    bottom: lBottomRight.y / lGridSize,
+                    left: lTopLeft.x / lGridSize,
+                });
+
+                // Select all nodes.
+                this.selectNodes(lSelectedNodes, pEvent.ctrlKey);
+
+                // And clear select box after that.
+                this.selectBox = null;
+            }
+        };
+
+        // Add temporary pointer listeners.
+        document.addEventListener('pointermove', lPointerMoveListener);
+        document.addEventListener('pointerup', lPointerUpListener);
     }
 }
 

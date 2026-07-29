@@ -7,14 +7,6 @@ import type { PotatnoCodeFileSerializationResult, SerializedFunction, Serialized
 
 /**
  * Reconstructs a PotatnoDocument from a PotatnoMetadata object produced by PotatnoSerializer.
- *
- * Deserialization order within each function:
- *   1. Create the PotatnoDocumentFunction from its definition id.
- *   2. Restore the function-signature I/O port definitions.
- *   3. Create all PotatnoDocumentNode instances and record them in a
- *      temporary Map<nodeId, PotatnoDocumentNode>.
- *   4. Restore port connections from the flat connections list.
- *      connect() is bidirectional, so calling it on the source port is sufficient.
  */
 export class PotatnoDeserializer<TProjectTypes extends PotatnoProjectTypesDefinition> {
     private readonly mProject: PotatnoProject<TProjectTypes>;
@@ -38,41 +30,33 @@ export class PotatnoDeserializer<TProjectTypes extends PotatnoProjectTypesDefini
     public deserialize(pData: PotatnoCodeFileSerializationResult): PotatnoDocument<TProjectTypes> {
         const lDocument: PotatnoDocument<TProjectTypes> = new PotatnoDocument(this.mProject);
 
+        // First of all, deserialize only function heads, so on the body deserialization, the nodes can reference the correct functions.
+        const lFunctions: Array<[PotatnoDocumentFunction<TProjectTypes>, SerializedFunction]> = [];
         for (const lFuncData of pData.functions) {
-            lDocument.addFunction(this.deserializeFunction(lFuncData, lDocument));
+            // Deserialize function head only.
+            const lFunction: PotatnoDocumentFunction<TProjectTypes> = this.deserializeFunctionHead(lFuncData, lDocument);
+            lFunctions.push([lFunction, lFuncData]);
+
+            // Store function head in document.
+            lDocument.addFunction(lFunction);
+        }
+
+        // Then deserialize the actual function bodys of each function.
+        for (const [lFunction, lFuncData] of lFunctions) {
+            this.deserializeFunctionBody(lFunction, lFuncData, lDocument);
         }
 
         return lDocument;
     }
 
     /**
-     * Reconstruct a single function from its serialized form.
+     * Restore the nodes and port connections of an already-created function.
      */
-    private deserializeFunction(pData: SerializedFunction, pDocument: PotatnoDocument<TProjectTypes>): PotatnoDocumentFunction<TProjectTypes> {
-        const lFunction: PotatnoDocumentFunction<TProjectTypes> = new PotatnoDocumentFunction(this.mProject, pDocument, {
-            definitionId: pData.definitionId,
-            id: pData.id,
-            label: pData.label,
-            isSystem: pData.isSystem
-        });
-
-        // Restore import ids.
-        for (const lImportId of pData.imports) {
-            lFunction.addImport(lImportId);
-        }
-
-        // Restore function-signature I/O port definitions.
-        for (const lPortDefinition of pData.inputs) {
-            lFunction.addInput({ label: lPortDefinition.label, dataType: lPortDefinition.dataType });
-        }
-        for (const lPortDefinition of pData.outputs) {
-            lFunction.addOutput({ label: lPortDefinition.label, dataType: lPortDefinition.dataType });
-        }
-
-        // Create all nodes and build a nodeId → node lookup map.
+    private deserializeFunctionBody(pFunction: PotatnoDocumentFunction<TProjectTypes>, pData: SerializedFunction, pDocument: PotatnoDocument<TProjectTypes>): void {
+        // Create all nodes and build a nodeId to node lookup map.
         const lNodeMap: Map<string, PotatnoDocumentNode<TProjectTypes>> = new Map();
         for (const lNodeData of pData.nodes) {
-            lNodeMap.set(lNodeData.id, this.deserializeNode(lNodeData, lFunction, pDocument));
+            lNodeMap.set(lNodeData.id, this.deserializeNode(lNodeData, pFunction, pDocument));
         }
 
         // Restore port connections from the flat connections list.
@@ -91,6 +75,31 @@ export class PotatnoDeserializer<TProjectTypes extends PotatnoProjectTypesDefini
             }
 
             lSourcePort.connect(lTargetPort);
+        }
+    }
+
+    /**
+     * Reconstruct a single function header from its serialized form.
+     */
+    private deserializeFunctionHead(pData: SerializedFunction, pDocument: PotatnoDocument<TProjectTypes>): PotatnoDocumentFunction<TProjectTypes> {
+        const lFunction: PotatnoDocumentFunction<TProjectTypes> = new PotatnoDocumentFunction(this.mProject, pDocument, {
+            definitionId: pData.definitionId,
+            id: pData.id,
+            label: pData.label,
+            isSystem: pData.isSystem
+        });
+
+        // Restore import ids.
+        for (const lImportId of pData.imports) {
+            lFunction.addImport(lImportId);
+        }
+
+        // Restore function-signature I/O port definitions.
+        for (const lPortDefinition of pData.inputs) {
+            lFunction.addInput({ label: lPortDefinition.label, dataType: lPortDefinition.dataType });
+        }
+        for (const lPortDefinition of pData.outputs) {
+            lFunction.addOutput({ label: lPortDefinition.label, dataType: lPortDefinition.dataType });
         }
 
         return lFunction;

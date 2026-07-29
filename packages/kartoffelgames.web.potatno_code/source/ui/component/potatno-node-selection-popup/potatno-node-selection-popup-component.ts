@@ -146,12 +146,6 @@ export class PotatnoNodeSelectionPopupComponent implements IComponentOnConnect, 
      * Rebuild the result list from the active function and the current search query.
      */
     private rebuildResults(): void {
-        // No function, no results. Reset list.
-        if (!this.mManager.activeFunction) {
-            this.results = new Array<PotatnoNodeSelectionPopupComponentEntry>();
-            return;
-        }
-
         // Build a entry list for all dynamic nodes.
         const lEntryList: Array<PotatnoNodeSelectionPopupComponentEntry> = this.mManager.activeFunction.dynamicNodeDefinitions.map((pNodeDefinition) => {
             return {

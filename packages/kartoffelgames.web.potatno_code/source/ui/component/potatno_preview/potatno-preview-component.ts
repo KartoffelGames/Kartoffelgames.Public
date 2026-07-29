@@ -187,11 +187,6 @@ export class PotatnoPreviewComponent implements IComponentOnDeconstruct {
     private findFunctionPreviewTargets(): Map<string, PotatnoPreviewComponentTarget> {
         const lOutputPorts: Map<string, PotatnoPreviewComponentTarget> = new Map<string, PotatnoPreviewComponentTarget>();
 
-        // When no active function is set, 
-        if (!this.mManager.activeFunction) {
-            return lOutputPorts;
-        }
-
         // Get the current active functions definition.
         const lActiveFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> = this.mManager.activeFunction;
         const lActiveFunctionDefinition: PotatnoFunctionDefinition<PotatnoProjectTypesDefinition> | undefined = lActiveFunction.project.getFunction(lActiveFunction.definitionId);
@@ -262,14 +257,8 @@ export class PotatnoPreviewComponent implements IComponentOnDeconstruct {
             return '';
         }
 
-        // When no active function is set, 
-        if (!this.mManager.activeFunction) {
-            return '';
-        }
-
         // Get the current active functions definition.
         const lActiveFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> = this.mManager.activeFunction;
-
         return new PotatnoCodeGenerator(lActiveFunction.project).generateFunction(lActiveFunction, false).code;
     }
 }

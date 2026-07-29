@@ -48,11 +48,6 @@ export class PotatnoUiManagerConnections {
         this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Node | PotatnoCodeUiManagerChangeType.SpecialActiveFunction, (pEvent: PotatnoUiManagerChangeEvent) => {
             // Update ever node when document is set.
             if ((pEvent.changeType & PotatnoCodeUiManagerChangeType.SpecialActiveFunction) > 0) {
-                // Can only be processed with a active function.
-                if (!this.mManager.activeFunction) {
-                    return;
-                }
-
                 // Clear path finder caches.
                 this.mPathFinder.clear('all');
 
@@ -335,13 +330,8 @@ export class PotatnoUiManagerConnections {
         // Clear path finder caches.
         this.mPathFinder.clear('path');
 
-        // Read current active function.
-        const lActiveFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null = this.mManager.activeFunction;
-        if (!lActiveFunction) {
-            return;
-        }
-
-        for (const lNode of lActiveFunction.nodes) {
+        // Update connections between node ports of each node of active function.
+        for (const lNode of this.mManager.activeFunction.nodes) {
             // First generate flow ports. Flow ports have a single connection on output ports.
             for (const lStartPort of lNode.outputs.flow) {
                 // Read single end port.

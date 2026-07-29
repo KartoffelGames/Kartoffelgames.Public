@@ -45,10 +45,7 @@ export class PotatnoCodeEditorComponent implements IComponentOnDeconstruct {
      * Whether the preview panel should currently be shown.
      */
     public get hasPreview(): boolean {
-        const lActiveFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null = this.mManager.activeFunction;
-        if (!lActiveFunction) {
-            return false;
-        }
+        const lActiveFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> = this.mManager.activeFunction;
 
         // Get definition of active function.
         const lActiveFunctionDefintion: PotatnoFunctionDefinition<PotatnoProjectTypesDefinition> | undefined = lActiveFunction.project.getFunction(lActiveFunction.definitionId);

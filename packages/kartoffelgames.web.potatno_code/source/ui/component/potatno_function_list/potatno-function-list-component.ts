@@ -35,7 +35,7 @@ export class PotatnoFunctionListComponent implements IComponentOnDeconstruct {
      * Id of the currently active function.
      */
     public get activeFunctionId(): string {
-        return this.mManager.activeFunction?.id ?? '';
+        return this.mManager.activeFunction.id;
     }
 
     /**

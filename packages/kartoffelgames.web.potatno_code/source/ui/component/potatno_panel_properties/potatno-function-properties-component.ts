@@ -47,11 +47,6 @@ export class PotatnoFunctionPropertiesComponent implements IComponentOnDeconstru
      * Import ids available to add (registered but not yet used).
      */
     public get unusedImports(): Array<PotatnoFunctionPropertiesComponentImport> {
-        // Must have a active function.
-        if (!this.mManager.activeFunction) {
-            return new Array<PotatnoFunctionPropertiesComponentImport>();
-        }
-
         // Filter all imports with the already selected imports of the function.
         return this.mManager.activeFunction.project.imports.filter((pAvailableImport) => {
             return !this.functionProperties.imports.find((pUsedImport) => {
@@ -219,7 +214,7 @@ export class PotatnoFunctionPropertiesComponent implements IComponentOnDeconstru
         }
 
         // Save the current edited function before shedule, so even after a change, the correct function will be updated.
-        const lFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null = this.mManager.activeFunction;
+        const lFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> = this.mManager.activeFunction;
         const lFunctionProperties: PotatnoFunctionPropertiesComponentProperties = this.functionProperties;
 
         // Queue a macro task, so all event are executed before syncing.
@@ -285,10 +280,7 @@ export class PotatnoFunctionPropertiesComponent implements IComponentOnDeconstru
         };
 
         // Read current function.
-        const lFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null = this.mManager.activeFunction;
-        if (!lFunction) {
-            return lFunctionProperties;
-        }
+        const lFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> = this.mManager.activeFunction;
 
         // Set statics.
         const lFunctionDefinition = lFunction.project.getFunction(lFunction.definitionId);

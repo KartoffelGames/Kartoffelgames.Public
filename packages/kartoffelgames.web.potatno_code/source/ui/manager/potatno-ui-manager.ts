@@ -15,7 +15,7 @@ import { PotatnoUiManagerPreview } from './manager_component/potatno-ui-manager-
  * Central, shared state owner for the whole Potatno-code editor UI.
  */
 export class PotatnoUiManager extends EventTarget {
-    private mActiveFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null;
+    private mActiveFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition>;
     private readonly mClipboard: PotatnoUiManagerClipboard;
     private readonly mConnections: PotatnoUiManagerConnections;
     private readonly mEventBuffer: Map<PotatnoUiManagerChangeEventTarget | null, PotatnoCodeUiManagerChangeType>;
@@ -30,7 +30,7 @@ export class PotatnoUiManager extends EventTarget {
     /**
      * The currently active document function, or `null` when none is resolvable.
      */
-    public get activeFunction(): PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null {
+    public get activeFunction(): PotatnoDocumentFunction<PotatnoProjectTypesDefinition> {
         return this.mActiveFunction;
     }
 
@@ -100,9 +100,6 @@ export class PotatnoUiManager extends EventTarget {
         // Set project.
         this.mProject = pProject;
 
-        // Default values to "not set".
-        this.mActiveFunction = null;
-
         // Setup event buffer.
         this.mEventBuffer = new Map<PotatnoUiManagerChangeEventTarget | null, PotatnoCodeUiManagerChangeType>();
         this.mEventBufferDispatchRequest = -1;
@@ -115,6 +112,9 @@ export class PotatnoUiManager extends EventTarget {
         this.mGrid = new PotatnoUiManagerGrid(this);
         this.mClipboard = new PotatnoUiManagerClipboard(this);
         this.mGraph = new PotatnoUiManagerGraph(this);
+
+        // Defaultactive function to first.
+        this.mActiveFunction = this.mGraph.document.functions.at(0)!;
     }
 
     /**

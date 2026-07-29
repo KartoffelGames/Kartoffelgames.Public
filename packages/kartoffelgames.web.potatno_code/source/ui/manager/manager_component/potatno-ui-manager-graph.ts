@@ -31,6 +31,7 @@ export class PotatnoUiManagerGraph {
 
         // Set initial document.
         this.mDocument = new PotatnoDocument(pManager.project);
+        this.mDocument.validate();
     }
 
     /**
@@ -276,14 +277,9 @@ export class PotatnoUiManagerGraph {
         const lActiveFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> = (() => {
             const lNewDocumentFunctions: Array<PotatnoDocumentFunction<PotatnoProjectTypesDefinition>> = [...this.mDocument.functions];
 
-            // Use the first function if currently no active is set.
-            if (!this.mManager.activeFunction) {
-                return lNewDocumentFunctions[0];
-            }
-
             // Try to find the current active function id inside the snapshot function.
             const lFunctionWithSameId = lNewDocumentFunctions.find((pFunction) => {
-                return pFunction.id === this.mManager.activeFunction!.id;
+                return pFunction.id === this.mManager.activeFunction.id;
             });
 
             // When the current function still exists in the new document, use it.

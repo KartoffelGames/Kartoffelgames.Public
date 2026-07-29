@@ -130,10 +130,6 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
 
         // Set find node definition of node data.
         this.mNodeDefinition = (() => {
-            if (!this.mManager.activeFunction) {
-                return null;
-            }
-
             // Find node data.
             return this.mManager.activeFunction.nodeDefinitions.find((pNodeDefinition) => {
                 return pNodeDefinition.id === this.nodeData!.definitionId;
@@ -475,10 +471,6 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
      * @returns all ports that are previewable for the node.
      */
     private getPreviewablePorts(pNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition>): Array<PotatnoDocumentPort<PotatnoProjectTypesDefinition>> {
-        if (!this.mManager.activeFunction) {
-            return new Array<PotatnoDocumentPort<PotatnoProjectTypesDefinition>>();
-        }
-
         // Read nodes parent function, function definition. It must be allways available.
         const lFunctionDefinition: PotatnoFunctionDefinition<PotatnoProjectTypesDefinition> | undefined = pNode.project.getFunction(pNode.function.definitionId)!;
 

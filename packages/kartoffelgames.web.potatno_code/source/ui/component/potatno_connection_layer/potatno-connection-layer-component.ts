@@ -140,12 +140,6 @@ export class PotatnoConnectionLayerComponent implements IComponentOnDeconstruct 
         this.svgLayer.innerHTML = '';
         this.mConnectionRegistry.clear();
 
-        // Get current active function.
-        const lActiveFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null = this.mManager.activeFunction;
-        if (!lActiveFunction) {
-            return;
-        }
-
         // Store validaton errors.
         const lErrorItems: ReadonlySet<IPotatnoDocumentItem<PotatnoProjectTypesDefinition>> = this.mManager.integrity.errorItems;
 
@@ -153,7 +147,7 @@ export class PotatnoConnectionLayerComponent implements IComponentOnDeconstruct 
         let lConnectionIndex: number = 0;
 
         // Iterate each connected port of a port of a node.
-        for (const lNode of lActiveFunction.nodes) {
+        for (const lNode of this.mManager.activeFunction.nodes) {
             for (const lOutputPort of lNode.outputs.list) {
                 for (const lConnectedPort of lOutputPort.connectedPorts) {
                     const lConnectionId: number = lConnectionIndex++;

@@ -73,10 +73,6 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      * Node view states rendered by the template.
      */
     public get nodes(): ReadonlySet<PotatnoDocumentNode<PotatnoProjectTypesDefinition>> {
-        if (!this.mManager.activeFunction) {
-            return new Set<PotatnoDocumentNode<PotatnoProjectTypesDefinition>>();
-        }
-
         return this.mManager.activeFunction.nodes;
     }
 
@@ -207,10 +203,6 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      * @param pEvent - Component event carrying the selected node definition.
      */
     public createNodeOnPopupPosition(pDefinition: PotatnoNodeDefinition<PotatnoProjectTypesDefinition>): void {
-        if (!this.mManager.activeFunction) {
-            return;
-        }
-
         // Create new on the popups grid position.
         const lNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition> = this.mManager.graph.addNode(this.mManager.activeFunction, pDefinition, {
             x: this.popupPosition?.grid.x ?? 0,
@@ -546,11 +538,6 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      * Paste copied nodes into the active graph.
      */
     private pasteFromClipboard(): void {
-        const lActiveFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null = this.mManager.activeFunction;
-        if (!lActiveFunction) {
-            return;
-        }
-
         // An empty paste whould reset node selection so skip it when nothing was pasted.
         const lPastedNodes: Array<PotatnoDocumentNode<PotatnoProjectTypesDefinition>> = this.mManager.clipboard.paste();
         if (lPastedNodes.length === 0) {
@@ -567,13 +554,8 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
     private getNodesInRectangle(pSelectionRectangle: PotatnoNodeGraphComponentGridRectange): Array<PotatnoDocumentNode<PotatnoProjectTypesDefinition>> {
         const lSelectedNodes: Array<PotatnoDocumentNode<PotatnoProjectTypesDefinition>> = new Array<PotatnoDocumentNode<PotatnoProjectTypesDefinition>>();
 
-        // Skip when no active function i selected.
-        const lActiveFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null = this.mManager.activeFunction;
-        if (!lActiveFunction) {
-            return lSelectedNodes;
-        }
-
-        for (const lNode of lActiveFunction.nodes) {
+        // Iterate all nodes to check intersections.
+        for (const lNode of this.mManager.activeFunction.nodes) {
             const lNodeTop: number = lNode.transformation.y;
             const lNodeLeft: number = lNode.transformation.x;
             const lNodeRight: number = lNodeLeft + lNode.transformation.width;

@@ -102,10 +102,7 @@ export class PotatnoUiManagerClipboard {
         }
 
         // Skip paste when no active function is selected.
-        const lActiveFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null = this.mManager.activeFunction;
-        if (!lActiveFunction) {
-            return [];
-        }
+        const lActiveFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> = this.mManager.activeFunction;
 
         // Create all nodes first so connections can resolve stable clipboard ids.
         const lCreatedNodes: Map<number, PotatnoDocumentNode<PotatnoProjectTypesDefinition>> = new Map<number, PotatnoDocumentNode<PotatnoProjectTypesDefinition>>();

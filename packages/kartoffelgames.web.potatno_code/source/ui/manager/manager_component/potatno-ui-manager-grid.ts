@@ -1,3 +1,7 @@
+import { Exception } from "@kartoffelgames/core";
+import { PotatnoDocumentPort } from "../../../document/potatno-document-port.ts";
+import { PotatnoProjectTypesDefinition } from "../../../project/potatno-project-types-definition.ts";
+import { PotatnoUiManagerGridPathFindingPoint } from "../helper/potatno-ui-grid-path-finding.ts";
 import { PotatnoCodeUiManagerChangeType, type PotatnoUiManager } from '../potatno-ui-manager.ts';
 
 /**
@@ -9,10 +13,18 @@ export class PotatnoUiManagerGrid {
     private static readonly MAX_ZOOM: number = 2.0;
     private static readonly MIN_ZOOM: number = 0.1;
 
+    private mDraggedPortInformation: PotatnoUiManagerGridDraggedPort;
     private readonly mManager: PotatnoUiManager;
     private mPanX: number;
     private mPanY: number;
     private mZoom: number;
+
+    /**
+     * Currently dragged port.
+     */
+    public get draggedPort(): PotatnoUiManagerGridDraggedPort {
+        return this.mDraggedPortInformation;
+    }
 
     /**
      * Grid size in pixels.
@@ -53,6 +65,7 @@ export class PotatnoUiManagerGrid {
         this.mPanX = 0;
         this.mPanY = 0;
         this.mZoom = 1.0;
+        this.mDraggedPortInformation = new PotatnoUiManagerGridDraggedPort(this.mManager, null);
     }
 
     /**
@@ -67,6 +80,15 @@ export class PotatnoUiManagerGrid {
 
         // Dispatch grid change.
         this.mManager.dispatch(PotatnoCodeUiManagerChangeType.SpecialGrid, null);
+    }
+
+    /**
+     * Set a new dragged port or null if nothing is dragged.
+     * 
+     * @param pPort - Dragged port.
+     */
+    public setDraggingPort(pPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null): void {
+        this.mDraggedPortInformation = new PotatnoUiManagerGridDraggedPort(this.mManager, pPort);
     }
 
     /**
@@ -101,5 +123,91 @@ export class PotatnoUiManagerGrid {
 
         // Dispatch grid change.
         this.mManager.dispatch(PotatnoCodeUiManagerChangeType.SpecialGrid, null);
+    }
+}
+
+export class PotatnoUiManagerGridDraggedPort {
+    private readonly mManager: PotatnoUiManager;
+    private readonly mPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null;
+    private readonly mPortPosition: PotatnoUiManagerGridPathFindingPoint;
+    private readonly mPointerGridPosition: PotatnoUiManagerGridPathFindingPoint;
+
+    /**
+     * Get current dragged port.
+     * If no port is dragged, this property throws.
+     */
+    public get port(): PotatnoDocumentPort<PotatnoProjectTypesDefinition> {
+        if (!this.mPort) {
+            throw new Exception('Currently no port is dragged.', this);
+        }
+
+        return this.mPort;
+    }
+
+    /**
+     * Port is dragged when a current dragged port is set.
+     */
+    public get isDragging(): boolean {
+        return !!this.mPort;
+    }
+
+    /**
+     * Port position of dragged port.
+     */
+    public get portPosition(): Readonly<PotatnoUiManagerGridPathFindingPoint> {
+        return this.mPortPosition;
+    }
+
+    /**
+     * Constructor.
+     * 
+     * @param pManager - Instanced ui manager.
+     * @param pPort - Dragged port. Null if nothing is dragged.
+     * @param pPortPosition - Port position in grid space.
+     */
+    public constructor(pManager: PotatnoUiManager, pPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null) {
+        this.mManager = pManager;
+        this.mPort = pPort;
+        this.mPointerGridPosition = { x: Infinity, y: Infinity };
+
+        // Set default position and override with actual if set.
+        this.mPortPosition = { x: 0, y: 0 };
+        if (pPort) {
+            // Get port position of dragged port.
+            const lPortPosition = this.mManager.connections.getPortGridPoint(pPort);
+
+            // Adjust port position by offsetting one cell to the right for output ports.
+            // Thats because the svg is left aligned in the input port.
+            if (pPort.direction === 'output') {
+                lPortPosition.x += 1;
+            }
+
+            this.mPortPosition = {
+                x: lPortPosition.x,
+                y: lPortPosition.y
+            };
+        }
+    }
+
+    /**
+     * Update grid position based on pointer.
+     * Returns true if pointerposition in grid has changed.
+     * 
+     * @param pClientX - Global mouse position X. 
+     * @param pClientY - Global mouse position Y.
+     * 
+     * @returns Returns true if pointerposition in grid has changed otherwise false.
+     */
+    public updatePointer(pClientX: number, pClientY: number): boolean {
+        const lPointerPosition: PotatnoUiManagerGridPathFindingPoint = this.mManager.connections.pixelToGridSpace(pClientX, pClientY);
+        if (lPointerPosition.x === this.mPointerGridPosition.x && lPointerPosition.y === this.mPointerGridPosition.y) {
+            return false;
+        }
+
+        // Update pointer position.
+        this.mPointerGridPosition.x = lPointerPosition.x;
+        this.mPointerGridPosition.y = lPointerPosition.y;
+
+        return true;
     }
 }

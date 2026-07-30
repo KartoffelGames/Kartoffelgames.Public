@@ -163,7 +163,7 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
     /**
      * Port type name (shown as tooltip).
      */
-    public get portType(): string {
+    public get portValueType(): string {
         if (!this.port || this.port.portType !== 'value') {
             return '';
         }

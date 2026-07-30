@@ -48,24 +48,24 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
      * CSS class string for the error state.
      */
     public get hasError(): boolean {
-        if (!this.nodeData) {
+        if (!this.mNodeData) {
             return false;
         }
 
         // Node has error.
-        if (this.mManager.integrity.errorItems.has(this.nodeData)) {
+        if (this.mManager.integrity.errorItems.has(this.mNodeData)) {
             return true;
         }
 
         // Any input port has an error.
-        for (const lInputPort of this.nodeData.inputs.list) {
+        for (const lInputPort of this.mNodeData.inputs.list) {
             if (this.mManager.integrity.errorItems.has(lInputPort)) {
                 return true;
             }
         }
 
         // Any output port has an error.
-        for (const lOutputPort of this.nodeData.outputs.list) {
+        for (const lOutputPort of this.mNodeData.outputs.list) {
             if (this.mManager.integrity.errorItems.has(lOutputPort)) {
                 return true;
             }
@@ -78,11 +78,11 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
      * All input ports in definition order (flow and value).
      */
     public get inputPorts(): ReadonlyArray<PotatnoDocumentPort<PotatnoProjectTypesDefinition>> {
-        if (!this.nodeData) {
+        if (!this.mNodeData) {
             return new Array<PotatnoDocumentPort<PotatnoProjectTypesDefinition>>();
         }
 
-        return this.nodeData.inputs.list;
+        return this.mNodeData.inputs.list;
     }
 
     /**
@@ -96,7 +96,7 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
      * Whether this node currently has an active inline preview.
      */
     public get isPreviewActive(): boolean {
-        return !!this.nodeData?.preview;
+        return !!this.mNodeData?.preview;
     }
 
     /**
@@ -132,7 +132,7 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
         this.mNodeDefinition = (() => {
             // Find node data.
             return this.mManager.activeFunction.nodeDefinitions.find((pNodeDefinition) => {
-                return pNodeDefinition.id === this.nodeData!.definitionId;
+                return pNodeDefinition.id === this.mNodeData!.definitionId;
             }) ?? null;
         })();
 
@@ -154,7 +154,7 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
      * Node display label.
      */
     public get nodeLabel(): string {
-        return this.nodeData?.label ?? '';
+        return this.mNodeData?.label ?? '';
     }
 
     /**
@@ -167,11 +167,11 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
      * All output ports in definition order (flow and value).
      */
     public get outputPorts(): ReadonlyArray<PotatnoDocumentPort<PotatnoProjectTypesDefinition>> {
-        if (!this.nodeData) {
+        if (!this.mNodeData) {
             return new Array<PotatnoDocumentPort<PotatnoProjectTypesDefinition>>();
         }
 
-        return this.nodeData.outputs.list;
+        return this.mNodeData.outputs.list;
     }
 
     /**
@@ -190,7 +190,7 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
      * The display id currently selected as the active preview.
      */
     public get previewDisplayId(): string {
-        return this.nodeData?.preview?.displayId ?? '';
+        return this.mNodeData?.preview?.displayId ?? '';
     }
 
     /**
@@ -198,24 +198,24 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
      */
     public get previewDriver(): PotatnoPreviewDriver<PotatnoProjectTypesDefinition> | null {
         // No preview no preview driver.
-        if (!this.nodeData?.preview) {
+        if (!this.mNodeData?.preview) {
             return null;
         }
 
         // Get instance of selected port id.
-        const lPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | undefined = this.nodeData.outputs.map.get(this.nodeData.preview.portDefinitionId);
+        const lPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | undefined = this.mNodeData.outputs.map.get(this.mNodeData.preview.portDefinitionId);
         if (!lPort) {
             return null;
         }
 
-        return this.mManager.preview.requestDriver(lPort, this.nodeData.preview.displayId);
+        return this.mManager.preview.requestDriver(lPort, this.mNodeData.preview.displayId);
     }
 
     /**
      * The port id currently selected for the active preview.
      */
     public get previewPortDefinitionId(): string {
-        return this.nodeData?.preview?.portDefinitionId ?? '';
+        return this.mNodeData?.preview?.portDefinitionId ?? '';
     }
 
     /**
@@ -243,12 +243,12 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
 
         this.mUnsubscribe = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Node, (pItem) => {
             // Only trigger a transformation if its affects the current node data.
-            if (pItem.item !== this.nodeData) {
+            if (pItem.item !== this.mNodeData) {
                 return;
             }
 
             // Calculate the current size of the component.
-            this.resyncComponent(this.nodeData!);
+            this.resyncComponent(this.mNodeData!);
         });
     }
 
@@ -259,18 +259,18 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
      */
     public dragNode(pEvent: PointerEvent): void {
         // Cant transform without node data.
-        if (!this.nodeData) {
+        if (!this.mNodeData) {
             return;
         }
 
         pEvent.preventDefault();
 
         // Save current coordinate so the current pointer position determinates exactly this coordinate.
-        const lStartingCoordinateX: number = this.nodeData.transformation.x * this.mManager.grid.gridSize;
-        const lStartingCoordinateY: number = this.nodeData.transformation.y * this.mManager.grid.gridSize;
+        const lStartingCoordinateX: number = this.mNodeData.transformation.x * this.mManager.grid.gridSize;
+        const lStartingCoordinateY: number = this.mNodeData.transformation.y * this.mManager.grid.gridSize;
 
-        let lCurrentX: number = this.nodeData.transformation.x;
-        let lCurrentY: number = this.nodeData.transformation.y;
+        let lCurrentX: number = this.mNodeData.transformation.x;
+        let lCurrentY: number = this.mNodeData.transformation.y;
 
         // Scale of any transformed parent: ratio of rendered (actual size) to layout (unscaled) size.
         const lComponentSize: DOMRect = this.mComponent.element.getBoundingClientRect();
@@ -299,7 +299,7 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
             }
 
             // And then update node position.
-            this.mManager.graph.transformNode(this.nodeData, (pNode) => {
+            this.mManager.graph.transformNode(this.mNodeData, (pNode) => {
                 pNode.moveTo(lX, lY);
             });
 
@@ -349,7 +349,7 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
      * @param pEvent - Change event from the style selector.
      */
     public selectPreviewDisplay(pDisplayId: string): void {
-        this.mManager.graph.updateNode(this.nodeData, (pNode) => {
+        this.mManager.graph.updateNode(this.mNodeData, (pNode) => {
             // Preview should be set when this function is called, so we can assume its not null.
             pNode.preview = { portDefinitionId: pNode.preview!.portDefinitionId, displayId: pDisplayId };
         });
@@ -368,7 +368,7 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
      */
     public selectPreviewPort(pPortDefinitionId?: string | null): void {
         // Node data must be present.
-        if (!this.nodeData) {
+        if (!this.mNodeData) {
             return;
         }
 
@@ -388,18 +388,18 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
             }
 
             // Toggle preview port when no port is specified.
-            return !!this.nodeData.preview ? null : lPreviewablePorts[0];
+            return !!this.mNodeData.preview ? null : lPreviewablePorts[0];
         })();
 
         // Reset preview if no port is selected.
         if (!lPreviewPort) {
-            return this.mManager.graph.updateNode(this.nodeData, (pNode) => {
+            return this.mManager.graph.updateNode(this.mNodeData, (pNode) => {
                 pNode.preview = null;
             });
         }
 
         // Activate preview for the selected port.
-        this.mManager.graph.updateNode(this.nodeData, (pNode) => {
+        this.mManager.graph.updateNode(this.mNodeData, (pNode) => {
             // Read nodes parent function, function definition. It must be allways available.
             const lFunctionDefinition: PotatnoFunctionDefinition<PotatnoProjectTypesDefinition> | undefined = pNode.project.getFunction(pNode.function.definitionId)!;
 
@@ -423,7 +423,7 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
         });
 
         // Resync, as the port can have different available displays.
-        this.resyncComponent(this.nodeData);
+        this.resyncComponent(this.mNodeData);
     }
 
     /**
@@ -435,12 +435,12 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
      */
     private getPreviewDisplays(pPortDefinitionId: string | null): Array<PotatnoNodeComponentPreviewDisplayOption> {
         // Cant find any port without node data or port id.
-        if (!this.nodeData || !pPortDefinitionId) {
+        if (!this.mNodeData || !pPortDefinitionId) {
             return new Array<PotatnoNodeComponentPreviewDisplayOption>();
         }
 
         // Find nodes port by definition id. 
-        const lPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | undefined = this.nodeData.outputs.map.get(pPortDefinitionId);
+        const lPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | undefined = this.mNodeData.outputs.map.get(pPortDefinitionId);
         if (!lPort) {
             return new Array<PotatnoNodeComponentPreviewDisplayOption>();
         }
@@ -520,7 +520,7 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
         this.nodeTransformation.height = pNode.transformation.height;
 
         // Reset previewable ports and displays.
-        this.previewPorts = this.getPreviewablePorts(this.nodeData!);
+        this.previewPorts = this.getPreviewablePorts(this.mNodeData!);
         this.previewDisplays = this.getPreviewDisplays(pNode.preview?.portDefinitionId ?? null);
     }
 }

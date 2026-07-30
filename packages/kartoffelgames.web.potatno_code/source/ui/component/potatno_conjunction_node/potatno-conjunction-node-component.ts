@@ -6,6 +6,8 @@ import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, type PotatnoCodeUiMan
 import { PotatnoPortComponent } from '../potatno_port/potatno-port-component.ts';
 import nodeCss from './potatno-conjunction-node-component.css' with { type: 'text' };
 import nodeTemplate from './potatno-conjunction-node-component.html' with { type: 'text' };
+import { PotatnoPortDefinitionType } from "../../../project/potatno-port-definition.ts";
+import { PotatnoFlowConjunctionNodeDefinition } from "../../../project/node_definition/potatno-flow-conjunction-node-definition.ts";
 
 /**
  * Node conjunction component for the potatno-code visual editor.
@@ -33,30 +35,54 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
      * CSS class string for the error state.
      */
     public get hasError(): boolean {
-        if (!this.nodeData) {
+        if (!this.mNodeData) {
             return false;
         }
 
         // Node has error.
-        if (this.mManager.integrity.errorItems.has(this.nodeData)) {
+        if (this.mManager.integrity.errorItems.has(this.mNodeData)) {
             return true;
         }
 
         // Any input port has an error.
-        for (const lInputPort of this.nodeData.inputs.list) {
+        for (const lInputPort of this.mNodeData.inputs.list) {
             if (this.mManager.integrity.errorItems.has(lInputPort)) {
                 return true;
             }
         }
 
         // Any output port has an error.
-        for (const lOutputPort of this.nodeData.outputs.list) {
+        for (const lOutputPort of this.mNodeData.outputs.list) {
             if (this.mManager.integrity.errorItems.has(lOutputPort)) {
                 return true;
             }
         }
 
         return false;
+    }
+
+    /**
+     * Get if the sole ouput port is connected to any other port.
+     */
+    public get isInputConnected(): boolean {
+        // Not connected when neighter the data nor inputs exists.
+        if(!this.mNodeData || this.mNodeData.inputs.list.length === 0) {
+            return false;
+        }
+
+        return this.mNodeData.inputs.list[0].connectedPorts.size > 0;
+    }
+
+    /**
+     * Get if the sole ouput port is connected to any other port.
+     */
+    public get isOutputConnected(): boolean {
+        // Not connected when neighter the data nor outputs exists.
+        if(!this.mNodeData || this.mNodeData.outputs.list.length === 0) {
+            return false;
+        }
+
+        return this.mNodeData.outputs.list[0].connectedPorts.size > 0;
     }
 
     /**
@@ -79,6 +105,43 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
     }
 
     /**
+     * Computed color for the port handle.
+     * Flow ports use the primary text color; value ports use a type-derived hue.
+     * Generic value ports use the connected port's resolved type color, or muted when unconnected.
+     */
+    public get portColor(): string {
+        // Color for flow ports. Also catch a port null with this.
+        if (this.portType === 'flow') {
+            return 'var(--potatno-color-text)';
+        }
+
+        return this.mManager.generateStringColor(this.portValueType);
+    }
+
+    /**
+     * Port type of conjunction.
+     */
+    public get portType(): PotatnoPortDefinitionType {
+        if(this.mNodeData?.definitionId === PotatnoFlowConjunctionNodeDefinition.DEFINITION_ID){
+            return 'flow'
+        }
+
+        return 'value'
+    }
+
+    /**
+     * Port type name (shown as tooltip).
+     */
+    public get portValueType(): string {
+        // No valid value type when it cant be read from the first value node.
+        if (!this.mNodeData || this.portType !== 'value' || this.mNodeData.inputs.list.length === 0) {
+            return '';
+        }
+
+        return this.mNodeData.inputs.list[0].resolvedDataType;
+    }
+
+    /**
      * Create the node component.
      *
      * @param pComponent - Injected component reference, used to trigger self-updates.
@@ -91,12 +154,12 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
 
         this.mUnsubscribe = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Node, (pItem) => {
             // Only trigger a transformation if its affects the current node data.
-            if (pItem.item !== this.nodeData) {
+            if (pItem.item !== this.mNodeData) {
                 return;
             }
 
             // Calculate the current size of the component.
-            this.resyncComponent(this.nodeData!);
+            this.resyncComponent(this.mNodeData!);
         });
     }
 
@@ -107,18 +170,18 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
      */
     public dragNode(pEvent: PointerEvent): void {
         // Cant transform without node data.
-        if (!this.nodeData) {
+        if (!this.mNodeData) {
             return;
         }
 
         pEvent.preventDefault();
 
         // Save current coordinate so the current pointer position determinates exactly this coordinate.
-        const lStartingCoordinateX: number = this.nodeData.transformation.x * this.mManager.grid.gridSize;
-        const lStartingCoordinateY: number = this.nodeData.transformation.y * this.mManager.grid.gridSize;
+        const lStartingCoordinateX: number = this.mNodeData.transformation.x * this.mManager.grid.gridSize;
+        const lStartingCoordinateY: number = this.mNodeData.transformation.y * this.mManager.grid.gridSize;
 
-        let lCurrentX: number = this.nodeData.transformation.x;
-        let lCurrentY: number = this.nodeData.transformation.y;
+        let lCurrentX: number = this.mNodeData.transformation.x;
+        let lCurrentY: number = this.mNodeData.transformation.y;
 
         // Scale of any transformed parent: ratio of rendered (actual size) to layout (unscaled) size.
         const lComponentSize: DOMRect = this.mComponent.element.getBoundingClientRect();
@@ -147,7 +210,7 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
             }
 
             // And then update node position.
-            this.mManager.graph.transformNode(this.nodeData, (pNode) => {
+            this.mManager.graph.transformNode(this.mNodeData, (pNode) => {
                 pNode.moveTo(lX, lY);
             });
 

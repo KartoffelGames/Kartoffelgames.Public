@@ -3,31 +3,186 @@
     font-family: var(--potatno-font-family);
     font-size: var(--potatno-font-size);
 
-    --node-border-color: color-mix(in srgb, var(--potatno-color-text) 30%, var(--potatno-color-background));
+    --potatno-port-value-size: 5px;
+    --potatno-port-flow-size: 15px;
+    --potatno-port-width: max(var(--potatno-port-value-size), var(--potatno-port-flow-size));
 }
 
 .node {
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    min-height: 100%;
-    background-color: var(--potatno-color-background);
-    border: 1px solid var(--node-border-color);
-
-    box-shadow: 0 2px 8px var(--potatno-color-shadow);
+    position: relative;
     overflow: visible;
     user-select: none;
 
-    /* Default size */
-    --node-width: 6;
-    --node-height: 6;
+    --potatno-port-color: var(--type-color);
+}
 
-    /* Resize */
+.ports {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
     width: var(--potatno-grid-size);
     height: var(--potatno-grid-size);
+}
 
-    &.error {
-        --resize-box-handle-color: var(--potatno-color-error);
-        box-shadow: 0 0 5px 0px var(--potatno-color-error), 0 2px 8px var(--potatno-color-shadow);
+.port {
+    position: relative;
+    display: flex;
+    width: var(--potatno-port-width);
+    z-index: 99;
+    align-items: center;
+    justify-content: center;
+
+    .port__handle {
+        position: relative;
+
+        transition: transform 0.15s ease-in-out;
+
+        .output & {
+            transform: translateX(calc(var(--potatno-port-width) / 2));
+        }
+
+        .input & {
+            transform: translateX(calc(var(--potatno-port-width) / -2));
+        }
+
+        &.flow {
+            display: flex;
+
+            &::before {
+                content: '';
+
+                height: calc((var(--potatno-port-flow-size) / 3) * 2);
+                width: calc((var(--potatno-port-flow-size) / 3) * 2);
+
+                background-color: var(--potatno-port-color);
+                border-radius: 2px;
+            }
+
+            &::after {
+                content: '';
+                position: relative;
+                height: 0;
+                width: 0;
+
+                border-bottom: calc(var(--potatno-port-flow-size) / 3) solid transparent;
+                border-top: calc(var(--potatno-port-flow-size) / 3) solid transparent;
+            }
+
+            &.connected::before {
+                background-color: var(--potatno-port-color);
+            }
+
+            &:not(.connected)::before {
+                background-color: color-mix(in srgb, var(--potatno-port-color) 30%, var(--potatno-color-background));
+            }
+
+            &.error::before {
+                background-color: var(--potatno-color-error);
+            }
+
+            .output & {
+                &::after {
+                    right: 1px;
+                    border-left: calc(var(--potatno-port-flow-size) / 3) solid var(--potatno-port-color);
+                }
+
+                &.connected::after {
+                    border-left-color: var(--potatno-port-color);
+                }
+
+                &:not(.connected)::after {
+                    border-left-color: color-mix(in srgb, var(--potatno-port-color) 30%, var(--potatno-color-background));
+                }
+
+                &.error::after {
+                    border-left-color: var(--potatno-color-error);
+                }
+            }
+
+            .input & {
+                flex-direction: row-reverse;
+
+                &::after {
+                    left: 1px;
+                    border-right: calc(var(--potatno-port-flow-size) / 3) solid var(--potatno-port-color);
+                }
+
+                &.connected::after {
+                    border-right-color: var(--potatno-port-color);
+                }
+
+                &:not(.connected)::after {
+                    border-right-color: color-mix(in srgb, var(--potatno-port-color, ) 30%, var(--potatno-color-background));
+                }
+
+                &.error::after {
+                    border-right-color: var(--potatno-color-error);
+                }
+            }
+        }
+
+        &.value {
+            background-color: var(--potatno-port-color);
+            border: 1px solid var(--potatno-port-color);
+            border-radius: 50%;
+            height: calc(var(--potatno-port-value-size) - 1px);
+            width: calc(var(--potatno-port-value-size) - 1px);
+
+            &.connected {
+                background-color: var(--potatno-port-color);
+            }
+
+            &:not(.connected) {
+                background-color: color-mix(in srgb, var(--potatno-port-color) 30%, var(--potatno-color-background));
+            }
+
+            .error & {
+                background-color: var(--potatno-color-error);
+            }
+        }
+
+        .error & {
+            filter: drop-shadow(0 0 4px var(--potatno-color-error));
+        }
+    }
+}
+
+.port-drop-area {
+    position: absolute;
+    top: 0px;
+    width: calc(var(--potatno-grid-size) - 2px);
+    height: calc(var(--potatno-grid-size) - 2px);
+    border: 1px dashed var(--potatno-port-color);
+
+    &.input {
+        left: -100%;
+    }
+
+    &.output {
+        right: -100%;
+    }
+}
+
+.port-drag-connection {
+    position: absolute;
+    top: 0;
+    height: 1px;
+    width: 1px;
+    overflow: visible;
+    pointer-events: none;
+
+    /* While dragging should stay above all nodes. */
+    z-index: 200;
+
+    path {
+        fill: none;
+        opacity: 0.6;
+        pointer-events: none;
+        stroke: var(--potatno-port-color);
+        stroke-dasharray: 8 4;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-width: 2;
     }
 }

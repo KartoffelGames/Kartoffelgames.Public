@@ -29,14 +29,14 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
      * Node display label.
      */
     public get comment(): string {
-        return this.nodeData?.label ?? '';
+        return this.mNodeData?.label ?? '';
     } set comment(pComment: string) {
         // Skip update.
-        if (!this.nodeData) {
+        if (!this.mNodeData) {
             return;
         }
 
-        this.nodeData.label = pComment;
+        this.mNodeData.label = pComment;
     }
 
     /**
@@ -122,12 +122,12 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
 
         this.mUnsubscribe = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Node, (pItem) => {
             // Only trigger a transformation if its affects the current node data.
-            if (pItem.item !== this.nodeData) {
+            if (pItem.item !== this.mNodeData) {
                 return;
             }
 
             // Calculate the current size of the component.
-            this.resyncComponent(this.nodeData!);
+            this.resyncComponent(this.mNodeData!);
         });
     }
 
@@ -138,7 +138,7 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
      */
     public dragNodeOrEnableEdit(pEvent: PointerEvent): void {
         // Cant transform without node data.
-        if (!this.nodeData) {
+        if (!this.mNodeData) {
             return;
         }
 
@@ -163,11 +163,11 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
         pEvent.preventDefault();
 
         // Save current coordinate so the current pointer position determinates exactly this coordinate.
-        const lStartingCoordinateX: number = this.nodeData.transformation.x * this.mManager.grid.gridSize;
-        const lStartingCoordinateY: number = this.nodeData.transformation.y * this.mManager.grid.gridSize;
+        const lStartingCoordinateX: number = this.mNodeData.transformation.x * this.mManager.grid.gridSize;
+        const lStartingCoordinateY: number = this.mNodeData.transformation.y * this.mManager.grid.gridSize;
 
-        let lCurrentX: number = this.nodeData.transformation.x;
-        let lCurrentY: number = this.nodeData.transformation.y;
+        let lCurrentX: number = this.mNodeData.transformation.x;
+        let lCurrentY: number = this.mNodeData.transformation.y;
 
         // Scale of any transformed parent: ratio of rendered (actual size) to layout (unscaled) size.
         const lComponentSize: DOMRect = this.mComponent.element.getBoundingClientRect();
@@ -196,7 +196,7 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
             }
 
             // And then update node position.
-            this.mManager.graph.transformNode(this.nodeData, (pNode) => {
+            this.mManager.graph.transformNode(this.mNodeData, (pNode) => {
                 pNode.moveTo(lX, lY);
             });
 
@@ -237,11 +237,11 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
      * Resync component once the component is connected.
      */
     public onConnect(): void {
-        if (!this.nodeData) {
+        if (!this.mNodeData) {
             return;
         }
 
-        this.resyncComponent(this.nodeData);
+        this.resyncComponent(this.mNodeData);
     }
 
     /**
@@ -276,7 +276,7 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
      * @param pResize - Resize data.
      */
     public transformNodeData(pResize: PotatnoResizeBoxComponentResize): void {
-        this.mManager.graph.transformNode(this.nodeData, (pNode) => {
+        this.mManager.graph.transformNode(this.mNodeData, (pNode) => {
             // Save size before resizing.
             const lLastWidth: number = pNode.transformation.width;
             const lLastheight: number = pNode.transformation.height;

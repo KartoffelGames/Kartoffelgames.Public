@@ -11,8 +11,8 @@ import { PotatnoNodeSelectionPopupComponent } from '../potatno-node-selection-po
 import { PotatnoCommentNodeComponent } from '../potatno_comment-node/potatno-comment-node-component.ts';
 import { PotatnoConnectionLayerComponent } from '../potatno_connection_layer/potatno-connection-layer-component.ts';
 import { PotatnoNodeComponent, type PotatnoNodeComponentMove } from '../potatno_node_component/potatno-node-component.ts';
-import graphCss from './potatno-node-graph.css' with { type: 'text' };
-import graphTemplate from './potatno-node-graph.html' with { type: 'text' };
+import graphCss from './potatno-node-graph-component.css' with { type: 'text' };
+import graphTemplate from './potatno-node-graph-component.html' with { type: 'text' };
 
 /**
  * Interactive node graph for the active Potatno document function.
@@ -25,7 +25,7 @@ import graphTemplate from './potatno-node-graph.html' with { type: 'text' };
     style: graphCss,
     components: [PotatnoNodeSelectionPopupComponent, PotatnoNodeComponent, PotatnoCommentNodeComponent, PotatnoConnectionLayerComponent,]
 })
-export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDeconstruct {
+export class PotatnoNodeGraphComponent implements IComponentOnConnect, IComponentOnDeconstruct {
     private static readonly ZOOM_STRENGTH: number = 0.1;
 
     private readonly mComponent: Component;
@@ -454,7 +454,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
 
         // Zoom away or to the mouse position.
         const lLocalPosition: PotatnoNodeGraphComponentPoint = this.convertGlobalToGridPosition(pEvent.clientX, pEvent.clientY);
-        this.mManager.grid.zoomAt(lLocalPosition.x, lLocalPosition.y, lZoomDirection * PotatnoNodeGraph.ZOOM_STRENGTH);
+        this.mManager.grid.zoomAt(lLocalPosition.x, lLocalPosition.y, lZoomDirection * PotatnoNodeGraphComponent.ZOOM_STRENGTH);
     }
 
     /**

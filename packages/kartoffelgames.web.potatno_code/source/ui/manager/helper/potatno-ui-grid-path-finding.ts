@@ -1,9 +1,11 @@
 import { Astar, Exception, type AstarPathInformation, type AstarResult } from '@kartoffelgames/core';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
-import { PotatnoNodeDefinition } from '../../../project/node_definition/potatno-node-definition.ts';
-import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import { PotatnoCommentNodeDefinition } from '../../../project/node_definition/potatno-comment-node-definition.ts';
+import { PotatnoFlowConjunctionNodeDefinition } from "../../../project/node_definition/potatno-flow-conjunction-node-definition.ts";
+import { PotatnoNodeDefinition } from '../../../project/node_definition/potatno-node-definition.ts';
+import { PotatnoValueConjunctionNodeDefinition } from "../../../project/node_definition/potatno-value-conjunction-node-definition.ts";
+import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 
 /**
  * A* path finding for grid connections.
@@ -113,16 +115,21 @@ export class PotatnoUiGridPathFinding extends Astar<PotatnoUiManagerGridPathFind
 
         // Based on the node definition type, add additional sizes that the UI applies.
         if (lNodeDefinition) {
-            switch (true) {
+            switch (lNodeDefinition.id) {
                 // Comments never take up space.
-                case lNodeDefinition instanceof PotatnoCommentNodeDefinition: {
+                case PotatnoCommentNodeDefinition.DEFINITION_ID: {
                     return;
                 }
 
-                // TODO: Conjunctions.
+                // Conjunctions are allways 1,1 and dont include any header.
+                case PotatnoValueConjunctionNodeDefinition.DEFINITION_ID:
+                case PotatnoFlowConjunctionNodeDefinition.DEFINITION_ID: {
+                    break;
+                }
 
-                // Those nodes can have a preview. Default add one height for the "toggle preview"-button and additional 6 for the actual enabled preview.
-                case lNodeDefinition instanceof PotatnoNodeDefinition: {
+                // Any other nodes can have a preview.
+                // Add one height for the "toggle preview"-button and additional 6 for the actual enabled preview.
+                default: {
                     // Header height.
                     lHeight += 1;
 

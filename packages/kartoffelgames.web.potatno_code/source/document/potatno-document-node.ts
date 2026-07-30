@@ -186,9 +186,9 @@ export class PotatnoDocumentNode<TProjectTypes extends PotatnoProjectTypesDefini
         });
 
         const [lWidth, lHeight] = (() => {
-            switch (true) {
+            switch (lNodeDefinition?.id) {
                 // Restrict comments to be minimal 2 width and height. 
-                case lNodeDefinition instanceof PotatnoCommentNodeDefinition: {
+                case PotatnoCommentNodeDefinition.DEFINITION_ID: {
                     return [
                         Math.max(6, pWidth),
                         Math.max(6, pHeight)
@@ -196,13 +196,13 @@ export class PotatnoDocumentNode<TProjectTypes extends PotatnoProjectTypesDefini
                 }
 
                 // Conjunctions are allways 1,1.
-                case lNodeDefinition instanceof PotatnoValueConjunctionNodeDefinition:
-                case lNodeDefinition instanceof PotatnoFlowConjunctionNodeDefinition: {
+                case PotatnoValueConjunctionNodeDefinition.DEFINITION_ID:
+                case PotatnoFlowConjunctionNodeDefinition.DEFINITION_ID: {
                     return [1, 1];
                 }
 
                 // Default nodes, restricted by their ports.
-                case lNodeDefinition instanceof PotatnoNodeDefinition: {
+                default: {
                     return [
                         // Allways width of 6
                         6,
@@ -212,7 +212,6 @@ export class PotatnoDocumentNode<TProjectTypes extends PotatnoProjectTypesDefini
                     ];
                 }
             }
-            return [0, 0];
         })();
 
         // Set size.

@@ -6,7 +6,7 @@ import type { PotatnoFunctionDefinition } from '../../../project/potatno-functio
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, type PotatnoCodeUiManagerUnsubscribe } from '../../manager/potatno-ui-manager.ts';
 import { PotatnoFunctionListComponent } from '../potatno_function_list/potatno-function-list-component.ts';
-import { PotatnoNodeGraph } from '../potatno_node_graph/potatno-node-graph.ts';
+import { PotatnoNodeGraphComponent } from '../potatno_node_graph/potatno-node-graph-component.ts';
 import { PotatnoFunctionPropertiesComponent } from '../potatno_panel_properties/potatno-function-properties-component.ts';
 import { PotatnoPreviewComponent } from '../potatno_preview/potatno-preview-component.ts';
 import editorCss from './potatno-code-editor-component.css' with { type: 'text' };
@@ -24,7 +24,7 @@ import editorTemplate from './potatno-code-editor-component.html' with { type: '
     selector: 'potatno-code-editor',
     template: editorTemplate,
     style: editorCss,
-    components: [PotatnoFunctionListComponent, PotatnoNodeGraph, PotatnoFunctionPropertiesComponent, PotatnoPreviewComponent]
+    components: [PotatnoFunctionListComponent, PotatnoNodeGraphComponent, PotatnoFunctionPropertiesComponent, PotatnoPreviewComponent]
 })
 export class PotatnoCodeEditorComponent implements IComponentOnDeconstruct {
     private readonly mComponent: Component;

@@ -19,10 +19,6 @@ import portTemplate from './potatno-port-component.html' with { type: 'text' };
     style: portCss,
 })
 export class PotatnoPortComponent implements IComponentOnDeconstruct {
-    private static readonly DRAG_MIME_TYPE: string = 'application/x-potatno-port';
-
-
-
     private readonly mComponent: Component;
     private readonly mDragPositionEventHandler: PotatnoPortComponentGlobalDragoverHandler;
     private readonly mManager: PotatnoUiManager;
@@ -300,7 +296,7 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
      */
     public onDragOver(pEvent: DragEvent): void {
         // Validate current dragged ports.
-        if (!this.draggedPortCanConnect(pEvent.dataTransfer)) {
+        if (!this.draggedPortCanConnect()) {
             return;
         }
 
@@ -328,7 +324,6 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
         // Register native drag data.
         pEvent.stopPropagation();
         pEvent.dataTransfer.effectAllowed = 'link';
-        pEvent.dataTransfer.setData(PotatnoPortComponent.DRAG_MIME_TYPE, this.port.definitionId);
 
         // Hide the native drag ghost.
         pEvent.dataTransfer.setDragImage(document.createElement('div'), 0, 0);
@@ -347,7 +342,7 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
      */
     public onDrop(pEvent: DragEvent): void {
         // Validate current dragged ports.
-        if (!this.draggedPortCanConnect(pEvent.dataTransfer)) {
+        if (!this.draggedPortCanConnect()) {
             return;
         }
 
@@ -397,11 +392,9 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
      * Also check whether a native drag contains Potatno port data.
      * Cant check definition id of stored data transfer as its not allways a drop event.
      *
-     * @param pDataTransfer - Drag data transfer object.
-     *
      * @returns True when the ports can be connected.
      */
-    private draggedPortCanConnect(pDataTransfer: DataTransfer | null): boolean {
+    private draggedPortCanConnect(): boolean {
         // Current port must be loaded.
         if (!this.port) {
             return false;
@@ -409,11 +402,6 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
 
         // Check if something is dragged.
         if (!this.mManager.grid.draggedPort.isDragging) {
-            return false;
-        }
-
-        // Datatransfer must include drag type.
-        if (!pDataTransfer || !pDataTransfer.types.includes(PotatnoPortComponent.DRAG_MIME_TYPE)) {
             return false;
         }
 
@@ -441,7 +429,7 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
         }
 
         // Try to read first element of svg element or create a new.
-        let lDragConnectionElement: SVGPathElement | null = this.dragConnectionSvg.firstChild as SVGPathElement | null;
+        let lDragConnectionElement: SVGPathElement | null = this.dragConnectionSvg.firstChild as SVGPathElement | null; // TODO: Maybe that can be done in template too?
         if (!lDragConnectionElement) {
             lDragConnectionElement = document.createElementNS('http://www.w3.org/2000/svg', 'path') as SVGPathElement;
             this.dragConnectionSvg.appendChild(lDragConnectionElement);

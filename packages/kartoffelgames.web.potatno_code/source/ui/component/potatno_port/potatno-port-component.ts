@@ -5,7 +5,6 @@ import type { PotatnoDocumentPort } from '../../../document/potatno-document-por
 import type { PotatnoPortDefinitionDirection } from '../../../project/potatno-port-definition.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import type { PotatnoUiManagerGridPathFindingPoint } from '../../manager/helper/potatno-ui-grid-path-finding.ts';
-import { PotatnoUiManagerGridDraggedPort } from "../../manager/manager_component/potatno-ui-manager-grid.ts";
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, type PotatnoCodeUiManagerUnsubscribe } from '../../manager/potatno-ui-manager.ts';
 import portCss from './potatno-port-component.css' with { type: 'text' };
 import portTemplate from './potatno-port-component.html' with { type: 'text' };
@@ -232,7 +231,7 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
         document.addEventListener('dragover', this.mDragPositionEventHandler, { capture: true });
 
         // Update component on any connection change.
-        this.mUnsubscribe = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Connection, () => {
+        this.mUnsubscribe = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Connection | PotatnoCodeUiManagerChangeType.SpecialValidation, () => {
             this.mComponent.updater.updateAsync();
         });
     }

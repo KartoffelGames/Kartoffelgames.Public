@@ -67,7 +67,10 @@ export class PotatnoUiManagerIntegrity {
 
         // Register "all"-Listener and set dirtly. After a debounce validate automaticly.
         let lDebounce: number = 0;
-        this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Any, () => {
+
+        // Anything that has an effect.
+        const lIntegrityChangeEvents: number = PotatnoCodeUiManagerChangeType.Connection | PotatnoCodeUiManagerChangeType.Document | PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.NodeAdd | PotatnoCodeUiManagerChangeType.NodeUpdate | PotatnoCodeUiManagerChangeType.NodeDelete | PotatnoCodeUiManagerChangeType.Port;
+        this.mManager.subscribe(lIntegrityChangeEvents, () => {
             this.mIsDirty = true;
 
             // Debounce: Clear and set a new timeout before pushing new history.
@@ -140,6 +143,9 @@ export class PotatnoUiManagerIntegrity {
                 }
             }
         }
+
+        // Trigger validation event on any revalidation.
+        this.mManager.dispatch(PotatnoCodeUiManagerChangeType.SpecialValidation, null);
     }
 }
 

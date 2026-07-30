@@ -261,7 +261,8 @@ export const PotatnoCodeUiManagerChangeType = {
     // Specials #F00000
     Special: 0xF00000,
     SpecialActiveFunction: 0x100000,
-    SpecialGrid: 0x200000
+    SpecialGrid: 0x200000,
+    SpecialValidation: 0x400000
 } as const;
 export type PotatnoCodeUiManagerChangeType = typeof PotatnoCodeUiManagerChangeType[keyof typeof PotatnoCodeUiManagerChangeType] | number;
 

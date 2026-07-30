@@ -23,127 +23,141 @@
 
     width: var(--potatno-grid-size);
     height: var(--potatno-grid-size);
-}
 
-.port {
-    position: relative;
-    display: flex;
-    width: var(--potatno-port-width);
-    z-index: 99;
-    align-items: center;
-    justify-content: center;
-
-    .port__handle {
+    .port {
+        flex: 1;
         position: relative;
-
+        display: flex;
+        z-index: 99;
+        align-items: center;
+        justify-content: center;
         transition: transform 0.15s ease-in-out;
 
-        .output & {
-            transform: translateX(calc(var(--potatno-port-width) / 2));
+        /* Small hover animation for ports, hover values excluded */
+        .ports:hover & {
+            &.output {
+                transform: translateX(1px);
+            }
+
+            &.input {
+                transform: translateX(-1px);
+            }
         }
 
-        .input & {
-            transform: translateX(calc(var(--potatno-port-width) / -2));
-        }
+        .port__handle {
+            position: absolute;
 
-        &.flow {
-            display: flex;
-
-            &::before {
-                content: '';
-
-                height: calc((var(--potatno-port-flow-size) / 3) * 2);
-                width: calc((var(--potatno-port-flow-size) / 3) * 2);
-
-                background-color: var(--potatno-port-color);
-                border-radius: 2px;
-            }
-
-            &::after {
-                content: '';
-                position: relative;
-                height: 0;
-                width: 0;
-
-                border-bottom: calc(var(--potatno-port-flow-size) / 3) solid transparent;
-                border-top: calc(var(--potatno-port-flow-size) / 3) solid transparent;
-            }
-
-            &.connected::before {
-                background-color: var(--potatno-port-color);
-            }
-
-            &:not(.connected)::before {
-                background-color: color-mix(in srgb, var(--potatno-port-color) 30%, var(--potatno-color-background));
-            }
-
-            &.error::before {
-                background-color: var(--potatno-color-error);
-            }
 
             .output & {
-                &::after {
-                    right: 1px;
-                    border-left: calc(var(--potatno-port-flow-size) / 3) solid var(--potatno-port-color);
-                }
-
-                &.connected::after {
-                    border-left-color: var(--potatno-port-color);
-                }
-
-                &:not(.connected)::after {
-                    border-left-color: color-mix(in srgb, var(--potatno-port-color) 30%, var(--potatno-color-background));
-                }
-
-                &.error::after {
-                    border-left-color: var(--potatno-color-error);
-                }
+                right: 0px;
             }
 
             .input & {
-                flex-direction: row-reverse;
+                left: 0px;
+            }
+
+            &.flow {
+                display: flex;
+
+                &::before {
+                    content: '';
+
+                    height: calc((var(--potatno-port-flow-size) / 3) * 2);
+                    width: calc((var(--potatno-port-flow-size) / 3) * 2);
+
+                    background-color: var(--potatno-port-color);
+                    border-radius: 2px;
+                }
 
                 &::after {
-                    left: 1px;
-                    border-right: calc(var(--potatno-port-flow-size) / 3) solid var(--potatno-port-color);
+                    content: '';
+                    position: relative;
+                    height: 0;
+                    width: 0;
+
+                    border-bottom: calc(var(--potatno-port-flow-size) / 3) solid transparent;
+                    border-top: calc(var(--potatno-port-flow-size) / 3) solid transparent;
                 }
 
-                &.connected::after {
-                    border-right-color: var(--potatno-port-color);
+                &.connected::before {
+                    background-color: var(--potatno-port-color);
                 }
 
-                &:not(.connected)::after {
-                    border-right-color: color-mix(in srgb, var(--potatno-port-color, ) 30%, var(--potatno-color-background));
+                &:not(.connected)::before {
+                    background-color: color-mix(in srgb, var(--potatno-port-color) 30%, var(--potatno-color-background));
                 }
 
-                &.error::after {
-                    border-right-color: var(--potatno-color-error);
+                &.error::before {
+                    background-color: var(--potatno-color-error);
+                }
+
+                .output & {
+                    transform: translateX(calc(var(--potatno-port-width) / 2));
+
+                    &::after {
+                        right: 1px;
+                        border-left: calc(var(--potatno-port-flow-size) / 3) solid var(--potatno-port-color);
+                    }
+
+                    &.connected::after {
+                        border-left-color: var(--potatno-port-color);
+                    }
+
+                    &:not(.connected)::after {
+                        border-left-color: color-mix(in srgb, var(--potatno-port-color) 30%, var(--potatno-color-background));
+                    }
+
+                    &.error::after {
+                        border-left-color: var(--potatno-color-error);
+                    }
+                }
+
+                .input & {
+                    transform: translateX(calc(var(--potatno-port-width) / -2));
+                    flex-direction: row-reverse;
+
+                    &::after {
+                        left: 1px;
+                        border-right: calc(var(--potatno-port-flow-size) / 3) solid var(--potatno-port-color);
+                    }
+
+                    &.connected::after {
+                        border-right-color: var(--potatno-port-color);
+                    }
+
+                    &:not(.connected)::after {
+                        border-right-color: color-mix(in srgb, var(--potatno-port-color, ) 30%, var(--potatno-color-background));
+                    }
+
+                    &.error::after {
+                        border-right-color: var(--potatno-color-error);
+                    }
                 }
             }
-        }
 
-        &.value {
-            background-color: var(--potatno-port-color);
-            border: 1px solid var(--potatno-port-color);
-            border-radius: 50%;
-            height: calc(var(--potatno-port-value-size) - 1px);
-            width: calc(var(--potatno-port-value-size) - 1px);
-
-            &.connected {
+            &.value {
                 background-color: var(--potatno-port-color);
-            }
+                border: 1px solid var(--potatno-port-color);
+                border-radius: 50%;
+                height: calc(var(--potatno-port-value-size) - 1px);
+                width: calc(var(--potatno-port-value-size) - 1px);
 
-            &:not(.connected) {
-                background-color: color-mix(in srgb, var(--potatno-port-color) 30%, var(--potatno-color-background));
-            }
+                &.connected {
+                    background-color: var(--potatno-port-color);
+                }
 
-            .error & {
-                background-color: var(--potatno-color-error);
-            }
-        }
+                &:not(.connected) {
+                    background-color: color-mix(in srgb, var(--potatno-port-color) 30%, var(--potatno-color-background));
+                }
 
-        .error & {
-            filter: drop-shadow(0 0 4px var(--potatno-color-error));
+                .output & {
+                    transform: translateX(50%);
+                }
+
+                .input & {
+                    transform: translateX(-50%);
+                }
+            }
         }
     }
 }

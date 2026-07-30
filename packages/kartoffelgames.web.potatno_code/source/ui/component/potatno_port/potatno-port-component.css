@@ -45,7 +45,7 @@
 }
 
 .port-values {
-    --potatno-port-values-line-length: 15px;
+    --potatno-port-values-line-length: 8px;
 
     position: absolute;
     top: 50%;
@@ -61,17 +61,13 @@
     height: 100%;
     padding-right: var(--potatno-port-values-line-length);
     pointer-events: all;
-    z-index: 10;
-
-    /* Make it slightly passthrough so drawn lines can be seen */
-    opacity: 0.75;
 
     &::after {
         content: '';
         position: absolute;
-        right: 0;
+        right: 2px;
         height: 1px;
-        width: var(--potatno-port-values-line-length);
+        width: calc(var(--potatno-port-values-line-length) - 2px);
         pointer-events: none;
         background-color: var(--potatno-port-color);
     }
@@ -167,7 +163,6 @@
         position: relative;
         display: flex;
         width: var(--potatno-port-handle-width);
-        z-index: 99;
         align-items: center;
         justify-content: center;
 
@@ -238,6 +233,7 @@
                 }
 
                 .input & {
+                    /* Bibedi bubedi arrow is not on the leftebi */
                     flex-direction: row-reverse;
 
                     &::after {
@@ -250,7 +246,7 @@
                     }
 
                     &:not(.connected)::after {
-                        border-right-color: color-mix(in srgb, var(--potatno-port-color, ) 30%, var(--potatno-color-background));
+                        border-right-color: color-mix(in srgb, var(--potatno-port-color) 30%, var(--potatno-color-background));
                     }
 
                     &.error::after {
@@ -276,11 +272,8 @@
 
                 &.error {
                     background-color: var(--potatno-color-error);
+                    border-color: var(--potatno-color-error);
                 }
-            }
-
-            &.error {
-                filter: drop-shadow(0 0 4px var(--potatno-color-error));
             }
         }
     }

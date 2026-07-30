@@ -29,15 +29,15 @@
     /*height: calc(var(--potatno-grid-size) * var(--node-height));*/
 
     &.error {
-        --resize-box-handle-color: var(--potatno-color-error);
-        box-shadow: 0 0 5px 0px var(--potatno-color-error), 0 2px 8px var(--potatno-color-shadow);
+        box-shadow: 0 0 5px 2px var(--potatno-color-error), 0 2px 8px var(--potatno-color-shadow);
     }
 }
 
 .node-header {
     display: flex;
     align-items: center;
-    height: var(--potatno-grid-size);
+    /* Adjustt -1px because node itself has a top border of 1px. */
+    height: calc(var(--potatno-grid-size) - 1px);
     color: var(--potatno-color-text-contrast);
     background-color: var(--node-category-color);
     font-weight: bold;

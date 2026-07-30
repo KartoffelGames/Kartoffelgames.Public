@@ -29,7 +29,8 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
     private readonly mManager: PotatnoUiManager;
     private mNodeData: PotatnoDocumentNode<PotatnoProjectTypesDefinition> | null;
     private mNodeDefinition: PotatnoNodeDefinition<PotatnoProjectTypesDefinition> | null;
-    private readonly mUnsubscribe: PotatnoCodeUiManagerUnsubscribe;
+    private readonly mUnsubscribeNodeChange: PotatnoCodeUiManagerUnsubscribe;
+    private readonly mUnsubscribeValidation: PotatnoCodeUiManagerUnsubscribe;
 
     /**
      * Whether the node exposes a value output that can select a preview display.
@@ -241,7 +242,7 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
         this.previewPorts = new Array<PotatnoDocumentPort<PotatnoProjectTypesDefinition>>();
         this.previewDisplays = new Array<PotatnoNodeComponentPreviewDisplayOption>();
 
-        this.mUnsubscribe = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Node, (pItem) => {
+        this.mUnsubscribeNodeChange = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Node, (pItem) => {
             // Only trigger a transformation if its affects the current node data.
             if (pItem.item !== this.mNodeData) {
                 return;
@@ -249,6 +250,11 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
 
             // Calculate the current size of the component.
             this.resyncComponent(this.mNodeData!);
+        });
+
+        // Also refresh on validation changes.
+        this.mUnsubscribeValidation = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.SpecialValidation, () => {
+            this.mComponent.updater.updateAsync();
         });
     }
 
@@ -327,7 +333,8 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
      * Detach the manager subscription.
      */
     public onDeconstruct(): void {
-        this.mUnsubscribe();
+        this.mUnsubscribeNodeChange();
+        this.mUnsubscribeValidation();
     }
 
     /**

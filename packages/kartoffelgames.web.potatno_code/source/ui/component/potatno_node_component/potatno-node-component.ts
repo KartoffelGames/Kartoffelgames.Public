@@ -46,7 +46,7 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
     private accessor mDrag!: ComponentEventEmitter<PotatnoNodeComponentMove>;
 
     /**
-     * CSS class string for the error state.
+     * Get if node has any error, including child ports.
      */
     public get hasError(): boolean {
         if (!this.mNodeData) {

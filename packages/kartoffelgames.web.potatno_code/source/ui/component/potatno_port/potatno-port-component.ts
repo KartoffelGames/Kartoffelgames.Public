@@ -284,6 +284,8 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
         pEvent.stopPropagation();
         pEvent.preventDefault();
 
+        this.mManager.grid.setDraggingPort(new Array());
+
         // Clear drag state.
         if (this.dragConnectionSvg) {
             this.dragConnectionSvg.innerHTML = '';
@@ -451,8 +453,8 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
         }
 
         // Read stored port position of the current dragged port.
-        const lPortPosition: PotatnoUiManagerGridPathFindingPoint| undefined = this.mManager.grid.draggedPort.portPositions.get(this.port!);
-        if(!lPortPosition){
+        const lPortPosition: PotatnoUiManagerGridPathFindingPoint | undefined = this.mManager.grid.draggedPort.portPositions.get(this.port!);
+        if (!lPortPosition) {
             return;
         }
 

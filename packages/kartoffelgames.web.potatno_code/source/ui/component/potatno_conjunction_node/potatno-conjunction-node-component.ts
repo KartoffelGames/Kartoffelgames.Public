@@ -34,7 +34,7 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
     /**
      * CSS class string for the error state.
      */
-    public get hasError(): boolean {
+    public get inputHasError(): boolean {
         if (!this.mNodeData) {
             return false;
         }
@@ -49,6 +49,22 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
             if (this.mManager.integrity.errorItems.has(lInputPort)) {
                 return true;
             }
+        }
+
+        return false;
+    }
+
+    /**
+     * CSS class string for the error state.
+     */
+    public get outputHasError(): boolean {
+        if (!this.mNodeData) {
+            return false;
+        }
+
+        // Node has error.
+        if (this.mManager.integrity.errorItems.has(this.mNodeData)) {
+            return true;
         }
 
         // Any output port has an error.

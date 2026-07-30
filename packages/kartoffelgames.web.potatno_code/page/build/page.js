@@ -969,8 +969,16 @@ $if(this.left) {\r
                     height: calc((var(--potatno-port-flow-size) / 3) * 2);\r
                     width: calc((var(--potatno-port-flow-size) / 3) * 2);\r
 \r
-                    background-color: var(--potatno-port-color);\r
+                    background-color: color-mix(in srgb, var(--potatno-port-color) 30%, var(--potatno-color-background));\r
                     border-radius: 2px;\r
+                }\r
+\r
+                &.connected::before {\r
+                    background-color: var(--potatno-port-color);\r
+                }\r
+\r
+                &.error::before {\r
+                    background-color: var(--potatno-color-error);\r
                 }\r
 \r
                 &::after {\r
@@ -983,30 +991,14 @@ $if(this.left) {\r
                     border-top: calc(var(--potatno-port-flow-size) / 3) solid transparent;\r
                 }\r
 \r
-                &.connected::before {\r
-                    background-color: var(--potatno-port-color);\r
-                }\r
-\r
-                &:not(.connected)::before {\r
-                    background-color: color-mix(in srgb, var(--potatno-port-color) 30%, var(--potatno-color-background));\r
-                }\r
-\r
-                &.error::before {\r
-                    background-color: var(--potatno-color-error);\r
-                }\r
-\r
                 .output & {\r
                     &::after {\r
                         right: 1px;\r
-                        border-left: calc(var(--potatno-port-flow-size) / 3) solid var(--potatno-port-color);\r
+                        border-left: calc(var(--potatno-port-flow-size) / 3) solid color-mix(in srgb, var(--potatno-port-color) 30%, var(--potatno-color-background));\r
                     }\r
 \r
                     &.connected::after {\r
                         border-left-color: var(--potatno-port-color);\r
-                    }\r
-\r
-                    &:not(.connected)::after {\r
-                        border-left-color: color-mix(in srgb, var(--potatno-port-color) 30%, var(--potatno-color-background));\r
                     }\r
 \r
                     &.error::after {\r
@@ -1020,15 +1012,11 @@ $if(this.left) {\r
 \r
                     &::after {\r
                         left: 1px;\r
-                        border-right: calc(var(--potatno-port-flow-size) / 3) solid var(--potatno-port-color);\r
+                        border-right: calc(var(--potatno-port-flow-size) / 3) solid color-mix(in srgb, var(--potatno-port-color) 30%, var(--potatno-color-background));\r
                     }\r
 \r
                     &.connected::after {\r
                         border-right-color: var(--potatno-port-color);\r
-                    }\r
-\r
-                    &:not(.connected)::after {\r
-                        border-right-color: color-mix(in srgb, var(--potatno-port-color) 30%, var(--potatno-color-background));\r
                     }\r
 \r
                     &.error::after {\r
@@ -1043,13 +1031,10 @@ $if(this.left) {\r
                 border-radius: 50%;\r
                 height: calc(var(--potatno-port-value-size) - 1px);\r
                 width: calc(var(--potatno-port-value-size) - 1px);\r
+                background-color: color-mix(in srgb, var(--potatno-port-color) 30%, var(--potatno-color-background));\r
 \r
                 &.connected {\r
                     background-color: var(--potatno-port-color);\r
-                }\r
-\r
-                &:not(.connected) {\r
-                    background-color: color-mix(in srgb, var(--potatno-port-color) 30%, var(--potatno-color-background));\r
                 }\r
 \r
                 &.error {\r
@@ -1090,7 +1075,7 @@ $if(this.left) {\r
     }\r
 \r
 </div>\r
-`;function aa(){function p(l,n){return function(a){e(n,"addInitializer"),r(a,"An initializer"),l.push(a)}}function t(l,n,u,a,o,b,v,T,w){var f;switch(o){case 1:f="accessor";break;case 2:f="method";break;case 3:f="getter";break;case 4:f="setter";break;default:f="field"}var s={kind:f,name:v?"#"+n:n,static:b,private:v,metadata:T},m={v:!1};s.addInitializer=p(a,m);var i,h;o===0?v?(i=u.get,h=u.set):(i=function(){return this[n]},h=function(x){this[n]=x}):o===2?i=function(){return u.value}:((o===1||o===3)&&(i=function(){return u.get.call(this)}),(o===1||o===4)&&(h=function(x){u.set.call(this,x)})),s.access=i&&h?{get:i,set:h}:i?{get:i}:{set:h};try{return l(w,s)}finally{m.v=!0}}function e(l,n){if(l.v)throw new Error("attempted to call "+n+" after decoration was finished")}function r(l,n){if(typeof l!="function")throw new TypeError(n+" must be a function")}function c(l,n){var u=typeof n;if(l===1){if(u!=="object"||n===null)throw new TypeError("accessor decorators must return an object with get, set, or init properties or void 0");n.get!==void 0&&r(n.get,"accessor.get"),n.set!==void 0&&r(n.set,"accessor.set"),n.init!==void 0&&r(n.init,"accessor.init")}else if(u!=="function"){var a;throw l===0?a="field":l===10?a="class":a="method",new TypeError(a+" decorators must return a function or void 0")}}function d(l,n,u,a,o,b,v,T,w){var f=u[0],s,m,i;v?o===0||o===1?s={get:u[3],set:u[4]}:o===3?s={get:u[3]}:o===4?s={set:u[3]}:s={value:u[3]}:o!==0&&(s=Object.getOwnPropertyDescriptor(n,a)),o===1?i={get:s.get,set:s.set}:o===2?i=s.value:o===3?i=s.get:o===4&&(i=s.set);var h,x,P;if(typeof f=="function")h=t(f,a,s,T,o,b,v,w,i),h!==void 0&&(c(o,h),o===0?m=h:o===1?(m=h.init,x=h.get||i.get,P=h.set||i.set,i={get:x,set:P}):i=h);else for(var M=f.length-1;M>=0;M--){var N=f[M];if(h=t(N,a,s,T,o,b,v,w,i),h!==void 0){c(o,h);var S;o===0?S=h:o===1?(S=h.init,x=h.get||i.get,P=h.set||i.set,i={get:x,set:P}):i=h,S!==void 0&&(m===void 0?m=S:typeof m=="function"?m=[m,S]:m.push(S))}}if(o===0||o===1){if(m===void 0)m=function(I,D){return D};else if(typeof m!="function"){var F=m;m=function(I,D){for(var _=D,L=0;L<F.length;L++)_=F[L].call(I,_);return _}}else{var j=m;m=function(I,D){return j.call(I,D)}}l.push(m)}o!==0&&(o===1?(s.get=i.get,s.set=i.set):o===2?s.value=i:o===3?s.get=i:o===4&&(s.set=i),v?o===1?(l.push(function(I,D){return i.get.call(I,D)}),l.push(function(I,D){return i.set.call(I,D)})):o===2?l.push(i):l.push(function(I,D){return i.call(I,D)}):Object.defineProperty(n,a,s))}function g(l,n,u){for(var a=[],o,b,v=new Map,T=new Map,w=0;w<n.length;w++){var f=n[w];if(Array.isArray(f)){var s=f[1],m=f[2],i=f.length>3,h=s>=5,x,P;if(h?(x=l,s=s-5,b=b||[],P=b):(x=l.prototype,o=o||[],P=o),s!==0&&!i){var M=h?T:v,N=M.get(m)||0;if(N===!0||N===3&&s!==4||N===4&&s!==3)throw new Error("Attempted to decorate a public method/accessor that has the same name as a previously decorated public method/accessor. This is not currently supported by the decorators plugin. Property name was: "+m);!N&&s>2?M.set(m,s):M.set(m,!0)}d(a,x,f,m,s,h,i,P,u)}}return y(a,o),y(a,b),a}function y(l,n){n&&l.push(function(u){for(var a=0;a<n.length;a++)n[a].call(u);return u})}function E(l,n,u){if(n.length>0){for(var a=[],o=l,b=l.name,v=n.length-1;v>=0;v--){var T={v:!1};try{var w=n[v](o,{kind:"class",name:b,addInitializer:p(a,T),metadata:u})}finally{T.v=!0}w!==void 0&&(c(10,w),o=w)}return[C(o,u),function(){for(var f=0;f<a.length;f++)a[f].call(o)}]}}function C(l,n){return Object.defineProperty(l,Symbol.metadata||Symbol.for("Symbol.metadata"),{configurable:!0,enumerable:!0,value:n})}return function(n,u,a,o){if(o!==void 0)var b=o[Symbol.metadata||Symbol.for("Symbol.metadata")];var v=Object.create(b===void 0?null:b),T=g(n,u,v);return a.length||C(n,v),{e:T,get c(){return E(n,a,v)}}}}function qn(p,t,e,r){return(qn=aa())(p,t,e,r)}function la(p){return p}var Jn,Yn,Kn,Wn,Zn,se;Jn=Y({selector:"potatno-port",template:Hn,style:Xn}),Kn=xt("dragConnection");new class extends la{constructor(){super(se),Yn()}static{class p{static{({e:[Wn,Zn],c:[se,Yn]}=qn(this,[[Kn,1,"dragConnectionSvg"],[q,3,"port"]],[Jn]))}static DRAG_MIME_TYPE="application/x-potatno-port";mComponent;mDragPositionEventHandler;mManager;mPort;mUnsubscribe;get dragPositionEventHandler(){return this.mDragPositionEventHandler}#t=(Zn(this),Wn(this));get dragConnectionSvg(){return this.#t}set dragConnectionSvg(e){this.#t=e}get hasError(){return this.port===null?!1:this.mManager.integrity.errorItems.has(this.port)}get inputDefinitions(){if(!this.port)return new Array;let e=this.port.project.types.getType(this.port.resolvedDataType);return e.inputs.map((r,c)=>({htmlType:(()=>{switch(r.type){case"boolean":return"checkbox";case"number":return"number";case"string":return"text"}})(),index:c,name:r.name,value:this.port.directValue[c]??"",totalCount:e.inputs.length}))}get port(){return this.mPort}set port(e){if(this.mPort!==e){if(e===null)throw new A("A null port cant be assigned.",this);this.mPort=e,this.mComponent.updater.update()}}get portColor(){return!this.port||this.port.portType==="flow"?"var(--potatno-color-text)":this.mManager.generateStringColor(this.port.resolvedDataType)}get portDirection(){return this.port?.direction??"output"}get portHandleClasses(){if(!this.port)return"";let e=[this.port.portType];return this.port.connectedPorts.size>0&&e.push("connected"),this.hasError&&e.push("error"),e.join(" ")}get portName(){return this.port?.label??""}get portValueType(){return!this.port||this.port.portType!=="value"?"":this.port.resolvedDataType??""}get showValueInput(){return!this.port||this.port.portType!=="value"||this.port.direction!=="input"||this.port.connectedPorts.size>0||this.mManager.grid.draggedPort.hasPort(this.port)?!1:!this.port.node.project.types.isGenericType(this.port.dataType??"")}constructor(e=O.use(B),r=O.use(X)){this.mComponent=e,this.mManager=r,this.mPort=null,this.mDragPositionEventHandler=c=>{this.mManager.grid.draggedPort.isDragging&&this.mManager.grid.draggedPort.hasPort(this.port)&&(performance.now()-c.timeStamp>100||this.renderDragWire(c.clientX,c.clientY))},document.addEventListener("dragover",this.mDragPositionEventHandler,{capture:!0}),this.mUnsubscribe=this.mManager.subscribe(R.Connection|R.SpecialValidation,()=>{this.mComponent.updater.updateAsync()})}onDeconstruct(){this.mUnsubscribe(),document.removeEventListener("dragover",this.mDragPositionEventHandler,{capture:!0})}onDirectValueInput(e,r){if(!this.port)return;let c=e.target,d=[...this.port.directValue];d[r]=c.type==="checkbox"?c.checked?"true":"false":c.value,this.mManager.graph.setPortDirectValue(this.port,d)}onDragEnd(e){e.stopPropagation(),e.preventDefault(),this.dragConnectionSvg&&(this.dragConnectionSvg.innerHTML=""),this.mComponent.updater.updateAsync()}onDragOver(e){this.draggedPortCanConnect(e.dataTransfer)&&(e.preventDefault(),e.stopPropagation(),e.dataTransfer&&(e.dataTransfer.dropEffect="link"))}onDragStart(e){if(!this.port||!e.dataTransfer){e.preventDefault();return}e.stopPropagation(),e.dataTransfer.effectAllowed="link",e.dataTransfer.setData(p.DRAG_MIME_TYPE,this.port.definitionId),e.dataTransfer.setDragImage(document.createElement("div"),0,0),this.mManager.grid.setDraggingPort([this.port]),this.mComponent.updater.updateAsync()}onDrop(e){if(this.draggedPortCanConnect(e.dataTransfer)&&(e.preventDefault(),e.stopPropagation(),!!this.mManager.grid.draggedPort.isDragging&&this.port))for(let r of this.mManager.grid.draggedPort.ports)this.mManager.graph.connectPorts(r,this.port)}createDragPath(e,r){if(!this.port)return"";let c=this.mManager.connections.pixelToGridSpace(e,r);return this.mManager.connections.createTemporaryPath(this.port,c)}draggedPortCanConnect(e){if(!this.port||!this.mManager.grid.draggedPort.isDragging||!e||!e.types.includes(p.DRAG_MIME_TYPE))return!1;for(let r of this.mManager.grid.draggedPort.ports)if(r!==this.port&&r.direction!==this.port.direction&&r.portType===this.port.portType)return!0;return!1}renderDragWire(e,r){if(!this.mManager.grid.draggedPort.hasPort(this.port)||!this.dragConnectionSvg)return;let c=this.dragConnectionSvg.firstChild;if(c||(c=document.createElementNS("http://www.w3.org/2000/svg","path"),this.dragConnectionSvg.appendChild(c)),!this.mManager.grid.draggedPort.updatePointer(e,r))return;let d=this.mManager.grid.draggedPort.portPositions.get(this.port);if(!d)return;let g=d.x*this.mManager.grid.gridSize,y=d.y*this.mManager.grid.gridSize;this.dragConnectionSvg.style.setProperty("transform",`translate(${-g}px, ${-y}px)`),c.setAttribute("d",this.createDragPath(e,r))}}}};var Qn=`:host {\r
+`;function aa(){function p(l,n){return function(a){e(n,"addInitializer"),r(a,"An initializer"),l.push(a)}}function t(l,n,u,a,o,b,v,T,w){var f;switch(o){case 1:f="accessor";break;case 2:f="method";break;case 3:f="getter";break;case 4:f="setter";break;default:f="field"}var s={kind:f,name:v?"#"+n:n,static:b,private:v,metadata:T},m={v:!1};s.addInitializer=p(a,m);var i,h;o===0?v?(i=u.get,h=u.set):(i=function(){return this[n]},h=function(x){this[n]=x}):o===2?i=function(){return u.value}:((o===1||o===3)&&(i=function(){return u.get.call(this)}),(o===1||o===4)&&(h=function(x){u.set.call(this,x)})),s.access=i&&h?{get:i,set:h}:i?{get:i}:{set:h};try{return l(w,s)}finally{m.v=!0}}function e(l,n){if(l.v)throw new Error("attempted to call "+n+" after decoration was finished")}function r(l,n){if(typeof l!="function")throw new TypeError(n+" must be a function")}function c(l,n){var u=typeof n;if(l===1){if(u!=="object"||n===null)throw new TypeError("accessor decorators must return an object with get, set, or init properties or void 0");n.get!==void 0&&r(n.get,"accessor.get"),n.set!==void 0&&r(n.set,"accessor.set"),n.init!==void 0&&r(n.init,"accessor.init")}else if(u!=="function"){var a;throw l===0?a="field":l===10?a="class":a="method",new TypeError(a+" decorators must return a function or void 0")}}function d(l,n,u,a,o,b,v,T,w){var f=u[0],s,m,i;v?o===0||o===1?s={get:u[3],set:u[4]}:o===3?s={get:u[3]}:o===4?s={set:u[3]}:s={value:u[3]}:o!==0&&(s=Object.getOwnPropertyDescriptor(n,a)),o===1?i={get:s.get,set:s.set}:o===2?i=s.value:o===3?i=s.get:o===4&&(i=s.set);var h,x,P;if(typeof f=="function")h=t(f,a,s,T,o,b,v,w,i),h!==void 0&&(c(o,h),o===0?m=h:o===1?(m=h.init,x=h.get||i.get,P=h.set||i.set,i={get:x,set:P}):i=h);else for(var M=f.length-1;M>=0;M--){var N=f[M];if(h=t(N,a,s,T,o,b,v,w,i),h!==void 0){c(o,h);var S;o===0?S=h:o===1?(S=h.init,x=h.get||i.get,P=h.set||i.set,i={get:x,set:P}):i=h,S!==void 0&&(m===void 0?m=S:typeof m=="function"?m=[m,S]:m.push(S))}}if(o===0||o===1){if(m===void 0)m=function(I,D){return D};else if(typeof m!="function"){var F=m;m=function(I,D){for(var _=D,L=0;L<F.length;L++)_=F[L].call(I,_);return _}}else{var j=m;m=function(I,D){return j.call(I,D)}}l.push(m)}o!==0&&(o===1?(s.get=i.get,s.set=i.set):o===2?s.value=i:o===3?s.get=i:o===4&&(s.set=i),v?o===1?(l.push(function(I,D){return i.get.call(I,D)}),l.push(function(I,D){return i.set.call(I,D)})):o===2?l.push(i):l.push(function(I,D){return i.call(I,D)}):Object.defineProperty(n,a,s))}function g(l,n,u){for(var a=[],o,b,v=new Map,T=new Map,w=0;w<n.length;w++){var f=n[w];if(Array.isArray(f)){var s=f[1],m=f[2],i=f.length>3,h=s>=5,x,P;if(h?(x=l,s=s-5,b=b||[],P=b):(x=l.prototype,o=o||[],P=o),s!==0&&!i){var M=h?T:v,N=M.get(m)||0;if(N===!0||N===3&&s!==4||N===4&&s!==3)throw new Error("Attempted to decorate a public method/accessor that has the same name as a previously decorated public method/accessor. This is not currently supported by the decorators plugin. Property name was: "+m);!N&&s>2?M.set(m,s):M.set(m,!0)}d(a,x,f,m,s,h,i,P,u)}}return y(a,o),y(a,b),a}function y(l,n){n&&l.push(function(u){for(var a=0;a<n.length;a++)n[a].call(u);return u})}function E(l,n,u){if(n.length>0){for(var a=[],o=l,b=l.name,v=n.length-1;v>=0;v--){var T={v:!1};try{var w=n[v](o,{kind:"class",name:b,addInitializer:p(a,T),metadata:u})}finally{T.v=!0}w!==void 0&&(c(10,w),o=w)}return[C(o,u),function(){for(var f=0;f<a.length;f++)a[f].call(o)}]}}function C(l,n){return Object.defineProperty(l,Symbol.metadata||Symbol.for("Symbol.metadata"),{configurable:!0,enumerable:!0,value:n})}return function(n,u,a,o){if(o!==void 0)var b=o[Symbol.metadata||Symbol.for("Symbol.metadata")];var v=Object.create(b===void 0?null:b),T=g(n,u,v);return a.length||C(n,v),{e:T,get c(){return E(n,a,v)}}}}function qn(p,t,e,r){return(qn=aa())(p,t,e,r)}function la(p){return p}var Jn,Yn,Kn,Wn,Zn,se;Jn=Y({selector:"potatno-port",template:Hn,style:Xn}),Kn=xt("dragConnection");new class extends la{constructor(){super(se),Yn()}static{class p{static{({e:[Wn,Zn],c:[se,Yn]}=qn(this,[[Kn,1,"dragConnectionSvg"],[q,3,"port"]],[Jn]))}static DRAG_MIME_TYPE="application/x-potatno-port";mComponent;mDragPositionEventHandler;mManager;mPort;mUnsubscribe;get dragPositionEventHandler(){return this.mDragPositionEventHandler}#t=(Zn(this),Wn(this));get dragConnectionSvg(){return this.#t}set dragConnectionSvg(e){this.#t=e}get hasError(){return this.port===null?!1:this.mManager.integrity.errorItems.has(this.port)}get inputDefinitions(){if(!this.port)return new Array;let e=this.port.project.types.getType(this.port.resolvedDataType);return e.inputs.map((r,c)=>({htmlType:(()=>{switch(r.type){case"boolean":return"checkbox";case"number":return"number";case"string":return"text"}})(),index:c,name:r.name,value:this.port.directValue[c]??"",totalCount:e.inputs.length}))}get port(){return this.mPort}set port(e){if(this.mPort!==e){if(e===null)throw new A("A null port cant be assigned.",this);this.mPort=e,this.mComponent.updater.update()}}get portColor(){return!this.port||this.port.portType==="flow"?"var(--potatno-color-text)":this.mManager.generateStringColor(this.port.resolvedDataType)}get portDirection(){return this.port?.direction??"output"}get portHandleClasses(){if(!this.port)return"";let e=[this.port.portType];return this.port.connectedPorts.size>0&&e.push("connected"),this.hasError&&e.push("error"),e.join(" ")}get portName(){return this.port?.label??""}get portValueType(){return!this.port||this.port.portType!=="value"?"":this.port.resolvedDataType??""}get showValueInput(){return!this.port||this.port.portType!=="value"||this.port.direction!=="input"||this.port.connectedPorts.size>0||this.mManager.grid.draggedPort.hasPort(this.port)?!1:!this.port.node.project.types.isGenericType(this.port.dataType??"")}constructor(e=O.use(B),r=O.use(X)){this.mComponent=e,this.mManager=r,this.mPort=null,this.mDragPositionEventHandler=c=>{this.mManager.grid.draggedPort.isDragging&&this.mManager.grid.draggedPort.hasPort(this.port)&&(performance.now()-c.timeStamp>100||this.renderDragWire(c.clientX,c.clientY))},document.addEventListener("dragover",this.mDragPositionEventHandler,{capture:!0}),this.mUnsubscribe=this.mManager.subscribe(R.Connection|R.SpecialValidation,()=>{this.mComponent.updater.updateAsync()})}onDeconstruct(){this.mUnsubscribe(),document.removeEventListener("dragover",this.mDragPositionEventHandler,{capture:!0})}onDirectValueInput(e,r){if(!this.port)return;let c=e.target,d=[...this.port.directValue];d[r]=c.type==="checkbox"?c.checked?"true":"false":c.value,this.mManager.graph.setPortDirectValue(this.port,d)}onDragEnd(e){e.stopPropagation(),e.preventDefault(),this.mManager.grid.setDraggingPort(new Array),this.dragConnectionSvg&&(this.dragConnectionSvg.innerHTML=""),this.mComponent.updater.updateAsync()}onDragOver(e){this.draggedPortCanConnect(e.dataTransfer)&&(e.preventDefault(),e.stopPropagation(),e.dataTransfer&&(e.dataTransfer.dropEffect="link"))}onDragStart(e){if(!this.port||!e.dataTransfer){e.preventDefault();return}e.stopPropagation(),e.dataTransfer.effectAllowed="link",e.dataTransfer.setData(p.DRAG_MIME_TYPE,this.port.definitionId),e.dataTransfer.setDragImage(document.createElement("div"),0,0),this.mManager.grid.setDraggingPort([this.port]),this.mComponent.updater.updateAsync()}onDrop(e){if(this.draggedPortCanConnect(e.dataTransfer)&&(e.preventDefault(),e.stopPropagation(),!!this.mManager.grid.draggedPort.isDragging&&this.port))for(let r of this.mManager.grid.draggedPort.ports)this.mManager.graph.connectPorts(r,this.port)}createDragPath(e,r){if(!this.port)return"";let c=this.mManager.connections.pixelToGridSpace(e,r);return this.mManager.connections.createTemporaryPath(this.port,c)}draggedPortCanConnect(e){if(!this.port||!this.mManager.grid.draggedPort.isDragging||!e||!e.types.includes(p.DRAG_MIME_TYPE))return!1;for(let r of this.mManager.grid.draggedPort.ports)if(r!==this.port&&r.direction!==this.port.direction&&r.portType===this.port.portType)return!0;return!1}renderDragWire(e,r){if(!this.mManager.grid.draggedPort.hasPort(this.port)||!this.dragConnectionSvg)return;let c=this.dragConnectionSvg.firstChild;if(c||(c=document.createElementNS("http://www.w3.org/2000/svg","path"),this.dragConnectionSvg.appendChild(c)),!this.mManager.grid.draggedPort.updatePointer(e,r))return;let d=this.mManager.grid.draggedPort.portPositions.get(this.port);if(!d)return;let g=d.x*this.mManager.grid.gridSize,y=d.y*this.mManager.grid.gridSize;this.dragConnectionSvg.style.setProperty("transform",`translate(${-g}px, ${-y}px)`),c.setAttribute("d",this.createDragPath(e,r))}}}};var Qn=`:host {\r
     display: block;\r
     font-family: var(--potatno-font-family);\r
     font-size: var(--potatno-font-size);\r
@@ -1128,7 +1113,7 @@ $if(this.left) {\r
 .node-header {\r
     display: flex;\r
     align-items: center;\r
-    /* Adjustt -1px because node itself has a top border of 1px. */\r
+    /* Adjust -1px because node itself has a top border of 1px. */\r
     height: calc(var(--potatno-grid-size) - 1px);\r
     color: var(--potatno-color-text-contrast);\r
     background-color: var(--node-category-color);\r
@@ -1568,165 +1553,166 @@ $if(this.popupPosition !== null) {\r
     --potatno-port-color: var(--type-color);\r
 }\r
 \r
-.ports {\r
-    display: flex;\r
-    justify-content: space-between;\r
-    align-items: center;\r
-\r
+.drag-area {\r
     width: var(--potatno-grid-size);\r
     height: var(--potatno-grid-size);\r
-\r
-    .port {\r
-        flex: 1;\r
-        position: relative;\r
-        display: flex;\r
-        z-index: 99;\r
-        align-items: center;\r
-        justify-content: center;\r
-        transition: transform 0.15s ease-in-out;\r
-\r
-        /* Small hover animation for ports, hover values excluded */\r
-        .ports:hover & {\r
-            &.output {\r
-                transform: translateX(1px);\r
-            }\r
-\r
-            &.input {\r
-                transform: translateX(-1px);\r
-            }\r
-        }\r
-\r
-        .port__handle {\r
-            position: absolute;\r
-\r
-\r
-            .output & {\r
-                right: 0px;\r
-            }\r
-\r
-            .input & {\r
-                left: 0px;\r
-            }\r
-\r
-            &.flow {\r
-                display: flex;\r
-\r
-                &::before {\r
-                    content: '';\r
-\r
-                    height: calc((var(--potatno-port-flow-size) / 3) * 2);\r
-                    width: calc((var(--potatno-port-flow-size) / 3) * 2);\r
-\r
-                    background-color: var(--potatno-port-color);\r
-                    border-radius: 2px;\r
-                }\r
-\r
-                &::after {\r
-                    content: '';\r
-                    position: relative;\r
-                    height: 0;\r
-                    width: 0;\r
-\r
-                    border-bottom: calc(var(--potatno-port-flow-size) / 3) solid transparent;\r
-                    border-top: calc(var(--potatno-port-flow-size) / 3) solid transparent;\r
-                }\r
-\r
-                &.connected::before {\r
-                    background-color: var(--potatno-port-color);\r
-                }\r
-\r
-                &:not(.connected)::before {\r
-                    background-color: color-mix(in srgb, var(--potatno-port-color) 30%, var(--potatno-color-background));\r
-                }\r
-\r
-                &.error::before {\r
-                    background-color: var(--potatno-color-error);\r
-                }\r
-\r
-                .output & {\r
-                    transform: translateX(calc(var(--potatno-port-width) / 2));\r
-\r
-                    &::after {\r
-                        right: 1px;\r
-                        border-left: calc(var(--potatno-port-flow-size) / 3) solid var(--potatno-port-color);\r
-                    }\r
-\r
-                    &.connected::after {\r
-                        border-left-color: var(--potatno-port-color);\r
-                    }\r
-\r
-                    &:not(.connected)::after {\r
-                        border-left-color: color-mix(in srgb, var(--potatno-port-color) 30%, var(--potatno-color-background));\r
-                    }\r
-\r
-                    &.error::after {\r
-                        border-left-color: var(--potatno-color-error);\r
-                    }\r
-                }\r
-\r
-                .input & {\r
-                    transform: translateX(calc(var(--potatno-port-width) / -2));\r
-                    flex-direction: row-reverse;\r
-\r
-                    &::after {\r
-                        left: 1px;\r
-                        border-right: calc(var(--potatno-port-flow-size) / 3) solid var(--potatno-port-color);\r
-                    }\r
-\r
-                    &.connected::after {\r
-                        border-right-color: var(--potatno-port-color);\r
-                    }\r
-\r
-                    &:not(.connected)::after {\r
-                        border-right-color: color-mix(in srgb, var(--potatno-port-color, ) 30%, var(--potatno-color-background));\r
-                    }\r
-\r
-                    &.error::after {\r
-                        border-right-color: var(--potatno-color-error);\r
-                    }\r
-                }\r
-            }\r
-\r
-            &.value {\r
-                background-color: var(--potatno-port-color);\r
-                border: 1px solid var(--potatno-port-color);\r
-                border-radius: 50%;\r
-                height: calc(var(--potatno-port-value-size) - 1px);\r
-                width: calc(var(--potatno-port-value-size) - 1px);\r
-\r
-                &.connected {\r
-                    background-color: var(--potatno-port-color);\r
-                }\r
-\r
-                &:not(.connected) {\r
-                    background-color: color-mix(in srgb, var(--potatno-port-color) 30%, var(--potatno-color-background));\r
-                }\r
-\r
-                .output & {\r
-                    transform: translateX(50%);\r
-                }\r
-\r
-                .input & {\r
-                    transform: translateX(-50%);\r
-                }\r
-            }\r
-        }\r
-    }\r
+    cursor: grab;\r
 }\r
 \r
-.port-drop-area {\r
+.port {\r
     position: absolute;\r
     top: 0px;\r
+    display: flex;\r
+    align-items: center;\r
     width: calc(var(--potatno-grid-size) - 2px);\r
     height: calc(var(--potatno-grid-size) - 2px);\r
-    border: 1px dashed var(--potatno-port-color);\r
+    cursor: crosshair;\r
 \r
+    &:not(.connected) {\r
+        border: 1px dashed var(--potatno-port-color);\r
+    }\r
+\r
+    &.error {\r
+        border: 1px dashed var(--potatno-color-error);\r
+    }\r
+\r
+    /* Move both port areas left and right. */\r
     &.input {\r
         left: -100%;\r
     }\r
 \r
     &.output {\r
         right: -100%;\r
+    }\r
+\r
+    /* Small hover animation for ports, hover values excluded */\r
+    &:hover {\r
+        &.output .port__handle {\r
+            transform: translateX(1px);\r
+        }\r
+\r
+        &.input .port__handle {\r
+            transform: translateX(-1px);\r
+        }\r
+    }\r
+\r
+    .port__handle {\r
+        position: absolute;\r
+        transition: transform 0.15s ease-in-out;\r
+\r
+        /* Instead of pushing them out reverse it and push them in. */\r
+        .output & {\r
+            left: 0px;\r
+        }\r
+\r
+        .input & {\r
+            right: 0px;\r
+        }\r
+\r
+        &.flow {\r
+            display: flex;\r
+\r
+            &::before {\r
+                content: '';\r
+\r
+                height: calc((var(--potatno-port-flow-size) / 3) * 2);\r
+                width: calc((var(--potatno-port-flow-size) / 3) * 2);\r
+\r
+                background-color: var(--potatno-port-color);\r
+                border-radius: 2px;\r
+            }\r
+\r
+            &::after {\r
+                content: '';\r
+                position: relative;\r
+                height: 0;\r
+                width: 0;\r
+\r
+                border-bottom: calc(var(--potatno-port-flow-size) / 3) solid transparent;\r
+                border-top: calc(var(--potatno-port-flow-size) / 3) solid transparent;\r
+            }\r
+\r
+            &.connected::before {\r
+                background-color: var(--potatno-port-color);\r
+            }\r
+\r
+            &:not(.connected)::before {\r
+                background-color: color-mix(in srgb, var(--potatno-port-color) 30%, var(--potatno-color-background));\r
+            }\r
+\r
+            .error &::before {\r
+                background-color: var(--potatno-color-error);\r
+            }\r
+\r
+            .output & {\r
+                translate: calc(var(--potatno-port-width) / -2) 0px;\r
+\r
+                &::after {\r
+                    right: 1px;\r
+                    border-left: calc(var(--potatno-port-flow-size) / 3) solid var(--potatno-port-color);\r
+                }\r
+\r
+                &.connected::after {\r
+                    border-left-color: var(--potatno-port-color);\r
+                }\r
+\r
+                &:not(.connected)::after {\r
+                    border-left-color: color-mix(in srgb, var(--potatno-port-color) 30%, var(--potatno-color-background));\r
+                }\r
+\r
+                .error &::after {\r
+                    border-left-color: var(--potatno-color-error);\r
+                }\r
+            }\r
+\r
+            .input & {\r
+                translate: calc(var(--potatno-port-width) / 2) 0px;\r
+                flex-direction: row-reverse;\r
+\r
+                &::after {\r
+                    left: 1px;\r
+                    border-right: calc(var(--potatno-port-flow-size) / 3) solid var(--potatno-port-color);\r
+                }\r
+\r
+                &.connected::after {\r
+                    border-right-color: var(--potatno-port-color);\r
+                }\r
+\r
+                &:not(.connected)::after {\r
+                    border-right-color: color-mix(in srgb, var(--potatno-port-color, ) 30%, var(--potatno-color-background));\r
+                }\r
+\r
+                .error &::after {\r
+                    border-right-color: var(--potatno-color-error);\r
+                }\r
+            }\r
+        }\r
+\r
+        &.value {\r
+            background-color: var(--potatno-port-color);\r
+            border: 1px solid var(--potatno-port-color);\r
+            border-radius: 50%;\r
+            height: calc(var(--potatno-port-value-size) - 1px);\r
+            width: calc(var(--potatno-port-value-size) - 1px);\r
+            background-color: color-mix(in srgb, var(--potatno-port-color) 30%, var(--potatno-color-background));\r
+\r
+            &.connected {\r
+                background-color: var(--potatno-port-color);\r
+            }\r
+\r
+            .output & {\r
+                translate: -50% 0px;\r
+            }\r
+\r
+            .input & {\r
+                translate: 50% 0px;\r
+            }\r
+\r
+            .error & {\r
+                background-color: var(--potatno-color-error);\r
+                border-color: var(--potatno-color-error);\r
+            }\r
+        }\r
     }\r
 }\r
 \r
@@ -1751,26 +1737,24 @@ $if(this.popupPosition !== null) {\r
         stroke-linejoin: round;\r
         stroke-width: 2;\r
     }\r
-}`;var yi=`<div class="node {{this.hasError ? 'error' : ''}}" style="--type-color: {{this.portColor}}" (dragover)="this.onDragOver($event)" (drop)="this.onDrop($event)">\r
+}`;var yi=`<div class="node" style="--type-color: {{this.portColor}}" (dragover)="this.onDragOver($event)" (drop)="this.onDrop($event)">\r
 \r
-    <div class="port-drop-area input {{ this.isInputConnected ? 'connected' : ''}}" draggable="true" [title]="this.portValueType" (dragstart)="this.onDragStart($event)" (dragend)="this.onDragEnd($event)"/>\r
-\r
-    <div class="ports" (pointerdown)="this.dragNode($event)">\r
-        <div class="port input">\r
-            <div class="port__handle {{ this.portType }} {{ this.isInputConnected ? 'connected' : ''}}"></div>\r
-        </div>\r
-\r
-        <div class="port output">\r
-            <div class="port__handle {{ this.portType }} {{ this.isOutputConnected ? 'connected' : ''}}"></div>\r
-        </div>\r
+    <div class="port input {{this.inputHasError ? 'error' : ''}}" draggable="true" [title]="this.portValueType" (dragstart)="this.onDragStart($event)" (dragend)="this.onDragEnd($event)">\r
+        <div class="port__handle {{ this.portType }} {{ this.isInputConnected ? 'connected' : ''}}"></div>\r
     </div>\r
 \r
-    <div class="port-drop-area output {{ this.isOutputConnected ? 'connected' : ''}}" draggable="true" [title]="this.portValueType" (dragstart)="this.onDragStart($event)" (dragend)="this.onDragEnd($event)"/>\r
+    <div class="drag-area" (pointerdown)="this.dragNode($event)">\r
+\r
+    </div>\r
+\r
+    <div class="port output {{this.outputHasError ? 'error' : ''}}" draggable="true" [title]="this.portValueType" (dragstart)="this.onDragStart($event)" (dragend)="this.onDragEnd($event)">\r
+        <div class="port__handle {{ this.portType }} {{ this.isOutputConnected ? 'connected' : ''}}"></div>\r
+    </div>\r
 \r
     <svg #dragConnection class="port-drag-connection" xmlns="http://www.w3.org/2000/svg"></svg>\r
 \r
 </div>\r
-    `;function ga(){function p(l,n){return function(a){e(n,"addInitializer"),r(a,"An initializer"),l.push(a)}}function t(l,n,u,a,o,b,v,T,w){var f;switch(o){case 1:f="accessor";break;case 2:f="method";break;case 3:f="getter";break;case 4:f="setter";break;default:f="field"}var s={kind:f,name:v?"#"+n:n,static:b,private:v,metadata:T},m={v:!1};s.addInitializer=p(a,m);var i,h;o===0?v?(i=u.get,h=u.set):(i=function(){return this[n]},h=function(x){this[n]=x}):o===2?i=function(){return u.value}:((o===1||o===3)&&(i=function(){return u.get.call(this)}),(o===1||o===4)&&(h=function(x){u.set.call(this,x)})),s.access=i&&h?{get:i,set:h}:i?{get:i}:{set:h};try{return l(w,s)}finally{m.v=!0}}function e(l,n){if(l.v)throw new Error("attempted to call "+n+" after decoration was finished")}function r(l,n){if(typeof l!="function")throw new TypeError(n+" must be a function")}function c(l,n){var u=typeof n;if(l===1){if(u!=="object"||n===null)throw new TypeError("accessor decorators must return an object with get, set, or init properties or void 0");n.get!==void 0&&r(n.get,"accessor.get"),n.set!==void 0&&r(n.set,"accessor.set"),n.init!==void 0&&r(n.init,"accessor.init")}else if(u!=="function"){var a;throw l===0?a="field":l===10?a="class":a="method",new TypeError(a+" decorators must return a function or void 0")}}function d(l,n,u,a,o,b,v,T,w){var f=u[0],s,m,i;v?o===0||o===1?s={get:u[3],set:u[4]}:o===3?s={get:u[3]}:o===4?s={set:u[3]}:s={value:u[3]}:o!==0&&(s=Object.getOwnPropertyDescriptor(n,a)),o===1?i={get:s.get,set:s.set}:o===2?i=s.value:o===3?i=s.get:o===4&&(i=s.set);var h,x,P;if(typeof f=="function")h=t(f,a,s,T,o,b,v,w,i),h!==void 0&&(c(o,h),o===0?m=h:o===1?(m=h.init,x=h.get||i.get,P=h.set||i.set,i={get:x,set:P}):i=h);else for(var M=f.length-1;M>=0;M--){var N=f[M];if(h=t(N,a,s,T,o,b,v,w,i),h!==void 0){c(o,h);var S;o===0?S=h:o===1?(S=h.init,x=h.get||i.get,P=h.set||i.set,i={get:x,set:P}):i=h,S!==void 0&&(m===void 0?m=S:typeof m=="function"?m=[m,S]:m.push(S))}}if(o===0||o===1){if(m===void 0)m=function(I,D){return D};else if(typeof m!="function"){var F=m;m=function(I,D){for(var _=D,L=0;L<F.length;L++)_=F[L].call(I,_);return _}}else{var j=m;m=function(I,D){return j.call(I,D)}}l.push(m)}o!==0&&(o===1?(s.get=i.get,s.set=i.set):o===2?s.value=i:o===3?s.get=i:o===4&&(s.set=i),v?o===1?(l.push(function(I,D){return i.get.call(I,D)}),l.push(function(I,D){return i.set.call(I,D)})):o===2?l.push(i):l.push(function(I,D){return i.call(I,D)}):Object.defineProperty(n,a,s))}function g(l,n,u){for(var a=[],o,b,v=new Map,T=new Map,w=0;w<n.length;w++){var f=n[w];if(Array.isArray(f)){var s=f[1],m=f[2],i=f.length>3,h=s>=5,x,P;if(h?(x=l,s=s-5,b=b||[],P=b):(x=l.prototype,o=o||[],P=o),s!==0&&!i){var M=h?T:v,N=M.get(m)||0;if(N===!0||N===3&&s!==4||N===4&&s!==3)throw new Error("Attempted to decorate a public method/accessor that has the same name as a previously decorated public method/accessor. This is not currently supported by the decorators plugin. Property name was: "+m);!N&&s>2?M.set(m,s):M.set(m,!0)}d(a,x,f,m,s,h,i,P,u)}}return y(a,o),y(a,b),a}function y(l,n){n&&l.push(function(u){for(var a=0;a<n.length;a++)n[a].call(u);return u})}function E(l,n,u){if(n.length>0){for(var a=[],o=l,b=l.name,v=n.length-1;v>=0;v--){var T={v:!1};try{var w=n[v](o,{kind:"class",name:b,addInitializer:p(a,T),metadata:u})}finally{T.v=!0}w!==void 0&&(c(10,w),o=w)}return[C(o,u),function(){for(var f=0;f<a.length;f++)a[f].call(o)}]}}function C(l,n){return Object.defineProperty(l,Symbol.metadata||Symbol.for("Symbol.metadata"),{configurable:!0,enumerable:!0,value:n})}return function(n,u,a,o){if(o!==void 0)var b=o[Symbol.metadata||Symbol.for("Symbol.metadata")];var v=Object.create(b===void 0?null:b),T=g(n,u,v);return a.length||C(n,v),{e:T,get c(){return E(n,a,v)}}}}function Ei(p,t,e,r){return(Ei=ga())(p,t,e,r)}var Di,bi,Ii,wi,xi,Co;Di=Y({selector:"potatno-conjunction-node",template:yi,style:vi,components:[se]}),Ii=pt("node-drag");var Ti=class{static{({e:[wi,xi],c:[Co,bi]}=Ei(this,[[Ii,1,"mDrag"],[q,3,"nodeData"]],[Di]))}constructor(t=O.use(B),e=O.use(X)){this.mComponent=t,this.mManager=e,this.mNodeData=null,this.mUnsubscribe=this.mManager.subscribe(R.Node,r=>{r.item===this.mNodeData&&this.resyncComponent(this.mNodeData)})}mComponent;mManager;mNodeData;mUnsubscribe;#t=(xi(this),wi(this));get mDrag(){return this.#t}set mDrag(t){this.#t=t}get hasError(){if(!this.mNodeData)return!1;if(this.mManager.integrity.errorItems.has(this.mNodeData))return!0;for(let t of this.mNodeData.inputs.list)if(this.mManager.integrity.errorItems.has(t))return!0;for(let t of this.mNodeData.outputs.list)if(this.mManager.integrity.errorItems.has(t))return!0;return!1}get isInputConnected(){return!this.mNodeData||this.mNodeData.inputs.list.length===0?!1:this.mNodeData.inputs.list[0].connectedPorts.size>0}get isOutputConnected(){return!this.mNodeData||this.mNodeData.outputs.list.length===0?!1:this.mNodeData.outputs.list[0].connectedPorts.size>0}get nodeData(){return this.mNodeData}set nodeData(t){this.mNodeData=t,t&&this.resyncComponent(t)}get portColor(){return this.portType==="flow"?"var(--potatno-color-text)":this.mManager.generateStringColor(this.portValueType)}get portType(){return this.mNodeData?.definitionId===ot.DEFINITION_ID?"flow":"value"}get portValueType(){return!this.mNodeData||this.portType!=="value"||this.mNodeData.inputs.list.length===0?"":this.mNodeData.inputs.list[0].resolvedDataType}dragNode(t){if(!this.mNodeData)return;t.preventDefault();let e=this.mNodeData.transformation.x*this.mManager.grid.gridSize,r=this.mNodeData.transformation.y*this.mManager.grid.gridSize,c=this.mNodeData.transformation.x,d=this.mNodeData.transformation.y,g=this.mComponent.element.getBoundingClientRect(),y=this.mComponent.element.offsetWidth?g.width/this.mComponent.element.offsetWidth:1,E=this.mComponent.element.offsetHeight?g.height/this.mComponent.element.offsetHeight:1,C=t.clientX,l=t.clientY,n=a=>{a.stopPropagation();let o=(a.clientX-C)/y,b=(a.clientY-l)/E,v=Math.round((e+o)/this.mManager.grid.gridSize),T=Math.round((r+b)/this.mManager.grid.gridSize);c===v&&d===T||(this.mManager.graph.transformNode(this.mNodeData,w=>{w.moveTo(v,T)}),this.mDrag.dispatchEvent(new Io(v-c,T-d)),c=v,d=T)},u=()=>{document.removeEventListener("pointermove",n),document.removeEventListener("pointerup",u)};document.addEventListener("pointermove",n),document.addEventListener("pointerup",u)}onDeconstruct(){this.mUnsubscribe()}resyncComponent(t){let e=t.transformation.x*this.mManager.grid.gridSize,r=t.transformation.y*this.mManager.grid.gridSize;this.mComponent.element.style.setProperty("left",`${e}px`),this.mComponent.element.style.setProperty("top",`${r}px`),this.mComponent.updater.update()}static{bi()}},Io=class{mX;mY;get x(){return this.mX}get y(){return this.mY}constructor(t,e){this.mX=t,this.mY=e}};function va(){function p(l,n){return function(a){e(n,"addInitializer"),r(a,"An initializer"),l.push(a)}}function t(l,n,u,a,o,b,v,T,w){var f;switch(o){case 1:f="accessor";break;case 2:f="method";break;case 3:f="getter";break;case 4:f="setter";break;default:f="field"}var s={kind:f,name:v?"#"+n:n,static:b,private:v,metadata:T},m={v:!1};s.addInitializer=p(a,m);var i,h;o===0?v?(i=u.get,h=u.set):(i=function(){return this[n]},h=function(x){this[n]=x}):o===2?i=function(){return u.value}:((o===1||o===3)&&(i=function(){return u.get.call(this)}),(o===1||o===4)&&(h=function(x){u.set.call(this,x)})),s.access=i&&h?{get:i,set:h}:i?{get:i}:{set:h};try{return l(w,s)}finally{m.v=!0}}function e(l,n){if(l.v)throw new Error("attempted to call "+n+" after decoration was finished")}function r(l,n){if(typeof l!="function")throw new TypeError(n+" must be a function")}function c(l,n){var u=typeof n;if(l===1){if(u!=="object"||n===null)throw new TypeError("accessor decorators must return an object with get, set, or init properties or void 0");n.get!==void 0&&r(n.get,"accessor.get"),n.set!==void 0&&r(n.set,"accessor.set"),n.init!==void 0&&r(n.init,"accessor.init")}else if(u!=="function"){var a;throw l===0?a="field":l===10?a="class":a="method",new TypeError(a+" decorators must return a function or void 0")}}function d(l,n,u,a,o,b,v,T,w){var f=u[0],s,m,i;v?o===0||o===1?s={get:u[3],set:u[4]}:o===3?s={get:u[3]}:o===4?s={set:u[3]}:s={value:u[3]}:o!==0&&(s=Object.getOwnPropertyDescriptor(n,a)),o===1?i={get:s.get,set:s.set}:o===2?i=s.value:o===3?i=s.get:o===4&&(i=s.set);var h,x,P;if(typeof f=="function")h=t(f,a,s,T,o,b,v,w,i),h!==void 0&&(c(o,h),o===0?m=h:o===1?(m=h.init,x=h.get||i.get,P=h.set||i.set,i={get:x,set:P}):i=h);else for(var M=f.length-1;M>=0;M--){var N=f[M];if(h=t(N,a,s,T,o,b,v,w,i),h!==void 0){c(o,h);var S;o===0?S=h:o===1?(S=h.init,x=h.get||i.get,P=h.set||i.set,i={get:x,set:P}):i=h,S!==void 0&&(m===void 0?m=S:typeof m=="function"?m=[m,S]:m.push(S))}}if(o===0||o===1){if(m===void 0)m=function(I,D){return D};else if(typeof m!="function"){var F=m;m=function(I,D){for(var _=D,L=0;L<F.length;L++)_=F[L].call(I,_);return _}}else{var j=m;m=function(I,D){return j.call(I,D)}}l.push(m)}o!==0&&(o===1?(s.get=i.get,s.set=i.set):o===2?s.value=i:o===3?s.get=i:o===4&&(s.set=i),v?o===1?(l.push(function(I,D){return i.get.call(I,D)}),l.push(function(I,D){return i.set.call(I,D)})):o===2?l.push(i):l.push(function(I,D){return i.call(I,D)}):Object.defineProperty(n,a,s))}function g(l,n,u){for(var a=[],o,b,v=new Map,T=new Map,w=0;w<n.length;w++){var f=n[w];if(Array.isArray(f)){var s=f[1],m=f[2],i=f.length>3,h=s>=5,x,P;if(h?(x=l,s=s-5,b=b||[],P=b):(x=l.prototype,o=o||[],P=o),s!==0&&!i){var M=h?T:v,N=M.get(m)||0;if(N===!0||N===3&&s!==4||N===4&&s!==3)throw new Error("Attempted to decorate a public method/accessor that has the same name as a previously decorated public method/accessor. This is not currently supported by the decorators plugin. Property name was: "+m);!N&&s>2?M.set(m,s):M.set(m,!0)}d(a,x,f,m,s,h,i,P,u)}}return y(a,o),y(a,b),a}function y(l,n){n&&l.push(function(u){for(var a=0;a<n.length;a++)n[a].call(u);return u})}function E(l,n,u){if(n.length>0){for(var a=[],o=l,b=l.name,v=n.length-1;v>=0;v--){var T={v:!1};try{var w=n[v](o,{kind:"class",name:b,addInitializer:p(a,T),metadata:u})}finally{T.v=!0}w!==void 0&&(c(10,w),o=w)}return[C(o,u),function(){for(var f=0;f<a.length;f++)a[f].call(o)}]}}function C(l,n){return Object.defineProperty(l,Symbol.metadata||Symbol.for("Symbol.metadata"),{configurable:!0,enumerable:!0,value:n})}return function(n,u,a,o){if(o!==void 0)var b=o[Symbol.metadata||Symbol.for("Symbol.metadata")];var v=Object.create(b===void 0?null:b),T=g(n,u,v);return a.length||C(n,v),{e:T,get c(){return E(n,a,v)}}}}function Si(p,t,e,r){return(Si=va())(p,t,e,r)}function ya(p){return p}var Ai,Ci,_i,Li,Pi,Mi,Ni,Qe;Ai=Y({selector:"potatno-node-graph",template:gi,style:pi,components:[ie,Do,xo,Co,To]}),_i=$.state(),Li=$.state({complexValue:!0});new class extends ya{constructor(){super(Qe),Ci()}static{class p{static{({e:[Pi,Mi,Ni],c:[Qe,Ci]}=Si(this,[[_i,1,"popupPosition"],[Li,1,"selectBox"]],[Ai]))}static ZOOM_STRENGTH=.1;mComponent;mIsMouseInsideGrid;mKeyboardHandler;mManager;mSelectedNodes;mUnsubscribeFunctionChange;mUnsubscribeGraphChange;#t=(Ni(this),Pi(this));get popupPosition(){return this.#t}set popupPosition(e){this.#t=e}#e=Mi(this);get selectBox(){return this.#e}set selectBox(e){this.#e=e}get gridBackgroundStyle(){let e=this.mManager.grid.gridSize*this.mManager.grid.zoom,r=this.mManager.grid.panX%e,c=this.mManager.grid.panY%e;return`background-size: ${e}px ${e}px; background-position: ${r}px ${c}px;`}get gridTransformStyle(){return`transform: translate(${this.mManager.grid.panX}px, ${this.mManager.grid.panY}px) scale(${this.mManager.grid.zoom})`}get nodes(){return this.mManager.activeFunction.nodes}get selectedNode(){return this.mSelectedNodes}constructor(e=O.use(B),r=O.use(X)){this.mComponent=e,this.mManager=r,this.mSelectedNodes=new Set,this.mIsMouseInsideGrid=!1,this.popupPosition=null,this.selectBox=null,e.element.addEventListener("pointerdown",c=>{this.onPointerDown(c)}),e.element.addEventListener("wheel",c=>{this.onScroll(c)}),e.element.addEventListener("contextmenu",c=>{c.preventDefault()}),e.element.addEventListener("pointerenter",()=>{this.mIsMouseInsideGrid=!0}),e.element.addEventListener("pointerleave",()=>{this.mIsMouseInsideGrid=!1}),this.mKeyboardHandler=c=>{this.onKeyDown(c)},document.addEventListener("keydown",this.mKeyboardHandler),this.mUnsubscribeFunctionChange=this.mManager.subscribe(R.Document|R.Function|R.SpecialActiveFunction,()=>{this.popupPosition=null,this.selectBox=null,this.selectNodes([],!1)}),this.mUnsubscribeGraphChange=this.mManager.subscribe(R.NodeAdd|R.NodeDelete|R.SpecialGrid,()=>{this.mComponent.updater.updateAsync()})}createNodeOnPopupPosition(e){let r=this.mManager.graph.addNode(this.mManager.activeFunction,e,{x:this.popupPosition?.grid.x??0,y:this.popupPosition?.grid.y??0,height:0,width:0});this.popupPosition=null,this.selectNodes([r],!1)}moveAllSelected(e,r){for(let c of this.mSelectedNodes)c!==e&&this.mManager.graph.transformNode(c,d=>{d.moveTo(d.transformation.x+r.x,d.transformation.y+r.y)})}onConnect(){this.mManager.connections.gridElement=this.mComponent.element}onDeconstruct(){this.mUnsubscribeFunctionChange(),this.mUnsubscribeGraphChange(),document.removeEventListener("keydown",this.mKeyboardHandler)}selectNodes(e,r){this.popupPosition=null;let c=!!r;r instanceof PointerEvent&&(r.stopPropagation(),c=r.ctrlKey);let d=new Set;if(!c)if(e.length===1&&this.mSelectedNodes.has(e.at(0)))for(let y of this.mSelectedNodes)d.add(y);else this.mSelectedNodes.clear();let g=[...e];for(let y of g)d.has(y)||(d.add(y),y.definitionId===gt.DEFINITION_ID&&g.push(...this.getNodesInRectangle({top:y.transformation.y,right:y.transformation.x+y.transformation.width,bottom:y.transformation.y+y.transformation.height,left:y.transformation.x})),this.mSelectedNodes.has(y)?this.mSelectedNodes.delete(y):this.mSelectedNodes.add(y));this.mComponent.updater.updateAsync()}typeOfNode(e){switch(e.definitionId){case gt.DEFINITION_ID:return"comment";case lt.DEFINITION_ID:case ot.DEFINITION_ID:return"conjunction";default:return"node"}}convertGlobalToGridPosition(e,r){let c=this.mComponent.element.getBoundingClientRect();return{x:e-c.left,y:r-c.top}}convertLocalToGridCoordinate(e,r){return{x:(e-this.mManager.grid.panX)/this.mManager.grid.zoom,y:(r-this.mManager.grid.panY)/this.mManager.grid.zoom}}getNodesInRectangle(e){let r=new Array;for(let c of this.mManager.activeFunction.nodes){let d=c.transformation.y,g=c.transformation.x,y=g+c.transformation.width,E=d+c.transformation.height;if(g<e.right&&y>e.left&&d<e.bottom&&E>e.top){if(e.top>d&&e.right<y&&e.bottom<E&&e.left>g)continue;r.push(c)}}return r}onKeyDown(e){if(!this.mIsMouseInsideGrid)return;let r=document.activeElement;if(!(r instanceof HTMLInputElement||r instanceof HTMLTextAreaElement||r instanceof HTMLSelectElement)){switch(e.key){case"Escape":{this.popupPosition=null;return}case"Delete":{for(let c of this.mSelectedNodes)this.mManager.graph.removeNode(c);this.selectNodes([],!1);return}}if(e.ctrlKey)switch(e.key){case"z":{e.preventDefault(),this.mManager.history.undo();return}case"y":{e.preventDefault(),this.mManager.history.redo();return}case"c":{this.mManager.clipboard.copy(this.mSelectedNodes);return}case"v":e.preventDefault(),this.pasteFromClipboard()}}}onPointerDown(e){switch(this.popupPosition=null,e.button){case 0:{e.ctrlKey||this.selectNodes([],!1),this.pointerDrag(e,"selecting");return}case 1:{e.preventDefault(),this.pointerDrag(e,"panning");return}case 2:{this.openAddNodePopupAtPointer(e.clientX,e.clientY);return}}}onScroll(e){e.preventDefault();let r=e.deltaY>0?-1:1,c=this.convertGlobalToGridPosition(e.clientX,e.clientY);this.mManager.grid.zoomAt(c.x,c.y,r*p.ZOOM_STRENGTH)}openAddNodePopupAtPointer(e,r){let c=this.mComponent.element,d=this.convertGlobalToGridPosition(e,r),g=this.convertLocalToGridCoordinate(d.x,d.y),y=8,E=Math.max(0,c.clientWidth-ie.POPUP_WIDTH-y),C=Math.max(0,c.clientHeight-ie.POPUP_HEIGHT-y);this.popupPosition={local:{x:Math.max(y,Math.min(d.x,E)),y:Math.max(y,Math.min(d.y,C))},grid:{x:Math.round(g.x/this.mManager.grid.gridSize),y:Math.round(g.y/this.mManager.grid.gridSize)}}}pasteFromClipboard(){let e=this.mManager.clipboard.paste();e.length!==0&&this.selectNodes(e,!1)}pointerDrag(e,r){let c=this.convertGlobalToGridPosition(e.clientX,e.clientY),d=c,g=E=>{let C=this.convertGlobalToGridPosition(E.clientX,E.clientY);switch(r){case"panning":{this.mManager.grid.pan(C.x-d.x,C.y-d.y);break}case"selecting":{this.selectBox={x:Math.min(c.x,C.x),y:Math.min(c.y,C.y),width:Math.abs(C.x-c.x),height:Math.abs(C.y-c.y)};break}}d=C},y=E=>{if(document.removeEventListener("pointermove",g),document.removeEventListener("pointerup",y),r==="selecting"&&this.selectBox){let C=this.convertLocalToGridCoordinate(this.selectBox.x,this.selectBox.y),l=this.convertLocalToGridCoordinate(this.selectBox.x+this.selectBox.width,this.selectBox.y+this.selectBox.height),n=this.mManager.grid.gridSize,u=this.getNodesInRectangle({top:C.y/n,right:l.x/n,bottom:l.y/n,left:C.x/n});this.selectNodes(u,E.ctrlKey),this.selectBox=null}};document.addEventListener("pointermove",g),document.addEventListener("pointerup",y)}}}};var ae=class{mCodeGenerator;mId;mLabel;mNodesProvider;mStatics;get codeGenerator(){return this.mCodeGenerator}get id(){return this.mId}get label(){return this.mLabel}get statics(){return this.mStatics}constructor(t){this.mId=t.id,this.mLabel=t.label,this.mNodesProvider=t.nodes,this.mStatics=t.statics,this.mCodeGenerator=t.generator.code}getNodeDefinitions(t){let e=c=>{if(!c)return new Array;let d=new Array;return c(g=>{d.push(g)},t),d},r={};return Object.defineProperty(r,"entry",{get:()=>e(this.mNodesProvider.entry)}),Object.defineProperty(r,"exit",{get:()=>e(this.mNodesProvider.exit)}),Object.defineProperty(r,"dynamic",{get:()=>e(this.mNodesProvider.dynamic)}),r}},Ot={none:0,imports:1,inputs:2,outputs:4};var Ri=`:host {\r
+    `;function ga(){function p(l,n){return function(a){e(n,"addInitializer"),r(a,"An initializer"),l.push(a)}}function t(l,n,u,a,o,b,v,T,w){var f;switch(o){case 1:f="accessor";break;case 2:f="method";break;case 3:f="getter";break;case 4:f="setter";break;default:f="field"}var s={kind:f,name:v?"#"+n:n,static:b,private:v,metadata:T},m={v:!1};s.addInitializer=p(a,m);var i,h;o===0?v?(i=u.get,h=u.set):(i=function(){return this[n]},h=function(x){this[n]=x}):o===2?i=function(){return u.value}:((o===1||o===3)&&(i=function(){return u.get.call(this)}),(o===1||o===4)&&(h=function(x){u.set.call(this,x)})),s.access=i&&h?{get:i,set:h}:i?{get:i}:{set:h};try{return l(w,s)}finally{m.v=!0}}function e(l,n){if(l.v)throw new Error("attempted to call "+n+" after decoration was finished")}function r(l,n){if(typeof l!="function")throw new TypeError(n+" must be a function")}function c(l,n){var u=typeof n;if(l===1){if(u!=="object"||n===null)throw new TypeError("accessor decorators must return an object with get, set, or init properties or void 0");n.get!==void 0&&r(n.get,"accessor.get"),n.set!==void 0&&r(n.set,"accessor.set"),n.init!==void 0&&r(n.init,"accessor.init")}else if(u!=="function"){var a;throw l===0?a="field":l===10?a="class":a="method",new TypeError(a+" decorators must return a function or void 0")}}function d(l,n,u,a,o,b,v,T,w){var f=u[0],s,m,i;v?o===0||o===1?s={get:u[3],set:u[4]}:o===3?s={get:u[3]}:o===4?s={set:u[3]}:s={value:u[3]}:o!==0&&(s=Object.getOwnPropertyDescriptor(n,a)),o===1?i={get:s.get,set:s.set}:o===2?i=s.value:o===3?i=s.get:o===4&&(i=s.set);var h,x,P;if(typeof f=="function")h=t(f,a,s,T,o,b,v,w,i),h!==void 0&&(c(o,h),o===0?m=h:o===1?(m=h.init,x=h.get||i.get,P=h.set||i.set,i={get:x,set:P}):i=h);else for(var M=f.length-1;M>=0;M--){var N=f[M];if(h=t(N,a,s,T,o,b,v,w,i),h!==void 0){c(o,h);var S;o===0?S=h:o===1?(S=h.init,x=h.get||i.get,P=h.set||i.set,i={get:x,set:P}):i=h,S!==void 0&&(m===void 0?m=S:typeof m=="function"?m=[m,S]:m.push(S))}}if(o===0||o===1){if(m===void 0)m=function(I,D){return D};else if(typeof m!="function"){var F=m;m=function(I,D){for(var _=D,L=0;L<F.length;L++)_=F[L].call(I,_);return _}}else{var j=m;m=function(I,D){return j.call(I,D)}}l.push(m)}o!==0&&(o===1?(s.get=i.get,s.set=i.set):o===2?s.value=i:o===3?s.get=i:o===4&&(s.set=i),v?o===1?(l.push(function(I,D){return i.get.call(I,D)}),l.push(function(I,D){return i.set.call(I,D)})):o===2?l.push(i):l.push(function(I,D){return i.call(I,D)}):Object.defineProperty(n,a,s))}function g(l,n,u){for(var a=[],o,b,v=new Map,T=new Map,w=0;w<n.length;w++){var f=n[w];if(Array.isArray(f)){var s=f[1],m=f[2],i=f.length>3,h=s>=5,x,P;if(h?(x=l,s=s-5,b=b||[],P=b):(x=l.prototype,o=o||[],P=o),s!==0&&!i){var M=h?T:v,N=M.get(m)||0;if(N===!0||N===3&&s!==4||N===4&&s!==3)throw new Error("Attempted to decorate a public method/accessor that has the same name as a previously decorated public method/accessor. This is not currently supported by the decorators plugin. Property name was: "+m);!N&&s>2?M.set(m,s):M.set(m,!0)}d(a,x,f,m,s,h,i,P,u)}}return y(a,o),y(a,b),a}function y(l,n){n&&l.push(function(u){for(var a=0;a<n.length;a++)n[a].call(u);return u})}function E(l,n,u){if(n.length>0){for(var a=[],o=l,b=l.name,v=n.length-1;v>=0;v--){var T={v:!1};try{var w=n[v](o,{kind:"class",name:b,addInitializer:p(a,T),metadata:u})}finally{T.v=!0}w!==void 0&&(c(10,w),o=w)}return[C(o,u),function(){for(var f=0;f<a.length;f++)a[f].call(o)}]}}function C(l,n){return Object.defineProperty(l,Symbol.metadata||Symbol.for("Symbol.metadata"),{configurable:!0,enumerable:!0,value:n})}return function(n,u,a,o){if(o!==void 0)var b=o[Symbol.metadata||Symbol.for("Symbol.metadata")];var v=Object.create(b===void 0?null:b),T=g(n,u,v);return a.length||C(n,v),{e:T,get c(){return E(n,a,v)}}}}function Ei(p,t,e,r){return(Ei=ga())(p,t,e,r)}var Di,bi,Ii,wi,xi,Co;Di=Y({selector:"potatno-conjunction-node",template:yi,style:vi,components:[se]}),Ii=pt("node-drag");var Ti=class{static{({e:[wi,xi],c:[Co,bi]}=Ei(this,[[Ii,1,"mDrag"],[q,3,"nodeData"]],[Di]))}constructor(t=O.use(B),e=O.use(X)){this.mComponent=t,this.mManager=e,this.mNodeData=null,this.mUnsubscribe=this.mManager.subscribe(R.Node,r=>{r.item===this.mNodeData&&this.resyncComponent(this.mNodeData)})}mComponent;mManager;mNodeData;mUnsubscribe;#t=(xi(this),wi(this));get mDrag(){return this.#t}set mDrag(t){this.#t=t}get inputHasError(){if(!this.mNodeData)return!1;if(this.mManager.integrity.errorItems.has(this.mNodeData))return!0;for(let t of this.mNodeData.inputs.list)if(this.mManager.integrity.errorItems.has(t))return!0;return!1}get outputHasError(){if(!this.mNodeData)return!1;if(this.mManager.integrity.errorItems.has(this.mNodeData))return!0;for(let t of this.mNodeData.outputs.list)if(this.mManager.integrity.errorItems.has(t))return!0;return!1}get isInputConnected(){return!this.mNodeData||this.mNodeData.inputs.list.length===0?!1:this.mNodeData.inputs.list[0].connectedPorts.size>0}get isOutputConnected(){return!this.mNodeData||this.mNodeData.outputs.list.length===0?!1:this.mNodeData.outputs.list[0].connectedPorts.size>0}get nodeData(){return this.mNodeData}set nodeData(t){this.mNodeData=t,t&&this.resyncComponent(t)}get portColor(){return this.portType==="flow"?"var(--potatno-color-text)":this.mManager.generateStringColor(this.portValueType)}get portType(){return this.mNodeData?.definitionId===ot.DEFINITION_ID?"flow":"value"}get portValueType(){return!this.mNodeData||this.portType!=="value"||this.mNodeData.inputs.list.length===0?"":this.mNodeData.inputs.list[0].resolvedDataType}dragNode(t){if(!this.mNodeData)return;t.preventDefault();let e=this.mNodeData.transformation.x*this.mManager.grid.gridSize,r=this.mNodeData.transformation.y*this.mManager.grid.gridSize,c=this.mNodeData.transformation.x,d=this.mNodeData.transformation.y,g=this.mComponent.element.getBoundingClientRect(),y=this.mComponent.element.offsetWidth?g.width/this.mComponent.element.offsetWidth:1,E=this.mComponent.element.offsetHeight?g.height/this.mComponent.element.offsetHeight:1,C=t.clientX,l=t.clientY,n=a=>{a.stopPropagation();let o=(a.clientX-C)/y,b=(a.clientY-l)/E,v=Math.round((e+o)/this.mManager.grid.gridSize),T=Math.round((r+b)/this.mManager.grid.gridSize);c===v&&d===T||(this.mManager.graph.transformNode(this.mNodeData,w=>{w.moveTo(v,T)}),this.mDrag.dispatchEvent(new Io(v-c,T-d)),c=v,d=T)},u=()=>{document.removeEventListener("pointermove",n),document.removeEventListener("pointerup",u)};document.addEventListener("pointermove",n),document.addEventListener("pointerup",u)}onDeconstruct(){this.mUnsubscribe()}resyncComponent(t){let e=t.transformation.x*this.mManager.grid.gridSize,r=t.transformation.y*this.mManager.grid.gridSize;this.mComponent.element.style.setProperty("left",`${e}px`),this.mComponent.element.style.setProperty("top",`${r}px`),this.mComponent.updater.update()}static{bi()}},Io=class{mX;mY;get x(){return this.mX}get y(){return this.mY}constructor(t,e){this.mX=t,this.mY=e}};function va(){function p(l,n){return function(a){e(n,"addInitializer"),r(a,"An initializer"),l.push(a)}}function t(l,n,u,a,o,b,v,T,w){var f;switch(o){case 1:f="accessor";break;case 2:f="method";break;case 3:f="getter";break;case 4:f="setter";break;default:f="field"}var s={kind:f,name:v?"#"+n:n,static:b,private:v,metadata:T},m={v:!1};s.addInitializer=p(a,m);var i,h;o===0?v?(i=u.get,h=u.set):(i=function(){return this[n]},h=function(x){this[n]=x}):o===2?i=function(){return u.value}:((o===1||o===3)&&(i=function(){return u.get.call(this)}),(o===1||o===4)&&(h=function(x){u.set.call(this,x)})),s.access=i&&h?{get:i,set:h}:i?{get:i}:{set:h};try{return l(w,s)}finally{m.v=!0}}function e(l,n){if(l.v)throw new Error("attempted to call "+n+" after decoration was finished")}function r(l,n){if(typeof l!="function")throw new TypeError(n+" must be a function")}function c(l,n){var u=typeof n;if(l===1){if(u!=="object"||n===null)throw new TypeError("accessor decorators must return an object with get, set, or init properties or void 0");n.get!==void 0&&r(n.get,"accessor.get"),n.set!==void 0&&r(n.set,"accessor.set"),n.init!==void 0&&r(n.init,"accessor.init")}else if(u!=="function"){var a;throw l===0?a="field":l===10?a="class":a="method",new TypeError(a+" decorators must return a function or void 0")}}function d(l,n,u,a,o,b,v,T,w){var f=u[0],s,m,i;v?o===0||o===1?s={get:u[3],set:u[4]}:o===3?s={get:u[3]}:o===4?s={set:u[3]}:s={value:u[3]}:o!==0&&(s=Object.getOwnPropertyDescriptor(n,a)),o===1?i={get:s.get,set:s.set}:o===2?i=s.value:o===3?i=s.get:o===4&&(i=s.set);var h,x,P;if(typeof f=="function")h=t(f,a,s,T,o,b,v,w,i),h!==void 0&&(c(o,h),o===0?m=h:o===1?(m=h.init,x=h.get||i.get,P=h.set||i.set,i={get:x,set:P}):i=h);else for(var M=f.length-1;M>=0;M--){var N=f[M];if(h=t(N,a,s,T,o,b,v,w,i),h!==void 0){c(o,h);var S;o===0?S=h:o===1?(S=h.init,x=h.get||i.get,P=h.set||i.set,i={get:x,set:P}):i=h,S!==void 0&&(m===void 0?m=S:typeof m=="function"?m=[m,S]:m.push(S))}}if(o===0||o===1){if(m===void 0)m=function(I,D){return D};else if(typeof m!="function"){var F=m;m=function(I,D){for(var _=D,L=0;L<F.length;L++)_=F[L].call(I,_);return _}}else{var j=m;m=function(I,D){return j.call(I,D)}}l.push(m)}o!==0&&(o===1?(s.get=i.get,s.set=i.set):o===2?s.value=i:o===3?s.get=i:o===4&&(s.set=i),v?o===1?(l.push(function(I,D){return i.get.call(I,D)}),l.push(function(I,D){return i.set.call(I,D)})):o===2?l.push(i):l.push(function(I,D){return i.call(I,D)}):Object.defineProperty(n,a,s))}function g(l,n,u){for(var a=[],o,b,v=new Map,T=new Map,w=0;w<n.length;w++){var f=n[w];if(Array.isArray(f)){var s=f[1],m=f[2],i=f.length>3,h=s>=5,x,P;if(h?(x=l,s=s-5,b=b||[],P=b):(x=l.prototype,o=o||[],P=o),s!==0&&!i){var M=h?T:v,N=M.get(m)||0;if(N===!0||N===3&&s!==4||N===4&&s!==3)throw new Error("Attempted to decorate a public method/accessor that has the same name as a previously decorated public method/accessor. This is not currently supported by the decorators plugin. Property name was: "+m);!N&&s>2?M.set(m,s):M.set(m,!0)}d(a,x,f,m,s,h,i,P,u)}}return y(a,o),y(a,b),a}function y(l,n){n&&l.push(function(u){for(var a=0;a<n.length;a++)n[a].call(u);return u})}function E(l,n,u){if(n.length>0){for(var a=[],o=l,b=l.name,v=n.length-1;v>=0;v--){var T={v:!1};try{var w=n[v](o,{kind:"class",name:b,addInitializer:p(a,T),metadata:u})}finally{T.v=!0}w!==void 0&&(c(10,w),o=w)}return[C(o,u),function(){for(var f=0;f<a.length;f++)a[f].call(o)}]}}function C(l,n){return Object.defineProperty(l,Symbol.metadata||Symbol.for("Symbol.metadata"),{configurable:!0,enumerable:!0,value:n})}return function(n,u,a,o){if(o!==void 0)var b=o[Symbol.metadata||Symbol.for("Symbol.metadata")];var v=Object.create(b===void 0?null:b),T=g(n,u,v);return a.length||C(n,v),{e:T,get c(){return E(n,a,v)}}}}function Si(p,t,e,r){return(Si=va())(p,t,e,r)}function ya(p){return p}var Ai,Ci,_i,Li,Pi,Mi,Ni,Qe;Ai=Y({selector:"potatno-node-graph",template:gi,style:pi,components:[ie,Do,xo,Co,To]}),_i=$.state(),Li=$.state({complexValue:!0});new class extends ya{constructor(){super(Qe),Ci()}static{class p{static{({e:[Pi,Mi,Ni],c:[Qe,Ci]}=Si(this,[[_i,1,"popupPosition"],[Li,1,"selectBox"]],[Ai]))}static ZOOM_STRENGTH=.1;mComponent;mIsMouseInsideGrid;mKeyboardHandler;mManager;mSelectedNodes;mUnsubscribeFunctionChange;mUnsubscribeGraphChange;#t=(Ni(this),Pi(this));get popupPosition(){return this.#t}set popupPosition(e){this.#t=e}#e=Mi(this);get selectBox(){return this.#e}set selectBox(e){this.#e=e}get gridBackgroundStyle(){let e=this.mManager.grid.gridSize*this.mManager.grid.zoom,r=this.mManager.grid.panX%e,c=this.mManager.grid.panY%e;return`background-size: ${e}px ${e}px; background-position: ${r}px ${c}px;`}get gridTransformStyle(){return`transform: translate(${this.mManager.grid.panX}px, ${this.mManager.grid.panY}px) scale(${this.mManager.grid.zoom})`}get nodes(){return this.mManager.activeFunction.nodes}get selectedNode(){return this.mSelectedNodes}constructor(e=O.use(B),r=O.use(X)){this.mComponent=e,this.mManager=r,this.mSelectedNodes=new Set,this.mIsMouseInsideGrid=!1,this.popupPosition=null,this.selectBox=null,e.element.addEventListener("pointerdown",c=>{this.onPointerDown(c)}),e.element.addEventListener("wheel",c=>{this.onScroll(c)}),e.element.addEventListener("contextmenu",c=>{c.preventDefault()}),e.element.addEventListener("pointerenter",()=>{this.mIsMouseInsideGrid=!0}),e.element.addEventListener("pointerleave",()=>{this.mIsMouseInsideGrid=!1}),this.mKeyboardHandler=c=>{this.onKeyDown(c)},document.addEventListener("keydown",this.mKeyboardHandler),this.mUnsubscribeFunctionChange=this.mManager.subscribe(R.Document|R.Function|R.SpecialActiveFunction,()=>{this.popupPosition=null,this.selectBox=null,this.selectNodes([],!1)}),this.mUnsubscribeGraphChange=this.mManager.subscribe(R.NodeAdd|R.NodeDelete|R.SpecialGrid,()=>{this.mComponent.updater.updateAsync()})}createNodeOnPopupPosition(e){let r=this.mManager.graph.addNode(this.mManager.activeFunction,e,{x:this.popupPosition?.grid.x??0,y:this.popupPosition?.grid.y??0,height:0,width:0});this.popupPosition=null,this.selectNodes([r],!1)}moveAllSelected(e,r){for(let c of this.mSelectedNodes)c!==e&&this.mManager.graph.transformNode(c,d=>{d.moveTo(d.transformation.x+r.x,d.transformation.y+r.y)})}onConnect(){this.mManager.connections.gridElement=this.mComponent.element}onDeconstruct(){this.mUnsubscribeFunctionChange(),this.mUnsubscribeGraphChange(),document.removeEventListener("keydown",this.mKeyboardHandler)}selectNodes(e,r){this.popupPosition=null;let c=!!r;r instanceof PointerEvent&&(r.stopPropagation(),c=r.ctrlKey);let d=new Set;if(!c)if(e.length===1&&this.mSelectedNodes.has(e.at(0)))for(let y of this.mSelectedNodes)d.add(y);else this.mSelectedNodes.clear();let g=[...e];for(let y of g)d.has(y)||(d.add(y),y.definitionId===gt.DEFINITION_ID&&g.push(...this.getNodesInRectangle({top:y.transformation.y,right:y.transformation.x+y.transformation.width,bottom:y.transformation.y+y.transformation.height,left:y.transformation.x})),this.mSelectedNodes.has(y)?this.mSelectedNodes.delete(y):this.mSelectedNodes.add(y));this.mComponent.updater.updateAsync()}typeOfNode(e){switch(e.definitionId){case gt.DEFINITION_ID:return"comment";case lt.DEFINITION_ID:case ot.DEFINITION_ID:return"conjunction";default:return"node"}}convertGlobalToGridPosition(e,r){let c=this.mComponent.element.getBoundingClientRect();return{x:e-c.left,y:r-c.top}}convertLocalToGridCoordinate(e,r){return{x:(e-this.mManager.grid.panX)/this.mManager.grid.zoom,y:(r-this.mManager.grid.panY)/this.mManager.grid.zoom}}getNodesInRectangle(e){let r=new Array;for(let c of this.mManager.activeFunction.nodes){let d=c.transformation.y,g=c.transformation.x,y=g+c.transformation.width,E=d+c.transformation.height;if(g<e.right&&y>e.left&&d<e.bottom&&E>e.top){if(e.top>d&&e.right<y&&e.bottom<E&&e.left>g)continue;r.push(c)}}return r}onKeyDown(e){if(!this.mIsMouseInsideGrid)return;let r=document.activeElement;if(!(r instanceof HTMLInputElement||r instanceof HTMLTextAreaElement||r instanceof HTMLSelectElement)){switch(e.key){case"Escape":{this.popupPosition=null;return}case"Delete":{for(let c of this.mSelectedNodes)this.mManager.graph.removeNode(c);this.selectNodes([],!1);return}}if(e.ctrlKey)switch(e.key){case"z":{e.preventDefault(),this.mManager.history.undo();return}case"y":{e.preventDefault(),this.mManager.history.redo();return}case"c":{this.mManager.clipboard.copy(this.mSelectedNodes);return}case"v":e.preventDefault(),this.pasteFromClipboard()}}}onPointerDown(e){switch(this.popupPosition=null,e.button){case 0:{e.ctrlKey||this.selectNodes([],!1),this.pointerDrag(e,"selecting");return}case 1:{e.preventDefault(),this.pointerDrag(e,"panning");return}case 2:{this.openAddNodePopupAtPointer(e.clientX,e.clientY);return}}}onScroll(e){e.preventDefault();let r=e.deltaY>0?-1:1,c=this.convertGlobalToGridPosition(e.clientX,e.clientY);this.mManager.grid.zoomAt(c.x,c.y,r*p.ZOOM_STRENGTH)}openAddNodePopupAtPointer(e,r){let c=this.mComponent.element,d=this.convertGlobalToGridPosition(e,r),g=this.convertLocalToGridCoordinate(d.x,d.y),y=8,E=Math.max(0,c.clientWidth-ie.POPUP_WIDTH-y),C=Math.max(0,c.clientHeight-ie.POPUP_HEIGHT-y);this.popupPosition={local:{x:Math.max(y,Math.min(d.x,E)),y:Math.max(y,Math.min(d.y,C))},grid:{x:Math.round(g.x/this.mManager.grid.gridSize),y:Math.round(g.y/this.mManager.grid.gridSize)}}}pasteFromClipboard(){let e=this.mManager.clipboard.paste();e.length!==0&&this.selectNodes(e,!1)}pointerDrag(e,r){let c=this.convertGlobalToGridPosition(e.clientX,e.clientY),d=c,g=E=>{let C=this.convertGlobalToGridPosition(E.clientX,E.clientY);switch(r){case"panning":{this.mManager.grid.pan(C.x-d.x,C.y-d.y);break}case"selecting":{this.selectBox={x:Math.min(c.x,C.x),y:Math.min(c.y,C.y),width:Math.abs(C.x-c.x),height:Math.abs(C.y-c.y)};break}}d=C},y=E=>{if(document.removeEventListener("pointermove",g),document.removeEventListener("pointerup",y),r==="selecting"&&this.selectBox){let C=this.convertLocalToGridCoordinate(this.selectBox.x,this.selectBox.y),l=this.convertLocalToGridCoordinate(this.selectBox.x+this.selectBox.width,this.selectBox.y+this.selectBox.height),n=this.mManager.grid.gridSize,u=this.getNodesInRectangle({top:C.y/n,right:l.x/n,bottom:l.y/n,left:C.x/n});this.selectNodes(u,E.ctrlKey),this.selectBox=null}};document.addEventListener("pointermove",g),document.addEventListener("pointerup",y)}}}};var ae=class{mCodeGenerator;mId;mLabel;mNodesProvider;mStatics;get codeGenerator(){return this.mCodeGenerator}get id(){return this.mId}get label(){return this.mLabel}get statics(){return this.mStatics}constructor(t){this.mId=t.id,this.mLabel=t.label,this.mNodesProvider=t.nodes,this.mStatics=t.statics,this.mCodeGenerator=t.generator.code}getNodeDefinitions(t){let e=c=>{if(!c)return new Array;let d=new Array;return c(g=>{d.push(g)},t),d},r={};return Object.defineProperty(r,"entry",{get:()=>e(this.mNodesProvider.entry)}),Object.defineProperty(r,"exit",{get:()=>e(this.mNodesProvider.exit)}),Object.defineProperty(r,"dynamic",{get:()=>e(this.mNodesProvider.dynamic)}),r}},Ot={none:0,imports:1,inputs:2,outputs:4};var Ri=`:host {\r
     display: flex;\r
     flex-direction: column;\r
     height: 100%;\r

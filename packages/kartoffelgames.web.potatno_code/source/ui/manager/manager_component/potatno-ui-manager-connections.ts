@@ -4,6 +4,8 @@ import { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts'
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import { PotatnoUiGridPathFinding, type PotatnoUiManagerGridPathFindingPoint } from '../helper/potatno-ui-grid-path-finding.ts';
 import { PotatnoCodeUiManagerChangeType, type PotatnoUiManager, type PotatnoUiManagerChangeEvent } from '../potatno-ui-manager.ts';
+import { PotatnoFlowConjunctionNodeDefinition } from "../../../project/node_definition/potatno-flow-conjunction-node-definition.ts";
+import { PotatnoValueConjunctionNodeDefinition } from "../../../project/node_definition/potatno-value-conjunction-node-definition.ts";
 
 /**
  * Ui manager grid component.
@@ -161,9 +163,15 @@ export class PotatnoUiManagerConnections {
             return lNode.transformation.x + lNode.transformation.width - 1;
         })();
 
+        // Reset header height for conjunction nodes.
+        let lHeaderHeight: number = 1;
+        if (lNode.definitionId === PotatnoFlowConjunctionNodeDefinition.DEFINITION_ID || lNode.definitionId === PotatnoValueConjunctionNodeDefinition.DEFINITION_ID) {
+            lHeaderHeight = 0;
+        }
+
         return {
             // Nodes ports start after the 1 height header. 
-            y: lNode.transformation.y + 1 + lPortIndex,
+            y: lNode.transformation.y + lHeaderHeight + lPortIndex,
 
             x: lPointX
         };

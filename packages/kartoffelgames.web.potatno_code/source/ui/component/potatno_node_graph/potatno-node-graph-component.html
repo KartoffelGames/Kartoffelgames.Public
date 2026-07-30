@@ -10,7 +10,7 @@
         }
 
         $if(this.typeOfNode(this.node) === 'conjunction') {
-            <potatno-node class="grid-content__node {{this.selectedNode.has(this.node) ? 'selected' : ''}}" [nodeData]="this.node" (node-drag)="this.moveAllSelected(this.node, $event.value)" (pointerdown)="this.selectNodes([this.node], $event);"/>
+            <potatno-conjunction-node class="grid-content__node {{this.selectedNode.has(this.node) ? 'selected' : ''}}" [nodeData]="this.node" (node-drag)="this.moveAllSelected(this.node, $event.value)" (pointerdown)="this.selectNodes([this.node], $event);"/>
         }
 
         $if(this.typeOfNode(this.node) === 'comment') {

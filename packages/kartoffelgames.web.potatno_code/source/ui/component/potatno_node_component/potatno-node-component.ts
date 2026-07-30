@@ -15,7 +15,7 @@ import nodeTemplate from './potatno-node-component.html' with { type: 'text' };
 
 /**
  * Node component for the potatno-code visual editor.
- * Handles resize and position on its own.
+ * Handles position on its own.
  */
 @PwbComponent({
     selector: 'potatno-node',

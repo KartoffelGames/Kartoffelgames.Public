@@ -1,0 +1,33 @@
+:host {
+    display: block;
+    font-family: var(--potatno-font-family);
+    font-size: var(--potatno-font-size);
+
+    --node-border-color: color-mix(in srgb, var(--potatno-color-text) 30%, var(--potatno-color-background));
+}
+
+.node {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+    background-color: var(--potatno-color-background);
+    border: 1px solid var(--node-border-color);
+
+    box-shadow: 0 2px 8px var(--potatno-color-shadow);
+    overflow: visible;
+    user-select: none;
+
+    /* Default size */
+    --node-width: 6;
+    --node-height: 6;
+
+    /* Resize */
+    width: var(--potatno-grid-size);
+    height: var(--potatno-grid-size);
+
+    &.error {
+        --resize-box-handle-color: var(--potatno-color-error);
+        box-shadow: 0 0 5px 0px var(--potatno-color-error), 0 2px 8px var(--potatno-color-shadow);
+    }
+}

@@ -17,7 +17,7 @@ import nodeTemplate from './potatno-conjunction-node-component.html' with { type
     style: nodeCss,
     components: [PotatnoPortComponent]
 })
-export class PotatnoNodeComponent implements IComponentOnDeconstruct {
+export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct {
     private readonly mComponent: Component;
     private readonly mManager: PotatnoUiManager;
     private mNodeData: PotatnoDocumentNode<PotatnoProjectTypesDefinition> | null;
@@ -76,9 +76,6 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
 
         // Resync nodes transformation on change.
         this.resyncComponent(pNode);
-
-        // Syncron update to reduce popping.
-        this.mComponent.updater.update();
     }
 
     /**
@@ -192,11 +189,9 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
         const lNodeY: number = pNode.transformation.y * this.mManager.grid.gridSize;
         this.mComponent.element.style.setProperty('left', `${lNodeX}px`);
         this.mComponent.element.style.setProperty('top', `${lNodeY}px`);
-
-        // Update general size transformation.
-        this.nodeTransformation.width = pNode.transformation.width;
-        this.nodeTransformation.height = pNode.transformation.height;
-
+        
+        // Syncron update to reduce popping.
+        this.mComponent.updater.update();
     }
 }
 

@@ -13,6 +13,7 @@ import { PotatnoConnectionLayerComponent } from '../potatno_connection_layer/pot
 import { PotatnoNodeComponent, type PotatnoNodeComponentMove } from '../potatno_node_component/potatno-node-component.ts';
 import graphCss from './potatno-node-graph-component.css' with { type: 'text' };
 import graphTemplate from './potatno-node-graph-component.html' with { type: 'text' };
+import { PotatnoConjunctionNodeComponent } from "../potatno_conjunction_node/potatno-conjunction-node-component.ts";
 
 /**
  * Interactive node graph for the active Potatno document function.
@@ -23,7 +24,7 @@ import graphTemplate from './potatno-node-graph-component.html' with { type: 'te
     selector: 'potatno-node-graph',
     template: graphTemplate,
     style: graphCss,
-    components: [PotatnoNodeSelectionPopupComponent, PotatnoNodeComponent, PotatnoCommentNodeComponent, PotatnoConnectionLayerComponent,]
+    components: [PotatnoNodeSelectionPopupComponent, PotatnoNodeComponent, PotatnoCommentNodeComponent, PotatnoConjunctionNodeComponent, PotatnoConnectionLayerComponent,]
 })
 export class PotatnoNodeGraphComponent implements IComponentOnConnect, IComponentOnDeconstruct {
     private static readonly ZOOM_STRENGTH: number = 0.1;

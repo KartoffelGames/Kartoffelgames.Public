@@ -22,7 +22,7 @@ import portTemplate from './potatno-port-component.html' with { type: 'text' };
 export class PotatnoPortComponent implements IComponentOnDeconstruct {
     private static readonly DRAG_MIME_TYPE: string = 'application/x-potatno-port';
 
-    
+
 
     private readonly mComponent: Component;
     private readonly mDragPositionEventHandler: PotatnoPortComponentGlobalDragoverHandler;
@@ -191,7 +191,7 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
         }
 
         // Hide value input while this port owns a native drag.
-        if (this.mManager.grid.draggedPort.isDragging && this.mManager.grid.draggedPort.port === this.port) {
+        if (this.mManager.grid.draggedPort.hasPort(this.port)) {
             return false;
         }
 
@@ -218,7 +218,7 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
             }
 
             // Only fire event when the port is matched.
-            if (this.mManager.grid.draggedPort.port !== this.port) {
+            if (!this.mManager.grid.draggedPort.hasPort(this.port)) {
                 return;
             }
 
@@ -333,7 +333,7 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
         pEvent.dataTransfer.setDragImage(document.createElement('div'), 0, 0);
 
         // Set this port as global draggin port information.
-        this.mManager.grid.setDraggingPort(this.port);
+        this.mManager.grid.setDraggingPort([this.port]);
 
         // Trigger update to remove potential direct values.
         this.mComponent.updater.updateAsync();
@@ -363,11 +363,13 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
             return;
         }
 
-        // Read dragged port. 
-        const lSourcePort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> = this.mManager.grid.draggedPort.port;
-
-        // Connect ports.
-        this.mManager.graph.connectPorts(lSourcePort, this.port);
+        // Throw each dragged port agains the connection. Connections that are not allowed simply return false (ignore the return)
+        // In the end only the valid connections are connected. ??? => Profit.
+        // Check each dragged port for valid connectivity. Accept if any is valid.
+        for (const lDraggedPort of this.mManager.grid.draggedPort.ports) {
+            // Connect ports.
+            this.mManager.graph.connectPorts(lDraggedPort, this.port);
+        }
     }
 
     /**
@@ -414,10 +416,15 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
             return false;
         }
 
-        // Read current dragged port.
-        const lDraggedPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> = this.mManager.grid.draggedPort.port;
+        // Check each dragged port for valid connectivity. Accept if any is valid.
+        for (const lDraggedPort of this.mManager.grid.draggedPort.ports) {
+            // Not same port, opposing direction and must have the same port type. (For a connection, the value type does not matter).
+            if (lDraggedPort !== this.port && lDraggedPort.direction !== this.port.direction && lDraggedPort.portType === this.port.portType) {
+                return true;
+            }
+        }
 
-        return lDraggedPort !== this.port && lDraggedPort.direction !== this.port.direction && lDraggedPort.portType === this.port.portType;
+        return false;
     }
 
     /**
@@ -428,7 +435,7 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
      */
     private renderDragWire(pClientX: number, pClientY: number): void {
         // Check if something is dragged.
-        if (!this.mManager.grid.draggedPort.isDragging || !this.dragConnectionSvg) {
+        if (!this.mManager.grid.draggedPort.hasPort(this.port) || !this.dragConnectionSvg) {
             return;
         }
 
@@ -440,12 +447,17 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
         }
 
         // Update dragging pointer position and skip if actual grid position has not changed.
-        if(!this.mManager.grid.draggedPort.updatePointer(pClientX, pClientY)){
+        if (!this.mManager.grid.draggedPort.updatePointer(pClientX, pClientY)) {
+            return;
+        }
+
+        // Read stored port position of the current dragged port.
+        const lPortPosition: PotatnoUiManagerGridPathFindingPoint| undefined = this.mManager.grid.draggedPort.portPositions.get(this.port!);
+        if(!lPortPosition){
             return;
         }
 
         // Calculate offset to grids [0, 0] point.
-        const lPortPosition: PotatnoUiManagerGridPathFindingPoint = this.mManager.grid.draggedPort.portPosition;
         const lPortX: number = lPortPosition.x * this.mManager.grid.gridSize;
         const lPortY: number = lPortPosition.y * this.mManager.grid.gridSize;
 

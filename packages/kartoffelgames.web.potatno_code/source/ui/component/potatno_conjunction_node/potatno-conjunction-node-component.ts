@@ -149,7 +149,7 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
 
         return {
             input: this.nodeData.inputs.list[0],
-            output: this.nodeData.inputs.list[0],
+            output: this.nodeData.outputs.list[0],
         }
     }
 

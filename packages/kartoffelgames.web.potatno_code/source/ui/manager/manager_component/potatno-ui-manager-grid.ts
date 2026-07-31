@@ -8,8 +8,8 @@ import { PotatnoCodeUiManagerChangeType, type PotatnoUiManager } from '../potatn
  * Owns grid sizing and panning.
  */
 export class PotatnoUiManagerGrid {
-    private static readonly GRID_SIZE: number = 25;
-    private static readonly MAX_ZOOM: number = 2.0;
+    private static readonly GRID_SIZE: number = 24;
+    private static readonly MAX_ZOOM: number = 5.0;
     private static readonly MIN_ZOOM: number = 0.1;
 
     private mDraggedPortInformation: PotatnoUiManagerGridDraggedPort;

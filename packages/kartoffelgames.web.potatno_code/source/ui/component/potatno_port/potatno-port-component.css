@@ -66,7 +66,7 @@
         content: '';
         position: absolute;
         right: 2px;
-        height: 1px;
+        height: 2px;
         width: calc(var(--potatno-port-values-line-length) - 2px);
         pointer-events: none;
         background-color: var(--potatno-port-color);

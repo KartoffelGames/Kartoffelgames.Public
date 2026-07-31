@@ -17,9 +17,20 @@
 }
 
 .drag-area {
+    display: flex;
+    align-items: center;
     width: var(--potatno-grid-size);
     height: var(--potatno-grid-size);
     cursor: grab;
+
+    /* Create a fake connection line in center. */
+    &::after {
+        content: '';
+        height: 2px;
+        width: 100%;
+        background-color: var(--potatno-port-color);
+        z-index: -10;
+    }
 }
 
 .port {
@@ -29,13 +40,17 @@
     align-items: center;
     width: calc(var(--potatno-grid-size) - 2px);
     height: calc(var(--potatno-grid-size) - 2px);
+    border: 1px dashed var(--potatno-port-color);
     cursor: crosshair;
+    z-index: -1;
 
-    &:not(.connected) {
-        border: 1px dashed var(--potatno-port-color);
+    &.connected {
+        width: var(--potatno-grid-size);
+        height: var(--potatno-grid-size);
+        border: none;
     }
 
-    &.error {
+    &.error:not(.connected) {
         border: 1px dashed var(--potatno-color-error);
     }
 
@@ -61,7 +76,7 @@
 
     .port__handle {
         position: absolute;
-        transition: transform 0.15s ease-in-out;
+        transition: transform 0.15s ease-in-out, translate 0.15s ease-in-out;
 
         /* Instead of pushing them out reverse it and push them in. */
         .output & {
@@ -81,8 +96,16 @@
                 height: calc((var(--potatno-port-flow-size) / 3) * 2);
                 width: calc((var(--potatno-port-flow-size) / 3) * 2);
 
-                background-color: var(--potatno-port-color);
+                background-color: color-mix(in srgb, var(--potatno-port-color) 30%, var(--potatno-color-background));
                 border-radius: 2px;
+            }
+
+            .connected &::before {
+                background-color: var(--potatno-port-color);
+            }
+
+            .error &::before {
+                background-color: var(--potatno-color-error);
             }
 
             &::after {
@@ -95,32 +118,20 @@
                 border-top: calc(var(--potatno-port-flow-size) / 3) solid transparent;
             }
 
-            &.connected::before {
-                background-color: var(--potatno-port-color);
-            }
-
-            &:not(.connected)::before {
-                background-color: color-mix(in srgb, var(--potatno-port-color) 30%, var(--potatno-color-background));
-            }
-
-            .error &::before {
-                background-color: var(--potatno-color-error);
-            }
-
             .output & {
                 translate: calc(var(--potatno-port-width) / -2) 0px;
 
                 &::after {
                     right: 1px;
-                    border-left: calc(var(--potatno-port-flow-size) / 3) solid var(--potatno-port-color);
+                    border-left: calc(var(--potatno-port-flow-size) / 3) solid color-mix(in srgb, var(--potatno-port-color) 30%, var(--potatno-color-background));
                 }
 
-                &.connected::after {
-                    border-left-color: var(--potatno-port-color);
-                }
+                .connected & {
+                    translate: calc(var(--potatno-port-width) / -1.3) 0px;
 
-                &:not(.connected)::after {
-                    border-left-color: color-mix(in srgb, var(--potatno-port-color) 30%, var(--potatno-color-background));
+                    &::after {
+                        border-left-color: var(--potatno-port-color);
+                    }
                 }
 
                 .error &::after {
@@ -134,15 +145,15 @@
 
                 &::after {
                     left: 1px;
-                    border-right: calc(var(--potatno-port-flow-size) / 3) solid var(--potatno-port-color);
+                    border-right: calc(var(--potatno-port-flow-size) / 3) solid color-mix(in srgb, var(--potatno-port-color, ) 30%, var(--potatno-color-background));
                 }
 
-                &.connected::after {
-                    border-right-color: var(--potatno-port-color);
-                }
+                .connected & {
+                    translate: calc(var(--potatno-port-width) / 1.3) 0px;
 
-                &:not(.connected)::after {
-                    border-right-color: color-mix(in srgb, var(--potatno-port-color, ) 30%, var(--potatno-color-background));
+                    &::after {
+                        border-right-color: var(--potatno-port-color);
+                    }
                 }
 
                 .error &::after {
@@ -152,23 +163,30 @@
         }
 
         &.value {
-            background-color: var(--potatno-port-color);
             border: 1px solid var(--potatno-port-color);
             border-radius: 50%;
             height: calc(var(--potatno-port-value-size) - 1px);
             width: calc(var(--potatno-port-value-size) - 1px);
             background-color: color-mix(in srgb, var(--potatno-port-color) 30%, var(--potatno-color-background));
 
-            &.connected {
+            .connected & {
                 background-color: var(--potatno-port-color);
             }
 
             .output & {
                 translate: -50% 0px;
+
+                .connected & {
+                    translate: calc(var(--potatno-port-width) / -1.3) 0px;
+                }
             }
 
             .input & {
                 translate: 50% 0px;
+
+                .connected & {
+                    translate: calc(var(--potatno-port-width) / 1.3) 0px;
+                }
             }
 
             .error & {

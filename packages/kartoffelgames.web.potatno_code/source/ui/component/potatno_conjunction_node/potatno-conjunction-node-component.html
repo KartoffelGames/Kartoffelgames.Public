@@ -1,13 +1,13 @@
 <div class="node" style="--type-color: {{this.portColor}}" (dragover)="this.onDragOver($event)" (drop)="this.onDrop($event)">
 
-    <div class="port input {{this.inputHasError ? 'error' : ''}}" draggable="true" [title]="this.portValueType" (dragstart)="this.onDragStart($event, 'input')" (dragend)="this.onDragEnd($event)">
-        <div class="port__handle {{ this.portType }} {{ this.isInputConnected ? 'connected' : ''}}"></div>
+    <div class="port input {{this.inputHasError ? 'error' : ''}} {{ this.isInputConnected ? 'connected' : ''}}" draggable="true" [title]="this.portValueType" (dragstart)="this.onDragStart($event, 'input')" (dragend)="this.onDragEnd($event)">
+        <div class="port__handle {{ this.portType }}"></div>
     </div>
 
     <div class="drag-area" (pointerdown)="this.dragNode($event)"/>
 
-    <div class="port output {{this.outputHasError ? 'error' : ''}}" draggable="true" [title]="this.portValueType" (dragstart)="this.onDragStart($event, 'output')" (dragend)="this.onDragEnd($event)">
-        <div class="port__handle {{ this.portType }} {{ this.isOutputConnected ? 'connected' : ''}}"></div>
+    <div class="port output {{this.outputHasError ? 'error' : ''}} {{ this.isOutputConnected ? 'connected' : ''}}" draggable="true" [title]="this.portValueType" (dragstart)="this.onDragStart($event, 'output')" (dragend)="this.onDragEnd($event)">
+        <div class="port__handle {{ this.portType }}"></div>
     </div>
 
     <svg #dragConnection class="port-drag-connection" xmlns="http://www.w3.org/2000/svg">

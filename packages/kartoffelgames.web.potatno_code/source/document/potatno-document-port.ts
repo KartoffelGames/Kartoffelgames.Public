@@ -187,6 +187,10 @@ export class PotatnoDocumentPort<TProjectTypes extends PotatnoProjectTypesDefini
             throw new Exception(`Cannot connect port ${this.mDefinitionId} of node ${this.mNode.label} to port ${pPort.mDefinitionId} of node ${pPort.node.label} due to incompatible directions.`, this);
         }
 
+        if(this.node === pPort.node) {
+            throw new Exception(`Cannot connect port ${this.mDefinitionId} of node ${this.mNode.label} to another port of the same node.`, this);
+        }
+
         // Check if port allows multiple connections.
         // Flow ports can only have a N-Import and 1-Export
         // Value ports can only have a 1-Import and N-Export

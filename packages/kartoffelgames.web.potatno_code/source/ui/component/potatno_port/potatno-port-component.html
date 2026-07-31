@@ -8,7 +8,9 @@
         <div class="port__label">{{this.portName}}</div>
     </div>
 
-    <svg #dragConnection class="port-drag-connection" xmlns="http://www.w3.org/2000/svg"></svg>
+    <svg #dragConnection class="port-drag-connection" xmlns="http://www.w3.org/2000/svg">
+        <path #dragPath xmlns="http://www.w3.org/2000/svg"></path>
+    </svg>
 
     $if(this.showValueInput) {
         <div class="port-values">

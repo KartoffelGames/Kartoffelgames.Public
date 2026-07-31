@@ -27,13 +27,20 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
     private mDraggedSourcePort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null;
     private readonly mManager: PotatnoUiManager;
     private mNodeData: PotatnoDocumentNode<PotatnoProjectTypesDefinition> | null;
-    private readonly mUnsubscribe: PotatnoCodeUiManagerUnsubscribe;
+    private readonly mUnsubscribeNodeChange: PotatnoCodeUiManagerUnsubscribe;
+    private readonly mUnsubscribeValidation: PotatnoCodeUiManagerUnsubscribe;
 
     /**
-     * SVG element used for the temporary drag wire.
+     * SVG element that stores the drag wire.
      */
     @PwbChild('dragConnection')
-    public accessor dragConnectionSvg!: SVGSVGElement | null;
+    private accessor mDragConnectionSvg!: SVGSVGElement | null;
+
+    /**
+     *  SVG element used for the temporary drag wire.
+     */
+    @PwbChild('dragPath')
+    private accessor mDragConnectionPath!: SVGPathElement | null;
 
     /**
      * Emitted with the definition the user picked, for the host to insert.
@@ -92,7 +99,7 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
      */
     public get isInputConnected(): boolean {
         // Not connected when neighter the data nor inputs exists.
-        if(!this.mNodeData || this.mNodeData.inputs.list.length === 0) {
+        if (!this.mNodeData || this.mNodeData.inputs.list.length === 0) {
             return false;
         }
 
@@ -104,7 +111,7 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
      */
     public get isOutputConnected(): boolean {
         // Not connected when neighter the data nor outputs exists.
-        if(!this.mNodeData || this.mNodeData.outputs.list.length === 0) {
+        if (!this.mNodeData || this.mNodeData.outputs.list.length === 0) {
             return false;
         }
 
@@ -120,7 +127,7 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
     } set nodeData(pNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition> | null) {
         // Set node data and reset node definition.
         this.mNodeData = pNode;
-        
+
         // For syncing, a node must be specified.
         if (!pNode) {
             return;
@@ -148,11 +155,11 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
      * Port type of conjunction.
      */
     public get portType(): PotatnoPortDefinitionType {
-        if(this.mNodeData?.definitionId === PotatnoFlowConjunctionNodeDefinition.DEFINITION_ID){
-            return 'flow'
+        if (this.mNodeData?.definitionId === PotatnoFlowConjunctionNodeDefinition.DEFINITION_ID) {
+            return 'flow';
         }
 
-        return 'value'
+        return 'value';
     }
 
     /**
@@ -200,7 +207,7 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
         };
         document.addEventListener('dragover', this.mDragPositionEventHandler, { capture: true });
 
-        this.mUnsubscribe = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Node, (pItem) => {
+        this.mUnsubscribeNodeChange = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Node, (pItem) => {
             // Only trigger a transformation if its affects the current node data.
             if (pItem.item !== this.mNodeData) {
                 return;
@@ -208,6 +215,11 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
 
             // Calculate the current size of the component.
             this.resyncComponent(this.mNodeData!);
+        });
+
+        // Update component on any connection change.
+        this.mUnsubscribeValidation = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Connection | PotatnoCodeUiManagerChangeType.SpecialValidation, () => {
+            this.mComponent.updater.updateAsync();
         });
     }
 
@@ -286,7 +298,8 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
      * Detach the manager subscription.
      */
     public onDeconstruct(): void {
-        this.mUnsubscribe();
+        this.mUnsubscribeNodeChange();
+        this.mUnsubscribeValidation();
 
         // Remove the global dragover handler when the node gets removed.
         document.removeEventListener('dragover', this.mDragPositionEventHandler, { capture: true });
@@ -301,13 +314,11 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
         pEvent.stopPropagation();
         pEvent.preventDefault();
 
+        // Clear drag state.
+        this.mDragConnectionPath?.removeAttribute('d');
         this.mManager.grid.setDraggingPort(new Array());
         this.mDraggedSourcePort = null;
 
-        // Clear drag state.
-        if (this.dragConnectionSvg) {
-            this.dragConnectionSvg.innerHTML = '';
-        }
         this.mComponent.updater.updateAsync();
     }
 
@@ -339,25 +350,28 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
      * @param pDirection - Direction of the port the drag started on.
      */
     public onDragStart(pEvent: DragEvent, pDirection: PotatnoPortDefinitionDirection): void {
-        // Read the single inner port of the dragged direction.
-        const lPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | undefined = this.innerPort(pDirection);
-        if (!lPort || !pEvent.dataTransfer) {
-            pEvent.preventDefault();
+        // Node data must be set to read ports.
+        if (!this.mNodeData) {
             return;
         }
 
+        // Read the single inner port of the dragged direction.
+        const lPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> = (() => {
+            return pDirection === 'input' ? this.mNodeData.inputs.list[0] : this.mNodeData.outputs.list[0];
+        })();
+
         // Register native drag data. Reuse the port components mime type for interoperability.
         pEvent.stopPropagation();
-        pEvent.dataTransfer.effectAllowed = 'link';
+        pEvent.dataTransfer!.effectAllowed = 'link';
 
         // Hide the native drag ghost.
-        pEvent.dataTransfer.setDragImage(document.createElement('div'), 0, 0);
+        pEvent.dataTransfer!.setDragImage(document.createElement('div'), 0, 0);
 
         // Remember the source port and anchor the drag wire svg to the matching node edge.
-        this.mDraggedSourcePort = lPort; 
-        if (this.dragConnectionSvg) { // TODO: What the fuck is that??
-            this.dragConnectionSvg.style.setProperty('left', pDirection === 'input' ? '0px' : 'auto');
-            this.dragConnectionSvg.style.setProperty('right', pDirection === 'output' ? '0px' : 'auto');
+        this.mDraggedSourcePort = lPort;
+        if (this.mDragConnectionSvg) { // TODO: What the fuck is that??
+            this.mDragConnectionSvg.style.setProperty('left', pDirection === 'input' ? '0px' : 'auto');
+            this.mDragConnectionSvg.style.setProperty('right', pDirection === 'output' ? '0px' : 'auto');
         }
 
         // Set this port as global dragging port information.
@@ -387,44 +401,17 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
             return;
         }
 
+        // Node must be loaded and needs ports.
+        if (!this.mNodeData || this.mNodeData.inputs.list.length === 0 || this.mNodeData.outputs.list.length === 0) {
+            return;
+        }
+
         // Throw each dragged port against its matching inner port. Invalid connections simply return false.
         for (const lDraggedPort of this.mManager.grid.draggedPort.ports) {
-            const lTargetPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null = this.connectionTargetPort(lDraggedPort);
-            if (!lTargetPort) {
-                continue;
-            }
-
-            // Connect ports.
-            this.mManager.graph.connectPorts(lDraggedPort, lTargetPort);
+            // Try to connect both ports, input and output.
+            this.mManager.graph.connectPorts(lDraggedPort, this.mNodeData.inputs.list[0]);
+            this.mManager.graph.connectPorts(lDraggedPort, this.mNodeData.outputs.list[0]);
         }
-    }
-
-    /**
-     * Find the inner port a dragged port should connect to.
-     * A conjunction only has a single input and output port, so the target is the port
-     * with the opposing direction of the dragged port and a matching port type.
-     *
-     * @param pDraggedPort - Currently dragged port.
-     *
-     * @returns The matching inner port or null when no valid connection is possible.
-     */
-    private connectionTargetPort(pDraggedPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>): PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null { // TODO: You and that shit????
-        if (!this.mNodeData) {
-            return null;
-        }
-
-        // Target the inner port with the opposing direction of the dragged port.
-        const lTargetPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | undefined = this.innerPort(pDraggedPort.direction === 'input' ? 'output' : 'input');
-        if (!lTargetPort) {
-            return null;
-        }
-
-        // Not same port, opposing direction and must have the same port type. (For a connection, the value type does not matter).
-        if (lTargetPort !== pDraggedPort && lTargetPort.direction !== pDraggedPort.direction && lTargetPort.portType === pDraggedPort.portType) {
-            return lTargetPort;
-        }
-
-        return null;
     }
 
     /**
@@ -453,8 +440,8 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
      * @returns True when at least one dragged port can be connected.
      */
     private draggedPortCanConnect(): boolean {
-        // Node must be loaded.
-        if (!this.mNodeData) {
+        // Node must be loaded and needs ports.
+        if (!this.mNodeData || this.mNodeData.inputs.list.length === 0 || this.mNodeData.outputs.list.length === 0) {
             return false;
         }
 
@@ -463,29 +450,20 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
             return false;
         }
 
+        // Read sole input and output into a list.
+        const lPortList: Array<PotatnoDocumentPort<PotatnoProjectTypesDefinition>> = [this.mNodeData.inputs.list[0], this.mNodeData.outputs.list[0]];
+
         // Accept when any dragged port has a valid inner target port.
         for (const lDraggedPort of this.mManager.grid.draggedPort.ports) {
-            if (this.connectionTargetPort(lDraggedPort)) {
-                return true;
+            for (const lTargetPort of lPortList) {
+                // Not same port, opposing direction and must have the same port type. (For a connection, the value type does not matter).
+                if (lDraggedPort !== lTargetPort && lDraggedPort.direction !== lTargetPort.direction && lDraggedPort.portType === lTargetPort.portType) {
+                    return true;
+                }
             }
         }
 
         return false;
-    }
-
-    /**
-     * Read the single inner port of the given direction.
-     *
-     * @param pDirection - Port direction to read.
-     *
-     * @returns The inner port or undefined when the node has no such port.
-     */
-    private innerPort(pDirection: PotatnoPortDefinitionDirection): PotatnoDocumentPort<PotatnoProjectTypesDefinition> | undefined {
-        if (!this.mNodeData) {
-            return undefined;
-        }
-
-        return pDirection === 'input' ? this.mNodeData.inputs.list[0] : this.mNodeData.outputs.list[0];
     }
 
     /**
@@ -496,15 +474,8 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
      */
     private renderDragWire(pClientX: number, pClientY: number): void {
         // Check if something is dragged.
-        if (!this.mManager.grid.draggedPort.hasPort(this.mDraggedSourcePort) || !this.dragConnectionSvg) {
+        if (!this.mManager.grid.draggedPort.hasPort(this.mDraggedSourcePort) || !this.mDragConnectionSvg || !this.mDragConnectionPath) {
             return;
-        }
-
-        // Try to read first element of svg element or create a new.
-        let lDragConnectionElement: SVGPathElement | null = this.dragConnectionSvg.firstChild as SVGPathElement | null; // TODO: Maybe that can be done in template too?
-        if (!lDragConnectionElement) {
-            lDragConnectionElement = document.createElementNS('http://www.w3.org/2000/svg', 'path') as SVGPathElement;
-            this.dragConnectionSvg.appendChild(lDragConnectionElement);
         }
 
         // Update dragging pointer position and skip if actual grid position has not changed.
@@ -523,10 +494,10 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
         const lPortY: number = lPortPosition.y * this.mManager.grid.gridSize;
 
         // Update svg transformation to meet current grid interaction.
-        this.dragConnectionSvg.style.setProperty('transform', `translate(${-lPortX}px, ${-lPortY}px)`);
+        this.mDragConnectionSvg.style.setProperty('transform', `translate(${-lPortX}px, ${-lPortY}px)`);
 
         // Update drag connection path.
-        lDragConnectionElement.setAttribute('d', this.createDragPath(pClientX, pClientY));
+        this.mDragConnectionPath.setAttribute('d', this.createDragPath(pClientX, pClientY));
     }
 
     /**
@@ -540,7 +511,7 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
         const lNodeY: number = pNode.transformation.y * this.mManager.grid.gridSize;
         this.mComponent.element.style.setProperty('left', `${lNodeX}px`);
         this.mComponent.element.style.setProperty('top', `${lNodeY}px`);
-        
+
         // Syncron update to reduce popping.
         this.mComponent.updater.update();
     }

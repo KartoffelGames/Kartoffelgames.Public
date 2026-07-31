@@ -23,7 +23,7 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
     private readonly mDragPositionEventHandler: PotatnoPortComponentGlobalDragoverHandler;
     private readonly mManager: PotatnoUiManager;
     private mPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null;
-    private readonly mUnsubscribe: PotatnoCodeUiManagerUnsubscribe;
+    private readonly mUnsubscribeValidation: PotatnoCodeUiManagerUnsubscribe;
 
     /**
      * Drag position event handler.
@@ -36,7 +36,13 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
      * SVG element used for the temporary drag wire.
      */
     @PwbChild('dragConnection')
-    public accessor dragConnectionSvg!: SVGSVGElement | null;
+    public accessor mDragConnectionSvg!: SVGSVGElement | null;
+
+    /**
+     *  SVG element used for the temporary drag wire.
+     */
+    @PwbChild('dragPath')
+    private accessor mDragConnectionPath!: SVGPathElement | null;
 
     /**
      * Whether this port currently has a validation error.
@@ -227,7 +233,7 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
         document.addEventListener('dragover', this.mDragPositionEventHandler, { capture: true });
 
         // Update component on any connection change.
-        this.mUnsubscribe = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Connection | PotatnoCodeUiManagerChangeType.SpecialValidation, () => {
+        this.mUnsubscribeValidation = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Connection | PotatnoCodeUiManagerChangeType.SpecialValidation, () => {
             this.mComponent.updater.updateAsync();
         });
     }
@@ -236,7 +242,7 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
      * Detach the manager subscription.
      */
     public onDeconstruct(): void {
-        this.mUnsubscribe();
+        this.mUnsubscribeValidation();
 
         // Remove the global dragover handler when the port gets removed.
         document.removeEventListener('dragover', this.mDragPositionEventHandler, { capture: true });
@@ -280,12 +286,10 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
         pEvent.stopPropagation();
         pEvent.preventDefault();
 
-        this.mManager.grid.setDraggingPort(new Array());
-
         // Clear drag state.
-        if (this.dragConnectionSvg) {
-            this.dragConnectionSvg.innerHTML = '';
-        }
+        this.mDragConnectionPath?.removeAttribute('d');
+        this.mManager.grid.setDraggingPort(new Array());
+        
         this.mComponent.updater.updateAsync();
     }
 
@@ -424,15 +428,15 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
      */
     private renderDragWire(pClientX: number, pClientY: number): void {
         // Check if something is dragged.
-        if (!this.mManager.grid.draggedPort.hasPort(this.port) || !this.dragConnectionSvg) {
+        if (!this.mManager.grid.draggedPort.hasPort(this.port) || !this.mDragConnectionSvg) {
             return;
         }
 
         // Try to read first element of svg element or create a new.
-        let lDragConnectionElement: SVGPathElement | null = this.dragConnectionSvg.firstChild as SVGPathElement | null; // TODO: Maybe that can be done in template too?
+        let lDragConnectionElement: SVGPathElement | null = this.mDragConnectionSvg.firstChild as SVGPathElement | null; // TODO: Maybe that can be done in template too?
         if (!lDragConnectionElement) {
             lDragConnectionElement = document.createElementNS('http://www.w3.org/2000/svg', 'path') as SVGPathElement;
-            this.dragConnectionSvg.appendChild(lDragConnectionElement);
+            this.mDragConnectionSvg.appendChild(lDragConnectionElement);
         }
 
         // Update dragging pointer position and skip if actual grid position has not changed.
@@ -451,7 +455,7 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
         const lPortY: number = lPortPosition.y * this.mManager.grid.gridSize;
 
         // Update svg transformation to meet current grid interaction.
-        this.dragConnectionSvg.style.setProperty('transform', `translate(${-lPortX}px, ${-lPortY}px)`);
+        this.mDragConnectionSvg.style.setProperty('transform', `translate(${-lPortX}px, ${-lPortY}px)`);
 
         // Update drag connection path.
         lDragConnectionElement.setAttribute('d', this.createDragPath(pClientX, pClientY));

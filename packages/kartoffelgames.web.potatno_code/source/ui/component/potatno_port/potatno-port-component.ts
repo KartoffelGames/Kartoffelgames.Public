@@ -48,10 +48,6 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
      * Whether this port currently has a validation error.
      */
     public get hasError(): boolean {
-        if (this.port === null) {
-            return false;
-        }
-
         return this.mManager.integrity.errorItems.has(this.port);
     }
 
@@ -59,11 +55,6 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
      * Input element descriptors for the direct-value fields, derived from the port's type definition.
      */
     public get inputDefinitions(): Array<PotatnoPortComponentValueDefinition> {
-        // Must be set.
-        if (!this.port) {
-            return new Array<PotatnoPortComponentValueDefinition>();
-        }
-
         // No further checks a this property is guarded by showValueInput.
 
         // Read the type definition.
@@ -84,7 +75,7 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
                 htmlType: lInputType,
                 index: pIndex,
                 name: pInput.name,
-                value: this.port!.directValue[pIndex] ?? '',
+                value: this.port.directValue[pIndex] ?? '',
                 totalCount: lTypeDefinition.inputs.length
             };
         });
@@ -94,9 +85,13 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
      * The domain port object to render.
      */
     @PwbExport
-    public get port(): PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null {
+    public get port(): PotatnoDocumentPort<PotatnoProjectTypesDefinition> {
+        if(!this.mPort) {
+            throw new Exception('Port is not setup', this);
+        }
+
         return this.mPort;
-    } set port(pPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null) {
+    } set port(pPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>) {
         // Skip reassigning the port.
         if (this.mPort === pPort) {
             return;
@@ -120,7 +115,7 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
      */
     public get portColor(): string {
         // Color for flow ports. Also catch a port null with this.
-        if (!this.port || this.port.portType === 'flow') {
+        if (this.port.portType === 'flow') {
             return 'var(--potatno-color-text)';
         }
 
@@ -131,17 +126,13 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
      * Port direction name.
      */
     public get portDirection(): PotatnoPortDefinitionDirection {
-        return this.port?.direction ?? 'output';
+        return this.port.direction ?? 'output';
     }
 
     /**
      * CSS class string for the port handle element.
      */
     public get portHandleClasses(): string {
-        if (!this.port) {
-            return '';
-        }
-
         // Create array with port type, connected state and error state.
         const lClasses: Array<string> = [this.port.portType];
         if (this.port.connectedPorts.size > 0) {
@@ -158,14 +149,14 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
      * Port display name.
      */
     public get portName(): string {
-        return this.port?.label ?? '';
+        return this.port.label ?? '';
     }
 
     /**
      * Port type name (shown as tooltip).
      */
     public get portValueType(): string {
-        if (!this.port || this.port.portType !== 'value') {
+        if (this.port.portType !== 'value') {
             return '';
         }
 
@@ -177,10 +168,6 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
      * Only for unconnected, non-generic value input ports.
      */
     public get showValueInput(): boolean {
-        if (!this.port) {
-            return false;
-        }
-
         // Must be a value port and an be an input.
         if (this.port.portType !== 'value' || this.port.direction !== 'input') {
             return false;
@@ -255,9 +242,6 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
      * @param pIndex - Index of the changed value within the directValue array.
      */
     public onDirectValueInput(pEvent: Event, pIndex: number): void {
-        if (!this.port) {
-            return;
-        }
         const lTarget: HTMLInputElement = pEvent.target as HTMLInputElement;
 
         // Read and copy the current port values.
@@ -320,7 +304,7 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
      * @param pEvent - Drag event.
      */
     public onDragStart(pEvent: DragEvent): void {
-        if (!this.port || !pEvent.dataTransfer) {
+        if (!pEvent.dataTransfer) {
             pEvent.preventDefault();
             return;
         }
@@ -359,10 +343,6 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
             return;
         }
 
-        if (!this.port) {
-            return;
-        }
-
         // Throw each dragged port agains the connection. Connections that are not allowed simply return false (ignore the return)
         // In the end only the valid connections are connected. ??? => Profit.
         // Check each dragged port for valid connectivity. Accept if any is valid.
@@ -381,10 +361,6 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
      * @returns SVG path data in local port coordinates.
      */
     private createDragPath(pClientX: number, pClientY: number): string {
-        if (!this.port) {
-            return '';
-        }
-
         // Convert viewport coordinates into this port's grid-local coordinates.
         const lEnd: PotatnoUiManagerGridPathFindingPoint = this.mManager.connections.pixelToGridSpace(pClientX, pClientY);
 
@@ -399,11 +375,6 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
      * @returns True when the ports can be connected.
      */
     private draggedPortCanConnect(): boolean {
-        // Current port must be loaded.
-        if (!this.port) {
-            return false;
-        }
-
         // Check if something is dragged.
         if (!this.mManager.grid.draggedPort.isDragging) {
             return false;
@@ -445,7 +416,7 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
         }
 
         // Read stored port position of the current dragged port.
-        const lPortPosition: PotatnoUiManagerGridPathFindingPoint | undefined = this.mManager.grid.draggedPort.portPositions.get(this.port!);
+        const lPortPosition: PotatnoUiManagerGridPathFindingPoint | undefined = this.mManager.grid.draggedPort.portPositions.get(this.port);
         if (!lPortPosition) {
             return;
         }

@@ -1,3 +1,4 @@
+import { Exception } from "@kartoffelgames/core";
 import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { Component, ComponentState, PwbChild, PwbComponent, PwbComponentEvent, PwbExport, type ComponentEventEmitter, type IComponentOnConnect, type IComponentOnDeconstruct, type IComponentOnUpdate } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
@@ -19,7 +20,7 @@ import nodeTemplate from './potatno-comment-node-component.html' with { type: 't
 })
 export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, IComponentOnConnect, IComponentOnUpdate {
     private readonly mComponent: Component;
-    private mDoubleClickState: PotatnoCommentNodeComponentDoubleClickState | null;
+    private mDoubleClickTimer: number;
     private readonly mManager: PotatnoUiManager;
     private mNodeData: PotatnoDocumentNode<PotatnoProjectTypesDefinition> | null;
     private readonly mUnsubscribe: PotatnoCodeUiManagerUnsubscribe;
@@ -29,14 +30,9 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
      * Node display label.
      */
     public get comment(): string {
-        return this.mNodeData?.label ?? '';
+        return this.nodeData.label ?? '';
     } set comment(pComment: string) {
-        // Skip update.
-        if (!this.mNodeData) {
-            return;
-        }
-
-        this.mNodeData.label = pComment;
+        this.nodeData.label = pComment;
     }
 
     /**
@@ -61,9 +57,13 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
      * The domain node object to render.
      */
     @PwbExport
-    public get nodeData(): PotatnoDocumentNode<PotatnoProjectTypesDefinition> | null {
+    public get nodeData(): PotatnoDocumentNode<PotatnoProjectTypesDefinition> {
+        if (!this.mNodeData) {
+            throw new Exception('Node data not set.', this);
+        }
+
         return this.mNodeData;
-    } set nodeData(pNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition> | null) {
+    } set nodeData(pNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition>) {
         // Set node data and reset node definition.
         this.mNodeData = pNode;
 
@@ -107,7 +107,7 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
         this.mComponent = pComponent;
         this.mManager = pManager;
         this.mNodeData = null;
-        this.mDoubleClickState = null;
+        this.mDoubleClickTimer = -1;
         this.editMode = false;
         this.enableBigview = false;
         this.gridZoom = 0;
@@ -127,7 +127,7 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
             }
 
             // Calculate the current size of the component.
-            this.resyncComponent(this.mNodeData!);
+            this.resyncComponent(this.nodeData);
         });
     }
 
@@ -137,19 +137,12 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
      * @param pEvent - Pointer event from the resize handle.
      */
     public dragNodeOrEnableEdit(pEvent: PointerEvent): void {
-        // Cant transform without node data.
-        if (!this.mNodeData) {
-            return;
-        }
-
         // Start a timer when its not already started.
-        if (!this.mDoubleClickState) {
+        if (this.mDoubleClickTimer === -1) {
             // The timer does reset the itself set double click state.
-            this.mDoubleClickState = {
-                timer: globalThis.setTimeout(() => {
-                    this.mDoubleClickState = null;
-                }, 300)
-            };
+            this.mDoubleClickTimer = globalThis.setTimeout(() => {
+                this.mDoubleClickTimer = -1;
+            }, 300);
         } else {
             // Enable edit mode when a double click state was set.
             this.editMode = true;
@@ -163,11 +156,11 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
         pEvent.preventDefault();
 
         // Save current coordinate so the current pointer position determinates exactly this coordinate.
-        const lStartingCoordinateX: number = this.mNodeData.transformation.x * this.mManager.grid.gridSize;
-        const lStartingCoordinateY: number = this.mNodeData.transformation.y * this.mManager.grid.gridSize;
+        const lStartingCoordinateX: number = this.nodeData.transformation.x * this.mManager.grid.gridSize;
+        const lStartingCoordinateY: number = this.nodeData.transformation.y * this.mManager.grid.gridSize;
 
-        let lCurrentX: number = this.mNodeData.transformation.x;
-        let lCurrentY: number = this.mNodeData.transformation.y;
+        let lCurrentX: number = this.nodeData.transformation.x;
+        let lCurrentY: number = this.nodeData.transformation.y;
 
         // Scale of any transformed parent: ratio of rendered (actual size) to layout (unscaled) size.
         const lComponentSize: DOMRect = this.mComponent.element.getBoundingClientRect();
@@ -196,7 +189,7 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
             }
 
             // And then update node position.
-            this.mManager.graph.transformNode(this.mNodeData, (pNode) => {
+            this.mManager.graph.transformNode(this.nodeData, (pNode) => {
                 pNode.moveTo(lX, lY);
             });
 
@@ -237,11 +230,7 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
      * Resync component once the component is connected.
      */
     public onConnect(): void {
-        if (!this.mNodeData) {
-            return;
-        }
-
-        this.resyncComponent(this.mNodeData);
+        this.resyncComponent(this.nodeData);
     }
 
     /**
@@ -276,7 +265,7 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
      * @param pResize - Resize data.
      */
     public transformNodeData(pResize: PotatnoResizeBoxComponentResize): void {
-        this.mManager.graph.transformNode(this.mNodeData, (pNode) => {
+        this.mManager.graph.transformNode(this.nodeData, (pNode) => {
             // Save size before resizing.
             const lLastWidth: number = pNode.transformation.width;
             const lLastheight: number = pNode.transformation.height;
@@ -345,6 +334,9 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
         this.mComponent.updater.updateAsync();
     }
 
+    /**
+     * Update component z index based on current zoom level.
+     */
     private updateForZoomLevel(): void {
         // Enable satellite view on higher zoom level.
         this.enableBigview = this.mManager.grid.zoom < 0.25;
@@ -392,7 +384,3 @@ export class PotatnoNodeComponentMove {
         this.mY = pY;
     }
 }
-
-type PotatnoCommentNodeComponentDoubleClickState = {
-    timer: number;
-};

@@ -1,15 +1,16 @@
+import { Exception } from "@kartoffelgames/core";
 import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { Component, PwbChild, PwbComponent, PwbComponentEvent, PwbExport, type ComponentEventEmitter, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
+import { PotatnoFlowConjunctionNodeDefinition } from "../../../project/node_definition/potatno-flow-conjunction-node-definition.ts";
+import { PotatnoPortDefinitionType, type PotatnoPortDefinitionDirection } from "../../../project/potatno-port-definition.ts";
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import type { PotatnoUiManagerGridPathFindingPoint } from '../../manager/helper/potatno-ui-grid-path-finding.ts';
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, type PotatnoCodeUiManagerUnsubscribe } from '../../manager/potatno-ui-manager.ts';
 import { PotatnoPortComponent } from '../potatno_port/potatno-port-component.ts';
 import nodeCss from './potatno-conjunction-node-component.css' with { type: 'text' };
 import nodeTemplate from './potatno-conjunction-node-component.html' with { type: 'text' };
-import { PotatnoPortDefinitionType, type PotatnoPortDefinitionDirection } from "../../../project/potatno-port-definition.ts";
-import { PotatnoFlowConjunctionNodeDefinition } from "../../../project/node_definition/potatno-flow-conjunction-node-definition.ts";
 
 /**
  * Node conjunction component for the potatno-code visual editor.
@@ -52,79 +53,43 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
      * CSS class string for the error state.
      */
     public get inputHasError(): boolean {
-        if (!this.mNodeData) {
-            return false;
-        }
-
-        // Node has error.
-        if (this.mManager.integrity.errorItems.has(this.mNodeData)) {
-            return true;
-        }
-
-        // Any input port has an error.
-        for (const lInputPort of this.mNodeData.inputs.list) {
-            if (this.mManager.integrity.errorItems.has(lInputPort)) {
-                return true;
-            }
-        }
-
-        return false;
+        // Node has error or input port has an error.
+        return this.mManager.integrity.errorItems.has(this.nodeData) || this.mManager.integrity.errorItems.has(this.nodePorts.input);
     }
 
     /**
      * CSS class string for the error state.
      */
     public get outputHasError(): boolean {
-        if (!this.mNodeData) {
-            return false;
-        }
-
-        // Node has error.
-        if (this.mManager.integrity.errorItems.has(this.mNodeData)) {
-            return true;
-        }
-
-        // Any output port has an error.
-        for (const lOutputPort of this.mNodeData.outputs.list) {
-            if (this.mManager.integrity.errorItems.has(lOutputPort)) {
-                return true;
-            }
-        }
-
-        return false;
+        // Node has error or output port has an error.
+        return this.mManager.integrity.errorItems.has(this.nodeData) || this.mManager.integrity.errorItems.has(this.nodePorts.output);
     }
 
     /**
      * Get if the sole ouput port is connected to any other port.
      */
     public get isInputConnected(): boolean {
-        // Not connected when neighter the data nor inputs exists.
-        if (!this.mNodeData || this.mNodeData.inputs.list.length === 0) {
-            return false;
-        }
-
-        return this.mNodeData.inputs.list[0].connectedPorts.size > 0;
+        return this.nodePorts.input.connectedPorts.size > 0;
     }
 
     /**
      * Get if the sole ouput port is connected to any other port.
      */
     public get isOutputConnected(): boolean {
-        // Not connected when neighter the data nor outputs exists.
-        if (!this.mNodeData || this.mNodeData.outputs.list.length === 0) {
-            return false;
-        }
-
-        return this.mNodeData.outputs.list[0].connectedPorts.size > 0;
+        return this.nodePorts.output.connectedPorts.size > 0;
     }
 
     /**
      * The domain node object to render.
      */
     @PwbExport
-    public get nodeData(): PotatnoDocumentNode<PotatnoProjectTypesDefinition> | null {
+    public get nodeData(): PotatnoDocumentNode<PotatnoProjectTypesDefinition> {
+        if (!this.mNodeData) {
+            throw new Exception('Node data not set.', this);
+        }
+
         return this.mNodeData;
-    } set nodeData(pNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition> | null) {
+    } set nodeData(pNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition>) {
         // Set node data and reset node definition.
         this.mNodeData = pNode;
 
@@ -155,7 +120,7 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
      * Port type of conjunction.
      */
     public get portType(): PotatnoPortDefinitionType {
-        if (this.mNodeData?.definitionId === PotatnoFlowConjunctionNodeDefinition.DEFINITION_ID) {
+        if (this.nodeData.definitionId === PotatnoFlowConjunctionNodeDefinition.DEFINITION_ID) {
             return 'flow';
         }
 
@@ -167,11 +132,25 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
      */
     public get portValueType(): string {
         // No valid value type when it cant be read from the first value node.
-        if (!this.mNodeData || this.portType !== 'value' || this.mNodeData.inputs.list.length === 0) {
+        if (this.portType !== 'value') {
             return '';
         }
 
-        return this.mNodeData.inputs.list[0].resolvedDataType;
+        return this.nodePorts.input.resolvedDataType;
+    }
+
+    /**
+     * Get nodes input and output port.
+     */
+    private get nodePorts(): PotatnoConjunctionNodePorts {
+        if(this.nodeData.inputs.list.length === 0 || this.nodeData.outputs.list.length === 0){
+            throw new Exception('Malformed conjunction node', this);
+        }
+
+        return {
+            input: this.nodeData.inputs.list[0],
+            output: this.nodeData.inputs.list[0],
+        }
     }
 
     /**
@@ -214,7 +193,7 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
             }
 
             // Calculate the current size of the component.
-            this.resyncComponent(this.mNodeData!);
+            this.resyncComponent(this.nodeData);
         });
 
         // Update component on any connection change.
@@ -229,19 +208,14 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
      * @param pEvent - Pointer event from the resize handle.
      */
     public dragNode(pEvent: PointerEvent): void {
-        // Cant transform without node data.
-        if (!this.mNodeData) {
-            return;
-        }
-
         pEvent.preventDefault();
 
         // Save current coordinate so the current pointer position determinates exactly this coordinate.
-        const lStartingCoordinateX: number = this.mNodeData.transformation.x * this.mManager.grid.gridSize;
-        const lStartingCoordinateY: number = this.mNodeData.transformation.y * this.mManager.grid.gridSize;
+        const lStartingCoordinateX: number = this.nodeData.transformation.x * this.mManager.grid.gridSize;
+        const lStartingCoordinateY: number = this.nodeData.transformation.y * this.mManager.grid.gridSize;
 
-        let lCurrentX: number = this.mNodeData.transformation.x;
-        let lCurrentY: number = this.mNodeData.transformation.y;
+        let lCurrentX: number = this.nodeData.transformation.x;
+        let lCurrentY: number = this.nodeData.transformation.y;
 
         // Scale of any transformed parent: ratio of rendered (actual size) to layout (unscaled) size.
         const lComponentSize: DOMRect = this.mComponent.element.getBoundingClientRect();
@@ -270,7 +244,7 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
             }
 
             // And then update node position.
-            this.mManager.graph.transformNode(this.mNodeData, (pNode) => {
+            this.mManager.graph.transformNode(this.nodeData, (pNode) => {
                 pNode.moveTo(lX, lY);
             });
 
@@ -317,7 +291,7 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
         // Clear drag state.
         this.mDragConnectionPath?.removeAttribute('d');
         this.mManager.grid.setDraggingPort(new Array());
-        this.mDraggedSourcePort = null;
+        this.mDraggedSourcePort = null; // TODO: Remove?
 
         this.mComponent.updater.updateAsync();
     }
@@ -350,14 +324,9 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
      * @param pDirection - Direction of the port the drag started on.
      */
     public onDragStart(pEvent: DragEvent, pDirection: PotatnoPortDefinitionDirection): void {
-        // Node data must be set to read ports.
-        if (!this.mNodeData) {
-            return;
-        }
-
         // Read the single inner port of the dragged direction.
         const lPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> = (() => {
-            return pDirection === 'input' ? this.mNodeData.inputs.list[0] : this.mNodeData.outputs.list[0];
+            return pDirection === 'input' ? this.nodePorts.input : this.nodePorts.output;
         })();
 
         // Register native drag data. Reuse the port components mime type for interoperability.
@@ -401,16 +370,14 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
             return;
         }
 
-        // Node must be loaded and needs ports.
-        if (!this.mNodeData || this.mNodeData.inputs.list.length === 0 || this.mNodeData.outputs.list.length === 0) {
-            return;
-        }
-
         // Throw each dragged port against its matching inner port. Invalid connections simply return false.
         for (const lDraggedPort of this.mManager.grid.draggedPort.ports) {
+            // Get both ports.
+            const lPorts: PotatnoConjunctionNodePorts = this.nodePorts;
+            
             // Try to connect both ports, input and output.
-            this.mManager.graph.connectPorts(lDraggedPort, this.mNodeData.inputs.list[0]);
-            this.mManager.graph.connectPorts(lDraggedPort, this.mNodeData.outputs.list[0]);
+            this.mManager.graph.connectPorts(lDraggedPort, lPorts.input);
+            this.mManager.graph.connectPorts(lDraggedPort, lPorts.output);
         }
     }
 
@@ -440,18 +407,14 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
      * @returns True when at least one dragged port can be connected.
      */
     private draggedPortCanConnect(): boolean {
-        // Node must be loaded and needs ports.
-        if (!this.mNodeData || this.mNodeData.inputs.list.length === 0 || this.mNodeData.outputs.list.length === 0) {
-            return false;
-        }
-
         // Check if something is dragged.
         if (!this.mManager.grid.draggedPort.isDragging) {
             return false;
         }
 
         // Read sole input and output into a list.
-        const lPortList: Array<PotatnoDocumentPort<PotatnoProjectTypesDefinition>> = [this.mNodeData.inputs.list[0], this.mNodeData.outputs.list[0]];
+        const lPorts: PotatnoConjunctionNodePorts = this.nodePorts;
+        const lPortList: Array<PotatnoDocumentPort<PotatnoProjectTypesDefinition>> = [lPorts.input, lPorts.output];
 
         // Accept when any dragged port has a valid inner target port.
         for (const lDraggedPort of this.mManager.grid.draggedPort.ports) {
@@ -550,5 +513,10 @@ export class PotatnoNodeComponentMove {
         this.mY = pY;
     }
 }
+
+type PotatnoConjunctionNodePorts = {
+    input: PotatnoDocumentPort<PotatnoProjectTypesDefinition>;
+    output: PotatnoDocumentPort<PotatnoProjectTypesDefinition>;
+};
 
 type PotatnoConjunctionNodeGlobalDragoverHandler = (pEvent: DragEvent) => void;

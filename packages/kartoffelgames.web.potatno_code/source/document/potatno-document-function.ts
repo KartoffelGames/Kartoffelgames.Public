@@ -1,4 +1,5 @@
 import { Exception } from '@kartoffelgames/core';
+import { PotatnoFunctionNodeDefinition } from '../project/node_definition/potatno-function-node-definition.ts';
 import type { PotatnoNodeDefinition } from '../project/node_definition/potatno-node-definition.ts';
 import type { PotatnoFunctionDefinition, PotatnoFunctionDefinitionNodes } from '../project/potatno-function-definition.ts';
 import type { PotatnoPortDefinition } from '../project/potatno-port-definition.ts';
@@ -42,12 +43,15 @@ export class PotatnoDocumentFunction<TProjectTypes extends PotatnoProjectTypesDe
      * Get all node definitions that can be dynamicly added or deleted by the user into this function.
      */
     public get dynamicNodeDefinitions(): ReadonlyArray<PotatnoNodeDefinition<TProjectTypes>> {
-        // TODO: Also filter for recursion of the same function.
+        // Filter out this function's own call node so a function cannot be placed as a node inside itself (direct recursion).
+        const lDocumentNodeDefinitions: Array<PotatnoNodeDefinition<TProjectTypes>> = this.mDocument.nodeDefinitions.filter((pNodeDefinition) => {
+            return !(pNodeDefinition instanceof PotatnoFunctionNodeDefinition && pNodeDefinition.function === this);
+        });
 
         // Read the function definition from project.
         const lFunctionDefinition: PotatnoFunctionDefinition<TProjectTypes> | undefined = this.mProject.getFunction(this.definitionId);
         if (!lFunctionDefinition) {
-            return [...this.mDocument.nodeDefinitions];
+            return lDocumentNodeDefinitions;
         }
 
         const lFunctionNodes = lFunctionDefinition.getNodeDefinitions(this);
@@ -56,7 +60,7 @@ export class PotatnoDocumentFunction<TProjectTypes extends PotatnoProjectTypesDe
             .flatMap((pImportDefinition) => pImportDefinition.nodes);
 
         return [
-            ...this.mDocument.nodeDefinitions,
+            ...lDocumentNodeDefinitions,
             ...lImportedNodeDefinitions,
             ...lFunctionNodes.dynamic
         ];

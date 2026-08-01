@@ -296,6 +296,22 @@ Deno.test('PotatnoDocumentFunction.outputs', async (pContext) => {
     });
 });
 
+Deno.test('PotatnoDocumentFunction.dynamicNodeDefinitions', async (pContext) => {
+    await pContext.step("Excludes the current function's own call node to prevent direct recursion", () => {
+        // Setup. Two user functions in the same document.
+        const lDocument = new PotatnoDocument(PotatnoHelper.TEST_PROJECT);
+        const lFunctionA = PotatnoHelper.newHelperFunction(lDocument, 'fn-a', 'fn-a');
+        const lFunctionB = PotatnoHelper.newHelperFunction(lDocument, 'fn-b', 'fn-b');
+
+        // Process.
+        const lDefinitionIds: Set<string> = new Set(lFunctionA.dynamicNodeDefinitions.map((pDefinition) => pDefinition.id));
+
+        // Evaluation. Function A cannot reference its own call node, but can reference the other function B.
+        expect(lDefinitionIds.has(`USERFUNCTION_${lFunctionA.id}`)).toBe(false);
+        expect(lDefinitionIds.has(`USERFUNCTION_${lFunctionB.id}`)).toBe(true);
+    });
+});
+
 Deno.test('PotatnoDocumentFunction.nodeDefinitions', async (pContext) => {
     await pContext.step('Returns document definitions when the function definition has no dynamic provider', () => {
         // Setup. Process.

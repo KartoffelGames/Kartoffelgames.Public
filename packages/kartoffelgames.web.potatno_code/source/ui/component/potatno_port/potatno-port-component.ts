@@ -205,16 +205,12 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
                 return;
             }
 
-            // Only fire event when the port is matched.
-            if (!this.mManager.grid.draggedPort.hasPort(this.port)) {
-                return;
-            }
-
             // Play the gamble and skip event when the time differs too much.
             if (performance.now() - pEvent.timeStamp > 100) {
                 return;
             }
 
+            // Only draws when the current (this) port is dragged.
             this.renderDragWire(pEvent.clientX, pEvent.clientY);
         };
         document.addEventListener('dragover', this.mDragPositionEventHandler, { capture: true });
@@ -403,13 +399,6 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
             return;
         }
 
-        // Try to read first element of svg element or create a new.
-        let lDragConnectionElement: SVGPathElement | null = this.mDragConnectionSvg.firstChild as SVGPathElement | null; // TODO: Maybe that can be done in template too?
-        if (!lDragConnectionElement) {
-            lDragConnectionElement = document.createElementNS('http://www.w3.org/2000/svg', 'path') as SVGPathElement;
-            this.mDragConnectionSvg.appendChild(lDragConnectionElement);
-        }
-
         // Update dragging pointer position and skip if actual grid position has not changed.
         if (!this.mManager.grid.draggedPort.updatePointer(pClientX, pClientY)) {
             return;
@@ -429,7 +418,7 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
         this.mDragConnectionSvg.style.setProperty('transform', `translate(${-lPortX}px, ${-lPortY}px)`);
 
         // Update drag connection path.
-        lDragConnectionElement.setAttribute('d', this.createDragPath(pClientX, pClientY));
+        this.mDragConnectionPath?.setAttribute('d', this.createDragPath(pClientX, pClientY));
     }
 }
 

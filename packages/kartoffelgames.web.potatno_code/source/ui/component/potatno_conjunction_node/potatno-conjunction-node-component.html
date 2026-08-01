@@ -1,12 +1,12 @@
 <div class="node" style="--type-color: {{this.portColor}}" (dragover)="this.onDragOver($event)" (drop)="this.onDrop($event)">
 
-    <div class="port input {{this.inputHasError ? 'error' : ''}} {{ this.isInputConnected ? 'connected' : ''}}" draggable="true" [title]="this.portValueType" (dragstart)="this.onDragStart($event, 'input')" (dragend)="this.onDragEnd($event)">
+    <div class="port input {{this.inputHasError ? 'error' : ''}} {{ this.isInputConnected ? 'connected' : ''}}" draggable="true" [title]="this.portValueType" (dragstart)="this.onDragStart($event)" (dragend)="this.onDragEnd($event)">
         <div class="port__handle {{ this.portType }}"></div>
     </div>
 
     <div class="drag-area" (pointerdown)="this.dragNode($event)"/>
 
-    <div class="port output {{this.outputHasError ? 'error' : ''}} {{ this.isOutputConnected ? 'connected' : ''}}" draggable="true" [title]="this.portValueType" (dragstart)="this.onDragStart($event, 'output')" (dragend)="this.onDragEnd($event)">
+    <div class="port output {{this.outputHasError ? 'error' : ''}} {{ this.isOutputConnected ? 'connected' : ''}}" draggable="true" [title]="this.portValueType" (dragstart)="this.onDragStart($event)" (dragend)="this.onDragEnd($event)">
         <div class="port__handle {{ this.portType }}"></div>
     </div>
 

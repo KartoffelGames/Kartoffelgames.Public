@@ -1,6 +1,6 @@
 <!-- Resizeable part of node -->
 <potatno-resize-box #ResizeBox class="node {{this.editMode ? 'edit' : ''}}" top="true" right="true" bottom="true" left="true" [snap]="25" [virtual]="true" (resize)="this.transformNodeData($event.value)">
-    <div class="node-header" (pointerdown)="this.dragNodeOrEnableEdit($event)">
+    <div class="node-header" (pointerdown)="this.dragNodeOrEnableEdit($event)" (dblclick)="this.editMode = true;">
         <span class="node-header__icon">✎</span>
 
         $if(this.editMode) {

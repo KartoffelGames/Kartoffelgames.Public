@@ -6,13 +6,14 @@ import { PotatnoFlowConjunctionNodeDefinition } from "../../../project/node_defi
 import { PotatnoNodeDefinition } from '../../../project/node_definition/potatno-node-definition.ts';
 import { PotatnoValueConjunctionNodeDefinition } from "../../../project/node_definition/potatno-value-conjunction-node-definition.ts";
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
+import { PotatnoUiManagerGridCoordinate } from "../manager_component/potatno-ui-manager-grid.ts";
 
 /**
  * A* path finding for grid connections.
  */
-export class PotatnoUiGridPathFinding extends Astar<PotatnoUiManagerGridPathFindingPoint> {
+export class PotatnoUiGridPathFinding extends Astar<PotatnoUiManagerGridCoordinate> {
     private readonly mGridNodeArea: WeakMap<PotatnoDocumentNode<PotatnoProjectTypesDefinition>, Array<PotatnoUiManagerGridPathFindingNodeId>>;
-    private readonly mGridPaths: WeakMap<PotatnoDocumentPort<PotatnoProjectTypesDefinition>, Array<PotatnoUiManagerGridPathFindingPoint>>;
+    private readonly mGridPaths: WeakMap<PotatnoDocumentPort<PotatnoProjectTypesDefinition>, Array<PotatnoUiManagerGridCoordinate>>;
     private readonly mNodeArea: Map<PotatnoUiManagerGridPathFindingNodeId, number>;
     private readonly mPathArea: Map<PotatnoUiManagerGridPathFindingNodeId, PotatnoUiManagerGridPathFindingPathAreaCell>;
 
@@ -26,7 +27,7 @@ export class PotatnoUiGridPathFinding extends Astar<PotatnoUiManagerGridPathFind
         this.mGridNodeArea = new WeakMap<PotatnoDocumentNode<PotatnoProjectTypesDefinition>, Array<PotatnoUiManagerGridPathFindingNodeId>>();
         this.mNodeArea = new Map<PotatnoUiManagerGridPathFindingNodeId, number>();
 
-        this.mGridPaths = new WeakMap<PotatnoDocumentPort<PotatnoProjectTypesDefinition>, Array<PotatnoUiManagerGridPathFindingPoint>>();
+        this.mGridPaths = new WeakMap<PotatnoDocumentPort<PotatnoProjectTypesDefinition>, Array<PotatnoUiManagerGridCoordinate>>();
         this.mPathArea = new Map<PotatnoUiManagerGridPathFindingNodeId, PotatnoUiManagerGridPathFindingPathAreaCell>();
     }
 
@@ -50,7 +51,7 @@ export class PotatnoUiGridPathFinding extends Astar<PotatnoUiManagerGridPathFind
      * 
      * @returns The calculated path. 
      */
-    public getPath(pStartPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pEndPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>): Array<PotatnoUiManagerGridPathFindingPoint> {
+    public getPath(pStartPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pEndPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>): Array<PotatnoUiManagerGridCoordinate> {
         // Start port must be an input-value or an output-flow node.
         const lStartPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> = (() => {
             if (pStartPort.direction === 'input' && pStartPort.portType === 'value' || pStartPort.direction === 'output' && pStartPort.portType === 'flow') {
@@ -61,7 +62,7 @@ export class PotatnoUiGridPathFinding extends Astar<PotatnoUiManagerGridPathFind
         })();
 
         // Try to read path data.
-        return this.mGridPaths.get(lStartPort) ?? new Array<PotatnoUiManagerGridPathFindingPoint>();
+        return this.mGridPaths.get(lStartPort) ?? new Array<PotatnoUiManagerGridCoordinate>();
     }
 
     /**
@@ -169,7 +170,7 @@ export class PotatnoUiGridPathFinding extends Astar<PotatnoUiManagerGridPathFind
      * @param pEndPort - Exit port.
      * @param pEndPortPoint - Position of exit port. 
      */
-    public updatePath(pStartPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pStartPortPoint: PotatnoUiManagerGridPathFindingPoint, pEndPortPoint: PotatnoUiManagerGridPathFindingPoint): void {
+    public updatePath(pStartPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pStartPortPoint: PotatnoUiManagerGridCoordinate, pEndPortPoint: PotatnoUiManagerGridCoordinate): void {
         // Validate start port to be a port with at most a single connection.
         if (pStartPort.direction === 'input' && pStartPort.portType !== 'value' || pStartPort.direction === 'output' && pStartPort.portType !== 'flow') {
             throw new Exception('Start port must be an input-value or an output-flow node.', this);
@@ -179,7 +180,7 @@ export class PotatnoUiGridPathFinding extends Astar<PotatnoUiManagerGridPathFind
         this.removePathArea(pStartPort);
 
         // Calculate path.
-        const lPath: AstarResult<PotatnoUiManagerGridPathFindingPoint> = this.start(pStartPortPoint, pEndPortPoint);
+        const lPath: AstarResult<PotatnoUiManagerGridCoordinate> = this.start(pStartPortPoint, pEndPortPoint);
 
         // First of all assign the path to the port.
         this.mGridPaths.set(pStartPort, lPath.path);
@@ -222,7 +223,7 @@ export class PotatnoUiGridPathFinding extends Astar<PotatnoUiManagerGridPathFind
      * @param pNode - Node the path wants to traverse.
      * @param pPathInformation - Path information that leads to the current node.
      */
-    protected override costOfTraversal(pNode: PotatnoUiManagerGridPathFindingPoint, pPathInformation: AstarPathInformation<PotatnoUiManagerGridPathFindingPoint>): number {
+    protected override costOfTraversal(pNode: PotatnoUiManagerGridCoordinate, pPathInformation: AstarPathInformation<PotatnoUiManagerGridCoordinate>): number {
         // Convert node point into grid point.
         const lGridPoint: PotatnoUiManagerGridPathFindingNodeId = this.nodeId(pNode);
 
@@ -234,7 +235,7 @@ export class PotatnoUiGridPathFinding extends Astar<PotatnoUiManagerGridPathFind
         }
 
         // Read previous path nodes once.
-        const lPreviousNode: PotatnoUiManagerGridPathFindingPoint | undefined = pPathInformation.path.next().value as PotatnoUiManagerGridPathFindingPoint | undefined;
+        const lPreviousNode: PotatnoUiManagerGridCoordinate | undefined = pPathInformation.path.next().value as PotatnoUiManagerGridCoordinate | undefined;
 
         // Existing path cells are allowed, but make crossing them more expensive than using a free lane.
         if (this.mPathArea.has(lGridPoint)) {
@@ -269,7 +270,7 @@ export class PotatnoUiGridPathFinding extends Astar<PotatnoUiManagerGridPathFind
             }
 
             // Continue in the same direction when possible to avoid unnecessary bends.
-            const lPreviousPreviousNode: PotatnoUiManagerGridPathFindingPoint | undefined = pPathInformation.path.next().value as PotatnoUiManagerGridPathFindingPoint | undefined;
+            const lPreviousPreviousNode: PotatnoUiManagerGridCoordinate | undefined = pPathInformation.path.next().value as PotatnoUiManagerGridCoordinate | undefined;
             if (lPreviousPreviousNode && (pNode.x === lPreviousPreviousNode.x || pNode.y === lPreviousPreviousNode.y)) {
                 lCost *= 0.7;
             }
@@ -305,7 +306,7 @@ export class PotatnoUiGridPathFinding extends Astar<PotatnoUiManagerGridPathFind
      * 
      * @return cost of the path between the current and end node.
      */
-    protected override heuristic(pNode: PotatnoUiManagerGridPathFindingPoint, pPathInformation: AstarPathInformation<PotatnoUiManagerGridPathFindingPoint>): number {
+    protected override heuristic(pNode: PotatnoUiManagerGridCoordinate, pPathInformation: AstarPathInformation<PotatnoUiManagerGridCoordinate>): number {
         const lWeighting: number = 0.5;
 
         // Calculate plain Manhattan distance so the heuristic does not predict preferred path shapes.
@@ -319,7 +320,7 @@ export class PotatnoUiGridPathFinding extends Astar<PotatnoUiManagerGridPathFind
      * 
      * @returns All neighbor nodes. 
      */
-    protected override neighborNodes(pNode: PotatnoUiManagerGridPathFindingPoint): Array<PotatnoUiManagerGridPathFindingPoint> {
+    protected override neighborNodes(pNode: PotatnoUiManagerGridCoordinate): Array<PotatnoUiManagerGridCoordinate> {
         // Collect grid neighbors.
         return [
             { x: pNode.x, y: pNode.y - 1 },
@@ -336,7 +337,7 @@ export class PotatnoUiGridPathFinding extends Astar<PotatnoUiManagerGridPathFind
      *
      * @return node id. 
      */
-    protected override nodeId(pNode: PotatnoUiManagerGridPathFindingPoint): PotatnoUiManagerGridPathFindingNodeId {
+    protected override nodeId(pNode: PotatnoUiManagerGridCoordinate): PotatnoUiManagerGridPathFindingNodeId {
         return `${pNode.x}|${pNode.y}`;
     }
 
@@ -352,7 +353,7 @@ export class PotatnoUiGridPathFinding extends Astar<PotatnoUiManagerGridPathFind
         }
 
         // Read current grid area.
-        const lCurrentPathArea: Array<PotatnoUiManagerGridPathFindingPoint> = this.mGridPaths.get(pPort)!;
+        const lCurrentPathArea: Array<PotatnoUiManagerGridCoordinate> = this.mGridPaths.get(pPort)!;
 
         // Remove old port area.
         for (const lPathItem of lCurrentPathArea) {
@@ -403,7 +404,3 @@ type PotatnoUiManagerGridPathFindingPathAreaCell = {
     entryPoints: Set<PotatnoUiManagerGridPathFindingNodeId>;
 };
 
-export type PotatnoUiManagerGridPathFindingPoint = {
-    x: number;
-    y: number;
-};

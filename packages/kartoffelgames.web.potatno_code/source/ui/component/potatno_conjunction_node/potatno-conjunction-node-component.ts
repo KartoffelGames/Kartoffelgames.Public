@@ -6,7 +6,7 @@ import type { PotatnoDocumentPort } from '../../../document/potatno-document-por
 import { PotatnoFlowConjunctionNodeDefinition } from "../../../project/node_definition/potatno-flow-conjunction-node-definition.ts";
 import { PotatnoPortDefinitionType, type PotatnoPortDefinitionDirection } from "../../../project/potatno-port-definition.ts";
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
-import type { PotatnoUiManagerGridPathFindingPoint } from '../../manager/helper/potatno-ui-grid-path-finding.ts';
+import { PotatnoUiManagerGridCoordinate } from "../../manager/manager_component/potatno-ui-manager-grid.ts";
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, type PotatnoCodeUiManagerUnsubscribe } from '../../manager/potatno-ui-manager.ts';
 import { PotatnoPortComponent } from '../potatno_port/potatno-port-component.ts';
 import nodeCss from './potatno-conjunction-node-component.css' with { type: 'text' };
@@ -143,14 +143,14 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
      * Get nodes input and output port.
      */
     private get nodePorts(): PotatnoConjunctionNodePorts {
-        if(this.nodeData.inputs.list.length === 0 || this.nodeData.outputs.list.length === 0){
+        if (this.nodeData.inputs.list.length === 0 || this.nodeData.outputs.list.length === 0) {
             throw new Exception('Malformed conjunction node', this);
         }
 
         return {
             input: this.nodeData.inputs.list[0],
             output: this.nodeData.outputs.list[0],
-        }
+        };
     }
 
     /**
@@ -211,12 +211,12 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
         pEvent.preventDefault();
 
         // Right click. Delete node.
-        if(pEvent.button === 2) {
+        if (pEvent.button === 2) {
             this.mManager.graph.removeNode(this.nodeData);
         }
 
         // Skip anything that is not a left mouse button.
-        if(pEvent.button !== 0) {
+        if (pEvent.button !== 0) {
             return;
         }
 
@@ -384,7 +384,7 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
         for (const lDraggedPort of this.mManager.grid.draggedPort.ports) {
             // Get both ports.
             const lPorts: PotatnoConjunctionNodePorts = this.nodePorts;
-            
+
             // Try to connect both ports, input and output.
             this.mManager.graph.connectPorts(lDraggedPort, lPorts.input);
             this.mManager.graph.connectPorts(lDraggedPort, lPorts.output);
@@ -405,7 +405,7 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
         }
 
         // Convert viewport coordinates into grid-local coordinates.
-        const lEnd: PotatnoUiManagerGridPathFindingPoint = this.mManager.connections.pixelToGridSpace(pClientX, pClientY);
+        const lEnd: PotatnoUiManagerGridCoordinate = this.mManager.grid.pixelToGridSpace(pClientX, pClientY);
 
         return this.mManager.connections.createTemporaryPath(this.mDraggedSourcePort, lEnd);
     }
@@ -457,7 +457,7 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
         }
 
         // Read stored port position of the current dragged port.
-        const lPortPosition: PotatnoUiManagerGridPathFindingPoint | undefined = this.mManager.grid.draggedPort.portPositions.get(this.mDraggedSourcePort!);
+        const lPortPosition: PotatnoUiManagerGridCoordinate | undefined = this.mManager.grid.draggedPort.portPositions.get(this.mDraggedSourcePort!);
         if (!lPortPosition) {
             return;
         }

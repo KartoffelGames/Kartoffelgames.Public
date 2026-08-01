@@ -20,7 +20,6 @@ import nodeTemplate from './potatno-comment-node-component.html' with { type: 't
 })
 export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, IComponentOnConnect, IComponentOnUpdate {
     private readonly mComponent: Component;
-    private mDoubleClickTimer: number;
     private readonly mManager: PotatnoUiManager;
     private mNodeData: PotatnoDocumentNode<PotatnoProjectTypesDefinition> | null;
     private readonly mUnsubscribe: PotatnoCodeUiManagerUnsubscribe;
@@ -107,7 +106,6 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
         this.mComponent = pComponent;
         this.mManager = pManager;
         this.mNodeData = null;
-        this.mDoubleClickTimer = -1;
         this.editMode = false;
         this.enableBigview = false;
         this.gridZoom = 0;
@@ -139,6 +137,11 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
     public dragNodeOrEnableEdit(pEvent: PointerEvent): void {
         pEvent.preventDefault();
 
+        // Prevent dragging or deletion in edit mode.
+        if (this.editMode) {
+            return;
+        }
+
         // Right click. Delete node.
         if (pEvent.button === 2) {
             this.mManager.graph.removeNode(this.nodeData);
@@ -146,22 +149,6 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
 
         // Skip anything that is not a left mouse button.
         if (pEvent.button !== 0) {
-            return;
-        }
-
-        // Start a timer when its not already started.
-        if (this.mDoubleClickTimer === -1) {
-            // The timer does reset the itself set double click state.
-            this.mDoubleClickTimer = globalThis.setTimeout(() => {
-                this.mDoubleClickTimer = -1;
-            }, 300);
-        } else {
-            // Enable edit mode when a double click state was set.
-            this.editMode = true;
-        }
-
-        // Prevent dragging on edit mode.
-        if (this.editMode) {
             return;
         }
 

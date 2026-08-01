@@ -4,7 +4,7 @@ import { Component, PwbChild, PwbComponent, PwbExport, type IComponentOnDeconstr
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import type { PotatnoPortDefinitionDirection } from '../../../project/potatno-port-definition.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
-import type { PotatnoUiManagerGridPathFindingPoint } from '../../manager/helper/potatno-ui-grid-path-finding.ts';
+import { PotatnoUiManagerGridCoordinate } from "../../manager/manager_component/potatno-ui-manager-grid.ts";
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, type PotatnoCodeUiManagerUnsubscribe } from '../../manager/potatno-ui-manager.ts';
 import portCss from './potatno-port-component.css' with { type: 'text' };
 import portTemplate from './potatno-port-component.html' with { type: 'text' };
@@ -86,7 +86,7 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
      */
     @PwbExport
     public get port(): PotatnoDocumentPort<PotatnoProjectTypesDefinition> {
-        if(!this.mPort) {
+        if (!this.mPort) {
             throw new Exception('Port is not setup', this);
         }
 
@@ -273,7 +273,7 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
         // Clear drag state.
         this.mDragConnectionPath?.removeAttribute('d');
         this.mManager.grid.setDraggingPort(new Array());
-        
+
         this.mComponent.updater.updateAsync();
     }
 
@@ -362,7 +362,7 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
      */
     private createDragPath(pClientX: number, pClientY: number): string {
         // Convert viewport coordinates into this port's grid-local coordinates.
-        const lEnd: PotatnoUiManagerGridPathFindingPoint = this.mManager.connections.pixelToGridSpace(pClientX, pClientY);
+        const lEnd: PotatnoUiManagerGridCoordinate = this.mManager.grid.pixelToGridSpace(pClientX, pClientY);
 
         return this.mManager.connections.createTemporaryPath(this.port, lEnd);
     }
@@ -416,7 +416,7 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
         }
 
         // Read stored port position of the current dragged port.
-        const lPortPosition: PotatnoUiManagerGridPathFindingPoint | undefined = this.mManager.grid.draggedPort.portPositions.get(this.port);
+        const lPortPosition: PotatnoUiManagerGridCoordinate | undefined = this.mManager.grid.draggedPort.portPositions.get(this.port);
         if (!lPortPosition) {
             return;
         }

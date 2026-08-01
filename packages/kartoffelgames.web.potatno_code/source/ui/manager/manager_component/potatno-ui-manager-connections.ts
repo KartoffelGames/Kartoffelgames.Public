@@ -1,28 +1,20 @@
 import { Exception } from '@kartoffelgames/core';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
-import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
-import { PotatnoUiGridPathFinding, type PotatnoUiManagerGridPathFindingPoint } from '../helper/potatno-ui-grid-path-finding.ts';
-import { PotatnoCodeUiManagerChangeType, type PotatnoUiManager, type PotatnoUiManagerChangeEvent } from '../potatno-ui-manager.ts';
 import { PotatnoFlowConjunctionNodeDefinition } from "../../../project/node_definition/potatno-flow-conjunction-node-definition.ts";
 import { PotatnoValueConjunctionNodeDefinition } from "../../../project/node_definition/potatno-value-conjunction-node-definition.ts";
+import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
+import { PotatnoUiGridPathFinding } from '../helper/potatno-ui-grid-path-finding.ts';
+import { PotatnoCodeUiManagerChangeType, type PotatnoUiManager, type PotatnoUiManagerChangeEvent } from '../potatno-ui-manager.ts';
+import { PotatnoUiManagerGridCoordinate } from "./potatno-ui-manager-grid.ts";
 
 /**
  * Ui manager grid component.
  * Owns grid sizing and rendered port component lookup for the graph UI.
  */
 export class PotatnoUiManagerConnections {
-    private mGridElement: Element | null;
     private readonly mManager: PotatnoUiManager;
     private readonly mPathFinder: PotatnoUiGridPathFinding;
-
-    /**
-     * Set only grid element.
-     * Used to position by pixel space.
-     */
-    public set gridElement(pGridElement: Element) {
-        this.mGridElement = pGridElement;
-    }
 
     /**
      * Constructor.
@@ -31,7 +23,6 @@ export class PotatnoUiManagerConnections {
      */
     public constructor(pManager: PotatnoUiManager) {
         this.mManager = pManager;
-        this.mGridElement = null;
         this.mPathFinder = new PotatnoUiGridPathFinding();
 
         const lDebounceHandle: number = 0;
@@ -93,9 +84,9 @@ export class PotatnoUiManagerConnections {
      *
      * @returns SVG path data.
      */
-    public createTemporaryPath(pStart: PotatnoUiManagerGridPathFindingPoint | PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pEnd: PotatnoUiManagerGridPathFindingPoint | PotatnoDocumentPort<PotatnoProjectTypesDefinition>): string {
+    public createTemporaryPath(pStart: PotatnoUiManagerGridCoordinate | PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pEnd: PotatnoUiManagerGridCoordinate | PotatnoDocumentPort<PotatnoProjectTypesDefinition>): string {
         // Convert entry items to grid points.
-        const lItemToPoint = (pItem: PotatnoUiManagerGridPathFindingPoint | PotatnoDocumentPort<PotatnoProjectTypesDefinition>) => {
+        const lItemToPoint = (pItem: PotatnoUiManagerGridCoordinate | PotatnoDocumentPort<PotatnoProjectTypesDefinition>) => {
             if (pItem instanceof PotatnoDocumentPort) {
                 return this.getPortGridPoint(pItem);
             }
@@ -104,19 +95,26 @@ export class PotatnoUiManagerConnections {
         };
 
         // Convert both points into a restricting values.
-        const lStart: PotatnoUiManagerGridPathFindingPoint = lItemToPoint(pStart);
-        const lEnd: PotatnoUiManagerGridPathFindingPoint = lItemToPoint(pEnd);
+        const lStart: PotatnoUiManagerGridCoordinate = lItemToPoint(pStart);
+        const lEnd: PotatnoUiManagerGridCoordinate = lItemToPoint(pEnd);
 
         // Execute path finding.
-        const lGridPath: Array<PotatnoUiManagerGridPathFindingPoint> = this.mPathFinder.start(lStart, lEnd).path;
+        const lGridPath: Array<PotatnoUiManagerGridCoordinate> = this.mPathFinder.start(lStart, lEnd).path;
 
         return this.createSvgPath(lGridPath);
     }
 
+    /**
+     * Get svg path for a start and end port.
+     * 
+     * @param pStartPort - Start port.
+     * @param pEndPort - End port.
+     * 
+     * @returns svg paths "d" attribute value as string.  
+     */
     public getConnectionPath(pStartPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pEndPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>): string {
         // Read current generated path.
-        const lPath: Array<PotatnoUiManagerGridPathFindingPoint> = this.mPathFinder.getPath(pStartPort, pEndPort);
-
+        const lPath: Array<PotatnoUiManagerGridCoordinate> = this.mPathFinder.getPath(pStartPort, pEndPort);
 
         return this.createSvgPath(lPath);
     }
@@ -128,7 +126,7 @@ export class PotatnoUiManagerConnections {
      *
      * @returns Grid cell for the port.
      */
-    public getPortGridPoint(pPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>): PotatnoUiManagerGridPathFindingPoint {
+    public getPortGridPoint(pPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>): PotatnoUiManagerGridCoordinate {
         // Read node of port.
         const lNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition> = pPort.node;
 
@@ -178,44 +176,12 @@ export class PotatnoUiManagerConnections {
     }
 
     /**
-     * Convert pixel coordinates to grid space.
-     *
-     * @param pX - Pixel x coordinate.
-     * @param pY - Pixel y coordinate.
-     *
-     * @returns Grid point.
-     */
-    public pixelToGridSpace(pX: number, pY: number): PotatnoUiManagerGridPathFindingPoint {
-        let lPointX: number = pX;
-        let lPointY: number = pY;
-
-        // Move the pixel point related to the grid element.
-        if (this.mGridElement) {
-            const lGridPosition: DOMRect = this.mGridElement.getBoundingClientRect();
-            lPointX -= lGridPosition.left;
-            lPointY -= lGridPosition.top;
-        }
-
-        // Move by panning.
-        lPointX -= this.mManager.grid.panX;
-        lPointY -= this.mManager.grid.panY;
-
-        lPointX /= this.mManager.grid.zoom;
-        lPointY /= this.mManager.grid.zoom;
-
-        return {
-            x: Math.floor(lPointX / this.mManager.grid.gridSize),
-            y: Math.floor(lPointY / this.mManager.grid.gridSize)
-        };
-    }
-
-    /**
      * Draw a curved line for a grid point.
      * 
      * @param pPoint 
      * @param pDirection 
      */
-    private createGridCellPath(pPoint: PotatnoUiManagerGridPathFindingPoint, pFromDirection: PotatnoUiManagerGridDirection, pToDirection: PotatnoUiManagerGridDirection) {
+    private createGridCellPath(pPoint: PotatnoUiManagerGridCoordinate, pFromDirection: PotatnoUiManagerGridDirection, pToDirection: PotatnoUiManagerGridDirection) {
         // Create end and start points.
         const lStartPoint: PotatnoUiManagerGridPixelPoint = this.getGridPosition(pPoint, pFromDirection);
         const lEndPoint: PotatnoUiManagerGridPixelPoint = this.getGridPosition(pPoint, pToDirection);
@@ -249,8 +215,8 @@ export class PotatnoUiManagerConnections {
         })();
 
         // Convert both points into a restricting values.
-        const lStartPoint: PotatnoUiManagerGridPathFindingPoint = this.getPortGridPoint(lStartPort);
-        const lEndPoint: PotatnoUiManagerGridPathFindingPoint = this.getPortGridPoint(lEndPort);
+        const lStartPoint: PotatnoUiManagerGridCoordinate = this.getPortGridPoint(lStartPort);
+        const lEndPoint: PotatnoUiManagerGridCoordinate = this.getPortGridPoint(lEndPort);
 
         // Execute path finding.
         this.mPathFinder.updatePath(lStartPort, lStartPoint, lEndPoint);
@@ -264,9 +230,9 @@ export class PotatnoUiManagerConnections {
      * 
      * @returns a svg path string. 
      */
-    private createSvgPath(pPath: Array<PotatnoUiManagerGridPathFindingPoint>): string {
+    private createSvgPath(pPath: Array<PotatnoUiManagerGridCoordinate>): string {
         // Get point direction from origin and target points.
-        const lPointDirection = (pOriginPoint: PotatnoUiManagerGridPathFindingPoint, pTargetPoint: PotatnoUiManagerGridPathFindingPoint): PotatnoUiManagerGridDirection => {
+        const lPointDirection = (pOriginPoint: PotatnoUiManagerGridCoordinate, pTargetPoint: PotatnoUiManagerGridCoordinate): PotatnoUiManagerGridDirection => {
             const lDistanceX = pTargetPoint.x - pOriginPoint.x;
             const lDistanceY = pTargetPoint.y - pOriginPoint.y;
 
@@ -283,11 +249,11 @@ export class PotatnoUiManagerConnections {
 
         // Recursivly create path. The first and last path is not rendered but used to guide the paths direction.
         for (let lPathIndex: number = 1; lPathIndex < (pPath.length - 1); lPathIndex++) {
-            const lPathPoint: PotatnoUiManagerGridPathFindingPoint = pPath[lPathIndex];
+            const lPathPoint: PotatnoUiManagerGridCoordinate = pPath[lPathIndex];
 
             // Get previous and next point.
-            const lPreviousPoint: PotatnoUiManagerGridPathFindingPoint = pPath[lPathIndex - 1];
-            const lNextPoint: PotatnoUiManagerGridPathFindingPoint = pPath[lPathIndex + 1];
+            const lPreviousPoint: PotatnoUiManagerGridCoordinate = pPath[lPathIndex - 1];
+            const lNextPoint: PotatnoUiManagerGridCoordinate = pPath[lPathIndex + 1];
 
             // Create directions for previous and next point.
             const lFromDirection: PotatnoUiManagerGridDirection = lPointDirection(lPathPoint, lPreviousPoint);
@@ -308,7 +274,7 @@ export class PotatnoUiManagerConnections {
      * 
      * @returns the pixel point of the grid point. 
      */
-    private getGridPosition(pPoint: PotatnoUiManagerGridPathFindingPoint, pOrientation: PotatnoUiManagerGridDirection): PotatnoUiManagerGridPixelPoint {
+    private getGridPosition(pPoint: PotatnoUiManagerGridCoordinate, pOrientation: PotatnoUiManagerGridDirection): PotatnoUiManagerGridPixelPoint {
         // Create middle point.
         const lPoint: PotatnoUiManagerGridPixelPoint = {
             x: pPoint.x * this.mManager.grid.gridSize + this.mManager.grid.gridSize / 2,

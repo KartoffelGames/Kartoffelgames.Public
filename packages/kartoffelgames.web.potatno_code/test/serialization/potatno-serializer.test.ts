@@ -252,7 +252,7 @@ Deno.test('PotatnoSerializer.serialize()', async (pContext) => {
         await pContext.step('Node transformation preserved', () => {
             // Setup.
             const { document: lDocument, function: lFunction } = PotatnoHelper.setupCalculatorDocument();
-            const lDefinition = PotatnoHelper.TEST_PROJECT.nodeDefinitions.find((pDef) => pDef.id === 'Add')!;
+            const lDefinition = PotatnoHelper.TEST_PROJECT.nodeDefinitions.get('Add')!;
             lFunction.addNodeByDefinition(lDefinition, { x: 99, y: 88, width: 77, height: 66 });
 
             // Process.

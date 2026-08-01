@@ -417,7 +417,7 @@ Deno.test('PotatnoCodeGenerator.generateNode()', async (pContext) => {
             // be invisible in the output - it produces the same code as a direct
             // Entry -> Pass -> Exit chain would.
             const { function: lFunction, defaultEntry: lDefaultEntry, defaultExit: lDefaultExit } = PotatnoHelper.setupCalculatorDocument();
-            const lConjunctionDefinition = PotatnoHelper.TEST_PROJECT.nodeDefinitions.find((pDefinition) => pDefinition.category.name === 'Conjunction' && pDefinition.inputs.some((pPort) => pPort.portType === 'flow'))!;
+            const lConjunctionDefinition = [...PotatnoHelper.TEST_PROJECT.nodeDefinitions.values()].find((pDefinition) => pDefinition.category.name === 'Conjunction' && pDefinition.inputs.some((pPort) => pPort.portType === 'flow'))!;
             const lConjunction = lFunction.addNodeByDefinition(lConjunctionDefinition, { x: 0, y: 0, width: 4, height: 2 });
             const lPass = PotatnoHelper.addProjectNode(lFunction, 'Pass');
             PotatnoHelper.connectFlow(lDefaultEntry, lConjunction);

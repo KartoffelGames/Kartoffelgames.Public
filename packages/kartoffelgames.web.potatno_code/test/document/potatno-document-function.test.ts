@@ -310,7 +310,7 @@ Deno.test('PotatnoDocumentFunction.nodeDefinitions', async (pContext) => {
         // the fixture; assert that the calculator's available definitions are a
         // superset of the project's static node definitions.
         const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
-        const lProjectIds: Set<string> = new Set(PotatnoHelper.TEST_PROJECT.nodeDefinitions.map((pDef) => pDef.id));
+        const lProjectIds: Set<string> = new Set(PotatnoHelper.TEST_PROJECT.nodeDefinitions.keys());
 
         // Process.
         const lFunctionIds: Set<string> = new Set(lFunction.nodeDefinitions.map((pDef) => pDef.id));
@@ -511,7 +511,7 @@ Deno.test('PotatnoDocumentFunction.addNode()', async (pContext) => {
             definitionId: PotatnoHelper.TEST_PROJECT.entryPoint.id,
             id: 'fn', label: 'fn', isSystem: false
         });
-        const lDefinition = PotatnoHelper.TEST_PROJECT.nodeDefinitions.find((pDef) => pDef.id === 'Add')!;
+        const lDefinition = PotatnoHelper.TEST_PROJECT.nodeDefinitions.get('Add')!;
         const lExternalNode = new PotatnoDocumentNode(PotatnoHelper.TEST_PROJECT, lDocument, lFunction, {
             definitionId: lDefinition.id,
             label: lDefinition.label,

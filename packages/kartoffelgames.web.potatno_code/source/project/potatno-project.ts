@@ -48,8 +48,8 @@ export class PotatnoProject<TProjectTypes extends PotatnoProjectTypesDefinition>
     /**
      * Get the map of registered node definitions keyed by node definitions id.
      */
-    public get nodeDefinitions(): ReadonlyArray<PotatnoNodeDefinition<TProjectTypes>> {
-        return Array.from(this.mNodeDefinitions.values());
+    public get nodeDefinitions(): ReadonlyMap<string, PotatnoNodeDefinition<TProjectTypes>> {
+        return this.mNodeDefinitions;
     }
 
     /**

@@ -1,6 +1,5 @@
 import { PotatnoDocumentPort } from "../../../document/potatno-document-port.ts";
 import { PotatnoProjectTypesDefinition } from "../../../project/potatno-project-types-definition.ts";
-import { PotatnoUiManagerGridPathFindingPoint } from "../helper/potatno-ui-grid-path-finding.ts";
 import { PotatnoCodeUiManagerChangeType, type PotatnoUiManager } from '../potatno-ui-manager.ts';
 
 /**
@@ -13,6 +12,7 @@ export class PotatnoUiManagerGrid {
     private static readonly MIN_ZOOM: number = 0.1;
 
     private mDraggedPortInformation: PotatnoUiManagerGridDraggedPort;
+    private mGridElement: Element | null;
     private readonly mManager: PotatnoUiManager;
     private mPanX: number;
     private mPanY: number;
@@ -23,6 +23,14 @@ export class PotatnoUiManagerGrid {
      */
     public get draggedPort(): PotatnoUiManagerGridDraggedPort {
         return this.mDraggedPortInformation;
+    }
+
+    /**
+     * Set only grid element.
+     * Used to position by pixel space.
+     */
+    public set gridElement(pGridElement: Element) {
+        this.mGridElement = pGridElement;
     }
 
     /**
@@ -64,6 +72,7 @@ export class PotatnoUiManagerGrid {
         this.mPanX = 0;
         this.mPanY = 0;
         this.mZoom = 1.0;
+        this.mGridElement = null;
         this.mDraggedPortInformation = new PotatnoUiManagerGridDraggedPort(this.mManager, new Array());
     }
 
@@ -79,6 +88,58 @@ export class PotatnoUiManagerGrid {
 
         // Dispatch grid change.
         this.mManager.dispatch(PotatnoCodeUiManagerChangeType.SpecialGrid, null);
+    }
+
+    /**
+     * Convert pixel coordinates to grid pixel space.
+     *
+     * @param pX - Global pixel x coordinate.
+     * @param pY - Global pixel y coordinate.
+     *
+     * @returns Grid point.
+     */
+    public pixelToGridPixelSpace(pX: number, pY: number): PotatnoUiManagerGridPixelCoordinate {
+        let lPointX: number = pX;
+        let lPointY: number = pY;
+
+        // Move the pixel point related to the grid element.
+        if (this.mGridElement) {
+            const lGridPosition: DOMRect = this.mGridElement.getBoundingClientRect();
+            lPointX -= lGridPosition.left;
+            lPointY -= lGridPosition.top;
+        }
+
+        // Move by panning then zooming.
+        return {
+            x: (lPointX - this.mPanX) / this.mZoom,
+            y: (lPointY - this.mPanY) / this.mZoom
+        };
+    }
+
+    /**
+     * Convert pixel coordinates to grid space.
+     *
+     * @param pX - Global pixel x coordinate.
+     * @param pY - Global pixel y coordinate.
+     *
+     * @returns Grid point.
+     */
+    public pixelToGridSpace(pX: number, pY: number): PotatnoUiManagerGridCoordinate {
+        return this.gridPixelSpaceToGridSpace(this.pixelToGridPixelSpace(pX, pY))
+    }
+
+    /**
+     * Convert grid pixel space into grid space.
+     * 
+     * @param pPixel - Grid pixel coordinate.
+     * 
+     * @returns converted pixel to grid space. 
+     */
+    public gridPixelSpaceToGridSpace(pPixel: PotatnoUiManagerGridPixelCoordinate): PotatnoUiManagerGridCoordinate{
+        return {
+            x: Math.floor(pPixel.x / this.gridSize),
+            y: Math.floor(pPixel.y / this.gridSize)
+        };
     }
 
     /**
@@ -131,8 +192,8 @@ export class PotatnoUiManagerGrid {
 export class PotatnoUiManagerGridDraggedPort {
     private readonly mManager: PotatnoUiManager;
     private readonly mPorts: Set<PotatnoDocumentPort<PotatnoProjectTypesDefinition>>;
-    private readonly mPortPositions: Map<PotatnoDocumentPort<PotatnoProjectTypesDefinition>, PotatnoUiManagerGridPathFindingPoint>;
-    private readonly mPointerGridPosition: PotatnoUiManagerGridPathFindingPoint;
+    private readonly mPortPositions: Map<PotatnoDocumentPort<PotatnoProjectTypesDefinition>, PotatnoUiManagerGridCoordinate>;
+    private readonly mPointerGridPosition: PotatnoUiManagerGridCoordinate;
 
     /**
      * Get current dragged port.
@@ -152,7 +213,7 @@ export class PotatnoUiManagerGridDraggedPort {
     /**
      * Port positions of dragged ports.
      */
-    public get portPositions(): ReadonlyMap<PotatnoDocumentPort<PotatnoProjectTypesDefinition>, PotatnoUiManagerGridPathFindingPoint> {
+    public get portPositions(): ReadonlyMap<PotatnoDocumentPort<PotatnoProjectTypesDefinition>, PotatnoUiManagerGridCoordinate> {
         return this.mPortPositions;
     }
 
@@ -169,7 +230,7 @@ export class PotatnoUiManagerGridDraggedPort {
         this.mPointerGridPosition = { x: Infinity, y: Infinity };
 
         // Set default position and override with actual if set.
-        this.mPortPositions = new Map<PotatnoDocumentPort<PotatnoProjectTypesDefinition>, PotatnoUiManagerGridPathFindingPoint>();
+        this.mPortPositions = new Map<PotatnoDocumentPort<PotatnoProjectTypesDefinition>, PotatnoUiManagerGridCoordinate>();
         for (const lPort of pPorts) {
             // Get port position of dragged port.
             const lPortPosition = this.mManager.connections.getPortGridPoint(lPort);
@@ -195,10 +256,10 @@ export class PotatnoUiManagerGridDraggedPort {
      * @returns true if port is currently dragged. 
      */
     public hasPort(pPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null): boolean {
-        if(!pPort) {
+        if (!pPort) {
             return false;
         }
-        
+
         return this.mPorts.has(pPort);
     }
 
@@ -212,7 +273,7 @@ export class PotatnoUiManagerGridDraggedPort {
      * @returns Returns true if pointerposition in grid has changed otherwise false.
      */
     public updatePointer(pClientX: number, pClientY: number): boolean {
-        const lPointerPosition: PotatnoUiManagerGridPathFindingPoint = this.mManager.connections.pixelToGridSpace(pClientX, pClientY);
+        const lPointerPosition: PotatnoUiManagerGridCoordinate = this.mManager.grid.pixelToGridSpace(pClientX, pClientY);
         if (lPointerPosition.x === this.mPointerGridPosition.x && lPointerPosition.y === this.mPointerGridPosition.y) {
             return false;
         }
@@ -224,3 +285,13 @@ export class PotatnoUiManagerGridDraggedPort {
         return true;
     }
 }
+
+export type PotatnoUiManagerGridCoordinate = {
+    x: number;
+    y: number;
+};
+
+export type PotatnoUiManagerGridPixelCoordinate = {
+    x: number;
+    y: number;
+};

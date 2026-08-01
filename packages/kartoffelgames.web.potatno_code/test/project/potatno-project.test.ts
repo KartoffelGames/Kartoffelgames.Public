@@ -106,11 +106,10 @@ Deno.test('new PotatnoProject()', async (pContext) => {
     await pContext.step('Construct registers built-in conjunction nodes', () => {
         // Setup. Process.
         const lProject = gNewBareProject();
-        const lIds: Array<string> = lProject.nodeDefinitions.map((pDef) => pDef.id);
 
         // Evaluation.
-        expect(lIds).toContain(PotatnoFlowConjunctionNodeDefinition.DEFINITION_ID);
-        expect(lIds).toContain(PotatnoValueConjunctionNodeDefinition.DEFINITION_ID);
+        expect(lProject.nodeDefinitions.get(PotatnoFlowConjunctionNodeDefinition.DEFINITION_ID)).not.toBeUndefined();
+        expect(lProject.nodeDefinitions.get(PotatnoValueConjunctionNodeDefinition.DEFINITION_ID)).not.toBeUndefined();
     });
 });
 
@@ -287,7 +286,7 @@ Deno.test('PotatnoProject.nodeDefinitions', async (pContext) => {
         const lProject = gNewBareProject();
 
         // Evaluation. Two built-in conjunction and one comment nodes are always present.
-        expect(lProject.nodeDefinitions.length).toBe(3);
+        expect(lProject.nodeDefinitions.size).toBe(3);
     });
 
     await pContext.step('Returns added node definitions plus conjunctions', () => {
@@ -305,8 +304,8 @@ Deno.test('PotatnoProject.nodeDefinitions', async (pContext) => {
         lProject.addNodeDefinition(lAddedDefinition);
 
         // Evaluation.
-        expect(lProject.nodeDefinitions.length).toBe(4);
-        expect(lProject.nodeDefinitions.map((pDef) => pDef.id)).toContain('Marker');
+        expect(lProject.nodeDefinitions.size).toBe(4);
+        expect(lProject.nodeDefinitions.get('Marker')).not.toBeUndefined();
     });
 });
 
@@ -397,7 +396,7 @@ Deno.test('PotatnoProject.addNodeDefinition()', async (pContext) => {
         lProject.addNodeDefinition(lDefinition);
 
         // Evaluation.
-        expect(lProject.nodeDefinitions.map((pDef) => pDef.id)).toContain('TestDefinition');
+        expect(lProject.nodeDefinitions.get('TestDefinition')).not.toBeUndefined();
     });
 
     await pContext.step('Re-registering the same id overwrites the previous definition', () => {
@@ -423,9 +422,8 @@ Deno.test('PotatnoProject.addNodeDefinition()', async (pContext) => {
         lProject.addNodeDefinition(lSecond);
 
         // Evaluation. Only one entry with id 'Same'; it points at lSecond.
-        const lMatches = lProject.nodeDefinitions.filter((pDef) => pDef.id === 'Same');
-        expect(lMatches.length).toBe(1);
-        expect(lMatches[0]).toBe(lSecond);
+        const lMatches = lProject.nodeDefinitions.get('Same')!;
+        expect(lMatches).toBe(lSecond);
     });
 });
 

@@ -28,7 +28,7 @@ export class PotatnoHelper {
      * @throws When the project has no node definition with the given id.
      */
     public static addProjectNode(pFunction: PotatnoDocumentFunction<PotatnoTestProjectTypesDefinition>, pDefinitionId: string): PotatnoDocumentNode<PotatnoTestProjectTypesDefinition> {
-        const lDefinition = PotatnoHelper.TEST_PROJECT.nodeDefinitions.find((pDefinition) => pDefinition.id === pDefinitionId);
+        const lDefinition = PotatnoHelper.TEST_PROJECT.nodeDefinitions.get(pDefinitionId);
         if (!lDefinition) {
             throw new Error(`No project node definition with id "${pDefinitionId}"`);
         }

@@ -1,11 +1,16 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { PwbChild, PwbComponent, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { IPotatnoDocumentItem } from '../../../document/i-potatno-document-item.interface.ts';
+import { PotatnoDocumentNode } from "../../../document/potatno-document-node.ts";
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
+import { PotatnoFlowConjunctionNodeDefinition } from "../../../project/node_definition/potatno-flow-conjunction-node-definition.ts";
+import { PotatnoNodeDefinition } from "../../../project/node_definition/potatno-node-definition.ts";
+import { PotatnoValueConjunctionNodeDefinition } from "../../../project/node_definition/potatno-value-conjunction-node-definition.ts";
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
 import connectionLayerCss from './potatno-connection-layer-component.css' with { type: 'text' };
 import connectionLayerTemplate from './potatno-connection-layer-component.html' with { type: 'text' };
+import { PotatnoUiManagerGridCoordinate } from "../../manager/manager_component/potatno-ui-manager-grid.ts";
 
 /**
  * SVG connection layer for the node graph.
@@ -50,34 +55,75 @@ export class PotatnoConnectionLayerComponent implements IComponentOnDeconstruct 
     }
 
     /**
-     * Delete the connection under a right-click on its hit path.
-     *
-     * @param pEvent - Context menu event from the SVG layer.
+     * Create a conjunction on the double click position.
+     * 
+     * @param pEvent - Double click event. 
      */
-    public onConnectionDelete(pEvent: MouseEvent): void {
-        // Must be right button.
-        if (pEvent.button !== 2) {
-            return;
-        }
-
-        if (!(pEvent.target instanceof Element)) {
-            return;
-        }
-
-        // When something is clicked that has not a connection id, its not a path. Exit.
-        const lConnectionId: number = parseInt(pEvent.target.getAttribute('data-connection-id') ?? '');
-        if (isNaN(lConnectionId)) {
+    public createConjunction(pEvent: MouseEvent): void {
+        // Read connection by its event.
+        const lConnection: PotatnoConnectionLayerComponentConnection | null = this.getConnectionOfEvent(pEvent);
+        if (!lConnection) {
             return;
         }
 
         pEvent.preventDefault();
         pEvent.stopPropagation();
 
-        // Read connection by its stored id.
-        const lConnection: PotatnoConnectionLayerComponentConnection | undefined = this.mConnectionRegistry.get(lConnectionId);
+        // Get the correct conjunction definition based on the connected port type.
+        const lConjunctionDefinition: PotatnoNodeDefinition<PotatnoProjectTypesDefinition> = (() => {
+            if (lConnection.sourcePort.portType === 'flow') {
+                return this.mManager.project.nodeDefinitions.get(PotatnoFlowConjunctionNodeDefinition.DEFINITION_ID)!;
+            }
+
+            return this.mManager.project.nodeDefinitions.get(PotatnoValueConjunctionNodeDefinition.DEFINITION_ID)!;
+        })();
+
+        // Convert pointer position into local (component space) and grid space.
+        const lGridPosition: PotatnoUiManagerGridCoordinate = this.mManager.grid.pixelToGridSpace(pEvent.clientX, pEvent.clientY);
+
+        // Create new conjunction node on the clicked grid position.
+        const lConjunctionNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition> = this.mManager.graph.addNode(this.mManager.activeFunction, lConjunctionDefinition, {
+            x: lGridPosition.x,
+            y: lGridPosition.y,
+
+            // Let the auto min size do the work.
+            height: 0,
+            width: 0
+        });
+
+        // Disconnect previous connection.
+        this.mManager.graph.disconnectPorts(lConnection.sourcePort, lConnection.targetPort);
+
+        // Get both, input and output port of the conjunction.
+        const lInputPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> = lConjunctionNode.inputs.list[0];
+        const lOutputPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> = lConjunctionNode.outputs.list[0];
+
+        // And reconnect.
+        this.mManager.graph.connectPorts(lInputPort, lConnection.sourcePort);
+        this.mManager.graph.connectPorts(lInputPort, lConnection.targetPort);
+        this.mManager.graph.connectPorts(lOutputPort, lConnection.sourcePort);
+        this.mManager.graph.connectPorts(lOutputPort, lConnection.targetPort);
+    }
+
+    /**
+     * Delete the connection under a right-click on its hit path.
+     *
+     * @param pEvent - Context menu event from the SVG layer.
+     */
+    public deleteConnection(pEvent: MouseEvent): void {
+        // Delete can only be triggered on right click.
+        if (pEvent.button !== 2) {
+            return;
+        }
+
+        // Read connection by its event.
+        const lConnection: PotatnoConnectionLayerComponentConnection | null = this.getConnectionOfEvent(pEvent);
         if (!lConnection) {
             return;
         }
+
+        pEvent.preventDefault();
+        pEvent.stopPropagation();
 
         // Delete... hopefully.
         this.mManager.graph.disconnectPorts(lConnection.sourcePort, lConnection.targetPort);
@@ -88,6 +134,34 @@ export class PotatnoConnectionLayerComponent implements IComponentOnDeconstruct 
      */
     public onDeconstruct(): void {
         this.mUnsubscribe();
+    }
+
+    /**
+     * Get connection of an interacted path element.
+     * 
+     * @param pEvent - Interaction event.
+     * 
+     * @returns the events target connection or null if interacted element is not a connection. 
+     */
+    private getConnectionOfEvent(pEvent: Event): PotatnoConnectionLayerComponentConnection | null {
+        // Must be an element. Should allways be an element. But who knows that?
+        if (!(pEvent.target instanceof Element)) {
+            return null;
+        }
+
+        // When something is clicked that has not a connection id, its not a path. Exit.
+        const lConnectionId: number = parseInt(pEvent.target.getAttribute('data-connection-id') ?? '');
+        if (isNaN(lConnectionId)) {
+            return null;
+        }
+
+        // Read connection by its stored id.
+        const lConnection: PotatnoConnectionLayerComponentConnection | undefined = this.mConnectionRegistry.get(lConnectionId);
+        if (!lConnection) {
+            return null;
+        }
+
+        return lConnection;
     }
 
     /**
@@ -131,7 +205,7 @@ export class PotatnoConnectionLayerComponent implements IComponentOnDeconstruct 
      */
     private renderConnections(): void {
         // Render connection cant be called before component is not rendered.
-        if(!this.svgLayer){
+        if (!this.svgLayer) {
             return;
         }
 

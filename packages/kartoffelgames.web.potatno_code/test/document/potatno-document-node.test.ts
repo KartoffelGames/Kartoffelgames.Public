@@ -55,7 +55,7 @@ Deno.test('PotatnoDocumentNode.constructor()', async (pContext) => {
     await pContext.step('Stores transformation', () => {
         // Setup. A comment node is the only freely-sizable node, so it stores the given size verbatim.
         const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
-        const lDefinition = PotatnoHelper.TEST_PROJECT.nodeDefinitions.find((pDef) => pDef.id === PotatnoCommentNodeDefinition.DEFINITION_ID)!;
+        const lDefinition = PotatnoHelper.TEST_PROJECT.nodeDefinitions.get(PotatnoCommentNodeDefinition.DEFINITION_ID)!;
 
         // Process.
         const lNode = lFunction.addNodeByDefinition(lDefinition, { x: 5, y: 6, width: 7, height: 8 });
@@ -180,7 +180,7 @@ Deno.test('PotatnoDocumentNode.transformation', async (pContext) => {
     await pContext.step('Returns the stored transformation', () => {
         // Setup. Process. A comment node stores its size verbatim, so the getter returns it unchanged.
         const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
-        const lDefinition = PotatnoHelper.TEST_PROJECT.nodeDefinitions.find((pDef) => pDef.id === PotatnoCommentNodeDefinition.DEFINITION_ID)!;
+        const lDefinition = PotatnoHelper.TEST_PROJECT.nodeDefinitions.get(PotatnoCommentNodeDefinition.DEFINITION_ID)!;
         const lCommentNode = lFunction.addNodeByDefinition(lDefinition, { x: 5, y: 6, width: 7, height: 8 });
 
         // Evaluation.
@@ -332,7 +332,7 @@ Deno.test('PotatnoDocumentNode.resizeTo()', async (pContext) => {
     await pContext.step('Comment node - freely resizes to any size above the minimum', () => {
         // Setup.
         const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
-        const lDefinition = PotatnoHelper.TEST_PROJECT.nodeDefinitions.find((pDef) => pDef.id === PotatnoCommentNodeDefinition.DEFINITION_ID)!;
+        const lDefinition = PotatnoHelper.TEST_PROJECT.nodeDefinitions.get(PotatnoCommentNodeDefinition.DEFINITION_ID)!;
         const lCommentNode = lFunction.addNodeByDefinition(lDefinition, { x: 0, y: 0, width: 6, height: 6 });
 
         // Process.
@@ -346,7 +346,7 @@ Deno.test('PotatnoDocumentNode.resizeTo()', async (pContext) => {
     await pContext.step('Comment node - clamps width and height to a minimum of 6', () => {
         // Setup.
         const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
-        const lDefinition = PotatnoHelper.TEST_PROJECT.nodeDefinitions.find((pDef) => pDef.id === PotatnoCommentNodeDefinition.DEFINITION_ID)!;
+        const lDefinition = PotatnoHelper.TEST_PROJECT.nodeDefinitions.get(PotatnoCommentNodeDefinition.DEFINITION_ID)!;
         const lCommentNode = lFunction.addNodeByDefinition(lDefinition, { x: 0, y: 0, width: 6, height: 6 });
 
         // Process.
@@ -386,7 +386,7 @@ Deno.test('PotatnoDocumentNode.resizeTo()', async (pContext) => {
     await pContext.step('Value conjunction node - is always 1x1', () => {
         // Setup.
         const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
-        const lDefinition = PotatnoHelper.TEST_PROJECT.nodeDefinitions.find((pDef) => pDef.id === PotatnoValueConjunctionNodeDefinition.DEFINITION_ID)!;
+        const lDefinition = PotatnoHelper.TEST_PROJECT.nodeDefinitions.get(PotatnoValueConjunctionNodeDefinition.DEFINITION_ID)!;
         const lConjunctionNode = lFunction.addNodeByDefinition(lDefinition, { x: 0, y: 0, width: 1, height: 1 });
 
         // Process.
@@ -400,7 +400,7 @@ Deno.test('PotatnoDocumentNode.resizeTo()', async (pContext) => {
     await pContext.step('Flow conjunction node - is always 1x1', () => {
         // Setup.
         const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
-        const lDefinition = PotatnoHelper.TEST_PROJECT.nodeDefinitions.find((pDef) => pDef.id === PotatnoFlowConjunctionNodeDefinition.DEFINITION_ID)!;
+        const lDefinition = PotatnoHelper.TEST_PROJECT.nodeDefinitions.get(PotatnoFlowConjunctionNodeDefinition.DEFINITION_ID)!;
         const lConjunctionNode = lFunction.addNodeByDefinition(lDefinition, { x: 0, y: 0, width: 1, height: 1 });
 
         // Process.

@@ -74,7 +74,7 @@ Deno.test('PotatnoDocument.nodeDefinitions', async (pContext) => {
         const lDefinitions = lDocument.nodeDefinitions;
 
         // Evaluation. With no functions present, only the project's definitions are returned.
-        const lProjectIds: Set<string> = new Set(PotatnoHelper.TEST_PROJECT.nodeDefinitions.map((pDefinition) => pDefinition.id));
+        const lProjectIds: Set<string> = new Set(PotatnoHelper.TEST_PROJECT.nodeDefinitions.keys());
         const lDocumentIds: Set<string> = new Set(lDefinitions.map((pDefinition) => pDefinition.id));
         expect(lProjectIds.difference(lDocumentIds).size).toBe(0);
     });

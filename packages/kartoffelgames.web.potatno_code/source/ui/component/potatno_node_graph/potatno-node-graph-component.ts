@@ -1,20 +1,20 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import { Component, ComponentState, PwbComponent, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
+import { Component, ComponentState, PwbComponent, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import { PotatnoCommentNodeDefinition } from '../../../project/node_definition/potatno-comment-node-definition.ts';
 import { PotatnoFlowConjunctionNodeDefinition } from '../../../project/node_definition/potatno-flow-conjunction-node-definition.ts';
 import type { PotatnoNodeDefinition } from '../../../project/node_definition/potatno-node-definition.ts';
 import { PotatnoValueConjunctionNodeDefinition } from '../../../project/node_definition/potatno-value-conjunction-node-definition.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
+import { PotatnoUiManagerGridCoordinate, PotatnoUiManagerGridPixelCoordinate } from "../../manager/manager_component/potatno-ui-manager-grid.ts";
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, type PotatnoCodeUiManagerUnsubscribe } from '../../manager/potatno-ui-manager.ts';
 import { PotatnoNodeSelectionPopupComponent } from '../potatno-node-selection-popup/potatno-node-selection-popup-component.ts';
 import { PotatnoCommentNodeComponent } from '../potatno_comment-node/potatno-comment-node-component.ts';
+import { PotatnoConjunctionNodeComponent } from "../potatno_conjunction_node/potatno-conjunction-node-component.ts";
 import { PotatnoConnectionLayerComponent } from '../potatno_connection_layer/potatno-connection-layer-component.ts';
 import { PotatnoNodeComponent, type PotatnoNodeComponentMove } from '../potatno_node_component/potatno-node-component.ts';
 import graphCss from './potatno-node-graph-component.css' with { type: 'text' };
 import graphTemplate from './potatno-node-graph-component.html' with { type: 'text' };
-import { PotatnoConjunctionNodeComponent } from "../potatno_conjunction_node/potatno-conjunction-node-component.ts";
-import { PotatnoDocumentPort } from "../../../document/potatno-document-port.ts";
 
 /**
  * Interactive node graph for the active Potatno document function.
@@ -27,7 +27,7 @@ import { PotatnoDocumentPort } from "../../../document/potatno-document-port.ts"
     style: graphCss,
     components: [PotatnoNodeSelectionPopupComponent, PotatnoNodeComponent, PotatnoCommentNodeComponent, PotatnoConjunctionNodeComponent, PotatnoConnectionLayerComponent,]
 })
-export class PotatnoNodeGraphComponent implements IComponentOnConnect, IComponentOnDeconstruct {
+export class PotatnoNodeGraphComponent implements IComponentOnDeconstruct {
     private static readonly ZOOM_STRENGTH: number = 0.1;
 
     private readonly mComponent: Component;
@@ -98,6 +98,9 @@ export class PotatnoNodeGraphComponent implements IComponentOnConnect, IComponen
         this.mIsMouseInsideGrid = false;
         this.popupPosition = null;
         this.selectBox = null;
+
+        // Set this element as main grid element.
+        this.mManager.grid.gridElement = this.mComponent.element;
 
         // Add user events directly to the component element.
         pComponent.element.addEventListener('pointerdown', (pEvent) => { this.onPointerDown(pEvent); });
@@ -171,14 +174,6 @@ export class PotatnoNodeGraphComponent implements IComponentOnConnect, IComponen
                 pNode.moveTo(pNode.transformation.x + pMovement.x, pNode.transformation.y + pMovement.y);
             });
         }
-    }
-
-    /**
-     * Register global graph listeners and subscribe to manager changes.
-     */
-    public onConnect(): void {
-        // Set this element as main grid element.
-        this.mManager.connections.gridElement = this.mComponent.element;
     }
 
     /**
@@ -286,26 +281,11 @@ export class PotatnoNodeGraphComponent implements IComponentOnConnect, IComponen
      *
      * @returns Local graph wrapper coordinates.
      */
-    private convertGlobalToGridPosition(pClientX: number, pClientY: number): PotatnoNodeGraphComponentPoint {
+    private convertGlobalToGridLocalPosition(pClientX: number, pClientY: number): PotatnoUiManagerGridPixelCoordinate {
         const lRect: DOMRect = this.mComponent.element.getBoundingClientRect();
         return {
             x: pClientX - lRect.left,
             y: pClientY - lRect.top
-        };
-    }
-
-    /**
-     * Convert local coordinates to grid coordinates by reversing the pan and zoom transforms.
-     *
-     * @param pLocalX - X position in local pixels.
-     * @param pLocalY - Y position in local pixels.
-     *
-     * @returns grid pixel coordinates.
-     */
-    private convertLocalToGridCoordinate(pLocalX: number, pLocalY: number): { x: number; y: number; } {
-        return {
-            x: (pLocalX - this.mManager.grid.panX) / this.mManager.grid.zoom,
-            y: (pLocalY - this.mManager.grid.panY) / this.mManager.grid.zoom
         };
     }
 
@@ -437,7 +417,7 @@ export class PotatnoNodeGraphComponent implements IComponentOnConnect, IComponen
 
             // Right click.
             case 2: {
-                this.openAddNodePopupAtPointer(pEvent.clientX, pEvent.clientY);
+                this.openNodeSelectionPopupAtPointer(pEvent.clientX, pEvent.clientY);
                 return;
             }
         }
@@ -455,22 +435,22 @@ export class PotatnoNodeGraphComponent implements IComponentOnConnect, IComponen
         const lZoomDirection: number = pEvent.deltaY > 0 ? -1 : 1;
 
         // Zoom away or to the mouse position.
-        const lLocalPosition: PotatnoNodeGraphComponentPoint = this.convertGlobalToGridPosition(pEvent.clientX, pEvent.clientY);
+        const lLocalPosition: PotatnoUiManagerGridCoordinate = this.convertGlobalToGridLocalPosition(pEvent.clientX, pEvent.clientY);
         this.mManager.grid.zoomAt(lLocalPosition.x, lLocalPosition.y, lZoomDirection * PotatnoNodeGraphComponent.ZOOM_STRENGTH);
     }
 
     /**
-     * Open the add-node popup at a pointer position.
+     * Open the node selection popup at pointer position.
      *
      * @param pClientX - Viewport X coordinate.
      * @param pClientY - Viewport Y coordinate.
      */
-    private openAddNodePopupAtPointer(pClientX: number, pClientY: number): void {
+    private openNodeSelectionPopupAtPointer(pClientX: number, pClientY: number): void {
         const lWrapper: HTMLElement = this.mComponent.element;
 
         // Convert pointer position into local (component space) and grid space.
-        const lGridLocalPosition: PotatnoNodeGraphComponentPoint = this.convertGlobalToGridPosition(pClientX, pClientY);
-        const lGridPosition: PotatnoNodeGraphComponentPoint = this.convertLocalToGridCoordinate(lGridLocalPosition.x, lGridLocalPosition.y);
+        const lGridLocalPosition: PotatnoUiManagerGridPixelCoordinate = this.convertGlobalToGridLocalPosition(pClientX, pClientY);
+        const lGridPosition: PotatnoUiManagerGridCoordinate = this.mManager.grid.pixelToGridSpace(pClientX, pClientY);
 
         // Small 8px padding to the position to grids edges.
         const lGridPositionPadding: number = 8;
@@ -484,10 +464,7 @@ export class PotatnoNodeGraphComponent implements IComponentOnConnect, IComponen
                 x: Math.max(lGridPositionPadding, Math.min(lGridLocalPosition.x, lMaxLocalX)),
                 y: Math.max(lGridPositionPadding, Math.min(lGridLocalPosition.y, lMaxLocalY))
             },
-            grid: {
-                x: Math.round(lGridPosition.x / this.mManager.grid.gridSize),
-                y: Math.round(lGridPosition.y / this.mManager.grid.gridSize)
-            }
+            grid: lGridPosition
         };
     }
 
@@ -514,32 +491,39 @@ export class PotatnoNodeGraphComponent implements IComponentOnConnect, IComponen
      */
     private pointerDrag(pEvent: PointerEvent, pMode: 'panning' | 'selecting'): void {
         // Staring position of the selection box in local graph space.
-        const lStaringPosition: PotatnoNodeGraphComponentPoint = this.convertGlobalToGridPosition(pEvent.clientX, pEvent.clientY);
-        let lLastPosition: PotatnoNodeGraphComponentPoint = lStaringPosition;
+        const lStaringGridPixelPosition: PotatnoUiManagerGridPixelCoordinate = this.mManager.grid.pixelToGridPixelSpace(pEvent.clientX, pEvent.clientY);
+
+        // Save pointer position. Used for tracking general movement.
+        let lLastPointerPosition: PotatnoUiManagerGridPixelCoordinate = {
+            x: pEvent.clientX,
+            y: pEvent.clientY
+        };
 
         // Drag magic listener (●'◡'●)つ━☆・*。
         const lPointerMoveListener = (pMoveEvent: PointerEvent): void => {
-            const lCurrentPosition: PotatnoNodeGraphComponentPoint = this.convertGlobalToGridPosition(pMoveEvent.clientX, pMoveEvent.clientY);
             switch (pMode) {
                 case 'panning': {
-                    this.mManager.grid.pan(lCurrentPosition.x - lLastPosition.x, lCurrentPosition.y - lLastPosition.y);
+                    this.mManager.grid.pan(pMoveEvent.clientX - lLastPointerPosition.x, pMoveEvent.clientY - lLastPointerPosition.y);
+
+                    // Save current position as last position.
+                    lLastPointerPosition.x = pMoveEvent.clientX;
+                    lLastPointerPosition.y = pMoveEvent.clientY;
                     break;
                 }
 
                 case 'selecting': {
+                    const lCurrentPosition: PotatnoUiManagerGridPixelCoordinate = this.mManager.grid.pixelToGridPixelSpace(pMoveEvent.clientX, pMoveEvent.clientY);
+
                     // Recalculate the box directly as top-left position plus size, so the template can use it as is.
                     this.selectBox = {
-                        x: Math.min(lStaringPosition.x, lCurrentPosition.x),
-                        y: Math.min(lStaringPosition.y, lCurrentPosition.y),
-                        width: Math.abs(lCurrentPosition.x - lStaringPosition.x),
-                        height: Math.abs(lCurrentPosition.y - lStaringPosition.y)
+                        x: Math.min(lStaringGridPixelPosition.x, lCurrentPosition.x),
+                        y: Math.min(lStaringGridPixelPosition.y, lCurrentPosition.y),
+                        width: Math.abs(lCurrentPosition.x - lStaringGridPixelPosition.x),
+                        height: Math.abs(lCurrentPosition.y - lStaringGridPixelPosition.y)
                     };
                     break;
                 }
             };
-
-            // Save current position as last position.
-            lLastPosition = lCurrentPosition;
         };
 
         // Pointer up listener, applying the selection and cleaning up temporary listeners.
@@ -549,16 +533,21 @@ export class PotatnoNodeGraphComponent implements IComponentOnConnect, IComponen
 
             if (pMode === 'selecting' && this.selectBox) {
                 // Convert the nodebox into grid pixel space.
-                const lTopLeft: PotatnoNodeGraphComponentPoint = this.convertLocalToGridCoordinate(this.selectBox.x, this.selectBox.y);
-                const lBottomRight: PotatnoNodeGraphComponentPoint = this.convertLocalToGridCoordinate(this.selectBox.x + this.selectBox.width, this.selectBox.y + this.selectBox.height);
+                const lTopLeft: PotatnoUiManagerGridPixelCoordinate = this.mManager.grid.gridPixelSpaceToGridSpace({
+                    x: this.selectBox.x,
+                    y: this.selectBox.y
+                });
+                const lBottomRight: PotatnoUiManagerGridPixelCoordinate = this.mManager.grid.gridPixelSpaceToGridSpace({
+                    x: this.selectBox.x + this.selectBox.width,
+                    y: this.selectBox.y + this.selectBox.height
+                });
 
                 // And from the pixel space into grid coordinates. No need to round numbers as it correcter to not do it.
-                const lGridSize: number = this.mManager.grid.gridSize;
                 const lSelectedNodes: Array<PotatnoDocumentNode<PotatnoProjectTypesDefinition>> = this.getNodesInRectangle({
-                    top: lTopLeft.y / lGridSize,
-                    right: lBottomRight.x / lGridSize,
-                    bottom: lBottomRight.y / lGridSize,
-                    left: lTopLeft.x / lGridSize,
+                    top: lTopLeft.y,
+                    right: lBottomRight.x,
+                    bottom: lBottomRight.y,
+                    left: lTopLeft.x,
                 });
 
                 // Select all nodes.
@@ -580,15 +569,7 @@ type PotatnoNodeGraphComponentNodeSelectionPopupPosition = {
         x: number;
         y: number;
     },
-    grid: {
-        x: number;
-        y: number;
-    };
-};
-
-type PotatnoNodeGraphComponentPoint = {
-    x: number;
-    y: number;
+    grid: PotatnoUiManagerGridCoordinate;
 };
 
 type PotatnoNodeGraphComponentSelectBox = {

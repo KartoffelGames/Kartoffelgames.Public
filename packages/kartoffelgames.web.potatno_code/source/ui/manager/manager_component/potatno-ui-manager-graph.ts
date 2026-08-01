@@ -2,7 +2,9 @@ import { PotatnoDocumentFunction } from '../../../document/potatno-document-func
 import type { PotatnoDocumentNode, PotatnoDocumentNodeTransformation } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import { PotatnoDocument } from '../../../document/potatno-document.ts';
+import { PotatnoFlowConjunctionNodeDefinition } from "../../../project/node_definition/potatno-flow-conjunction-node-definition.ts";
 import type { PotatnoNodeDefinition } from '../../../project/node_definition/potatno-node-definition.ts';
+import { PotatnoValueConjunctionNodeDefinition } from "../../../project/node_definition/potatno-value-conjunction-node-definition.ts";
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import { PotatnoCodeUiManagerChangeType, type PotatnoUiManager } from '../potatno-ui-manager.ts';
 
@@ -155,10 +157,25 @@ export class PotatnoUiManagerGraph {
 
     /**
      * Remove a node from the active function.
+     * Has a special handling for conjunction, where on deletion, it reconnect it source and target nodes.
      *
      * @param pNode - The node to remove.
      */
     public removeNode(pNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition>): void {
+        // Reconnect nodes when node is a conjunction. 
+        if (pNode.definitionId === PotatnoFlowConjunctionNodeDefinition.DEFINITION_ID || pNode.definitionId === PotatnoValueConjunctionNodeDefinition.DEFINITION_ID) {
+            // Get both, input and output port of the conjunction.
+            const lInputPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> = pNode.inputs.list[0];
+            const lOutputPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> = pNode.outputs.list[0];
+
+            // Cross apply, connect anything from input to output and vice versa.
+            for (const lInputConnectedPorts of lInputPort.connectedPorts) {
+                for (const lOutputConnectedPorts of lOutputPort.connectedPorts) {
+                    this.mManager.graph.connectPorts(lInputConnectedPorts, lOutputConnectedPorts);
+                }
+            }
+        }
+
         pNode.function.removeNode(pNode);
 
         // Notify per removed node.

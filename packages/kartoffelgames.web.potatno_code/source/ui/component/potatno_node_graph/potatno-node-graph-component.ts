@@ -14,6 +14,7 @@ import { PotatnoNodeComponent, type PotatnoNodeComponentMove } from '../potatno_
 import graphCss from './potatno-node-graph-component.css' with { type: 'text' };
 import graphTemplate from './potatno-node-graph-component.html' with { type: 'text' };
 import { PotatnoConjunctionNodeComponent } from "../potatno_conjunction_node/potatno-conjunction-node-component.ts";
+import { PotatnoDocumentPort } from "../../../document/potatno-document-port.ts";
 
 /**
  * Interactive node graph for the active Potatno document function.

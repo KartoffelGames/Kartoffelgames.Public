@@ -53,6 +53,13 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
     public accessor gridZoom: number;
 
     /**
+     * Grid size.
+     */
+    public get gridSize(): number {
+        return this.mManager.grid.gridSize;
+    }
+
+    /**
      * The domain node object to render.
      */
     @PwbExport

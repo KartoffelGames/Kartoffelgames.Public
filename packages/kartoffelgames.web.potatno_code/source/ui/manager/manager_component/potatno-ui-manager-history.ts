@@ -4,8 +4,6 @@ import type { PotatnoCodeFileSerializationResult } from '../../../serialization/
 import { PotatnoSerializer } from '../../../serialization/potatno-serializer.ts';
 import { PotatnoCodeUiManagerChangeType, type PotatnoUiManager } from '../potatno-ui-manager.ts';
 
-// TODO: Redo ctr+y does not work :(
-
 /**
  * History component of the UI manager.
  * Automaticaly sets a new history entry on changes.
@@ -100,23 +98,18 @@ export class PotatnoUiManagerHistory {
      * Push the current document snapshot into history.
      */
     private pushHistory(): void {
-        // Slice current snapshot to current index. Removing old redo items.
-        this.mSnapshots.splice(this.mSnapshotIndex + 1);
-
-        // Serialize result and convert to string.
+        // Serialize the current document and convert to string.
         const lSerializerResult: PotatnoCodeFileSerializationResult = new PotatnoSerializer<PotatnoProjectTypesDefinition>().serialize(this.mManager.graph.document);
         const lSerializerResultString: string = JSON.stringify(lSerializerResult);
 
-        // Read last item, if it has one, and compare the items.
-        if (this.mSnapshots.length > 0) {
-            // Skip history push if the current snapshot item is the same as the new.
-            const lLastItem: string = this.mSnapshots.at(-1)!;
-            if (lLastItem === lSerializerResultString) {
-                return;
-            }
+        // Skip when the current document already matches the snapshot at the current index. 
+        // This happens when on undo/redo restore and for events like "validation".
+        if (this.mSnapshotIndex >= 0 && this.mSnapshots[this.mSnapshotIndex] === lSerializerResultString) {
+            return;
         }
 
-        // Add new hostory item and update index.
+        // Drop any redo items ahead of the current index, then append the new snapshot.
+        this.mSnapshots.splice(this.mSnapshotIndex + 1);
         this.mSnapshotIndex = this.mSnapshots.push(lSerializerResultString) - 1;
 
         // Trim snapshots if it exeedes max item count.

@@ -1,6 +1,7 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { Component, ComponentState, PwbComponent, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
+import { PotatnoDocumentPort } from "../../../document/potatno-document-port.ts";
 import { PotatnoCommentNodeDefinition } from '../../../project/node_definition/potatno-comment-node-definition.ts';
 import { PotatnoFlowConjunctionNodeDefinition } from '../../../project/node_definition/potatno-flow-conjunction-node-definition.ts';
 import type { PotatnoNodeDefinition } from '../../../project/node_definition/potatno-node-definition.ts';
@@ -112,6 +113,27 @@ export class PotatnoNodeGraphComponent implements IComponentOnDeconstruct {
         // Track pointer presence so keyboard shortcuts only target the hovered graph, allowing multiple potatno instances on a single page.
         pComponent.element.addEventListener('pointerenter', () => { this.mIsMouseInsideGrid = true; });
         pComponent.element.addEventListener('pointerleave', () => { this.mIsMouseInsideGrid = false; });
+
+        // Implement a drop zone to create conjunction when dragging connections on empty spaces.
+        pComponent.element.addEventListener('dragover', (pEvent) => {
+            // Validate current dragged ports.
+            if (!this.mManager.grid.draggedPort.isDragging) {
+                return;
+            }
+
+            // Allow a drop on this port.
+            pEvent.preventDefault();
+            pEvent.stopPropagation();
+
+            // Update the dragging effect.
+            if (pEvent.dataTransfer) {
+                pEvent.dataTransfer.dropEffect = 'link';
+            }
+        });
+        pComponent.element.addEventListener('drop', (pEvent: MouseEvent) => {
+            // Create a conjunction dropped position.
+            this.createDroppedConjunction(pEvent);
+        });
 
         this.mKeyboardHandler = (pEvent: KeyboardEvent) => {
             this.onKeyDown(pEvent);
@@ -287,6 +309,76 @@ export class PotatnoNodeGraphComponent implements IComponentOnDeconstruct {
             x: pClientX - lRect.left,
             y: pClientY - lRect.top
         };
+    }
+
+    /**
+     * Create a new conjunction when a connection is dropped on an empty space.
+     * 
+     * @param pEvent - Drop event.
+     * @returns 
+     */
+    private createDroppedConjunction(pEvent: MouseEvent): void {
+        if (!this.mManager.grid.draggedPort.isDragging) {
+            return;
+        }
+
+        // Connect and consume the drop.
+        pEvent.preventDefault();
+        pEvent.stopPropagation();
+
+        // Filter dragged ports.
+        const lConnectableDraggedPorts: Array<PotatnoDocumentPort<PotatnoProjectTypesDefinition>> = this.mManager.grid.draggedPort.ports.filter((pDraggedPort) => {
+            // When flow output ports are connected. Skip it.
+            if (pDraggedPort.direction === 'output' && pDraggedPort.portType === 'flow' && pDraggedPort.connectedPorts.size > 0) {
+                return false;
+            }
+
+            // When value input ports are connected. Skip it.
+            if (pDraggedPort.direction === 'input' && pDraggedPort.portType === 'value' && pDraggedPort.connectedPorts.size > 0) {
+                return false;
+            }
+
+            return true;
+        });
+
+        // skip conjunction creation when not ports gonna be connected.
+        if (lConnectableDraggedPorts.length === 0) {
+            return;
+        }
+
+        // Get the correct conjunction definition based on the connected port type.
+        const lConjunctionDefinition: PotatnoNodeDefinition<PotatnoProjectTypesDefinition> = (() => {
+            const lFirstDraggedPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> = this.mManager.grid.draggedPort.ports[0];
+
+            if (lFirstDraggedPort.portType === 'flow') {
+                return this.mManager.project.nodeDefinitions.get(PotatnoFlowConjunctionNodeDefinition.DEFINITION_ID)!;
+            }
+
+            return this.mManager.project.nodeDefinitions.get(PotatnoValueConjunctionNodeDefinition.DEFINITION_ID)!;
+        })();
+
+        // Convert pointer position into local (component space) and grid space.
+        const lGridPosition: PotatnoUiManagerGridCoordinate = this.mManager.grid.pixelToGridSpace(pEvent.clientX, pEvent.clientY);
+
+        // Create new conjunction node on the clicked grid position.
+        const lConjunctionNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition> = this.mManager.graph.addNode(this.mManager.activeFunction, lConjunctionDefinition, {
+            x: lGridPosition.x,
+            y: lGridPosition.y,
+
+            // Let the auto min size do the work.
+            height: 0,
+            width: 0
+        });
+
+        // Get both, input and output port of the conjunction.
+        const lInputPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> = lConjunctionNode.inputs.list[0];
+        const lOutputPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> = lConjunctionNode.outputs.list[0];
+
+        // And connect.
+        for (const lDraggedPort of lConnectableDraggedPorts) {
+            this.mManager.graph.connectPorts(lInputPort, lDraggedPort);
+            this.mManager.graph.connectPorts(lOutputPort, lDraggedPort);
+        }
     }
 
     /**

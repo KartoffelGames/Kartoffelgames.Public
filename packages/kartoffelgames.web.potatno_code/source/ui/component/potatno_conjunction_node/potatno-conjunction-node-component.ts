@@ -340,7 +340,7 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
     }
 
     /**
-     * Complete a native port drop on the node.
+     * Complete a native port drop on this conjunction node.
      *
      * @param pEvent - Drag event.
      */
@@ -359,15 +359,8 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
             return;
         }
 
-        // Throw each dragged port against its matching inner port. Invalid connections simply return false.
-        for (const lDraggedPort of this.mManager.grid.draggedPort.ports) {
-            // Get both ports.
-            const lPorts: PotatnoConjunctionNodePorts = this.nodePorts;
-
-            // Try to connect both ports, input and output.
-            this.mManager.graph.connectPorts(lDraggedPort, lPorts.input);
-            this.mManager.graph.connectPorts(lDraggedPort, lPorts.output);
-        }
+        // Connect ports to conjunction.
+        this.mManager.graph.connectConjunction(this.nodeData, this.mManager.grid.draggedPort.ports);
     }
 
     /**

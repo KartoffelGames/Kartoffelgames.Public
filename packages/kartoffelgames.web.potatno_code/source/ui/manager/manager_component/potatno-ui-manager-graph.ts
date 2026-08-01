@@ -1,3 +1,4 @@
+import { Exception } from "@kartoffelgames/core";
 import { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoDocumentNode, PotatnoDocumentNodeTransformation } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
@@ -5,8 +6,10 @@ import { PotatnoDocument } from '../../../document/potatno-document.ts';
 import { PotatnoFlowConjunctionNodeDefinition } from "../../../project/node_definition/potatno-flow-conjunction-node-definition.ts";
 import type { PotatnoNodeDefinition } from '../../../project/node_definition/potatno-node-definition.ts';
 import { PotatnoValueConjunctionNodeDefinition } from "../../../project/node_definition/potatno-value-conjunction-node-definition.ts";
+import { PotatnoPortDefinitionDirection } from "../../../project/potatno-port-definition.ts";
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import { PotatnoCodeUiManagerChangeType, type PotatnoUiManager } from '../potatno-ui-manager.ts';
+import { PotatnoUiManagerGridCoordinate } from "./potatno-ui-manager-grid.ts";
 
 /**
  * Ui manager graph component.
@@ -86,6 +89,60 @@ export class PotatnoUiManagerGraph {
         this.mManager.dispatch(PotatnoCodeUiManagerChangeType.NodeAdd, lNode);
 
         return lNode;
+    }
+
+    /**
+     * Special function to connect to conjunction nodes as they act like a single port instead of two (input and output).
+     * Handles prioirity for connecting the right port when multiple are dragged.
+     * 
+     * @param pConjunction - Conjunction node.
+     * @param pPorts - Ports that should be connected.
+     */
+    public connectConjunction(pConjunction: PotatnoDocumentNode<PotatnoProjectTypesDefinition>, pPorts: Array<PotatnoDocumentPort<PotatnoProjectTypesDefinition>>): void {
+        // Get position of this node and the first port position. Port position should allways be the same for all dragged ports.
+        const lNodePosition: Readonly<PotatnoDocumentNodeTransformation> = pConjunction.transformation;
+        const lPortPosition: PotatnoUiManagerGridCoordinate = this.mManager.grid.draggedPort.portPositions.get(this.mManager.grid.draggedPort.ports[0])!;
+
+        const lPriorityDraggedPorts = pPorts.sort((pPortA, pPortB) => {
+            // Always prioritize unconnected ports over connected ones.
+            const lAUnconnected: boolean = pPortA.connectedPorts.size === 0;
+            const lBUnconnected: boolean = pPortB.connectedPorts.size === 0;
+            if (lAUnconnected !== lBUnconnected) {
+                return lAUnconnected ? -1 : 1;
+            }
+
+            // Same connection state, prioritize by position.
+            // Dragged port right of this node prioritizes input ports, otherwise output ports.
+            const lPreferredDirection: PotatnoPortDefinitionDirection = lPortPosition.x > lNodePosition.x ? 'input' : 'output';
+
+            const lAPreferred: boolean = pPortA.direction === lPreferredDirection;
+            const lBPreferred: boolean = pPortB.direction === lPreferredDirection;
+            if (lAPreferred !== lBPreferred) {
+                return lAPreferred ? -1 : 1;
+            }
+
+            return 0;
+        });
+
+        // Guard malformed conjunction nodes.
+        if (pConjunction.inputs.list.length === 0 || pConjunction.outputs.list.length === 0) {
+            throw new Exception('Malformed conjunction node', this);
+        }
+
+        // Get input and output of conjunction.
+        const lInputPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> = pConjunction.inputs.list[0];
+        const lOutputPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> = pConjunction.outputs.list[0];
+
+        // Throw each dragged port against its matching inner port. Invalid connections simply return false.
+        for (const lDraggedPort of lPriorityDraggedPorts) {
+            // Try to connect both ports, input and output.
+            if (this.connectPorts(lDraggedPort, lInputPort)) {
+                return;
+            }
+            if (this.connectPorts(lDraggedPort, lOutputPort)) {
+                return;
+            }
+        }
     }
 
     /**

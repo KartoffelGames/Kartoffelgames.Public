@@ -370,15 +370,8 @@ export class PotatnoNodeGraphComponent implements IComponentOnDeconstruct {
             width: 0
         });
 
-        // Get both, input and output port of the conjunction.
-        const lInputPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> = lConjunctionNode.inputs.list[0];
-        const lOutputPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> = lConjunctionNode.outputs.list[0];
-
-        // And connect.
-        for (const lDraggedPort of lConnectableDraggedPorts) {
-            this.mManager.graph.connectPorts(lInputPort, lDraggedPort);
-            this.mManager.graph.connectPorts(lOutputPort, lDraggedPort);
-        }
+        // Connect ports to conjunction.
+        this.mManager.graph.connectConjunction(lConjunctionNode, lConnectableDraggedPorts);
     }
 
     /**

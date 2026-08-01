@@ -210,6 +210,16 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
     public dragNode(pEvent: PointerEvent): void {
         pEvent.preventDefault();
 
+        // Right click. Delete node.
+        if(pEvent.button === 2) {
+            this.mManager.graph.removeNode(this.nodeData);
+        }
+
+        // Skip anything that is not a left mouse button.
+        if(pEvent.button !== 0) {
+            return;
+        }
+
         // Save current coordinate so the current pointer position determinates exactly this coordinate.
         const lStartingCoordinateX: number = this.nodeData.transformation.x * this.mManager.grid.gridSize;
         const lStartingCoordinateY: number = this.nodeData.transformation.y * this.mManager.grid.gridSize;

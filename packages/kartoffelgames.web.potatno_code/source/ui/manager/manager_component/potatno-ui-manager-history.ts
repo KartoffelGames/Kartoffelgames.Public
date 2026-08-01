@@ -4,6 +4,8 @@ import type { PotatnoCodeFileSerializationResult } from '../../../serialization/
 import { PotatnoSerializer } from '../../../serialization/potatno-serializer.ts';
 import { PotatnoCodeUiManagerChangeType, type PotatnoUiManager } from '../potatno-ui-manager.ts';
 
+// TODO: Redo ctr+y does not work :(
+
 /**
  * History component of the UI manager.
  * Automaticaly sets a new history entry on changes.
@@ -48,7 +50,7 @@ export class PotatnoUiManagerHistory {
             globalThis.clearTimeout(lDebounce);
             lDebounce = globalThis.setTimeout(() => {
                 this.pushHistory();
-            }, 1000) as unknown as number;
+            }, 300) as unknown as number;
         });
     }
 

@@ -137,6 +137,18 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
      * @param pEvent - Pointer event from the resize handle.
      */
     public dragNodeOrEnableEdit(pEvent: PointerEvent): void {
+        pEvent.preventDefault();
+
+        // Right click. Delete node.
+        if (pEvent.button === 2) {
+            this.mManager.graph.removeNode(this.nodeData);
+        }
+
+        // Skip anything that is not a left mouse button.
+        if (pEvent.button !== 0) {
+            return;
+        }
+
         // Start a timer when its not already started.
         if (this.mDoubleClickTimer === -1) {
             // The timer does reset the itself set double click state.
@@ -152,8 +164,6 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
         if (this.editMode) {
             return;
         }
-
-        pEvent.preventDefault();
 
         // Save current coordinate so the current pointer position determinates exactly this coordinate.
         const lStartingCoordinateX: number = this.nodeData.transformation.x * this.mManager.grid.gridSize;

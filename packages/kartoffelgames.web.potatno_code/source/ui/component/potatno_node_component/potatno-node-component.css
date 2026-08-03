@@ -109,11 +109,21 @@
     background-color: var(--potatno-color-background);
     cursor: pointer;
 
+    --preview-toggle-icon-color: var(--node-border-color);
+
     /* Click animation. */
     transition: background-color 0.15s, translate 0.15s;
 
-    &:active {
+    &.active {
+        --preview-toggle-icon-color: var(--potatno-color-accent);
+    }
+
+    &:hover {
         background-color: var(--potatno-color-background-light);
+    }
+
+    &:active {
+        background-color: var(--potatno-color-background-dark);
         translate: 0 1px;
     }
 
@@ -121,7 +131,7 @@
         position: absolute;
         box-sizing: border-box;
         left: 50%;
-        border: 0px solid var(--node-border-color);
+        border: 0px solid var(--preview-toggle-icon-color);
         border-width: 0px 1px 1px 0;
         height: 10px;
         width: 10px;
@@ -135,20 +145,11 @@
         &::before {
             content: '';
             display: block;
-            border: 0px solid var(--node-border-color);
+            border: 0px solid var(--preview-toggle-icon-color);
             border-width: 0px 1px 1px 0;
             height: 100%;
             width: 100%;
             transition: border-color 0.15s;
-        }
-
-        /* Hover animation scoped to parent */
-        .node-preview-toggle:hover & {
-            border-color: var(--potatno-color-accent);
-
-            &::before {
-                border-color: var(--potatno-color-accent);
-            }
         }
 
         .node-preview-toggle.active & {
@@ -176,18 +177,18 @@
     &::before {
         content: '';
         position: absolute;
-        top: calc(var(--potatno-grid-size) / -2);
+        top: calc(var(--potatno-grid-size) / -2 - 1px);
         left: 50%;
 
         display: block;
-        height: calc(var(--potatno-grid-size) / 2);
+        height: calc(var(--potatno-grid-size) / 2 - 2px);
         border: 1px solid var(--node-border-color);
     }
 
     .node-preview__window {
         display: flex;
         padding: 5px;
-        background: var(--potatno-color-background-dark);
+        background: var(--potatno-color-background-light);
         overflow: hidden;
 
         /* The whole preview area has a grid height of 6. [6 - toggle-height - select-height] */

@@ -27,20 +27,20 @@ potatno-code-editor {\r
     --potatno-font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;\r
 \r
     /* Main colors */\r
-    --potatno-color-background: #181818;\r
-    --potatno-color-background-dark: #111111;\r
-    --potatno-color-background-light: #202020;\r
-    --potatno-color-text: #cccccc;\r
+    --potatno-color-background: #232323;\r
+    --potatno-color-background-dark: #1c1c1c;\r
+    --potatno-color-background-light: #313131;\r
+    --potatno-color-text: #c8c8c8;\r
     --potatno-color-text-contrast: #ffffff;\r
     --potatno-color-accent: #20be20;\r
     --potatno-color-border: #444444;\r
 \r
     /* Supporting colors */\r
     --potatno-color-error: #ff5555;\r
-    --potatno-color-shadow: rgba(0, 0, 0, 0.3);\r
+    --potatno-color-shadow: rgba(0, 0, 0, 0.69);\r
 \r
     /* Scrollbar */\r
-    --potatno-color-scrollbar-thumb: #45475a;\r
+    --potatno-color-scrollbar-thumb: #5e5e5e;\r
     --potatno-color-scrollbar-track: transparent;\r
 }`;var Ue=class g{static PASTE_OFFSET=2;mClipboardNodes;mManager;constructor(t){this.mManager=t,this.mClipboardNodes=new Array}copy(t){if(t.size===0)return;let e=[...t],r=new Map;for(let l=0;l<e.length;l++){let m=e[l],p=m.inputs.value.map(D=>({definitionId:D.definitionId,values:[...D.directValue]})),y={...m.transformation};y.x+=g.PASTE_OFFSET,y.y+=g.PASTE_OFFSET,r.set(m,{connections:new Array,definitionId:m.definitionId,id:l,portDirectValues:p,label:m.label,transformation:y})}for(let[l,m]of r)for(let p of l.outputs.list)for(let y of p.connectedPorts){let D=r.get(y.node);D&&m.connections.push({sourcePortName:p.definitionId,targetNodeId:D.id,targetPortName:y.definitionId})}this.mClipboardNodes=[...r.values()]}paste(){if(this.mClipboardNodes.length===0)return new Array;let t=this.mManager.activeFunction,e=new Map;for(let r of this.mClipboardNodes){let l=t.dynamicNodeDefinitions.find(p=>p.id===r.definitionId);if(!l)continue;let m=this.mManager.graph.addNode(t,l,r.transformation);this.mManager.graph.updateNode(m,p=>{p.label=r.label;for(let y of r.portDirectValues)p.inputs.map.has(y.definitionId)&&p.inputs.map.get(y.definitionId).setDirectValue(y.values)}),e.set(r.id,m)}for(let r of this.mClipboardNodes){let l=e.get(r.id);if(l)for(let m of r.connections){let p=e.get(m.targetNodeId);if(!p)continue;let y=l.outputs.map.get(m.sourcePortName),D=p.inputs.map.get(m.targetPortName);!y||!D||this.mManager.graph.connectPorts(y,D)}}return[...e.values()]}};var Xe=class extends he{mGridNodeArea;mGridPaths;mNodeArea;mPathArea;constructor(){super(),this.mGridNodeArea=new WeakMap,this.mNodeArea=new Map,this.mGridPaths=new WeakMap,this.mPathArea=new Map}clear(t){t==="all"&&this.mNodeArea.clear(),this.mPathArea.clear()}getPath(t,e){let r=t.direction==="input"&&t.portType==="value"||t.direction==="output"&&t.portType==="flow"?t:e;return this.mGridPaths.get(r)??new Array}removeNodeArea(t){if(!this.mGridNodeArea.has(t))return;let e=this.mGridNodeArea.get(t);for(let r of e){let l=(this.mNodeArea.get(r)??0)-1;l<1?this.mNodeArea.delete(r):this.mNodeArea.set(r,l)}this.mGridNodeArea.delete(t)}updateNodeArea(t){this.removeNodeArea(t);let e=t.transformation.x,r=t.transformation.y,l=t.transformation.width,m=t.transformation.height,p=t.function.nodeDefinitions.find(D=>D.id===t.definitionId);if(p)switch(p.id){case yt.DEFINITION_ID:return;case k.DEFINITION_ID:case W.DEFINITION_ID:break;default:m+=1,m+=t.preview!==null?7:1}let y=new Array;for(let D=0;D<l;D++)for(let C=0;C<m;C++){let c=`${D+e}|${C+r}`,n=(this.mNodeArea.get(c)??0)+1;this.mNodeArea.set(c,n),y.push(c)}this.mGridNodeArea.set(t,y)}updatePath(t,e,r){if(t.direction==="input"&&t.portType!=="value"||t.direction==="output"&&t.portType!=="flow")throw new A("Start port must be an input-value or an output-flow node.",this);this.removePathArea(t);let l=this.start(e,r);this.mGridPaths.set(t,l.path);let m=this.nodeId(e),p=this.nodeId(r);for(let y of l.path){let D=this.nodeId(y),C=this.mPathArea.has(D)?this.mPathArea.get(D):{ports:new Map,entryPoints:new Set};C.ports.set(t,[m,p]),C.entryPoints.add(m),C.entryPoints.add(p),this.mPathArea.set(D,C)}}costOfTraversal(t,e){let r=this.nodeId(t),l=1;this.mNodeArea.has(r)&&t!==e.endNode&&(l*=20);let m=e.path.next().value;if(this.mPathArea.has(r)){let c=this.mPathArea.get(r),n=this.nodeId(e.startNode),u=this.nodeId(e.endNode);if(c.entryPoints.has(n)||c.entryPoints.has(u))l*=.2;else if(l*=5,m){let a=this.nodeId(m);this.mPathArea.has(a)&&(l*=20)}}if(m){let c=t.y===m.y;(t===e.endNode||m===e.startNode)&&!c&&(l*=100);let n=e.path.next().value;n&&(t.x===n.x||t.y===n.y)&&(l*=.7)}let p=Math.abs(t.x-e.startNode.x),y=Math.abs(t.x-e.endNode.x),D=p<=y;(D&&t.y===e.startNode.y||!D&&t.y===e.endNode.y)&&(l*=.5);let C=e.endNode.x+e.startNode.x>>1;return t.x===C&&(l*=.5),l}heuristic(t,e){return(Math.abs(t.x-e.endNode.x)+Math.abs(t.y-e.endNode.y))*.5}neighborNodes(t){return[{x:t.x,y:t.y-1},{x:t.x-1,y:t.y},{x:t.x+1,y:t.y},{x:t.x,y:t.y+1}]}nodeId(t){return`${t.x}|${t.y}`}removePathArea(t){if(!this.mGridPaths.has(t))return;let e=this.mGridPaths.get(t);for(let r of e){let l=this.nodeId(r),m=this.mPathArea.get(l);if(!m)continue;let p=m.ports.get(t);p&&(m.ports.delete(t),m.entryPoints.delete(p[0]),m.entryPoints.delete(p[1]),m.ports.size===0?this.mPathArea.delete(l):this.mPathArea.set(l,m))}this.mGridPaths.delete(t)}};var He=class{mManager;mPathFinder;constructor(t){this.mManager=t,this.mPathFinder=new Xe;let e=0,r=()=>{e>0&&globalThis.cancelAnimationFrame(e),globalThis.requestAnimationFrame(()=>{this.updatePaths()})};this.mManager.subscribe(R.Node|R.SpecialActiveFunction,l=>{if((l.changeType&R.SpecialActiveFunction)>0){this.mPathFinder.clear("all");for(let m of this.mManager.activeFunction.nodes)this.mPathFinder.updateNodeArea(m);r();return}(l.changeType&R.Node)>0&&((l.changeType&R.NodeDelete)>0?this.mPathFinder.removeNodeArea(l.item):this.mPathFinder.updateNodeArea(l.item)),r()}),this.mManager.subscribe(R.Connection,()=>{r()})}createTemporaryPath(t,e){let r=y=>y instanceof mt?this.getPortGridPoint(y):y,l=r(t),m=r(e),p=this.mPathFinder.start(l,m).path;return this.createSvgPath(p)}getConnectionPath(t,e){let r=this.mPathFinder.getPath(t,e);return this.createSvgPath(r)}getPortGridPoint(t){let e=t.node,r=t.direction==="input"?e.inputs.list:e.outputs.list,l=(()=>{for(let y=0;y<r.length;y++)if(r[y]===t)return y;return 0})(),m=t.direction==="input"?e.transformation.x:e.transformation.x+e.transformation.width-1,p=1;return(e.definitionId===W.DEFINITION_ID||e.definitionId===k.DEFINITION_ID)&&(p=0),{y:e.transformation.y+p+l,x:m}}createGridCellPath(t,e,r){let l=this.getGridPosition(t,e),m=this.getGridPosition(t,r),p={x:e==="bottom"||e==="top"?l.x:m.x,y:e==="left"||e==="right"?l.y:m.y};return`M ${l.x},${l.y} Q ${p.x},${p.y} ${m.x},${m.y}`}createPath(t,e){let[r,l]=t.direction==="input"&&t.portType==="value"||t.direction==="output"&&t.portType==="flow"?[t,e]:[e,t],m=this.getPortGridPoint(r),p=this.getPortGridPoint(l);this.mPathFinder.updatePath(r,m,p)}createSvgPath(t){let e=(l,m)=>{let p=m.x-l.x,y=m.y-l.y;switch(!0){case(p===0&&y===1):return"bottom";case(p===0&&y===-1):return"top";case(p===-1&&y===0):return"left";case(p===1&&y===0):return"right";default:throw new A("Missformed path. Path points are not directly next to each other.",this)}},r="";for(let l=1;l<t.length-1;l++){let m=t[l],p=t[l-1],y=t[l+1],D=e(m,p),C=e(m,y);r+=this.createGridCellPath(m,D,C)}return r}getGridPosition(t,e){let r={x:t.x*this.mManager.grid.gridSize+this.mManager.grid.gridSize/2,y:t.y*this.mManager.grid.gridSize+this.mManager.grid.gridSize/2},l=this.mManager.grid.gridSize/2;switch(e){case"top":r.y-=l;break;case"right":r.x+=l;break;case"bottom":r.y+=l;break;case"left":r.x-=l;break}return r}updatePaths(){this.mPathFinder.clear("path");for(let t of this.mManager.activeFunction.nodes){for(let e of t.outputs.flow){let r=e.connectedPorts.values().next().value;r&&this.createPath(e,r)}for(let e of t.inputs.value){let r=e.connectedPorts.values().next().value;r&&this.createPath(e,r)}}}};var Ye=class{mDocument;mManager;get document(){return this.mDocument}constructor(t){this.mManager=t,this.mDocument=new jt(t.project),this.mDocument.validate()}addFunction(t){let e=this.mDocument;if(!e||!e.project.userFunctions.has(t))return;let r=new Et(e.project,e,{definitionId:t,id:crypto.randomUUID(),isSystem:!1,label:`Function_${e.functions.length}`});e.addFunction(r),e.validate(),this.mManager.dispatch(R.FunctionAdd,r),this.mManager.setActiveFunction(r)}addNode(t,e,r){let l=t.addNodeByDefinition(e,r);return this.mManager.dispatch(R.NodeAdd,l),l}connectConjunction(t,e){let r=t.transformation,l=this.mManager.grid.draggedPort.portPositions.get(this.mManager.grid.draggedPort.ports[0]),m=e.sort((D,C)=>{let c=D.connectedPorts.size===0,n=C.connectedPorts.size===0;if(c!==n)return c?-1:1;let u=l.x>r.x?"input":"output",a=D.direction===u,o=C.direction===u;return a!==o?a?-1:1:0});if(t.inputs.list.length===0||t.outputs.list.length===0)throw new A("Malformed conjunction node",this);let p=t.inputs.list[0],y=t.outputs.list[0];for(let D of m)if(this.connectPorts(D,p)||this.connectPorts(D,y))return}connectPorts(t,e){try{t.connect(e)}catch{return!1}return this.mManager.dispatch(R.ConnectionAdd,t),this.mManager.dispatch(R.ConnectionAdd,e),!0}disconnectPorts(t,e){t.disconnect(e),this.mManager.dispatch(R.ConnectionDelete,t),this.mManager.dispatch(R.ConnectionDelete,e)}removeFunction(t){let e=this.mDocument;if(!e)return;let r=null;for(let l of e.functions)if(l.id===t){r=l,e.removeFunction(l);break}r&&(this.mManager.dispatch(R.FunctionDelete,r),this.setDefaultActiveFunction())}removeNode(t){if(t.definitionId===W.DEFINITION_ID||t.definitionId===k.DEFINITION_ID){let e=t.inputs.list[0],r=t.outputs.list[0];for(let l of e.connectedPorts)for(let m of r.connectedPorts)this.mManager.graph.connectPorts(l,m)}t.function.removeNode(t),this.mManager.dispatch(R.NodeDelete,t)}setDocument(t){this.mDocument=t,this.mDocument.validate(),this.mManager.dispatch(R.Document,this.mDocument),this.setDefaultActiveFunction()}setPortDirectValue(t,e){t.setDirectValue(e),this.mManager.dispatch(R.NodeUpdate,t.node)}transformNode(t,e){if(!t)return;let r=structuredClone(t.transformation);e(t),!(r.width===t.transformation.width&&r.height===t.transformation.height&&r.x===t.transformation.x&&r.y===t.transformation.y)&&this.mManager.dispatch(R.NodeTransform,t)}updateFunction(t,e){t&&(e(t),this.mManager.dispatch(R.FunctionUpdate,t))}updateNode(t,e){t&&(e(t),this.mManager.dispatch(R.NodeUpdate,t))}setDefaultActiveFunction(){if(!this.mDocument||this.mDocument.functions.length===0)return;let t=(()=>{let e=[...this.mDocument.functions],r=e.find(l=>l.id===this.mManager.activeFunction.id);return r||e[0]})();this.mManager.activeFunction!==t&&this.mManager.setActiveFunction(t)}};var We=class g{static GRID_SIZE=24;static MAX_ZOOM=5;static MIN_ZOOM=.1;mDraggedPortInformation;mGridElement;mManager;mPanX;mPanY;mZoom;get draggedPort(){return this.mDraggedPortInformation}set gridElement(t){this.mGridElement=t}get gridSize(){return g.GRID_SIZE}get panX(){return this.mPanX}get panY(){return this.mPanY}get zoom(){return this.mZoom}constructor(t){this.mManager=t,this.mPanX=0,this.mPanY=0,this.mZoom=1,this.mGridElement=null,this.mDraggedPortInformation=new Ze(this.mManager,new Array)}pan(t,e){this.mPanX+=t,this.mPanY+=e,this.mManager.dispatch(R.SpecialGrid,null)}pixelToGridPixelSpace(t,e){let r=t,l=e;if(this.mGridElement){let m=this.mGridElement.getBoundingClientRect();r-=m.left,l-=m.top}return{x:(r-this.mPanX)/this.mZoom,y:(l-this.mPanY)/this.mZoom}}pixelToGridSpace(t,e){return this.gridPixelSpaceToGridSpace(this.pixelToGridPixelSpace(t,e))}gridPixelSpaceToGridSpace(t){return{x:Math.floor(t.x/this.gridSize),y:Math.floor(t.y/this.gridSize)}}setDraggingPort(t){this.mDraggedPortInformation=new Ze(this.mManager,t)}zoomAt(t,e,r){let l=this.mZoom,m=1+r,p=this.mZoom*m;p=Math.max(g.MIN_ZOOM,Math.min(g.MAX_ZOOM,p));let y=(t-this.mPanX)/l,D=(e-this.mPanY)/l;this.mZoom=p,this.mPanX=t-y*this.mZoom,this.mPanY=e-D*this.mZoom,this.mManager.dispatch(R.SpecialGrid,null)}},Ze=class{mManager;mPorts;mPortPositions;mPointerGridPosition;get ports(){return[...this.mPorts]}get isDragging(){return this.mPorts.size>0}get portPositions(){return this.mPortPositions}constructor(t,e){this.mManager=t,this.mPorts=new Set(e),this.mPointerGridPosition={x:1/0,y:1/0},this.mPortPositions=new Map;for(let r of e){let l=this.mManager.connections.getPortGridPoint(r);r.direction==="output"&&(l.x+=1),this.mPortPositions.set(r,{x:l.x,y:l.y})}}hasPort(t){return t?this.mPorts.has(t):!1}updatePointer(t,e){let r=this.mManager.grid.pixelToGridSpace(t,e);return r.x===this.mPointerGridPosition.x&&r.y===this.mPointerGridPosition.y?!1:(this.mPointerGridPosition.x=r.x,this.mPointerGridPosition.y=r.y,!0)}};var qe=class g{static MAX_HISTORY_ITEMS=100;mManager;mSnapshotIndex;mSnapshots;get canRedo(){return this.mSnapshotIndex<this.mSnapshots.length-1}get canUndo(){return this.mSnapshotIndex>0}constructor(t){this.mManager=t,this.mSnapshotIndex=-1,this.mSnapshots=new Array;let e=0;this.mManager.subscribe(R.Any,()=>{globalThis.clearTimeout(e),e=globalThis.setTimeout(()=>{this.pushHistory()},300)})}clear(){this.mSnapshots.length=0,this.mSnapshotIndex=-1}redo(){if(!this.canRedo)return;let t=this.mSnapshots[++this.mSnapshotIndex],e=JSON.parse(t);this.restoreHistory(e)}undo(){if(!this.canUndo)return;let t=this.mSnapshots[--this.mSnapshotIndex],e=JSON.parse(t);this.restoreHistory(e)}pushHistory(){let t=new ne().serialize(this.mManager.graph.document),e=JSON.stringify(t);this.mSnapshotIndex>=0&&this.mSnapshots[this.mSnapshotIndex]===e||(this.mSnapshots.splice(this.mSnapshotIndex+1),this.mSnapshotIndex=this.mSnapshots.push(e)-1,this.mSnapshots.length>g.MAX_HISTORY_ITEMS&&(this.mSnapshots.shift(),this.mSnapshotIndex--))}restoreHistory(t){this.mManager.graph.setDocument(new re(this.mManager.project).deserialize(t))}};var Je=class{mErrorItems;mErrorList;mIsDirty;mManager;get errorItems(){return this.mIsDirty&&this.revalidate(),this.mErrorItems}get errors(){return this.mIsDirty&&this.revalidate(),this.mErrorList}get isValid(){return this.mIsDirty&&this.revalidate(),this.mErrorItems.size===0}constructor(t){this.mManager=t,this.mErrorList=new Array,this.mErrorItems=new Set,this.mIsDirty=!0;let e=0,r=R.Connection|R.Document|R.Function|R.NodeAdd|R.NodeUpdate|R.NodeDelete|R.Port;this.mManager.subscribe(r,()=>{this.mIsDirty=!0,globalThis.clearTimeout(e),e=globalThis.setTimeout(()=>{this.mIsDirty&&(this.revalidate(),this.mIsDirty=!1)},1e3)})}revalidate(){this.mIsDirty=!1,this.mErrorList.splice(0,this.mErrorList.length),this.mErrorItems.clear();let t=this.mManager.graph.document.validate();for(let e of t.errors)switch(this.mErrorItems.add(e.item),!0){case e.item instanceof mt:{this.mErrorList.push({location:`Node "${e.item.node.label}"`,message:e.message});break}case e.item instanceof St:{this.mErrorList.push({location:`Node "${e.item.label}"`,message:e.message});break}}for(let e of t.affectedItems)switch(!0){case e instanceof mt:{this.mManager.dispatch(R.PortAdd|R.PortUpdate,e),this.mManager.dispatch(R.NodeUpdate,e.node);break}case e instanceof St:{this.mManager.dispatch(R.NodeAdd|R.NodeUpdate|R.NodeTransform,e);break}case e instanceof Et:{this.mManager.dispatch(R.FunctionAdd|R.FunctionUpdate,e);break}}this.mManager.dispatch(R.SpecialValidation,null)}};var Ke=class{mDriverElementBigEnough;mDriverElementVisible;mDriverElements;mDriverList;mDrivers;mElementDriver;mManager;mPreviewIntersection;constructor(t){this.mManager=t,this.mDriverList=new Array,this.mDrivers=new WeakMap,this.mDriverElementVisible=new WeakMap,this.mDriverElementBigEnough=new WeakMap,this.mDriverElements=new WeakMap,this.mElementDriver=new WeakMap,this.mManager.subscribe(R.Document,()=>{this.mDriverList.splice(0,this.mDriverList.length)});let e=0,r=R.Connection|R.Function|R.NodeAdd|R.NodeDelete|R.NodeUpdate;this.mManager.subscribe(r,()=>{globalThis.clearTimeout(e),e=globalThis.setTimeout(()=>this.refresh(),1e3)});let l=0;this.mManager.subscribe(R.SpecialGrid,()=>{globalThis.clearTimeout(l),l=globalThis.setTimeout(()=>{for(let m of this.mDriverList){let p=m.deref();if(!p)continue;let y=p.element.getBoundingClientRect();this.mDriverElementBigEnough.set(p,!(y.width<30||y.height<30))}},300)}),this.mPreviewIntersection=new IntersectionObserver(m=>{for(let p of m){let y=this.mElementDriver.get(p.target);if(!y)continue;let D=y.deref();D&&this.mDriverElementVisible.set(D,p.isIntersecting)}})}execute(){for(let t of this.mDriverList){let e=t.deref();if(e&&this.mDriverElementVisible.get(e)!==!1&&this.mDriverElementBigEnough.get(e)!==!1)try{e.execute()}catch(r){console.error("[PotatnoUiManagerPreview] Driver render failed:",r)}}}refresh(){if(this.mManager.integrity.isValid)for(let t=this.mDriverList.length-1;t>=0;t--){let e=this.mDriverList[t].deref();if(!e){this.unregister(this.mDriverList[t]);continue}e.refresh()}}requestDriver(t,e){let r=this.mDrivers.get(t);if(r&&r.display.id===e)return r;r&&this.unregister(this.mElementDriver.get(r.element));let l=t.project.preview.getDisplay(e);if(!l)throw new A(`Preview has no display for "${e}".`,this);let m=l.createDriver(t);return this.register(t,m),this.mManager.integrity.isValid&&m.refresh(),m}register(t,e){this.mDrivers.set(t,e);let r=new WeakRef(e);this.mDriverList.push(r);let l=e.element;this.mDriverElements.set(r,l),this.mElementDriver.set(l,r),this.mPreviewIntersection.observe(l)}unregister(t){let e=this.mDriverList.indexOf(t);if(e===-1)return;this.mDriverList.splice(e,1);let r=this.mDriverElements.get(t);r&&this.mPreviewIntersection.unobserve(r)}};var X=class extends EventTarget{mActiveFunction;mClipboard;mConnections;mEventBuffer;mEventBufferDispatchRequest;mGraph;mGrid;mHistory;mIntegrity;mPreview;mProject;get activeFunction(){return this.mActiveFunction}get clipboard(){return this.mClipboard}get connections(){return this.mConnections}get graph(){return this.mGraph}get grid(){return this.mGrid}get history(){return this.mHistory}get integrity(){return this.mIntegrity}get preview(){return this.mPreview}get project(){return this.mProject}constructor(t){super(),this.mProject=t,this.mEventBuffer=new Map,this.mEventBufferDispatchRequest=-1,this.mIntegrity=new Je(this),this.mConnections=new He(this),this.mHistory=new qe(this),this.mPreview=new Ke(this),this.mGrid=new We(this),this.mClipboard=new Ue(this),this.mGraph=new Ye(this),this.mActiveFunction=this.mGraph.document.functions.at(0)}dispatch(t,e){let r=this.mEventBuffer.get(e)??0;this.mEventBuffer.set(e,r|t),this.mEventBufferDispatchRequest!==-1&&globalThis.cancelAnimationFrame(this.mEventBufferDispatchRequest),this.mEventBufferDispatchRequest=requestAnimationFrame(()=>{this.mEventBufferDispatchRequest=-1;for(let[l,m]of this.mEventBuffer)this.dispatchEvent(new Ce(m,l));this.mEventBuffer.clear()})}generateStringColor(t){let e=(()=>{let l=0;for(let m=0;m<t.length;m++)l=t.charCodeAt(m)+((l<<5)-l);return l})();return`hsl(${Math.abs(e)*137.508%360}, 70%, 60%)`}setActiveFunction(t){this.mGraph.document.functions.find(r=>r===t)&&(this.mActiveFunction=t,this.dispatch(R.SpecialActiveFunction,t))}subscribe(t,e){let r=l=>{t!==R.Any&&(l.changeType&t)===0||e(l)};return this.addEventListener(Ce.EVENT_TYPE,r),()=>{this.removeEventListener(Ce.EVENT_TYPE,r)}}},R={Any:16777215,Connection:15,ConnectionAdd:1,ConnectionUpdate:2,ConnectionDelete:4,Document:240,Function:3840,FunctionAdd:256,FunctionUpdate:512,FunctionDelete:1024,Node:61440,NodeAdd:4096,NodeUpdate:8192,NodeDelete:16384,NodeTransform:32768,Port:983040,PortAdd:65536,PortUpdate:131072,PortDelete:262144,Special:15728640,SpecialActiveFunction:1048576,SpecialGrid:2097152,SpecialValidation:4194304},Ce=class g extends Event{static EVENT_TYPE="PotatnoUiManagerChangeEvent";mChangeType;mEventItem;get changeType(){return this.mChangeType}get item(){return this.mEventItem}constructor(t,e){super(g.EVENT_TYPE),this.mChangeType=t,this.mEventItem=e}};var Ir=`:host {\r
     display: flex;\r
@@ -51,7 +51,7 @@ potatno-code-editor {\r
 \r
 .resize-box {\r
     height: 100%;\r
-    background-color: var(--potatno-color-background);\r
+    background-color: var(--potatno-color-background-dark);\r
 \r
     /* Set min, max and default width */\r
     max-width: 500px;\r
@@ -1428,11 +1428,21 @@ $if(this.left) {\r
     background-color: var(--potatno-color-background);\r
     cursor: pointer;\r
 \r
+    --preview-toggle-icon-color: var(--node-border-color);\r
+\r
     /* Click animation. */\r
     transition: background-color 0.15s, translate 0.15s;\r
 \r
-    &:active {\r
+    &.active {\r
+        --preview-toggle-icon-color: var(--potatno-color-accent);\r
+    }\r
+\r
+    &:hover {\r
         background-color: var(--potatno-color-background-light);\r
+    }\r
+\r
+    &:active {\r
+        background-color: var(--potatno-color-background-dark);\r
         translate: 0 1px;\r
     }\r
 \r
@@ -1440,7 +1450,7 @@ $if(this.left) {\r
         position: absolute;\r
         box-sizing: border-box;\r
         left: 50%;\r
-        border: 0px solid var(--node-border-color);\r
+        border: 0px solid var(--preview-toggle-icon-color);\r
         border-width: 0px 1px 1px 0;\r
         height: 10px;\r
         width: 10px;\r
@@ -1454,20 +1464,11 @@ $if(this.left) {\r
         &::before {\r
             content: '';\r
             display: block;\r
-            border: 0px solid var(--node-border-color);\r
+            border: 0px solid var(--preview-toggle-icon-color);\r
             border-width: 0px 1px 1px 0;\r
             height: 100%;\r
             width: 100%;\r
             transition: border-color 0.15s;\r
-        }\r
-\r
-        /* Hover animation scoped to parent */\r
-        .node-preview-toggle:hover & {\r
-            border-color: var(--potatno-color-accent);\r
-\r
-            &::before {\r
-                border-color: var(--potatno-color-accent);\r
-            }\r
         }\r
 \r
         .node-preview-toggle.active & {\r
@@ -1495,18 +1496,18 @@ $if(this.left) {\r
     &::before {\r
         content: '';\r
         position: absolute;\r
-        top: calc(var(--potatno-grid-size) / -2);\r
+        top: calc(var(--potatno-grid-size) / -2 - 1px);\r
         left: 50%;\r
 \r
         display: block;\r
-        height: calc(var(--potatno-grid-size) / 2);\r
+        height: calc(var(--potatno-grid-size) / 2 - 2px);\r
         border: 1px solid var(--node-border-color);\r
     }\r
 \r
     .node-preview__window {\r
         display: flex;\r
         padding: 5px;\r
-        background: var(--potatno-color-background-dark);\r
+        background: var(--potatno-color-background-light);\r
         overflow: hidden;\r
 \r
         /* The whole preview area has a grid height of 6. [6 - toggle-height - select-height] */\r
@@ -1720,7 +1721,7 @@ $if(this.isPreviewActive) {\r
     overflow: hidden;\r
 \r
     /* Background color on component, as the position and scale does not affect this layer. */\r
-    background-color: var(--potatno-color-background-light);\r
+    background-color: var(--potatno-color-background);\r
 }\r
 \r
 .grid-background {\r
@@ -1730,7 +1731,7 @@ $if(this.isPreviewActive) {\r
     background-size: 0px 0px;\r
     background-position: 0px 0px;\r
     background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Cpath%20d%3D%22M0%200h18M0%200v18M100%200H82M100%200v18M0%20100h18M0%20100V82M100%20100H82M100%20100V82%22%20stroke%3D%22%23ffffff%22%20stroke-width%3D%225%22%20stroke-linecap%3D%22round%22%2F%3E%3C%2Fsvg%3E");\r
-    filter: opacity(0.3);\r
+    filter: opacity(0.1);\r
 }\r
 \r
 .grid-content {\r
@@ -1791,7 +1792,7 @@ $if(this.popupPosition !== null) {\r
 \r
 .resize-box {\r
     height: 100%;\r
-    background-color: var(--potatno-color-background);\r
+    background-color: var(--potatno-color-background-dark);\r
 \r
     /* Set min, max and default width */\r
     max-width: 500px;\r
@@ -2139,7 +2140,7 @@ $if(this.popupPosition !== null) {\r
     align-items: center;\r
     justify-content: space-between;\r
     border-bottom: 1px solid var(--potatno-color-border);\r
-    background-color: var(--potatno-color-background-light);\r
+    background-color: var(--potatno-color-background);\r
     overflow: hidden;\r
 \r
     /* Make wrapped element hide, by giving it a height and vertical gap */\r
@@ -2151,7 +2152,7 @@ $if(this.popupPosition !== null) {\r
     padding: 2px 2px 0 2px;\r
 \r
     /* Should never shrink */\r
-    flex-shrink: 0; \r
+    flex-shrink: 0;\r
 \r
     .header__tabs {\r
         display: flex;\r
@@ -2170,7 +2171,7 @@ $if(this.popupPosition !== null) {\r
             padding: 7px 15px 7px 15px;\r
             border-radius: 2px;\r
             cursor: pointer;\r
-            \r
+\r
             &:hover {\r
                 background: var(--tab-selected-background);\r
             }\r
@@ -2209,6 +2210,10 @@ $if(this.popupPosition !== null) {\r
 \r
             border: 1px solid var(--potatno-color-border);\r
             border-radius: 3px;\r
+\r
+            &:focus {\r
+                border-color: var(--potatno-color-accent);\r
+            }\r
         }\r
     }\r
 }\r
@@ -2231,7 +2236,8 @@ $if(this.popupPosition !== null) {\r
         overflow: auto;\r
 \r
         /* Reset inner elements padding and margin. */\r
-        pre, code {\r
+        pre,\r
+        code {\r
             padding: 0;\r
             margin: 0;\r
         }\r

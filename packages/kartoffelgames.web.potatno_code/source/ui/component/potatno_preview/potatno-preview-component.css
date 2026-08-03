@@ -24,7 +24,7 @@
     align-items: center;
     justify-content: space-between;
     border-bottom: 1px solid var(--potatno-color-border);
-    background-color: var(--potatno-color-background-light);
+    background-color: var(--potatno-color-background);
     overflow: hidden;
 
     /* Make wrapped element hide, by giving it a height and vertical gap */
@@ -36,7 +36,7 @@
     padding: 2px 2px 0 2px;
 
     /* Should never shrink */
-    flex-shrink: 0; 
+    flex-shrink: 0;
 
     .header__tabs {
         display: flex;
@@ -55,7 +55,7 @@
             padding: 7px 15px 7px 15px;
             border-radius: 2px;
             cursor: pointer;
-            
+
             &:hover {
                 background: var(--tab-selected-background);
             }
@@ -94,6 +94,10 @@
 
             border: 1px solid var(--potatno-color-border);
             border-radius: 3px;
+
+            &:focus {
+                border-color: var(--potatno-color-accent);
+            }
         }
     }
 }
@@ -116,7 +120,8 @@
         overflow: auto;
 
         /* Reset inner elements padding and margin. */
-        pre, code {
+        pre,
+        code {
             padding: 0;
             margin: 0;
         }

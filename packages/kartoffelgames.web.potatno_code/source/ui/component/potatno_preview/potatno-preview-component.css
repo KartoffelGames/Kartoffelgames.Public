@@ -48,7 +48,7 @@
         color: var(--potatno-color-text);
 
         .tab {
-            --tab-selected-color: color-mix(in srgb, var(--potatno-color-accent) 25%, transparent);
+            --tab-selected-color: var(--potatno-color-accent);
             --tab-selected-background: linear-gradient(1deg, var(--tab-selected-color) 0%, transparent 45%);
 
             margin: 3px;
@@ -62,18 +62,18 @@
 
             &:active {
                 background: var(--tab-selected-color);
+                color: var(--potatno-color-text-contrast);
                 scale: 0.98;
             }
 
             &.selected {
                 background: var(--tab-selected-color);
-
-                /* The background gets lighter, the color should too. */
-                color: color-mix(in srgb, var(--potatno-color-text) 75%, #fff);
+                color: var(--potatno-color-text-contrast);
             }
 
             &.tab--error {
-                color: var(--potatno-color-error);
+                color: var(--potatno-color-text-contrast);
+                background: var(--potatno-color-error);
             }
         }
     }

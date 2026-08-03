@@ -27,16 +27,16 @@ potatno-code-editor {\r
     --potatno-font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;\r
 \r
     /* Main colors */\r
-    --potatno-color-background: #1e1e2e;\r
-    --potatno-color-background-dark: #181825;\r
-    --potatno-color-background-light: #2a2a3c;\r
-    --potatno-color-text: #a6adc8;\r
+    --potatno-color-background: #181818;\r
+    --potatno-color-background-dark: #111111;\r
+    --potatno-color-background-light: #202020;\r
+    --potatno-color-text: #cccccc;\r
     --potatno-color-text-contrast: #ffffff;\r
-    --potatno-color-accent: #89b4fa;\r
-    --potatno-color-border: #45475a;\r
+    --potatno-color-accent: #20be20;\r
+    --potatno-color-border: #444444;\r
 \r
     /* Supporting colors */\r
-    --potatno-color-error: #f38ba8;\r
+    --potatno-color-error: #ff5555;\r
     --potatno-color-shadow: rgba(0, 0, 0, 0.3);\r
 \r
     /* Scrollbar */\r
@@ -1718,15 +1718,19 @@ $if(this.isPreviewActive) {\r
     min-height: 0;\r
     min-width: 0;\r
     overflow: hidden;\r
+\r
+    /* Background color on component, as the position and scale does not affect this layer. */\r
+    background-color: var(--potatno-color-background-light);\r
 }\r
 \r
 .grid-background {\r
     flex: 1;\r
 \r
+    /* Background pattern that scales and positions with grid. */\r
     background-size: 0px 0px;\r
     background-position: 0px 0px;\r
-    background-color: var(--potatno-color-background);\r
-    background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Cpath%20d%3D%22M0%200h18M0%200v18M100%200H82M100%200v18M0%20100h18M0%20100V82M100%20100H82M100%20100V82%22%20stroke%3D%22%23313244%22%20stroke-width%3D%225%22%20stroke-linecap%3D%22round%22%2F%3E%3C%2Fsvg%3E");\r
+    background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Cpath%20d%3D%22M0%200h18M0%200v18M100%200H82M100%200v18M0%20100h18M0%20100V82M100%20100H82M100%20100V82%22%20stroke%3D%22%23ffffff%22%20stroke-width%3D%225%22%20stroke-linecap%3D%22round%22%2F%3E%3C%2Fsvg%3E");\r
+    filter: opacity(0.3);\r
 }\r
 \r
 .grid-content {\r
@@ -2159,7 +2163,7 @@ $if(this.popupPosition !== null) {\r
         color: var(--potatno-color-text);\r
 \r
         .tab {\r
-            --tab-selected-color: color-mix(in srgb, var(--potatno-color-accent) 25%, transparent);\r
+            --tab-selected-color: var(--potatno-color-accent);\r
             --tab-selected-background: linear-gradient(1deg, var(--tab-selected-color) 0%, transparent 45%);\r
 \r
             margin: 3px;\r
@@ -2173,18 +2177,18 @@ $if(this.popupPosition !== null) {\r
 \r
             &:active {\r
                 background: var(--tab-selected-color);\r
+                color: var(--potatno-color-text-contrast);\r
                 scale: 0.98;\r
             }\r
 \r
             &.selected {\r
                 background: var(--tab-selected-color);\r
-\r
-                /* The background gets lighter, the color should too. */\r
-                color: color-mix(in srgb, var(--potatno-color-text) 75%, #fff);\r
+                color: var(--potatno-color-text-contrast);\r
             }\r
 \r
             &.tab--error {\r
-                color: var(--potatno-color-error);\r
+                color: var(--potatno-color-text-contrast);\r
+                background: var(--potatno-color-error);\r
             }\r
         }\r
     }\r

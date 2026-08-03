@@ -5,15 +5,19 @@
     min-height: 0;
     min-width: 0;
     overflow: hidden;
+
+    /* Background color on component, as the position and scale does not affect this layer. */
+    background-color: var(--potatno-color-background-light);
 }
 
 .grid-background {
     flex: 1;
 
+    /* Background pattern that scales and positions with grid. */
     background-size: 0px 0px;
     background-position: 0px 0px;
-    background-color: var(--potatno-color-background);
-    background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Cpath%20d%3D%22M0%200h18M0%200v18M100%200H82M100%200v18M0%20100h18M0%20100V82M100%20100H82M100%20100V82%22%20stroke%3D%22%23313244%22%20stroke-width%3D%225%22%20stroke-linecap%3D%22round%22%2F%3E%3C%2Fsvg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Cpath%20d%3D%22M0%200h18M0%200v18M100%200H82M100%200v18M0%20100h18M0%20100V82M100%20100H82M100%20100V82%22%20stroke%3D%22%23ffffff%22%20stroke-width%3D%225%22%20stroke-linecap%3D%22round%22%2F%3E%3C%2Fsvg%3E");
+    filter: opacity(0.3);
 }
 
 .grid-content {

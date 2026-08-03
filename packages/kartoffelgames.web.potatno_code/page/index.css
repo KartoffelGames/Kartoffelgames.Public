@@ -13,7 +13,7 @@ body {
 
 .potatno-code-toolbar {
     display: flex;
-    background: #181825;
+    background: #111111;
     border-bottom: 1px solid #45475a;
 
     .potatno-code-toolbar-button {

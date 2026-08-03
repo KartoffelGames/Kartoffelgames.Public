@@ -9,16 +9,16 @@
     --potatno-font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
 
     /* Main colors */
-    --potatno-color-background: #1e1e2e;
-    --potatno-color-background-dark: #181825;
-    --potatno-color-background-light: #2a2a3c;
-    --potatno-color-text: #a6adc8;
+    --potatno-color-background: #181818;
+    --potatno-color-background-dark: #111111;
+    --potatno-color-background-light: #202020;
+    --potatno-color-text: #cccccc;
     --potatno-color-text-contrast: #ffffff;
-    --potatno-color-accent: #89b4fa;
-    --potatno-color-border: #45475a;
+    --potatno-color-accent: #20be20;
+    --potatno-color-border: #444444;
 
     /* Supporting colors */
-    --potatno-color-error: #f38ba8;
+    --potatno-color-error: #ff5555;
     --potatno-color-shadow: rgba(0, 0, 0, 0.3);
 
     /* Scrollbar */

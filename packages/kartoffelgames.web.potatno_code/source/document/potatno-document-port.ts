@@ -159,7 +159,7 @@ export class PotatnoDocumentPort<TProjectTypes extends PotatnoProjectTypesDefini
             throw new Exception(`Cannot connect port ${this.mDefinitionId} of node ${this.mNode.label} to port ${pPort.mDefinitionId} of node ${pPort.node.label} due to incompatible directions.`, this);
         }
 
-        if(this.node === pPort.node) {
+        if (this.node === pPort.node) {
             throw new Exception(`Cannot connect port ${this.mDefinitionId} of node ${this.mNode.label} to another port of the same node.`, this);
         }
 
@@ -304,12 +304,15 @@ export class PotatnoDocumentPort<TProjectTypes extends PotatnoProjectTypesDefini
     private resolveDataType(pVisitedNodes: Set<PotatnoDocumentNode<TProjectTypes>>): string {
         // Check if this node has already been visited.
         // Skip and resolve 
-        if(pVisitedNodes.has(this.node)){
-            return this.mDataType!; 
+        if (pVisitedNodes.has(this.node)) {
+            return this.mDataType!;
         }
 
-        // Add this node to visited nodes.
-        pVisitedNodes.add(this.node);
+        // Visited state only set on input ports, outputs are just passthroughs
+        if (this.mDirection === 'input') {
+            // Add this node to visited nodes.
+            pVisitedNodes.add(this.node);
+        }
 
         // For none value ports, resolved type is always empty string.
         if (this.mPortType !== 'value') {

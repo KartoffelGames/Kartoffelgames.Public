@@ -61,7 +61,7 @@ export class PotatnoNodeGraphComponent implements IComponentOnDeconstruct {
         const lOffsetX: number = this.mManager.grid.panX % lScaledGrid;
         const lOffsetY: number = this.mManager.grid.panY % lScaledGrid;
 
-        return `background-size: ${lScaledGrid}px ${lScaledGrid}px; background-position: ${lOffsetX}px ${lOffsetY}px;`;
+        return `--grid-size: ${lScaledGrid}px; --grid-position-x: ${lOffsetX}px; --grid-position-y: ${lOffsetY}px;`;
     }
 
     /**

@@ -165,7 +165,7 @@
 
     display: flex;
     flex-direction: column;
-    background-color: var(--potatno-color-background);
+    background-color: var(--potatno-color-background-dark);
     box-shadow: 0 2px 8px var(--potatno-color-shadow);
     border: 1px solid var(--node-border-color);
     user-select: none;
@@ -188,7 +188,7 @@
     .node-preview__window {
         display: flex;
         padding: 5px;
-        background: var(--potatno-color-background-light);
+        background: var(--potatno-color-background);
         overflow: hidden;
 
         /* The whole preview area has a grid height of 6. [6 - toggle-height - select-height] */
@@ -199,7 +199,6 @@
         box-sizing: border-box;
         display: flex;
         justify-content: space-between;
-        gap: 2px;
 
         /* Height minus border */
         flex-shrink: 0;
@@ -211,7 +210,7 @@
             height: 100%;
             min-width: 0;
             padding: 0px 10px;
-            background: var(--potatno-color-background-light);
+            background: var(--potatno-color-background-dark);
             font-size: var(--potatno-font-size-small);
             color: var(--potatno-color-text);
 
@@ -230,6 +229,7 @@
             position: relative;
             flex: 0;
             height: 100%;
+            border-right: 2px solid var(--potatno-color-background);
 
             .select-button__button {
                 display: flex;
@@ -245,7 +245,7 @@
                 /* Transition items. */
                 border: none;
                 border-bottom: 1px solid var(--potatno-color-border);
-                background-color: var(--potatno-color-background-light);
+                background-color: var(--potatno-color-background-dark);
 
                 &:hover {
                     border-color: var(--potatno-color-accent);

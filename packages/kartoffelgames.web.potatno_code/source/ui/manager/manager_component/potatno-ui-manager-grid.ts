@@ -125,7 +125,7 @@ export class PotatnoUiManagerGrid {
      * @returns Grid point.
      */
     public pixelToGridSpace(pX: number, pY: number): PotatnoUiManagerGridCoordinate {
-        return this.gridPixelSpaceToGridSpace(this.pixelToGridPixelSpace(pX, pY))
+        return this.gridPixelSpaceToGridSpace(this.pixelToGridPixelSpace(pX, pY), true);
     }
 
     /**
@@ -135,10 +135,20 @@ export class PotatnoUiManagerGrid {
      * 
      * @returns converted pixel to grid space. 
      */
-    public gridPixelSpaceToGridSpace(pPixel: PotatnoUiManagerGridPixelCoordinate): PotatnoUiManagerGridCoordinate{
+    public gridPixelSpaceToGridSpace(pPixel: PotatnoUiManagerGridPixelCoordinate, pRound: boolean): PotatnoUiManagerGridCoordinate {
+        // Into grid space by deviding by grid size. Easy.
+        let lX: number = pPixel.x / this.gridSize;
+        let lY: number = pPixel.y / this.gridSize;
+
+        // Optional round of position.
+        if (pRound) {
+            lX = Math.round(lX);
+            lY = Math.round(lY);
+        }
+
         return {
-            x: Math.floor(pPixel.x / this.gridSize),
-            y: Math.floor(pPixel.y / this.gridSize)
+            x: lX,
+            y: lY
         };
     }
 

@@ -621,11 +621,11 @@ export class PotatnoNodeGraphComponent implements IComponentOnDeconstruct {
                 const lTopLeft: PotatnoUiManagerGridPixelCoordinate = this.mManager.grid.gridPixelSpaceToGridSpace({
                     x: this.selectBox.x,
                     y: this.selectBox.y
-                });
+                }, false);
                 const lBottomRight: PotatnoUiManagerGridPixelCoordinate = this.mManager.grid.gridPixelSpaceToGridSpace({
                     x: this.selectBox.x + this.selectBox.width,
                     y: this.selectBox.y + this.selectBox.height
-                });
+                }, false);
 
                 // And from the pixel space into grid coordinates. No need to round numbers as it correcter to not do it.
                 const lSelectedNodes: Array<PotatnoDocumentNode<PotatnoProjectTypesDefinition>> = this.getNodesInRectangle({

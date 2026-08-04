@@ -14,13 +14,23 @@ import { PwbInstructionModule } from '../../core/module/instruction_module/pwb-i
 /**
  * For of.
  * Doublicates html element for each item in object or array.
- * Syntax: "[CustomName] of [List] (;[CustomIndexName] = $index)?"
+ * Syntax: "[CustomName] of [List] (;[CustomIndexName] = $index)? ($key = [KeyInstruction])?"
  */
 @PwbInstructionModule({
     instructionType: 'for'
 })
 export class ForInstructionModule implements IInstructionOnUpdate {
-    private readonly mExpression: ForOfExpression;
+    /**
+     * [CustomName:1] of [List value:2] (;[CustomIndexName:4]=[Index calculating with "index" as key:5])?
+     */
+    private static readonly REGEX_HEAD: RegExp = new RegExp(/^\s*([a-zA-Z]+[a-zA-Z0-9]*)\s*of\s+([^;]+)\s*(?:;(.*))?$/);
+
+    /**
+     * [CustomName:1]=[Index calculating with "index" as key:2]
+     */
+    private static readonly REGEX_MODIFIER_INSTRUCTION: RegExp = new RegExp(/^\s*(\$?[a-zA-Z]+[a-zA-Z0-9]*)\s*=\s*(.+?)\s*$/);
+
+    private readonly mExpression: ForInstructionModuleExpression;
     private mLastEntries: Array<[string, any]>;
     private readonly mModuleValues: ModuleDataLevel;
     private readonly mTemplate: PwbTemplateInstructionNode;
@@ -36,33 +46,48 @@ export class ForInstructionModule implements IInstructionOnUpdate {
         this.mModuleValues = pModuleData;
         this.mLastEntries = new Array<[string, any]>();
 
-        const lInstruction = pModuleExpression.value;
-
-        // [CustomName:1] of [List value:2] (;[CustomIndexName:4]=[Index calculating with "index" as key:5])?
-        const lRegexAttributeInformation: RegExp = new RegExp(/^\s*([a-zA-Z]+[a-zA-Z0-9]*)\s*of\s+([^;]+)\s*(;\s*([a-zA-Z]+[a-zA-Z0-9]*)\s*=\s*(.*)\s*)?$/);
+        const lForInstruction = pModuleExpression.value;
 
         // If attribute value does match regex.
-        const lAttributeInformation: RegExpExecArray | null = lRegexAttributeInformation.exec(lInstruction);
-        if (!lAttributeInformation) {
-            throw new Exception(`For-Parameter value has wrong format: ${lInstruction}`, this);
+        const lHeadInformation: RegExpExecArray | null = ForInstructionModule.REGEX_HEAD.exec(lForInstruction);
+        if (!lHeadInformation) {
+            throw new Exception(`For-Parameter value has wrong format: ${lForInstruction}`, this);
         }
 
         // Named variables, easier understanding.
-        const lIterateVariableName: string = lAttributeInformation[1];
-        const lIterateValueExpression: string = lAttributeInformation[2];
-        const lIndexVariableExportName: string | undefined = lAttributeInformation[4] ?? null;
-        const lIndexExpression: string | undefined = lAttributeInformation[5];
+        const lIterateVariableName: string = lHeadInformation[1];
+        const lIterateValueExpression: string = lHeadInformation[2];
 
-        // Create expressions.
-        const lValueProcedure: LevelProcedure<{ [key: string]: any; }> = this.mModuleValues.createExpressionProcedure(lIterateValueExpression);
-        const lIndexProcedure: LevelProcedure<any> | null = (lIndexVariableExportName) ? this.mModuleValues.createExpressionProcedure(lIndexExpression, ['$index', lIterateVariableName]) : null;
+        // Split the optional instructions into its semicolon separated modifiers.
+        const lInstructionPartList: Array<string> = (() => {
+            if (!lHeadInformation[3]) {
+                return new Array<string>();
+            }
+
+            return lHeadInformation[3].split(';');
+        })();
+
+        // Parse optional modifiers. A modifier is either the reserved "$key" identity expression or an index variable declaration.
+        const lExpressionModifier: Array<ForInstructionModuleModifierInstruction> = new Array<ForInstructionModuleModifierInstruction>();
+        for (const lModifierInstruction of lInstructionPartList) {
+            // Execute modifier instruction regex
+            const lModifierInstructionMatch: RegExpExecArray | null = ForInstructionModule.REGEX_MODIFIER_INSTRUCTION.exec(lModifierInstruction);
+            if (!lModifierInstructionMatch) {
+                throw new Exception(`For-Parameter optional instruction has wrong format: ${lModifierInstruction}`, this);
+            }
+
+            // Save expression modifier.
+            lExpressionModifier.push({
+                variableName: lModifierInstructionMatch[1],
+                procedure: this.mModuleValues.createExpressionProcedure(lModifierInstructionMatch[2]!, ['$index', lIterateVariableName])
+            });
+        }
 
         // Split match into useable parts.
         this.mExpression = {
             iterateVariableName: lIterateVariableName,
-            iterateValueProcedure: lValueProcedure,
-            indexExportVariableName: lIndexVariableExportName,
-            indexExportProcedure: lIndexProcedure,
+            iterateValueProcedure: this.mModuleValues.createExpressionProcedure(lIterateValueExpression),
+            modifier: lExpressionModifier
         };
     }
 
@@ -115,21 +140,30 @@ export class ForInstructionModule implements IInstructionOnUpdate {
      * @param pObjectValue - value.
      * @param pObjectKey - value key.
      */
-    private readonly addTemplateForElement = (pModuleResult: InstructionResult, pExpression: ForOfExpression, pObjectValue: any, pObjectKey: number | string) => {
+    private readonly addTemplateForElement = (pModuleResult: InstructionResult, pExpression: ForInstructionModuleExpression, pObjectValue: any, pObjectKey: number | string) => {
         const lTemplateItemData: DataLevel = new DataLevel(this.mModuleValues.data);
         lTemplateItemData.setTemporaryValue(pExpression.iterateVariableName, pObjectValue);
 
-        // If custom index is used.
-        if (pExpression.indexExportProcedure && pExpression.indexExportVariableName) {
+        // Determine the identity key of the element found in the modifiers. Default to the items object reference. 
+        let lKey: unknown = pObjectValue;
+
+        // Execute all modifiers.
+        for(const lModifier of pExpression.modifier){
             // Add index key as extenal value to execution.
-            pExpression.indexExportProcedure.setTemporaryValue('$index', pObjectKey);
-            pExpression.indexExportProcedure.setTemporaryValue(pExpression.iterateVariableName, pObjectValue);
+            lModifier.procedure.setTemporaryValue('$index', pObjectKey);
+            lModifier.procedure.setTemporaryValue(pExpression.iterateVariableName, pObjectValue);
 
-            // Execute index expression. Expression is set when index name is set.
-            const lIndexExpressionResult: any = pExpression.indexExportProcedure.execute();
+            // Execute modifier expression. Get the expression result.
+            const lModifierResult: any = lModifier.procedure.execute();
 
-            // Set custom index name as temporary value.
-            lTemplateItemData.setTemporaryValue(pExpression.indexExportVariableName, lIndexExpressionResult);
+            // Special handling for "$key" values as they are not stored in temporary values.
+            if(lModifier.variableName === '$key'){
+                lKey = lModifierResult;
+                continue;
+            }
+
+            // Set custom variable name as temporary value.
+            lTemplateItemData.setTemporaryValue(lModifier.variableName, lModifierResult);
         }
 
         // Create template.
@@ -137,7 +171,7 @@ export class ForInstructionModule implements IInstructionOnUpdate {
         lTemplate.appendChild(...this.mTemplate.childList);
 
         // Add element.
-        pModuleResult.addElement(lTemplate, lTemplateItemData);
+        pModuleResult.addElement(lTemplate, lTemplateItemData, lKey);
     };
 
     /**
@@ -174,9 +208,13 @@ export class ForInstructionModule implements IInstructionOnUpdate {
     }
 }
 
-type ForOfExpression = {
+type ForInstructionModuleExpression = {
     iterateVariableName: string,
     iterateValueProcedure: LevelProcedure<{ [key: string]: any; }>,
-    indexExportVariableName: string | null,
-    indexExportProcedure: LevelProcedure<any> | null;
+    modifier: Array<ForInstructionModuleModifierInstruction>;
+};
+
+type ForInstructionModuleModifierInstruction = {
+    variableName: string;
+    procedure: LevelProcedure<any>;
 };

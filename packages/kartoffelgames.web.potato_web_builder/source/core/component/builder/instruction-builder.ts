@@ -58,7 +58,7 @@ export class InstructionBuilder extends BaseBuilder<PwbTemplateInstructionNode, 
      */
     private insertNewContent(pNewContent: InstructionResultElement, pContentCursor: StaticBuilder | null): StaticBuilder {
         // Create new static builder.
-        const lStaticBuilder: StaticBuilder = new StaticBuilder(pNewContent.template, this.modules, pNewContent.dataLevel, `Child - {$${this.template.instructionType}}`);
+        const lStaticBuilder: StaticBuilder = new StaticBuilder(pNewContent.template, this.modules, pNewContent.dataLevel, `Child - {$${this.template.instructionType}}`, pNewContent.key);
 
         // Prepend content if no content is before the new content. 
         if (pContentCursor === null) {
@@ -81,7 +81,7 @@ export class InstructionBuilder extends BaseBuilder<PwbTemplateInstructionNode, 
     private updateStaticBuilder(pOldContentList: ArrayLike<StaticBuilder>, pNewContentList: ArrayLike<InstructionResultElement>): void {
         // Define difference search.
         const lMyersDiff: MyersDiff<StaticBuilder, InstructionResultElement> = new MyersDiff<StaticBuilder, InstructionResultElement>((pA, pB) => {
-            return pB.template.equals(pA.template);
+            return pB.template.equals(pA.template) && pB.key === pA.key;
         });
 
         // Get differences of old an new content.

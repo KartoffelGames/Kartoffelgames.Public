@@ -296,7 +296,7 @@ Deno.test('ComponentEventListener--Functionality: Dont call event listener for i
                 const lTemplate: PwbTemplate = new PwbTemplate();
                 lTemplate.appendChild(...(<PwbTemplateInstructionNode>this.mTemplate).childList);
 
-                lResult.addElement(lTemplate, new DataLevel(this.mValue.data));
+                lResult.addElement(lTemplate, new DataLevel(this.mValue.data), null);
 
                 return lResult;
             }

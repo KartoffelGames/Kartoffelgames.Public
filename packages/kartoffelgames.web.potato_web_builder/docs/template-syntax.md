@@ -276,6 +276,44 @@ Item #1: Apple
 Item #2: Banana
 ```
 
+### Element Identity ($key)
+
+Each rendered element has an identity that decides whether its DOM node is **recycled** (kept and
+re-bound to new data) or **recreated** (the old node destroyed and a fresh one built) when the list
+changes. Two renders map to the same node only while their keys stay strictly equal (`===`).
+
+By default the key is **the iterated value itself**. So when a list hands back new object references
+on every render, every element is recreated, which is what you usually want for correctness (fresh
+nodes mount in their final state, so entry animations run once and entry transitions stay silent),
+but it discards live element state (focus, in-flight animations, scroll position) and costs more.
+
+Provide a stable identity with the reserved `$key` modifier to recycle nodes across updates. Like the
+index expression, `$key` can read the loop variable and `$index` (both bare, no `this.`):
+
+```typescript
+@PwbComponent({
+    selector: 'keyed-list',
+    template: `
+        $for(user of this.users; $key = user.id) {
+            <div>{{this.user.name}}</div>
+        }
+    `
+})
+class KeyedList {
+    public users: Array<{ id: number; name: string; }> = [{ id: 1, name: 'Ada' }];
+}
+```
+
+With `$key = user.id`, a node stays tied to the same user even when the surrounding array or the user
+object is rebuilt, so same-item updates transition smoothly and DOM state is preserved. Use
+`$key = $index` to key by position explicitly (equivalent to the default matching when no key is set).
+
+The `$key` and index modifiers can be combined in any order:
+
+```
+$for(item of this.items; index = $index; $key = item.id) { ... }
+```
+
 ### Iterating Objects
 
 Objects are iterated by their entries. The loop variable receives the value, and `$index` receives the key:

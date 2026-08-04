@@ -844,6 +844,178 @@ Deno.test('ForInstruction--Functionality: Context', async (pContext) => {
     });
 });
 
+Deno.test('ForInstruction--Functionality: Key', async (pContext) => {
+    await pContext.step('$key = $index renders with key by index', async () => {
+        // Setup. Define component.
+        @PwbComponent({
+            selector: TestUtil.randomSelector(),
+            template: `$for(item of this.list; $key = $index) {
+                <div>{{this.item}}</div>
+            }`
+        })
+        class TestComponent {
+            public list: Array<string> = ['One', 'Two'];
+        }
+
+        // Setup. Create element.
+        const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
+
+        // Evaluation.
+        expect(lComponent).toBeComponentStructure([
+            Comment, // Component Anchor
+            Comment, // - Manipulator Anchor
+            Comment, // -- Manipulator 1. Child Anchor
+            {
+                node: HTMLDivElement,
+                textContent: 'One'
+            },
+            Comment, // -- Manipulator 2. Child Anchor
+            {
+                node: HTMLDivElement,
+                textContent: 'Two'
+            }
+        ], true);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+
+    await pContext.step('Default key recreates node on new item reference', async () => {
+        // Setup. Define component. No "$key" modifier, so the key defaults to the item value itself.
+        @PwbComponent({
+            selector: TestUtil.randomSelector(),
+            template: `$for(item of this.list) {
+                <div>{{this.item.name}}</div>
+            }`
+        })
+        class TestComponent {
+            @PwbExport
+            @ComponentState.state({ proxy: true })
+            public accessor list: Array<{ name: string; }> = [{ name: 'One' }];
+        }
+
+        // Setup. Create element and read initial node.
+        const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
+        const lNodeBefore: HTMLDivElement = TestUtil.getComponentNode<HTMLDivElement>(lComponent, 'div');
+
+        // Process. Replace item with a new object reference.
+        lComponent.list[0] = { name: 'Two' };
+        await TestUtil.waitForUpdate(lComponent);
+
+        // Read node after update.
+        const lNodeAfter: HTMLDivElement = TestUtil.getComponentNode<HTMLDivElement>(lComponent, 'div');
+
+        // Evaluation. New reference => new key => node was recreated and shows the new value.
+        expect(lNodeAfter).not.toBe(lNodeBefore);
+        expect(lNodeAfter.textContent).toBe('Two');
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+
+    await pContext.step('$key recycles node on new item reference with stable key', async () => {
+        // Setup. Define component with a stable identity key.
+        @PwbComponent({
+            selector: TestUtil.randomSelector(),
+            template: `$for(item of this.list; $key = item.id) {
+                <div>{{this.item.name}}</div>
+            }`
+        })
+        class TestComponent {
+            @PwbExport
+            @ComponentState.state({ proxy: true })
+            public accessor list: Array<{ id: number; name: string; }> = [{ id: 1, name: 'One' }];
+        }
+
+        // Setup. Create element and read initial node.
+        const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
+        const lNodeBefore: HTMLDivElement = TestUtil.getComponentNode<HTMLDivElement>(lComponent, 'div');
+
+        // Process. Replace item with a new object reference but same key.
+        lComponent.list[0] = { id: 1, name: 'Two' };
+        await TestUtil.waitForUpdate(lComponent);
+
+        // Read node after update.
+        const lNodeAfter: HTMLDivElement = TestUtil.getComponentNode<HTMLDivElement>(lComponent, 'div');
+
+        // Evaluation. Same key => node recycled (same instance) and only the bound data updated.
+        expect(lNodeAfter).toBe(lNodeBefore);
+        expect(lNodeAfter.textContent).toBe('Two');
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+
+    await pContext.step('$key recreates node when key changes', async () => {
+        // Setup. Define component with a stable identity key.
+        @PwbComponent({
+            selector: TestUtil.randomSelector(),
+            template: `$for(item of this.list; $key = item.id) {
+                <div>{{this.item.name}}</div>
+            }`
+        })
+        class TestComponent {
+            @PwbExport
+            @ComponentState.state({ proxy: true })
+            public accessor list: Array<{ id: number; name: string; }> = [{ id: 1, name: 'One' }];
+        }
+
+        // Setup. Create element and read initial node.
+        const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
+        const lNodeBefore: HTMLDivElement = TestUtil.getComponentNode<HTMLDivElement>(lComponent, 'div');
+
+        // Process. Replace item with a different key.
+        lComponent.list[0] = { id: 2, name: 'One' };
+        await TestUtil.waitForUpdate(lComponent);
+
+        // Read node after update.
+        const lNodeAfter: HTMLDivElement = TestUtil.getComponentNode<HTMLDivElement>(lComponent, 'div');
+
+        // Evaluation. Changed key => node was recreated.
+        expect(lNodeAfter).not.toBe(lNodeBefore);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+
+    await pContext.step('Index and $key modifiers combined', async () => {
+        // Setup. Define component using both the index variable and an identity key.
+        @PwbComponent({
+            selector: TestUtil.randomSelector(),
+            template: `$for(item of this.list; index = $index; $key = item.id) {
+                <div>{{this.index}}:{{this.item.name}}</div>
+            }`
+        })
+        class TestComponent {
+            @PwbExport
+            @ComponentState.state({ proxy: true })
+            public accessor list: Array<{ id: number; name: string; }> = [{ id: 5, name: 'A' }, { id: 6, name: 'B' }];
+        }
+
+        // Setup. Create element.
+        const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
+
+        // Evaluation. Both modifiers are parsed and applied.
+        expect(lComponent).toBeComponentStructure([
+            Comment, // Component Anchor
+            Comment, // - Manipulator Anchor
+            Comment, // -- Manipulator 1. Child Anchor
+            {
+                node: HTMLDivElement,
+                textContent: '0:A'
+            },
+            Comment, // -- Manipulator 2. Child Anchor
+            {
+                node: HTMLDivElement,
+                textContent: '1:B'
+            }
+        ], true);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
 Deno.test('ForInstruction--Functionality: Deconstruct', async (pContext) => {
     await pContext.step('Default', async () => {
         // Setup. Define component.

@@ -61,7 +61,7 @@ export class DynamicContentInstructionModule implements IInstructionOnUpdate {
 
         // Add custom template to output.
         const lModuleResult: InstructionResult = new InstructionResult();
-        lModuleResult.addElement(lTemplateClone, new DataLevel(this.mModuleValues.data));
+        lModuleResult.addElement(lTemplateClone, new DataLevel(this.mModuleValues.data), null);
 
         return lModuleResult;
     }

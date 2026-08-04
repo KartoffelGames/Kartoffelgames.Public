@@ -52,7 +52,7 @@ export class IfInstructionModule implements IInstructionOnUpdate {
                 const lTemplate: PwbTemplate = new PwbTemplate();
                 lTemplate.appendChild(...this.mTemplateReference.childList);
 
-                lModuleResult.addElement(lTemplate, new DataLevel(this.mModuleValues.data));
+                lModuleResult.addElement(lTemplate, new DataLevel(this.mModuleValues.data), null);
             }
 
             return lModuleResult;

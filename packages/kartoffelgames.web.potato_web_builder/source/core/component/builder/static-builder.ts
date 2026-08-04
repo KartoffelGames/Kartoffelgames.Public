@@ -22,17 +22,29 @@ import { InstructionBuilder } from './instruction-builder.ts';
  */
 export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderData> {
     private mInitialized: boolean;
+    private readonly mKey: unknown;
+
+    /**
+     * Identity key of the builder. Must not be unique.
+     */
+    public get key(): unknown {
+        return this.mKey;
+    }
 
     /**
      * Constructor.
-     * 
+     *
      * @param pTemplate - Template.
      * @param pModules - Attribute modules.
      * @param pParentDataLevel - Data of parent builder.
      * @param pAnchorName - Name of builder content anchor.
+     * @param pKey - Identity key of the builder.
      */
-    public constructor(pTemplate: StaticPwbTemplate, pModules: ComponentModules, pParentDataLevel: DataLevel, pAnchorName: string) {
+    public constructor(pTemplate: StaticPwbTemplate, pModules: ComponentModules, pParentDataLevel: DataLevel, pAnchorName: string, pKey: unknown) {
         super(pTemplate, pModules, pParentDataLevel, new StaticBuilderData(`Static - {${pAnchorName}}`));
+
+        // Save key of static builder.
+        this.mKey = pKey;
 
         // Not initialized on start.
         this.mInitialized = false;

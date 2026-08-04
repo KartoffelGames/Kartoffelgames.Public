@@ -261,7 +261,10 @@ class RepeatInstructionModule implements IInstructionOnUpdate {
             const lDataLevel = new DataLevel(this.mModuleData.data);
             lDataLevel.setTemporaryValue('repeatIndex', lIndex);
 
-            lResult.addElement(lTemplate, lDataLevel);
+            // The third argument is the identity key used when diffing. `null` matches purely by
+            // template structure (positional). Provide a stable key to keep a rendered node tied to
+            // the same logical item across updates.
+            lResult.addElement(lTemplate, lDataLevel, null);
         }
 
         return lResult;
@@ -301,12 +304,29 @@ const lResult = new InstructionResult();
 // Add a template with its own data level.
 const lTemplate = new PwbTemplate();
 lTemplate.appendChild(...someNodes);
-lResult.addElement(lTemplate, someDataLevel);
+
+// The third argument is the identity key (see below). Pass `null` when the instruction
+// has no per-element identity.
+lResult.addElement(lTemplate, someDataLevel, null);
 
 return lResult;
 ```
 
 Returning `null` from `onUpdate()` means no structural change is needed.
+
+#### Element identity keys
+
+`addElement(pTemplate, pDataLevel, pKey)` takes an identity `pKey` as its third argument. When the
+builder diffs the previous render against the new one, an element keeps its rendered DOM node only
+while its key stays strictly equal (`===`) to the previous render's key at the matched position. A
+changed key removes the old node and creates a fresh one.
+
+- Pass `null` when the instruction has no meaningful per-element identity. Elements are then matched
+  purely by their template structure, which preserves the historic positional behaviour.
+- Pass a stable value (an id, a stable object reference) to tie a rendered node to a logical item, so
+  it is recycled — not recreated — across updates even when its position or backing value changes.
+
+The built-in `$for` instruction exposes this through the `$key` modifier — see the template docs.
 
 ### Lifecycle Hooks
 

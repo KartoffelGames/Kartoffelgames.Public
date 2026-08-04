@@ -29,7 +29,19 @@
         stroke-linejoin: round;
         stroke-width: 2px;
         pointer-events: none;
-        
+
+        .new & {
+            /* Animated svg buildup. 100k is big enought for long lines, so a animation itself must run long itself. */
+            stroke-dasharray: 100000;
+            stroke-dashoffset: 100000;
+            animation: animateDash 50s linear forwards;
+        }
+
+        .error & {
+            stroke: var(--potatno-color-error);
+            filter: drop-shadow(0px 0px 2px var(--potatno-color-error));
+        }
+
         &.path--invalid {
             stroke: var(--potatno-color-error) !important;
             stroke-dasharray: 6 3;
@@ -41,5 +53,11 @@
             pointer-events: stroke;
             cursor: pointer;
         }
+    }
+}
+
+@keyframes animateDash {
+    to {
+        stroke-dashoffset: 0;
     }
 }

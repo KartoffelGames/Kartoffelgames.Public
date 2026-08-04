@@ -195,7 +195,7 @@ export class PotatnoUiManagerConnections {
 
         // Create a path between two points with a bezier curve.
         // Move to start point. Draw to endpoint. And use the control point.
-        return `M ${lStartPoint.x},${lStartPoint.y} Q ${lControlPoint.x},${lControlPoint.y} ${lEndPoint.x},${lEndPoint.y}`;
+        return `Q ${lControlPoint.x},${lControlPoint.y} ${lEndPoint.x},${lEndPoint.y}`;
     }
 
     /**
@@ -231,6 +231,11 @@ export class PotatnoUiManagerConnections {
      * @returns a svg path string. 
      */
     private createSvgPath(pPath: Array<PotatnoUiManagerGridCoordinate>): string {
+        // Path must be at least two point in length.
+        if (pPath.length < 2) {
+            return '';
+        }
+
         // Get point direction from origin and target points.
         const lPointDirection = (pOriginPoint: PotatnoUiManagerGridCoordinate, pTargetPoint: PotatnoUiManagerGridCoordinate): PotatnoUiManagerGridDirection => {
             const lDistanceX = pTargetPoint.x - pOriginPoint.x;
@@ -245,7 +250,8 @@ export class PotatnoUiManagerConnections {
             }
         };
 
-        let lPath: string = '';
+        const lStartPoint: PotatnoUiManagerGridPixelPoint = this.getGridPosition(pPath[0], lPointDirection(pPath[0], pPath[1]));
+        let lPath: string = `M ${lStartPoint.x},${lStartPoint.y}`;
 
         // Recursivly create path. The first and last path is not rendered but used to guide the paths direction.
         for (let lPathIndex: number = 1; lPathIndex < (pPath.length - 1); lPathIndex++) {

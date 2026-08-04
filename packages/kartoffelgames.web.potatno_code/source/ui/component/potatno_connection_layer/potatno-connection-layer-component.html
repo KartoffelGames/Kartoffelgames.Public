@@ -1,8 +1,8 @@
 <svg class="svg-layer" xmlns="http://www.w3.org/2000/svg" >
     $for(connection of this.connections.values()){
-        <g class="{{this.connection.state.hasError ? 'error' : ''}} {{this.connection.state.isNew ? 'new' : ''}}" style="{{ this.connection.color ? `--path-color: ${this.connection.color};` : '' }}" xmlns="http://www.w3.org/2000/svg">
-            <path class="path" d="{{this.connection.path}}" xmlns="http://www.w3.org/2000/svg"/>
-            <path class="path path--mouse-target" d="{{this.connection.path}}" (pointerdown)="this.deleteConnection($event, this.connection)" (dblclick)="this.createConjunction($event, this.connection)" xmlns="http://www.w3.org/2000/svg"/>
+        <g class="{{this.connection.state.hasError ? 'error' : ''}} {{this.connection.state.isNew ? 'new' : ''}}" style="--path-length: {{ this.connection.path.length }}; {{ this.connection.color ? `--path-color: ${this.connection.color};` : '' }}" xmlns="http://www.w3.org/2000/svg">
+            <path class="path" d="{{this.connection.path.attributeValue}}" xmlns="http://www.w3.org/2000/svg"/>
+            <path class="path path--mouse-target" d="{{this.connection.path.attributeValue}}" (pointerdown)="this.deleteConnection($event, this.connection)" (dblclick)="this.createConjunction($event, this.connection)" xmlns="http://www.w3.org/2000/svg"/>
         </g>
     }
 </svg>

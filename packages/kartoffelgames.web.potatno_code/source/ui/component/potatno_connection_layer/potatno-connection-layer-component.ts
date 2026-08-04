@@ -11,6 +11,7 @@ import { PotatnoUiManagerGridCoordinate } from "../../manager/manager_component/
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
 import connectionLayerCss from './potatno-connection-layer-component.css' with { type: 'text' };
 import connectionLayerTemplate from './potatno-connection-layer-component.html' with { type: 'text' };
+import { PotatnoUiManagerConnectionsPath } from "../../manager/manager_component/potatno-ui-manager-connections.ts";
 
 /**
  * SVG connection layer for the node graph.
@@ -159,10 +160,16 @@ export class PotatnoConnectionLayerComponent implements IComponentOnDeconstruct 
             return this.mManager.generateStringColor(pOutputPort.resolvedDataType);
         })();
 
+        // Create path.
+        const lSvgPath: PotatnoUiManagerConnectionsPath = this.mManager.connections.getConnectionPath(pOutputPort, pInputPort);
+
         // Construct connection.
         return {
             color: lPortColor,
-            path: this.mManager.connections.getConnectionPath(pOutputPort, pInputPort),
+            path: {
+                attributeValue: lSvgPath.attributeValue,
+                length: lSvgPath.length
+            },
             state: {
                 isNew: !pPreviousConnections.has(lPrimaryPort),
                 hasError: lHasError
@@ -207,7 +214,10 @@ type PotatnoConnectionLayerComponentConnection = {
     /**
      * Svg path string.
      */
-    path: string;
+    path: {
+        attributeValue: string;
+        length: number;
+    };
 
     state: {
         hasError: boolean;

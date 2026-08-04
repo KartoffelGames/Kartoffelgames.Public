@@ -360,7 +360,7 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
         // Convert viewport coordinates into this port's grid-local coordinates.
         const lEnd: PotatnoUiManagerGridCoordinate = this.mManager.grid.pixelToGridSpace(pClientX, pClientY);
 
-        return this.mManager.connections.createTemporaryPath(this.port, lEnd);
+        return this.mManager.connections.createTemporaryPath(this.port, lEnd).attributeValue;
     }
 
     /**

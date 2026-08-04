@@ -32,9 +32,9 @@
 
         .new & {
             /* Animated svg buildup. 100k is big enought for long lines, so a animation itself must run long itself. */
-            stroke-dasharray: 100000;
-            stroke-dashoffset: 100000;
-            animation: animateDash 50s linear forwards;
+            stroke-dasharray: calc(var(--potatno-grid-size) * var(--path-length));
+            stroke-dashoffset: calc(var(--potatno-grid-size) * var(--path-length));
+            animation: animateDash 0.5s ease-in-out forwards;
         }
 
         .error & {

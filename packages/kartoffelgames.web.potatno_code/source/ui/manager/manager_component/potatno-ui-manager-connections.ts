@@ -84,7 +84,7 @@ export class PotatnoUiManagerConnections {
      *
      * @returns SVG path data.
      */
-    public createTemporaryPath(pStart: PotatnoUiManagerGridCoordinate | PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pEnd: PotatnoUiManagerGridCoordinate | PotatnoDocumentPort<PotatnoProjectTypesDefinition>): string {
+    public createTemporaryPath(pStart: PotatnoUiManagerGridCoordinate | PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pEnd: PotatnoUiManagerGridCoordinate | PotatnoDocumentPort<PotatnoProjectTypesDefinition>): PotatnoUiManagerConnectionsPath {
         // Convert entry items to grid points.
         const lItemToPoint = (pItem: PotatnoUiManagerGridCoordinate | PotatnoDocumentPort<PotatnoProjectTypesDefinition>) => {
             if (pItem instanceof PotatnoDocumentPort) {
@@ -101,7 +101,10 @@ export class PotatnoUiManagerConnections {
         // Execute path finding.
         const lGridPath: Array<PotatnoUiManagerGridCoordinate> = this.mPathFinder.start(lStart, lEnd).path;
 
-        return this.createSvgPath(lGridPath);
+        return {
+            attributeValue: this.createSvgPath(lGridPath),
+            length: lGridPath.length
+        };
     }
 
     /**
@@ -112,11 +115,16 @@ export class PotatnoUiManagerConnections {
      * 
      * @returns svg paths "d" attribute value as string.  
      */
-    public getConnectionPath(pStartPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pEndPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>): string {
+    public getConnectionPath(pStartPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pEndPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>): PotatnoUiManagerConnectionsPath {
         // Read current generated path.
         const lPath: Array<PotatnoUiManagerGridCoordinate> = this.mPathFinder.getPath(pStartPort, pEndPort);
 
-        return this.createSvgPath(lPath);
+        return {
+            attributeValue: this.createSvgPath(lPath),
+
+            // Remove start and end point from path lenght. 
+            length: lPath.length - 2
+        };
     }
 
     /**
@@ -340,4 +348,9 @@ type PotatnoUiManagerGridDirection = 'top' | 'right' | 'bottom' | 'left';
 type PotatnoUiManagerGridPixelPoint = {
     x: number;
     y: number;
+};
+
+export type PotatnoUiManagerConnectionsPath = {
+    attributeValue: string;
+    length: number;
 };

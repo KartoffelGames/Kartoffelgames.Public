@@ -376,7 +376,7 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
         const lEnd: PotatnoUiManagerGridCoordinate = this.mManager.grid.pixelToGridSpace(pClientX, pClientY);
 
         // Allways draw from input port, as the svg is left aligned.
-        return this.mManager.connections.createTemporaryPath(this.nodePorts.input, lEnd);
+        return this.mManager.connections.createTemporaryPath(this.nodePorts.input, lEnd).attributeValue;
     }
 
     /**

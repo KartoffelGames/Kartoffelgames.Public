@@ -164,26 +164,27 @@ export class PotatnoUiGridPathFinding extends Astar<PotatnoUiManagerGridCoordina
 
     /**
      * Update the path between two ports.
+     * Identification port is a port that eighter is limited to a single input or output connection.
      * 
-     * @param pStartPort - Starting port. 
+     * @param pIdentificationPort - Identification port for this connection. 
      * @param pStartPortPoint - Position of starting port.
      * @param pEndPort - Exit port.
      * @param pEndPortPoint - Position of exit port. 
      */
-    public updatePath(pStartPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pStartPortPoint: PotatnoUiManagerGridCoordinate, pEndPortPoint: PotatnoUiManagerGridCoordinate): void {
+    public updatePath(pIdentificationPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pStartPortPoint: PotatnoUiManagerGridCoordinate, pEndPortPoint: PotatnoUiManagerGridCoordinate): void {
         // Validate start port to be a port with at most a single connection.
-        if (pStartPort.direction === 'input' && pStartPort.portType !== 'value' || pStartPort.direction === 'output' && pStartPort.portType !== 'flow') {
+        if (pIdentificationPort.direction === 'input' && pIdentificationPort.portType !== 'value' || pIdentificationPort.direction === 'output' && pIdentificationPort.portType !== 'flow') {
             throw new Exception('Start port must be an input-value or an output-flow node.', this);
         }
 
         // Remove old area.
-        this.removePathArea(pStartPort);
+        this.removePathArea(pIdentificationPort);
 
         // Calculate path.
         const lPath: AstarResult<PotatnoUiManagerGridCoordinate> = this.start(pStartPortPoint, pEndPortPoint);
 
         // First of all assign the path to the port.
-        this.mGridPaths.set(pStartPort, lPath.path);
+        this.mGridPaths.set(pIdentificationPort, lPath.path);
 
         // Create node ids for both entry points of the path.
         const lPathEntryPointStart: PotatnoUiManagerGridPathFindingNodeId = this.nodeId(pStartPortPoint);
@@ -207,7 +208,7 @@ export class PotatnoUiGridPathFinding extends Astar<PotatnoUiManagerGridCoordina
             })();
 
             // Add port and port point to area cell.
-            lPathAreaCell.ports.set(pStartPort, [lPathEntryPointStart, lPathEntryPointEnd]);
+            lPathAreaCell.ports.set(pIdentificationPort, [lPathEntryPointStart, lPathEntryPointEnd]);
             lPathAreaCell.entryPoints.add(lPathEntryPointStart);
             lPathAreaCell.entryPoints.add(lPathEntryPointEnd);
 

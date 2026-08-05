@@ -213,21 +213,29 @@ export class PotatnoUiManagerConnections {
      * @param pEnd - End port.
      */
     private createPath(pStartPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pEndPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>): void {
-        // Start port must be an input-value or an output-flow node.
-        const [lStartPort, lEndPort] = (() => {
+        // Identity port must be an input-value or an output-flow node.
+        // Get the connections identification port. A port that is limited to a single connection.
+        const lIdentificationPort = (() => {
             if (pStartPort.direction === 'input' && pStartPort.portType === 'value' || pStartPort.direction === 'output' && pStartPort.portType === 'flow') {
-                return [pStartPort, pEndPort];
+                return pStartPort;
             }
 
-            return [pEndPort, pStartPort];
+            return pEndPort;
         })();
 
+        // Path should move from output to input. Swap if it isnt.
+        let lOutputPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> = pStartPort;
+        let lInputPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> = pEndPort;
+        if(lOutputPort.direction !== 'output'){
+            [lInputPort, lOutputPort] = [lOutputPort, lInputPort]
+        }
+
         // Convert both points into a restricting values.
-        const lStartPoint: PotatnoUiManagerGridCoordinate = this.getPortGridPoint(lStartPort);
-        const lEndPoint: PotatnoUiManagerGridCoordinate = this.getPortGridPoint(lEndPort);
+        const lStartPoint: PotatnoUiManagerGridCoordinate = this.getPortGridPoint(lOutputPort);
+        const lEndPoint: PotatnoUiManagerGridCoordinate = this.getPortGridPoint(lInputPort);
 
         // Execute path finding.
-        this.mPathFinder.updatePath(lStartPort, lStartPoint, lEndPoint);
+        this.mPathFinder.updatePath(lIdentificationPort, lStartPoint, lEndPoint);
     }
 
     /**

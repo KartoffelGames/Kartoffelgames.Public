@@ -902,6 +902,21 @@ $if(this.left) {\r
         align-items: center;\r
         justify-content: center;\r
 \r
+        .connected {\r
+            mask-image: linear-gradient(90deg, #fff 15%, rgb(255 255 255 / 53%) 50%, #fff 70%);\r
+            mask-size: 300% 100%;\r
+            mask-position: right;\r
+            animation: animateConnect 0.25s ease-in-out forwards;\r
+\r
+            .output {\r
+                animation-delay: 0s;\r
+            }\r
+\r
+            .input {\r
+                animation-delay: 0.75s;\r
+            }\r
+        }\r
+\r
         .output & {\r
             transform: translateX(calc(var(--potatno-port-handle-width) / 2));\r
         }\r
@@ -997,6 +1012,12 @@ $if(this.left) {\r
                 }\r
             }\r
         }\r
+    }\r
+}\r
+\r
+@keyframes animateConnect {\r
+    to {\r
+        mask-position: left;\r
     }\r
 }`;var _n=`<div class="port-wrapper {{this.portDirection}}" style="--type-color: {{this.portColor}}" (dragover)="this.onDragOver($event)" (drop)="this.onDrop($event)">\r
 \r
@@ -1308,6 +1329,7 @@ $if(this.left) {\r
             stroke-dasharray: calc(var(--potatno-grid-size) * var(--path-length));\r
             stroke-dashoffset: calc(var(--potatno-grid-size) * var(--path-length));\r
             animation: animateDash 0.5s ease-in-out forwards;\r
+            animation-delay: 0.25s;\r
         }\r
 \r
         .error & {\r

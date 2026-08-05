@@ -166,6 +166,21 @@
         align-items: center;
         justify-content: center;
 
+        .connected {
+            mask-image: linear-gradient(90deg, #fff 15%, rgb(255 255 255 / 53%) 50%, #fff 70%);
+            mask-size: 300% 100%;
+            mask-position: right;
+            animation: animateConnect 0.25s ease-in-out forwards;
+
+            .output {
+                animation-delay: 0s;
+            }
+
+            .input {
+                animation-delay: 0.75s;
+            }
+        }
+
         .output & {
             transform: translateX(calc(var(--potatno-port-handle-width) / 2));
         }
@@ -261,5 +276,11 @@
                 }
             }
         }
+    }
+}
+
+@keyframes animateConnect {
+    to {
+        mask-position: left;
     }
 }

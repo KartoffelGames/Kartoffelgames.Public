@@ -22,8 +22,9 @@
 
     .path {
         /* Color set in code. When not set, its a flow port*/
-        stroke: var(--path-color, var(--potatno-color-text));
+        --potatno-path-color: var(--path-color, var(--potatno-color-text));
 
+        stroke: var(--potatno-path-color);
         fill: none;
         stroke-linecap: round;
         stroke-linejoin: round;
@@ -31,25 +32,20 @@
         pointer-events: none;
 
         .new & {
-            /* Animated svg buildup. 100k is big enought for long lines, so a animation itself must run long itself. */
+            /* Animated svg buildup. Calculate "exact" length for a working ease and delay it to match the node port animation. */
             stroke-dasharray: calc(var(--potatno-grid-size) * var(--path-length));
             stroke-dashoffset: calc(var(--potatno-grid-size) * var(--path-length));
-            animation: animateDash 0.5s ease-in-out forwards;
-            animation-delay: 0.10s;
+            animation: animateDash calc(var(--potatno-connection-animation) * 0.5) cubic-bezier(0, 0.8, 1, 0.2) forwards, animateGlow calc(var(--potatno-connection-animation) * 0.75) ease-out forwards;
+            animation-delay: calc(var(--potatno-connection-animation) * 0.125);
         }
 
         .error & {
-            stroke: var(--potatno-color-error);
-            filter: drop-shadow(0px 0px 2px var(--potatno-color-error));
-        }
-
-        &.path--invalid {
-            stroke: var(--potatno-color-error) !important;
-            stroke-dasharray: 6 3;
+            --potatno-path-color: var(--potatno-color-error);
+            filter: drop-shadow(0px 0px 2px var(--potatno-path-color));
         }
 
         &.path--mouse-target {
-            stroke: transparent;
+            stroke: transparent !important;
             stroke-width: 12px;
             pointer-events: stroke;
             cursor: pointer;
@@ -60,5 +56,27 @@
 @keyframes animateDash {
     to {
         stroke-dashoffset: 0;
+    }
+}
+
+@keyframes animateGlow {
+    0% {
+        filter: drop-shadow(0px 0px 0px var(--potatno-path-color));
+        stroke: var(--potatno-path-color);
+    }
+
+    5% {
+        filter: drop-shadow(0px 0px 5px var(--potatno-path-color));
+        stroke: color-mix(in srgb, var(--potatno-path-color) 50%, #fff);
+    }
+
+    70% {
+        filter: drop-shadow(0px 0px 5px var(--potatno-path-color));
+        stroke: color-mix(in srgb, var(--potatno-path-color) 50%, #fff);
+    }
+
+    100% {
+        filter: drop-shadow(0px 0px 0px var(--potatno-path-color));
+        stroke: var(--potatno-path-color);
     }
 }

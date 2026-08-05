@@ -24,4 +24,7 @@
     /* Scrollbar */
     --potatno-color-scrollbar-thumb: #5e5e5e;
     --potatno-color-scrollbar-track: transparent;
+
+    /* Special animation speed */
+    --potatno-connection-animation: 1.3s;
 }

@@ -121,17 +121,8 @@ type PotatnoProjectTypesItem<TValueMap extends PotatnoProjectTypeMapping> = {
         name: string;
         type: 'string' | 'number' | 'boolean';
     }>;
-
-    /**
-     * Optional subtype name for composite types (e.g. a vec3 has subtype float for its components).
-     */
-    subtype?: Record<PotatnoProjectTypeName<TValueMap>, PotatnoProjectTypesItemSubtype>;
 };
 
-/**
- * Untyped variant of type items unable to nest.
- */
-type PotatnoProjectTypesItemSubtype = Omit<PotatnoProjectTypesItem<Record<string, unknown>>, 'subType'>;
 
 export type PotatnoProjectTypeDefinitionConfiguration<TValueMap extends PotatnoProjectTypeMapping> = {
     [TTypeName in PotatnoProjectTypeName<TValueMap>]: PotatnoProjectTypesItem<TValueMap>;

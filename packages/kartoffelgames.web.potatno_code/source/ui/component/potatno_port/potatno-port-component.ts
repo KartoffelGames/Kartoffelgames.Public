@@ -325,14 +325,14 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
      * @param pEvent - Drag event.
      */
     public onDrop(pEvent: DragEvent): void {
+        // Connect and consume the drop.
+        pEvent.preventDefault();
+        pEvent.stopPropagation();
+        
         // Validate current dragged ports.
         if (!this.draggedPortCanConnect()) {
             return;
         }
-
-        // Connect and consume the drop.
-        pEvent.preventDefault();
-        pEvent.stopPropagation();
 
         // Check if something is dragged.
         if (!this.mManager.grid.draggedPort.isDragging) {

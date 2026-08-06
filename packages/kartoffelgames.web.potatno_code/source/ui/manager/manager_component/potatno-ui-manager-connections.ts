@@ -1,12 +1,12 @@
 import { Exception } from '@kartoffelgames/core';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
-import { PotatnoFlowConjunctionNodeDefinition } from "../../../project/node_definition/potatno-flow-conjunction-node-definition.ts";
-import { PotatnoValueConjunctionNodeDefinition } from "../../../project/node_definition/potatno-value-conjunction-node-definition.ts";
+import { PotatnoFlowConjunctionNodeDefinition } from '../../../project/node_definition/potatno-flow-conjunction-node-definition.ts';
+import { PotatnoValueConjunctionNodeDefinition } from '../../../project/node_definition/potatno-value-conjunction-node-definition.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import { PotatnoUiGridPathFinding } from '../helper/potatno-ui-grid-path-finding.ts';
 import { PotatnoCodeUiManagerChangeType, type PotatnoUiManager, type PotatnoUiManagerChangeEvent } from '../potatno-ui-manager.ts';
-import { PotatnoUiManagerGridCoordinate } from "./potatno-ui-manager-grid.ts";
+import type { PotatnoUiManagerGridCoordinate } from './potatno-ui-manager-grid.ts';
 
 /**
  * Ui manager grid component.
@@ -227,7 +227,7 @@ export class PotatnoUiManagerConnections {
         let lOutputPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> = pStartPort;
         let lInputPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> = pEndPort;
         if(lOutputPort.direction !== 'output'){
-            [lInputPort, lOutputPort] = [lOutputPort, lInputPort]
+            [lInputPort, lOutputPort] = [lOutputPort, lInputPort];
         }
 
         // Convert both points into a restricting values.

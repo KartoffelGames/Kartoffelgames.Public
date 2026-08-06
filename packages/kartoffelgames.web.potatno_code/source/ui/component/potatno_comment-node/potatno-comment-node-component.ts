@@ -1,4 +1,4 @@
-import { Exception } from "@kartoffelgames/core";
+import { Exception } from '@kartoffelgames/core';
 import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { Component, ComponentState, PwbChild, PwbComponent, PwbComponentEvent, PwbExport, type ComponentEventEmitter, type IComponentOnConnect, type IComponentOnDeconstruct, type IComponentOnUpdate } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';

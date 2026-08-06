@@ -1,17 +1,17 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { ComponentState, PwbComponent, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { IPotatnoDocumentItem } from '../../../document/i-potatno-document-item.interface.ts';
-import { PotatnoDocumentNode } from "../../../document/potatno-document-node.ts";
+import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
-import { PotatnoFlowConjunctionNodeDefinition } from "../../../project/node_definition/potatno-flow-conjunction-node-definition.ts";
-import { PotatnoNodeDefinition } from "../../../project/node_definition/potatno-node-definition.ts";
-import { PotatnoValueConjunctionNodeDefinition } from "../../../project/node_definition/potatno-value-conjunction-node-definition.ts";
+import { PotatnoFlowConjunctionNodeDefinition } from '../../../project/node_definition/potatno-flow-conjunction-node-definition.ts';
+import type { PotatnoNodeDefinition } from '../../../project/node_definition/potatno-node-definition.ts';
+import { PotatnoValueConjunctionNodeDefinition } from '../../../project/node_definition/potatno-value-conjunction-node-definition.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
-import { PotatnoUiManagerGridCoordinate } from "../../manager/manager_component/potatno-ui-manager-grid.ts";
+import type { PotatnoUiManagerGridCoordinate } from '../../manager/manager_component/potatno-ui-manager-grid.ts';
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
 import connectionLayerCss from './potatno-connection-layer-component.css' with { type: 'text' };
 import connectionLayerTemplate from './potatno-connection-layer-component.html' with { type: 'text' };
-import { PotatnoUiManagerConnectionsPath } from "../../manager/manager_component/potatno-ui-manager-connections.ts";
+import type { PotatnoUiManagerConnectionsPath } from '../../manager/manager_component/potatno-ui-manager-connections.ts';
 
 /**
  * SVG connection layer for the node graph.

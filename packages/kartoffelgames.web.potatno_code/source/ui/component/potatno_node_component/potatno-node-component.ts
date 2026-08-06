@@ -12,7 +12,7 @@ import { PotatnoPreviewModule } from '../../module/potatno-preview.module.ts';
 import { PotatnoPortComponent } from '../potatno_port/potatno-port-component.ts';
 import nodeCss from './potatno-node-component.css' with { type: 'text' };
 import nodeTemplate from './potatno-node-component.html' with { type: 'text' };
-import { Exception } from "@kartoffelgames/core";
+import { Exception } from '@kartoffelgames/core';
 
 /**
  * Node component for the potatno-code visual editor.
@@ -257,8 +257,6 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
      * @param pEvent - Pointer event from the resize handle.
      */
     public dragNode(pEvent: PointerEvent): void {
-        pEvent.preventDefault();
-
         // Right click. Delete node.
         if(pEvent.button === 2) {
             this.mManager.graph.removeNode(this.nodeData);

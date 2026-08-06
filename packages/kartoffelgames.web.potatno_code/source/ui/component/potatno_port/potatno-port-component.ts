@@ -4,7 +4,7 @@ import { Component, PwbChild, PwbComponent, PwbExport, type IComponentOnDeconstr
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import type { PotatnoPortDefinitionDirection } from '../../../project/potatno-port-definition.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
-import { PotatnoUiManagerGridCoordinate } from "../../manager/manager_component/potatno-ui-manager-grid.ts";
+import type { PotatnoUiManagerGridCoordinate } from '../../manager/manager_component/potatno-ui-manager-grid.ts';
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, type PotatnoCodeUiManagerUnsubscribe } from '../../manager/potatno-ui-manager.ts';
 import portCss from './potatno-port-component.css' with { type: 'text' };
 import portTemplate from './potatno-port-component.html' with { type: 'text' };
@@ -75,6 +75,13 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
     }
 
     /**
+     * Get connected state of port.
+     */
+    public get isConnected(): boolean {
+        return this.port.connectedPorts.size > 0;
+    }
+
+    /**
      * The domain port object to render.
      */
     @PwbExport
@@ -123,26 +130,17 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
     }
 
     /**
-     * CSS class string for the port handle element.
-     */
-    public get portHandleClasses(): string {
-        // Create array with port type, connected state and error state.
-        const lClasses: Array<string> = [this.port.portType];
-        if (this.port.connectedPorts.size > 0) {
-            lClasses.push('connected');
-        }
-        if (this.hasError) {
-            lClasses.push('error');
-        }
-
-        return lClasses.join(' ');
-    }
-
-    /**
      * Port display name.
      */
     public get portName(): string {
         return this.port.label ?? '';
+    }
+
+    /**
+     * Port type.
+     */
+    public get portType(): string {
+        return this.port.portType;
     }
 
     /**
@@ -261,7 +259,7 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
 
         // Clear drag state.
         this.mDragConnectionPath?.removeAttribute('d');
-        this.mManager.grid.setDraggingPort(new Array());
+        this.mManager.grid.setDraggingPort([]);
 
         this.mComponent.updater.updateAsync();
     }

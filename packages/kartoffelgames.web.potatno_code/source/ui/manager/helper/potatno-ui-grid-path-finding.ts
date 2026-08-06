@@ -2,11 +2,11 @@ import { Astar, Exception, type AstarPathInformation, type AstarResult } from '@
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import { PotatnoCommentNodeDefinition } from '../../../project/node_definition/potatno-comment-node-definition.ts';
-import { PotatnoFlowConjunctionNodeDefinition } from "../../../project/node_definition/potatno-flow-conjunction-node-definition.ts";
-import { PotatnoNodeDefinition } from '../../../project/node_definition/potatno-node-definition.ts';
-import { PotatnoValueConjunctionNodeDefinition } from "../../../project/node_definition/potatno-value-conjunction-node-definition.ts";
+import { PotatnoFlowConjunctionNodeDefinition } from '../../../project/node_definition/potatno-flow-conjunction-node-definition.ts';
+import type { PotatnoNodeDefinition } from '../../../project/node_definition/potatno-node-definition.ts';
+import { PotatnoValueConjunctionNodeDefinition } from '../../../project/node_definition/potatno-value-conjunction-node-definition.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
-import { PotatnoUiManagerGridCoordinate } from "../manager_component/potatno-ui-manager-grid.ts";
+import type { PotatnoUiManagerGridCoordinate } from '../manager_component/potatno-ui-manager-grid.ts';
 
 /**
  * A* path finding for grid connections.

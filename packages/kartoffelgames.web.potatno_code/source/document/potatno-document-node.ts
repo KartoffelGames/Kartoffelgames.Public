@@ -1,7 +1,7 @@
 import { Exception } from '@kartoffelgames/core';
 import { PotatnoCommentNodeDefinition } from '../project/node_definition/potatno-comment-node-definition.ts';
 import { PotatnoFlowConjunctionNodeDefinition } from '../project/node_definition/potatno-flow-conjunction-node-definition.ts';
-import { PotatnoNodeDefinition } from '../project/node_definition/potatno-node-definition.ts';
+import type { PotatnoNodeDefinition } from '../project/node_definition/potatno-node-definition.ts';
 import { PotatnoValueConjunctionNodeDefinition } from '../project/node_definition/potatno-value-conjunction-node-definition.ts';
 import type { PotatnoPortDefinition, PotatnoPortDefinitionDirection, PotatnoPortDefinitionType } from '../project/potatno-port-definition.ts';
 import type { PotatnoProjectGenericType, PotatnoProjectTypeNames, PotatnoProjectTypesDefinition } from '../project/potatno-project-types-definition.ts';

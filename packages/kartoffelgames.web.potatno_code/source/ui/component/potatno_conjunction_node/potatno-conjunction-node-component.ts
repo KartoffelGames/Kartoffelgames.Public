@@ -1,12 +1,12 @@
-import { Exception } from "@kartoffelgames/core";
+import { Exception } from '@kartoffelgames/core';
 import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { Component, PwbChild, PwbComponent, PwbComponentEvent, PwbExport, type ComponentEventEmitter, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
-import { PotatnoFlowConjunctionNodeDefinition } from "../../../project/node_definition/potatno-flow-conjunction-node-definition.ts";
-import { PotatnoPortDefinitionType } from "../../../project/potatno-port-definition.ts";
+import { PotatnoFlowConjunctionNodeDefinition } from '../../../project/node_definition/potatno-flow-conjunction-node-definition.ts';
+import type { PotatnoPortDefinitionType } from '../../../project/potatno-port-definition.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
-import { PotatnoUiManagerGridCoordinate } from "../../manager/manager_component/potatno-ui-manager-grid.ts";
+import type { PotatnoUiManagerGridCoordinate } from '../../manager/manager_component/potatno-ui-manager-grid.ts';
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, type PotatnoCodeUiManagerUnsubscribe } from '../../manager/potatno-ui-manager.ts';
 import { PotatnoPortComponent } from '../potatno_port/potatno-port-component.ts';
 import nodeCss from './potatno-conjunction-node-component.css' with { type: 'text' };
@@ -57,14 +57,6 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
     }
 
     /**
-     * CSS class string for the error state.
-     */
-    public get outputHasError(): boolean {
-        // Node has error or output port has an error.
-        return this.mManager.integrity.errorItems.has(this.nodeData) || this.mManager.integrity.errorItems.has(this.nodePorts.output);
-    }
-
-    /**
      * Get if the sole ouput port is connected to any other port.
      */
     public get isInputConnected(): boolean {
@@ -99,6 +91,14 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
 
         // Resync nodes transformation on change.
         this.resyncComponent(pNode);
+    }
+
+    /**
+     * CSS class string for the error state.
+     */
+    public get outputHasError(): boolean {
+        // Node has error or output port has an error.
+        return this.mManager.integrity.errorItems.has(this.nodeData) || this.mManager.integrity.errorItems.has(this.nodePorts.output);
     }
 
     /**
@@ -293,7 +293,7 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
 
         // Clear drag state.
         this.mDragConnectionPath?.removeAttribute('d');
-        this.mManager.grid.setDraggingPort(new Array());
+        this.mManager.grid.setDraggingPort([]);
 
         this.mComponent.updater.updateAsync();
     }

@@ -1,15 +1,15 @@
-import { Exception } from "@kartoffelgames/core";
+import { Exception } from '@kartoffelgames/core';
 import { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoDocumentNode, PotatnoDocumentNodeTransformation } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import { PotatnoDocument } from '../../../document/potatno-document.ts';
-import { PotatnoFlowConjunctionNodeDefinition } from "../../../project/node_definition/potatno-flow-conjunction-node-definition.ts";
+import { PotatnoFlowConjunctionNodeDefinition } from '../../../project/node_definition/potatno-flow-conjunction-node-definition.ts';
 import type { PotatnoNodeDefinition } from '../../../project/node_definition/potatno-node-definition.ts';
-import { PotatnoValueConjunctionNodeDefinition } from "../../../project/node_definition/potatno-value-conjunction-node-definition.ts";
-import { PotatnoPortDefinitionDirection } from "../../../project/potatno-port-definition.ts";
+import { PotatnoValueConjunctionNodeDefinition } from '../../../project/node_definition/potatno-value-conjunction-node-definition.ts';
+import type { PotatnoPortDefinitionDirection } from '../../../project/potatno-port-definition.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import { PotatnoCodeUiManagerChangeType, type PotatnoUiManager } from '../potatno-ui-manager.ts';
-import { PotatnoUiManagerGridCoordinate } from "./potatno-ui-manager-grid.ts";
+import type { PotatnoUiManagerGridCoordinate } from './potatno-ui-manager-grid.ts';
 
 /**
  * Ui manager graph component.
@@ -105,20 +105,20 @@ export class PotatnoUiManagerGraph {
 
         const lPriorityDraggedPorts = pPorts.sort((pPortA, pPortB) => {
             // Always prioritize unconnected ports over connected ones.
-            const lAUnconnected: boolean = pPortA.connectedPorts.size === 0;
-            const lBUnconnected: boolean = pPortB.connectedPorts.size === 0;
-            if (lAUnconnected !== lBUnconnected) {
-                return lAUnconnected ? -1 : 1;
+            const lUnconnectedA: boolean = pPortA.connectedPorts.size === 0;
+            const lUnconnectedB: boolean = pPortB.connectedPorts.size === 0;
+            if (lUnconnectedA !== lUnconnectedB) {
+                return lUnconnectedA ? -1 : 1;
             }
 
             // Same connection state, prioritize by position.
             // Dragged port right of this node prioritizes input ports, otherwise output ports.
             const lPreferredDirection: PotatnoPortDefinitionDirection = lPortPosition.x > lNodePosition.x ? 'input' : 'output';
 
-            const lAPreferred: boolean = pPortA.direction === lPreferredDirection;
-            const lBPreferred: boolean = pPortB.direction === lPreferredDirection;
-            if (lAPreferred !== lBPreferred) {
-                return lAPreferred ? -1 : 1;
+            const lPreferredA: boolean = pPortA.direction === lPreferredDirection;
+            const lPreferredB: boolean = pPortB.direction === lPreferredDirection;
+            if (lPreferredA !== lPreferredB) {
+                return lPreferredA ? -1 : 1;
             }
 
             return 0;

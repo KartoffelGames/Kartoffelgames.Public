@@ -1,17 +1,17 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { Component, ComponentState, PwbComponent, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
-import { PotatnoDocumentPort } from "../../../document/potatno-document-port.ts";
+import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import { PotatnoCommentNodeDefinition } from '../../../project/node_definition/potatno-comment-node-definition.ts';
 import { PotatnoFlowConjunctionNodeDefinition } from '../../../project/node_definition/potatno-flow-conjunction-node-definition.ts';
 import type { PotatnoNodeDefinition } from '../../../project/node_definition/potatno-node-definition.ts';
 import { PotatnoValueConjunctionNodeDefinition } from '../../../project/node_definition/potatno-value-conjunction-node-definition.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
-import { PotatnoUiManagerGridCoordinate, PotatnoUiManagerGridPixelCoordinate } from "../../manager/manager_component/potatno-ui-manager-grid.ts";
+import type { PotatnoUiManagerGridCoordinate, PotatnoUiManagerGridPixelCoordinate } from '../../manager/manager_component/potatno-ui-manager-grid.ts';
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, type PotatnoCodeUiManagerUnsubscribe } from '../../manager/potatno-ui-manager.ts';
 import { PotatnoNodeSelectionPopupComponent } from '../potatno-node-selection-popup/potatno-node-selection-popup-component.ts';
 import { PotatnoCommentNodeComponent } from '../potatno_comment-node/potatno-comment-node-component.ts';
-import { PotatnoConjunctionNodeComponent } from "../potatno_conjunction_node/potatno-conjunction-node-component.ts";
+import { PotatnoConjunctionNodeComponent } from '../potatno_conjunction_node/potatno-conjunction-node-component.ts';
 import { PotatnoConnectionLayerComponent } from '../potatno_connection_layer/potatno-connection-layer-component.ts';
 import { PotatnoNodeComponent, type PotatnoNodeComponentMove } from '../potatno_node_component/potatno-node-component.ts';
 import graphCss from './potatno-node-graph-component.css' with { type: 'text' };
@@ -579,7 +579,7 @@ export class PotatnoNodeGraphComponent implements IComponentOnDeconstruct {
         const lStaringGridPixelPosition: PotatnoUiManagerGridPixelCoordinate = this.mManager.grid.pixelToGridPixelSpace(pEvent.clientX, pEvent.clientY);
 
         // Save pointer position. Used for tracking general movement.
-        let lLastPointerPosition: PotatnoUiManagerGridPixelCoordinate = {
+        const lLastPointerPosition: PotatnoUiManagerGridPixelCoordinate = {
             x: pEvent.clientX,
             y: pEvent.clientY
         };

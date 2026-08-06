@@ -3,7 +3,7 @@
     <!-- Actual port handle. -->
     <div class="port" draggable="true" [title]="this.portValueType" (dragstart)="this.onDragStart($event)" (dragend)="this.onDragEnd($event)">
         <div class="port__handle">
-            <div class="port-handle {{this.portHandleClasses}}"></div>
+            <div class="port-handle {{this.portType}} {{this.hasError ? 'error' : ''}} {{ this.isConnected ? 'connected' : ''}}"></div>
         </div>
         <div class="port__label">{{this.portName}}</div>
     </div>

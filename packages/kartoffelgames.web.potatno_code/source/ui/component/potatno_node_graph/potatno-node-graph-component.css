@@ -42,9 +42,10 @@
     .grid-content__node {
         position: absolute;
         border-radius: 2px;
+        filter: drop-shadow(0 2px 8px var(--potatno-color-shadow));
 
         &.selected {
-            filter: drop-shadow(0px 0px 3px var(--potatno-color-accent));
+            filter: drop-shadow(-1px -1px 0px var(--potatno-color-accent)) drop-shadow(1px 1px 0px var(--potatno-color-accent)) drop-shadow(1px -1px 0px var(--potatno-color-accent)) drop-shadow(-1px 1px 0px var(--potatno-color-accent)) drop-shadow(0 2px 8px var(--potatno-color-shadow));
         }
     }
 }

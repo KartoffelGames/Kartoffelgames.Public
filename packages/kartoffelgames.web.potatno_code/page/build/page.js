@@ -588,7 +588,6 @@ $if(this.left) {\r
     flex-direction: column;\r
     min-height: 100%;\r
 \r
-    box-shadow: 0 2px 8px var(--potatno-color-shadow);\r
     overflow: visible;\r
     user-select: none;\r
 \r
@@ -1479,8 +1478,8 @@ $if(this.left) {\r
     min-height: 100%;\r
     background-color: var(--potatno-color-background);\r
     border: 1px solid var(--node-border-color);\r
+    border-radius: var(--node-border-radius);\r
 \r
-    box-shadow: 0 2px 8px var(--potatno-color-shadow);\r
     overflow: visible;\r
     user-select: none;\r
 \r
@@ -1493,7 +1492,7 @@ $if(this.left) {\r
     /*height: calc(var(--potatno-grid-size) * var(--node-height));*/\r
 \r
     &.error {\r
-        box-shadow: 0 0 5px 2px var(--potatno-color-error), 0 2px 8px var(--potatno-color-shadow);\r
+        box-shadow: 0 0 0px 2px var(--potatno-color-error);\r
     }\r
 }\r
 \r
@@ -1630,8 +1629,8 @@ $if(this.left) {\r
     display: flex;\r
     flex-direction: column;\r
     background-color: var(--potatno-color-background-dark);\r
-    box-shadow: 0 2px 8px var(--potatno-color-shadow);\r
     border: 1px solid var(--node-border-color);\r
+    border-radius: var(--node-border-radius);\r
     user-select: none;\r
 \r
     /* Previews can size bigger than the node itself and expanding. Limit the width here. */\r
@@ -1733,7 +1732,6 @@ $if(this.left) {\r
                 background-color: var(--potatno-color-background);\r
                 overflow: hidden auto;\r
                 border: 1px solid var(--potatno-color-border);\r
-                box-shadow: 0 2px 8px var(--potatno-color-shadow);\r
 \r
                 scrollbar-color: var(--potatno-color-scrollbar-thumb) var(--potatno-color-scrollbar-track);\r
                 scrollbar-width: thin;\r
@@ -1901,9 +1899,10 @@ $if(this.isPreviewActive) {\r
     .grid-content__node {\r
         position: absolute;\r
         border-radius: 2px;\r
+        filter: drop-shadow(0 2px 8px var(--potatno-color-shadow));\r
 \r
         &.selected {\r
-            filter: drop-shadow(0px 0px 3px var(--potatno-color-accent));\r
+            filter: drop-shadow(-1px -1px 0px var(--potatno-color-accent)) drop-shadow(1px 1px 0px var(--potatno-color-accent)) drop-shadow(1px -1px 0px var(--potatno-color-accent)) drop-shadow(-1px 1px 0px var(--potatno-color-accent)) drop-shadow(0 2px 8px var(--potatno-color-shadow));\r
         }\r
     }\r
 }\r

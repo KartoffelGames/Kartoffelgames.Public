@@ -20,7 +20,8 @@ import addNodePopupTemplate from './potatno-node-selection-popup-component.html'
 export class PotatnoNodeSelectionPopupComponent implements IComponentOnConnect, IComponentOnUpdate {
     public static readonly POPUP_HEIGHT: number = 320;
     public static readonly POPUP_WIDTH: number = 280;
-    
+
+    private readonly mAvailableEntries: Array<PotatnoNodeSelectionPopupComponentEntry>;
     private readonly mComponent: Component;
     private readonly mManager: PotatnoUiManager;
 
@@ -63,6 +64,7 @@ export class PotatnoNodeSelectionPopupComponent implements IComponentOnConnect, 
         this.mManager = pManager;
         this.mComponent = pComponent;
 
+        this.mAvailableEntries = this.fetchNodeEntries();
         this.selectedDefinitionId = null;
         this.results = new Array<PotatnoNodeSelectionPopupComponentEntry>();
         this.searchValue = '';
@@ -119,7 +121,13 @@ export class PotatnoNodeSelectionPopupComponent implements IComponentOnConnect, 
      * That includes when something is typed into the searchbar. 
      */
     public onUpdate(): void {
-        this.rebuildResults();
+        // Filter entry list by searchterm.
+        this.results = this.filterResults();
+
+        // Select the first result when the current selected definition is not in the search result.
+        if (!this.results.some((pEntry: PotatnoNodeSelectionPopupComponentEntry) => pEntry.definition.id === this.selectedDefinitionId)) {
+            this.selectedDefinitionId = this.results[0]?.definition.id ?? null;
+        }
 
         // Look into shadow root to find the selected element and scroll into view.
         const lSelectedElement = this.mComponent.element.shadowRoot!.querySelector('.selection-popup__result.selected');
@@ -143,11 +151,12 @@ export class PotatnoNodeSelectionPopupComponent implements IComponentOnConnect, 
     }
 
     /**
-     * Rebuild the result list from the active function and the current search query.
+     * Fetch all selectable node definition entries.
+     * 
+     * @returns list of active and selectable node defintion entries.
      */
-    private rebuildResults(): void {
-        // Build a entry list for all dynamic nodes.
-        const lEntryList: Array<PotatnoNodeSelectionPopupComponentEntry> = this.mManager.activeFunction.dynamicNodeDefinitions.map((pNodeDefinition) => {
+    private fetchNodeEntries(): Array<PotatnoNodeSelectionPopupComponentEntry> {
+        return this.mManager.activeFunction.dynamicNodeDefinitions.map((pNodeDefinition) => {
             return {
                 category: pNodeDefinition.category.name,
                 definition: pNodeDefinition,
@@ -156,19 +165,19 @@ export class PotatnoNodeSelectionPopupComponent implements IComponentOnConnect, 
                 icon: pNodeDefinition.category.icon
             };
         });
+    }
 
+    /**
+     * Rebuild the result list from the active function and the current search query.
+     */
+    private filterResults(): Array<PotatnoNodeSelectionPopupComponentEntry> {
         // Normalize searchterm.
         const lSearchTerm: string = this.searchValue.trim().toLowerCase();
 
         // Filter entry list by searchterm.
-        this.results = lEntryList.filter((pEntry: PotatnoNodeSelectionPopupComponentEntry) => {
+        return this.mAvailableEntries.filter((pEntry: PotatnoNodeSelectionPopupComponentEntry) => {
             return pEntry.label.includes(lSearchTerm);
         });
-
-        // Select the first result when the current selected definition is not in the search result.
-        if (!this.results.some((pEntry: PotatnoNodeSelectionPopupComponentEntry) => pEntry.definition.id === this.selectedDefinitionId)) {
-            this.selectedDefinitionId = this.results[0]?.definition.id ?? null;
-        }
     }
 
     /**

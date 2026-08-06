@@ -3,6 +3,9 @@
     font-family: var(--potatno-font-family);
     font-size: var(--potatno-font-size);
 
+    /* Snappy animation on movement. */
+    transition: top 0.1s cubic-bezier(0, 1.5, 1, 1), left 0.1s cubic-bezier(0, 1.5, 1, 1);
+
     --node-border-radius: 2px;
     --node-border-color: color-mix(in srgb, var(--potatno-color-text) 30%, var(--potatno-color-background));
     --node-preview-select-height: 24px;

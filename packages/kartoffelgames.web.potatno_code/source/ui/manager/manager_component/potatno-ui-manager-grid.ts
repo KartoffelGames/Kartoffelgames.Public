@@ -135,15 +135,15 @@ export class PotatnoUiManagerGrid {
      * 
      * @returns converted pixel to grid space. 
      */
-    public gridPixelSpaceToGridSpace(pPixel: PotatnoUiManagerGridPixelCoordinate, pRound: boolean): PotatnoUiManagerGridCoordinate {
+    public gridPixelSpaceToGridSpace(pPixel: PotatnoUiManagerGridPixelCoordinate, pSnap: boolean): PotatnoUiManagerGridCoordinate {
         // Into grid space by deviding by grid size. Easy.
         let lX: number = pPixel.x / this.gridSize;
         let lY: number = pPixel.y / this.gridSize;
 
         // Optional round of position.
-        if (pRound) {
-            lX = Math.round(lX);
-            lY = Math.round(lY);
+        if (pSnap) {
+            lX = Math.floor(lX);
+            lY = Math.floor(lY);
         }
 
         return {

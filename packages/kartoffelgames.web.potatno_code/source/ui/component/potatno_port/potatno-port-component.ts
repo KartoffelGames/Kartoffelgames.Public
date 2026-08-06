@@ -26,13 +26,6 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
     private readonly mUnsubscribeValidation: PotatnoCodeUiManagerUnsubscribe;
 
     /**
-     * Drag position event handler.
-     */
-    public get dragPositionEventHandler(): PotatnoPortComponentGlobalDragoverHandler {
-        return this.mDragPositionEventHandler;
-    }
-
-    /**
      * SVG element used for the temporary drag wire.
      */
     @PwbChild('dragConnection')

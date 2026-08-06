@@ -50,18 +50,8 @@
     cursor: crosshair;
     z-index: -1;
 
-    /* Save port internal color */
+    /* Save port internal color so it can be animated */
     --potatno-port-handle-color: var(--type-color);
-
-    &.connected {
-        width: var(--potatno-grid-size);
-        height: var(--potatno-grid-size);
-        border: none;
-    }
-
-    &.error:not(.connected) {
-        border: 1px dashed var(--potatno-color-error);
-    }
 
     /* Move both port areas left and right. */
     &.input {
@@ -72,14 +62,26 @@
         right: -100%;
     }
 
-    /* Small hover animation for ports, hover values excluded */
-    &:not(.connected):hover {
-        &.output .port__handle {
-            transform: translateX(1px);
+    &:has(>.connected) {
+        width: var(--potatno-grid-size);
+        height: var(--potatno-grid-size);
+        border: none;
+    }
+
+    &:not(>.connected) {
+        &.error {
+            border: 1px dashed var(--potatno-color-error);
         }
 
-        &.input .port__handle {
-            transform: translateX(-1px);
+        /* Small hover animation for ports, hover values excluded */
+        &:hover {
+            &.output .port__handle {
+                transform: translateX(1px);
+            }
+
+            &.input .port__handle {
+                transform: translateX(-1px);
+            }
         }
     }
 
@@ -109,11 +111,11 @@
                 border-radius: 2px;
             }
 
-            .connected &::before {
+            &.connected::before {
                 background-color: var(--potatno-port-handle-color);
             }
 
-            .error &::before {
+            &.error::before {
                 background-color: var(--potatno-color-error);
             }
 
@@ -130,21 +132,26 @@
             .output & {
                 translate: calc(var(--potatno-port-width) / -2) 0px;
 
+                &.connected {
+                    translate: calc(var(--potatno-port-width) / -1) 0px;
+                    animation: animateOutputConnectGlow var(--potatno-connection-animation) ease-in-out forwards;
+
+                    @starting-style {
+                        translate: calc(var(--potatno-port-width) / -2) 0px;
+                    }
+                }
+
+                /* Adjust arrow geometry and arrow color */
                 &::after {
                     right: 1px;
                     border-left: calc(var(--potatno-port-flow-size) / 3) solid color-mix(in srgb, var(--potatno-port-handle-color) 30%, var(--potatno-color-background));
                 }
 
-                .connected & {
-                    translate: calc(var(--potatno-port-width) / -1) 0px;
-                    animation: animateOutputConnectGlow var(--potatno-connection-animation) ease-in-out forwards;
-
-                    &::after {
-                        border-left-color: var(--potatno-port-handle-color);
-                    }
+                &.connected::after {
+                    border-left-color: var(--potatno-port-handle-color);
                 }
 
-                .error &::after {
+                &.error::after {
                     border-left-color: var(--potatno-color-error);
                 }
             }
@@ -153,23 +160,28 @@
                 translate: calc(var(--potatno-port-width) / 2) 0px;
                 flex-direction: row-reverse;
 
-                &::after {
-                    left: 1px;
-                    border-right: calc(var(--potatno-port-flow-size) / 3) solid color-mix(in srgb, var(--potatno-port-handle-color) 30%, var(--potatno-color-background));
-                }
-
-                .connected & {
+                &.connected {
                     transition-delay: calc(var(--potatno-connection-animation) * 0.7);
                     translate: calc(var(--potatno-port-width) / 1) 0px;
                     animation: animateInputConnectGlow calc(var(--potatno-connection-animation) * 0.5) ease-out forwards;
                     animation-delay: calc(var(--potatno-connection-animation) * 0.7);
 
-                    &::after {
-                        border-right-color: var(--potatno-port-handle-color);
+                    @starting-style {
+                        translate: calc(var(--potatno-port-width) / 2) 0px;
                     }
                 }
 
-                .error &::after {
+                /* Adjust arrow geometry and arrow color */
+                &::after {
+                    left: 1px;
+                    border-right: calc(var(--potatno-port-flow-size) / 3) solid color-mix(in srgb, var(--potatno-port-handle-color) 30%, var(--potatno-color-background));
+                }
+
+                &.connected::after {
+                    border-right-color: var(--potatno-port-handle-color);
+                }
+
+                &.error::after {
                     border-right-color: var(--potatno-color-error);
                 }
             }
@@ -182,33 +194,41 @@
             width: calc(var(--potatno-port-value-size) - 1px);
             background-color: color-mix(in srgb, var(--potatno-port-handle-color) 30%, var(--potatno-color-background));
 
-            .connected & {
+            &.connected {
                 background-color: var(--potatno-port-handle-color);
+            }
+
+            &.error {
+                background-color: var(--potatno-color-error);
+                border-color: var(--potatno-color-error);
             }
 
             .output & {
                 translate: -50% 0px;
 
-                .connected & {
+                &.connected {
                     translate: calc(var(--potatno-port-width) / -1.3) 0px;
                     animation: animateOutputConnectGlow var(--potatno-connection-animation) ease-in-out forwards;
+
+                    @starting-style {
+                        translate: -50% 0px;
+                    }
                 }
             }
 
             .input & {
                 translate: 50% 0px;
 
-                .connected & {
+                &.connected {
                     transition-delay: calc(var(--potatno-connection-animation) * 0.7);
                     translate: calc(var(--potatno-port-width) / 1.3) 0px;
                     animation: animateInputConnectGlow calc(var(--potatno-connection-animation) * 0.5) ease-out forwards;
                     animation-delay: calc(var(--potatno-connection-animation) * 0.7);
-                }
-            }
 
-            .error & {
-                background-color: var(--potatno-color-error);
-                border-color: var(--potatno-color-error);
+                    @starting-style {
+                        translate: 50% 0px;
+                    }
+                }
             }
         }
     }

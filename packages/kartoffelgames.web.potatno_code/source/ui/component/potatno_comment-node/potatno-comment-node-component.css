@@ -3,6 +3,9 @@
     font-family: var(--potatno-font-family);
     font-size: var(--potatno-font-size);
 
+    /* Snappy animation on movement. */
+    transition: var(--potatno-position-snap-animation);
+
     /* Default z-index. Gets overridden on zoom out.*/
     z-index: -1;
 

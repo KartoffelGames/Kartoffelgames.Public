@@ -41,7 +41,6 @@
 
     .grid-content__node {
         position: absolute;
-        border-radius: 2px;
         filter: drop-shadow(0 2px 8px var(--potatno-color-shadow));
 
         &.selected {

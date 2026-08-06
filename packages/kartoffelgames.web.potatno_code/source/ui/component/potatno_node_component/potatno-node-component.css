@@ -4,7 +4,7 @@
     font-size: var(--potatno-font-size);
 
     /* Snappy animation on movement. */
-    transition: top 0.1s cubic-bezier(0, 1.5, 1, 1), left 0.1s cubic-bezier(0, 1.5, 1, 1);
+    transition: var(--potatno-position-snap-animation);
 
     --node-border-radius: 2px;
     --node-border-color: color-mix(in srgb, var(--potatno-color-text) 30%, var(--potatno-color-background));
@@ -39,15 +39,27 @@
 .node-header {
     display: flex;
     align-items: center;
-    /* Adjust -1px because node itself has a top border of 1px. */
-    height: calc(var(--potatno-grid-size) - 1px);
     color: var(--potatno-color-text-contrast);
-    background-color: var(--node-category-color);
     font-weight: bold;
     font-size: var(--potatno-font-size-small);
+    border-bottom: 1px solid var(--potatno-color-border);
     cursor: grab;
 
+    /* Adjust -2px because node itself has a top border of 1px and the header a border on bottom. */
+    height: calc(var(--potatno-grid-size) - 2px);
+
+    /* Animated background of header */
+    transition: background-size 0.15s ease-in-out;
+    background-image: radial-gradient(ellipse at top left, var(--node-category-color) 0%, transparent 90%);
+    background-color: var(--potatno-color-background-dark);
+    background-size: 100% 100%;
+
+    &:hover {
+        background-size: 140% 100%;
+    }
+
     &:active {
+        background-size: 200% 100%;
         cursor: grabbing;
     }
 

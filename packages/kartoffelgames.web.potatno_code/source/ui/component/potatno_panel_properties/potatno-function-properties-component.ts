@@ -1,5 +1,5 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import { ResizeBoxComponent } from "@kartoffelgames/web-components";
+import { ResizeBoxComponent } from '@kartoffelgames/web-components';
 import { ComponentState, PwbComponent, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import { PotatnoFunctionDefinitionStatics } from '../../../project/potatno-function-definition.ts';

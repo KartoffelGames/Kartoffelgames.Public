@@ -15,6 +15,10 @@ import template from './resize-box-component.html' with { type: 'text' };
  * Event:
  *  - "resize"
  *  - "resize-end"
+ * 
+ * CSS variables:
+ *  - "--resize-box-handle-color"
+ *  - "--resize-box-handle-size"
  */
 @PwbComponent({
     selector: 'resize-box',
@@ -56,6 +60,16 @@ export class ResizeBoxComponent {
         return this.mConfiguration.enabledDirections.bottom;
     } set bottom(pEnabled: unknown) {
         this.mConfiguration.enabledDirections.bottom = this.parseBoolean(pEnabled);
+    }
+
+    /**
+     * Current height of resize box.
+     */
+    @PwbExport
+    public get height(): number {
+        return this.transformation.height;
+    } set height(pHeight: number) {
+        this.updateComponentHeight(pHeight, true);
     }
 
     /**
@@ -116,17 +130,7 @@ export class ResizeBoxComponent {
     public get width(): number {
         return this.transformation.width;
     } set width(pWidth: number) {
-        this.transformation.width = pWidth;
-    }
-
-    /**
-     * Current height of resize box.
-     */
-    @PwbExport
-    public get height(): number {
-        return this.transformation.height;
-    } set height(pHeight: number) {
-        this.transformation.height = pHeight;
+        this.updateComponentWidth(pWidth, true);
     }
 
     /**
@@ -272,7 +276,7 @@ export class ResizeBoxComponent {
             }
 
             // And then update component size.
-            [lCurrentWidth, lCurrentHeight] = this.updateComponentSize(lUsedHandles, lWidth, lHeight, lCurrentWidth, lCurrentHeight);
+            [lCurrentWidth, lCurrentHeight] = this.applyComponentSize(lUsedHandles, lWidth, lHeight);
         };
 
         // Pointer up listener, cleaning up temporary listener.
@@ -317,43 +321,82 @@ export class ResizeBoxComponent {
     }
 
     /**
-     * Update the parent component size.
+     * Apply the parent component size.
+     * When set to virtual, only the events are fired.
      * 
      * @param pWidth - Width in pixel.
      * @param pHeight - Height in pixel.
      */
-    private updateComponentSize(pUsedHandle: number, pWidth: number, pHeight: number, pStartingWidth: number, pStartingHeight: number) {
-        // Only set width when eighter left or right is enabled
-        let lResizedWidth: number = pStartingWidth;
-        if (this.mConfiguration.enabledDirections.left || this.mConfiguration.enabledDirections.right) {
-            // Snap the resized value.
-            lResizedWidth = Math.floor(Math.abs(pWidth) / this.mConfiguration.snap) * this.mConfiguration.snap * (pWidth / Math.abs(pWidth));
-
-            // Resize if the resize should not be virtual.
-            if (!this.mConfiguration.isVirtual) {
-                this.transformation.width = lResizedWidth;
-            }
-        }
-
-        // Only set width when eighter top or bottom is enabled
-        let lResizedHeight: number = pStartingHeight;
-        if (this.mConfiguration.enabledDirections.top || this.mConfiguration.enabledDirections.bottom) {
-            // Snap the resized value.
-            lResizedHeight = Math.floor(Math.abs(pHeight) / this.mConfiguration.snap) * this.mConfiguration.snap * (pHeight / Math.abs(pHeight));
-
-            // Resize if the resize should not be virtual.
-            if (!this.mConfiguration.isVirtual) {
-                this.transformation.height = lResizedHeight;
-            }
-        }
+    private applyComponentSize(pUsedHandle: number, pWidth: number, pHeight: number) {
+        // Resize with the respected limitations.
+        const lResizedWidth: number = this.updateComponentWidth(pWidth, false);
+        const lResizedHeight: number = this.updateComponentHeight(pHeight, false);
 
         // Dispatch event after the width has changed.
-        if (lResizedWidth !== pStartingWidth || lResizedHeight !== pStartingHeight) {
-            this.mResize.dispatchEvent(this.createResizeEvent(pUsedHandle, lResizedWidth, lResizedHeight, pStartingWidth, pStartingHeight));
+        if (lResizedWidth !== this.transformation.width || lResizedHeight !== this.transformation.height) {
+            this.mResize.dispatchEvent(this.createResizeEvent(pUsedHandle, lResizedWidth, lResizedHeight, this.transformation.width, this.transformation.height));
         }
 
         // Return back the actual resized values.
         return [lResizedWidth, lResizedHeight];
+    }
+
+    /**
+     * Set component height.
+     * 
+     * @param pHeight - Height in pixel.
+     * @param pIgnoreVirtual - Ignore the virtual setting and set it.
+     * 
+     * @returns resized height. 
+     */
+    private updateComponentHeight(pHeight: number, pIgnoreVirtual: boolean): number {
+        // Skip resize if not setup to be resized.
+        if (!this.mConfiguration.enabledDirections.top && !this.mConfiguration.enabledDirections.bottom) {
+            return this.transformation.height;
+        }
+
+        // Size should not be divided by zero. Limit that.
+        pHeight = Math.max(1, pHeight);
+
+        // Snap the resized value.
+        let lResizedHeight: number = Math.ceil(Math.abs(pHeight) / this.mConfiguration.snap) * this.mConfiguration.snap * (pHeight / Math.abs(pHeight));
+        lResizedHeight = Math.max(0, lResizedHeight);
+
+        // Resize if the resize should not be virtual.
+        if (!this.mConfiguration.isVirtual || pIgnoreVirtual) {
+            this.transformation.height = lResizedHeight;
+        }
+
+        return lResizedHeight;
+    }
+
+    /**
+     * Set component width.
+     * 
+     * @param pWidth - Width in pixel.
+     * @param pIgnoreVirtual - Ignore the virtual setting and set it.
+     * 
+     * @returns resized width. 
+     */
+    private updateComponentWidth(pWidth: number, pIgnoreVirtual: boolean): number {
+        // Skip resize if not setup to be resized.
+        if (!this.mConfiguration.enabledDirections.left && !this.mConfiguration.enabledDirections.right) {
+            return this.transformation.height;
+        }
+
+        // Size should not be divided by zero. Limit that.
+        pWidth = Math.max(1, pWidth);
+
+        // Snap the resized value.
+        let lResizedWidth: number = Math.ceil(Math.abs(pWidth) / this.mConfiguration.snap) * this.mConfiguration.snap * (pWidth / Math.abs(pWidth));
+        lResizedWidth = Math.max(0, lResizedWidth);
+
+        // Resize if the resize should not be virtual.
+        if (!this.mConfiguration.isVirtual || pIgnoreVirtual) {
+            this.transformation.width = lResizedWidth;
+        }
+
+        return lResizedWidth;
     }
 }
 

@@ -201,10 +201,10 @@ export class PotatnoUiManagerGrid {
  */
 export class PotatnoUiManagerGridDraggedPort {
     private readonly mManager: PotatnoUiManager;
+    private readonly mPointerGridPosition: PotatnoUiManagerGridCoordinate;
     private readonly mPortPositions: Map<PotatnoDocumentPort<PotatnoProjectTypesDefinition>, PotatnoUiManagerGridCoordinate>;
     private readonly mPorts: Set<PotatnoDocumentPort<PotatnoProjectTypesDefinition>>;
-    private readonly mPointerGridPosition: PotatnoUiManagerGridCoordinate;
-
+    
     /**
      * Get if any port is currently dragged.
      */

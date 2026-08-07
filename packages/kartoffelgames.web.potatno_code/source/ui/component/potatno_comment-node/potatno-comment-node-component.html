@@ -1,5 +1,5 @@
 <!-- Resizeable part of node -->
-<resize-box #ResizeBox class="node {{this.editMode ? 'edit' : ''}}" top="true" right="true" bottom="true" left="true" [snap]="this.gridSize" [virtual]="true" (resize)="this.transformNodeData($event.value)">
+<resize-box #ResizeBox class="node {{this.editMode ? 'edit' : ''}}" [top]="true" [right]="true" [bottom]="true" [left]="true" [snap]="this.gridSize" [virtual]="true" (resize)="this.transformNodeData($event.value)">
     <div class="node-header" (pointerdown)="this.dragNodeOrEnableEdit($event)" (dblclick)="this.editMode = true;">
         <span class="node-header__icon">✎</span>
 

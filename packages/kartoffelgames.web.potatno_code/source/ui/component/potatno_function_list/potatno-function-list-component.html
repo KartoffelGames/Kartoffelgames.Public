@@ -1,4 +1,4 @@
-<resize-box class="resize-box" right="true">
+<resize-box class="resize-box" right="true" width="250">
     <div class="function-list">
         $for(functionItem of this.documentFunctions) {
             <div class="function-item {{ this.functionItem.id === this.activeFunctionId ? 'active' : '' }}" (click)="this.selectFunction(this.functionItem)">

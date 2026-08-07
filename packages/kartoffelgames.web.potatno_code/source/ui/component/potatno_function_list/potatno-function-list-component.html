@@ -1,4 +1,4 @@
-<potatno-resize-box class="resize-box" right="true">
+<resize-box class="resize-box" right="true">
     <div class="function-list">
         $for(functionItem of this.documentFunctions) {
             <div class="function-item {{ this.functionItem.id === this.activeFunctionId ? 'active' : '' }}" (click)="this.selectFunction(this.functionItem)">
@@ -30,4 +30,4 @@
             </div>
         </div>
     }
-</potatno-resize-box>
+</resize-box>

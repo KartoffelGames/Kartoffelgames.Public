@@ -1,10 +1,10 @@
 import { Exception } from '@kartoffelgames/core';
 import { Injection } from '@kartoffelgames/core-dependency-injection';
+import { ResizeBoxComponent, ResizeBoxComponentResize, ResizeBoxComponentResizeDirection } from '@kartoffelgames/web-components';
 import { Component, ComponentState, PwbChild, PwbComponent, PwbComponentEvent, PwbExport, type ComponentEventEmitter, type IComponentOnConnect, type IComponentOnDeconstruct, type IComponentOnUpdate } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, type PotatnoCodeUiManagerUnsubscribe } from '../../manager/potatno-ui-manager.ts';
-import { PotatnoResizeBoxComponent, PotatnoResizeBoxComponentResizeDirection, type PotatnoResizeBoxComponentResize } from '../potatno-resize-box/potatno-resize-box-component.ts';
 import nodeCss from './potatno-comment-node-component.css' with { type: 'text' };
 import nodeTemplate from './potatno-comment-node-component.html' with { type: 'text' };
 
@@ -16,7 +16,7 @@ import nodeTemplate from './potatno-comment-node-component.html' with { type: 't
     selector: 'potatno-comment-node',
     template: nodeTemplate,
     style: nodeCss,
-    components: [PotatnoResizeBoxComponent]
+    components: [ResizeBoxComponent]
 })
 export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, IComponentOnConnect, IComponentOnUpdate {
     private readonly mComponent: Component;
@@ -101,7 +101,7 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
      * The actual resizeable element.
      */
     @PwbChild('ResizeBox')
-    private accessor mResizeBox!: PotatnoResizeBoxComponent & Element | null;
+    private accessor mResizeBox!: ResizeBoxComponent & Element | null;
 
     /**
      * Create the node component.
@@ -268,7 +268,7 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
      *
      * @param pResize - Resize data.
      */
-    public transformNodeData(pResize: PotatnoResizeBoxComponentResize): void {
+    public transformNodeData(pResize: ResizeBoxComponentResize): void {
         this.mManager.graph.transformNode(this.nodeData, (pNode) => {
             // Save size before resizing.
             const lLastWidth: number = pNode.transformation.width;
@@ -282,11 +282,11 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
             const lHeightChange: number = pNode.transformation.height - lLastheight;
 
             // Move the coordinate in the right direction based on the used handle.
-            if (lHeightChange !== 0 && (pResize.resizeHandle & PotatnoResizeBoxComponentResizeDirection.top) > 0) {
+            if (lHeightChange !== 0 && (pResize.resizeHandle & ResizeBoxComponentResizeDirection.top) > 0) {
                 // Move y coordinate up the moved height amount.
                 pNode.moveTo(pNode.transformation.x, pNode.transformation.y - lHeightChange);
             }
-            if (lWidthChange !== 0 && (pResize.resizeHandle & PotatnoResizeBoxComponentResizeDirection.left) > 0) {
+            if (lWidthChange !== 0 && (pResize.resizeHandle & ResizeBoxComponentResizeDirection.left) > 0) {
                 // Move y coordinate up the moved height amount.
                 pNode.moveTo(pNode.transformation.x - lWidthChange, pNode.transformation.y);
             }
@@ -332,7 +332,9 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
         if (this.mResizeBox) {
             const lNodeWidth: number = pNode.transformation.width * this.mManager.grid.gridSize;
             const lNodeHeight: number = pNode.transformation.height * this.mManager.grid.gridSize;
-            this.mResizeBox.resize(lNodeWidth, lNodeHeight);
+
+            this.mResizeBox.width = lNodeWidth;
+            this.mResizeBox.height = lNodeHeight;
         }
 
         this.mComponent.updater.updateAsync();

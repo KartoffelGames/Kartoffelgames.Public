@@ -1,38 +1,52 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import { Component, type ComponentEventEmitter, ComponentState, PwbComponent, PwbComponentEvent } from '@kartoffelgames/web-potato-web-builder';
-import { PwbExport } from '../../../../../kartoffelgames.web.potato_web_builder/source/module/export/pwb-export.decorator.ts';
-import styles from './potatno-resize-box-component.css' with { type: 'text' };
-import template from './potatno-resize-box-component.html' with { type: 'text' };
+import { Component, type ComponentEventEmitter, ComponentState, PwbComponent, PwbComponentEvent, PwbExport } from '@kartoffelgames/web-potato-web-builder';
+import styles from './resize-box-component.css' with { type: 'text' };
+import template from './resize-box-component.html' with { type: 'text' };
 
 /**
- * user resizeable panel.
- * Configurable with "top", "right", "bottom" and "left" attributes by setting them "true"
+ * User resizeable panel.
+ * 
+ * Configurable with:
+ *  - "top", "right", "bottom" and "left" attributes by setting them "true"
+ *  - "width" and "height" to manually set the size.
+ *  - "virtual" to only trigger events but not actually resize.
+ *  - "snap" as pixel number to snap the size to a virtual grid.
+ * 
+ * Event:
+ *  - "resize"
+ *  - "resize-end"
  */
 @PwbComponent({
-    selector: 'potatno-resize-box',
+    selector: 'resize-box',
     template: template,
     style: styles
 })
-export class PotatnoResizeBoxComponent {
+export class ResizeBoxComponent {
     private readonly mComponentElement: HTMLElement;
 
     /**
      * Enabled directions. Used only in template references.
      */
     @ComponentState.state({ proxy: true })
-    private accessor mConfiguration: PotatnoResizeBoxComponentConfiguration;
+    private accessor mConfiguration: ResizeBoxComponentConfiguration;
 
     /**
      * Emitted when the user resizes with a handle.
      */
     @PwbComponentEvent('resize')
-    private accessor mResize!: ComponentEventEmitter<PotatnoResizeBoxComponentResize>;
+    private accessor mResize!: ComponentEventEmitter<ResizeBoxComponentResize>;
 
     /**
      * Emitted when the user ends a resize.
      */
     @PwbComponentEvent('resize-end')
-    private accessor mResizeEnd!: ComponentEventEmitter<PotatnoResizeBoxComponentResize>;
+    private accessor mResizeEnd!: ComponentEventEmitter<ResizeBoxComponentResize>;
+
+    /**
+     * Transformation element.
+     */
+    @ComponentState.state({ proxy: true })
+    public accessor transformation: ResizeBoxComponentTransformation;
 
     /**
      * If bottom resize handle is enabled.
@@ -96,6 +110,26 @@ export class PotatnoResizeBoxComponent {
     }
 
     /**
+     * Current width of resize box.
+     */
+    @PwbExport
+    public get width(): number {
+        return this.transformation.width;
+    } set width(pWidth: number) {
+        this.transformation.width = pWidth;
+    }
+
+    /**
+     * Current height of resize box.
+     */
+    @PwbExport
+    public get height(): number {
+        return this.transformation.height;
+    } set height(pHeight: number) {
+        this.transformation.height = pHeight;
+    }
+
+    /**
      * Create the preview panel.
      *
      * @param pComponent - Injected component reference, used to trigger self-updates.
@@ -103,6 +137,12 @@ export class PotatnoResizeBoxComponent {
      */
     public constructor(pComponent: Component = Injection.use(Component)) {
         this.mComponentElement = pComponent.element;
+
+        // Default size set to undefined.
+        this.transformation = {
+            width: NaN,
+            height: NaN
+        };
 
         // Disabled all direction as default.
         this.mConfiguration = {
@@ -115,30 +155,6 @@ export class PotatnoResizeBoxComponent {
                 left: false
             }
         };
-    }
-
-    /**
-     * Exposed resize function of resize box.
-     * Does not trigger any events.
-     * 
-     * @param pWidth - new width.
-     * @param pHeight - new height.
-     * 
-     * @returns true if the size has changed.
-     */
-    @PwbExport
-    public resize(pWidth: number, pHeight: number): boolean {
-        // Save current size so the current pointer position determinates exactly this size.
-        const lComponentSize: DOMRect = this.mComponentElement.getBoundingClientRect();
-        const lStartingWidth: number = lComponentSize.width;
-        const lStartingHeight: number = lComponentSize.height;
-
-        // Resize component without a triggered handle.
-        this.mComponentElement.style.setProperty('width', `${pWidth}px`);
-        this.mComponentElement.style.setProperty('height', `${pHeight}px`);
-
-        // Dispatch end event after resize, only if any size has actually changed.
-        return pWidth !== lStartingWidth || pHeight !== lStartingHeight;
     }
 
     /**
@@ -178,18 +194,18 @@ export class PotatnoResizeBoxComponent {
      * @param pStartingWidth - Staring width.
      * @param pStartingHeight - Starting height.
      * 
-     * @returns fully configurated PotatnoResizeBoxComponentResize object.
+     * @returns fully configurated ResizeBoxComponentResize object.
      */
     private createResizeEvent(pUsedHandle: number, pWidth: number, pHeight: number, pStartingWidth: number, pStartingHeight: number) {
         let lResizedHandle: number = pUsedHandle;
         if (pWidth === pStartingWidth) {
-            lResizedHandle &= ~(PotatnoResizeBoxComponentResizeDirection.right | PotatnoResizeBoxComponentResizeDirection.left);
+            lResizedHandle &= ~(ResizeBoxComponentResizeDirection.right | ResizeBoxComponentResizeDirection.left);
         }
         if (pHeight === pStartingHeight) {
-            lResizedHandle &= ~(PotatnoResizeBoxComponentResizeDirection.top | PotatnoResizeBoxComponentResizeDirection.bottom);
+            lResizedHandle &= ~(ResizeBoxComponentResizeDirection.top | ResizeBoxComponentResizeDirection.bottom);
         }
 
-        return new PotatnoResizeBoxComponentResize(pWidth, pHeight, lResizedHandle);
+        return new ResizeBoxComponentResize(pWidth, pHeight, lResizedHandle);
     }
 
     /**
@@ -199,7 +215,7 @@ export class PotatnoResizeBoxComponent {
      * @param pEvent - The starting pointer down event.
      * @param pAllowedMovement - Allowed movement.
      */
-    private handleResize(pEvent: PointerEvent, pAllowedMovement: PotatnoResizeBoxComponentMovement): void {
+    private handleResize(pEvent: PointerEvent, pAllowedMovement: ResizeBoxComponentMovement): void {
         pEvent.preventDefault();
         pEvent.stopPropagation();
 
@@ -230,8 +246,8 @@ export class PotatnoResizeBoxComponent {
 
         // Determinate handles used.
         let lUsedHandles: number = 0;
-        lUsedHandles += (lVerticalInvertion === 1) ? PotatnoResizeBoxComponentResizeDirection.right : PotatnoResizeBoxComponentResizeDirection.left;
-        lUsedHandles += (lHorizontalInvertion === 1) ? PotatnoResizeBoxComponentResizeDirection.bottom : PotatnoResizeBoxComponentResizeDirection.top;
+        lUsedHandles += (lVerticalInvertion === 1) ? ResizeBoxComponentResizeDirection.right : ResizeBoxComponentResizeDirection.left;
+        lUsedHandles += (lHorizontalInvertion === 1) ? ResizeBoxComponentResizeDirection.bottom : ResizeBoxComponentResizeDirection.top;
 
         // Save the current size while resizing to check if the size has actually changed.
         let lCurrentWidth: number = lStartingWidth;
@@ -315,7 +331,7 @@ export class PotatnoResizeBoxComponent {
 
             // Resize if the resize should not be virtual.
             if (!this.mConfiguration.isVirtual) {
-                this.mComponentElement.style.setProperty('width', `${lResizedWidth}px`);
+                this.transformation.width = lResizedWidth;
             }
         }
 
@@ -327,7 +343,7 @@ export class PotatnoResizeBoxComponent {
 
             // Resize if the resize should not be virtual.
             if (!this.mConfiguration.isVirtual) {
-                this.mComponentElement.style.setProperty('height', `${lResizedHeight}px`);
+                this.transformation.height = lResizedHeight;
             }
         }
 
@@ -341,7 +357,7 @@ export class PotatnoResizeBoxComponent {
     }
 }
 
-export class PotatnoResizeBoxComponentResize {
+export class ResizeBoxComponentResize {
     private readonly mHeight: number;
     private readonly mResizeHandle: number;
     private readonly mWidth: number;
@@ -381,17 +397,17 @@ export class PotatnoResizeBoxComponentResize {
     }
 }
 
-export const PotatnoResizeBoxComponentResizeDirection = {
+export const ResizeBoxComponentResizeDirection = {
     top: 1,
     right: 2,
     bottom: 4,
     left: 8,
 } as const;
-export type PotatnoResizeBoxComponentResizeDirection = typeof PotatnoResizeBoxComponentResizeDirection[keyof typeof PotatnoResizeBoxComponentResizeDirection];
+export type ResizeBoxComponentResizeDirection = typeof ResizeBoxComponentResizeDirection[keyof typeof ResizeBoxComponentResizeDirection];
 
-type PotatnoResizeBoxComponentMovement = 'horizontal' | 'vertical' | 'both';
+type ResizeBoxComponentMovement = 'horizontal' | 'vertical' | 'both';
 
-type PotatnoResizeBoxComponentConfiguration = {
+type ResizeBoxComponentConfiguration = {
     snap: number;
     isVirtual: boolean;
     enabledDirections: {
@@ -400,4 +416,9 @@ type PotatnoResizeBoxComponentConfiguration = {
         bottom: boolean;
         left: boolean;
     };
+};
+
+type ResizeBoxComponentTransformation = {
+    height: number;
+    width: number;
 };

@@ -9,16 +9,16 @@
             "path": "./packages/kartoffelgames.core.dependency_injection"
         },
         {
+            "name": "KartoffelGames.Core.Interaction_Zone",
+            "path": "./packages/kartoffelgames.core.interaction_zone"
+        },
+        {
             "name": "KartoffelGames.Core.Serializer",
             "path": "./packages/kartoffelgames.core.serializer"
         },
         {
             "name": "KartoffelGames.Core.Xml",
             "path": "./packages/kartoffelgames.core.xml"
-        },
-        {
-            "name": "KartoffelGames.Core.Interaction_Zone",
-            "path": "./packages/kartoffelgames.core.interaction_zone"
         },
         {
             "name": "KartoffelGames.Web.Potato_Web_Builder",
@@ -35,6 +35,10 @@
         {
             "name": "Kartoffelgames.Core.Test",
             "path": "./packages\\kartoffelgames.core.test"
+        },
+        {
+            "name": "Kartoffelgames.Web.Components",
+            "path": "./packages\\kartoffelgames.web.components"
         },
         {
             "name": "Kartoffelgames.Web.Database",

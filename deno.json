@@ -15,7 +15,8 @@
         "./packages/kartoffelgames.web.potato_engine",
         "./packages/kartoffelgames.web.potato_engine_editor",
         "./packages/kartoffelgames.web.file_system",
-        "./packages/kartoffelgames.web.potatno_code"
+        "./packages/kartoffelgames.web.potatno_code",
+        "././packages/kartoffelgames.web.components"
     ],
     "tasks": {
         "lint": "deno run -A npm:eslint --config eslint.config.js",
@@ -25,7 +26,9 @@
     "imports": {},
     "lock": false,
     "unstable": [
-        "webgpu", "bundle", "raw-imports"
+        "webgpu",
+        "bundle",
+        "raw-imports"
     ],
     "compilerOptions": {
         "allowUnreachableCode": false,

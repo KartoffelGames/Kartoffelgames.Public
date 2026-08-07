@@ -1,4 +1,5 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
+import { ResizeBoxComponent } from "@kartoffelgames/web-components";
 import { Component, ComponentState, PwbComponent, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
@@ -10,7 +11,6 @@ import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-pro
 import type { PotatnoCodeUiManagerIntegrityError } from '../../manager/manager_component/potatno-ui-manager-integrity.ts';
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, type PotatnoCodeUiManagerUnsubscribe } from '../../manager/potatno-ui-manager.ts';
 import { PotatnoPreviewModule } from '../../module/potatno-preview.module.ts';
-import { PotatnoResizeBoxComponent } from '../potatno-resize-box/potatno-resize-box-component.ts';
 import styles from './potatno-preview-component.css' with { type: 'text' };
 import template from './potatno-preview-component.html' with { type: 'text' };
 
@@ -22,7 +22,7 @@ import template from './potatno-preview-component.html' with { type: 'text' };
     template: template,
     style: styles,
     modules: [PotatnoPreviewModule],
-    components: [PotatnoResizeBoxComponent]
+    components: [ResizeBoxComponent]
 })
 export class PotatnoPreviewComponent implements IComponentOnDeconstruct {
     private readonly mComponent: Component;

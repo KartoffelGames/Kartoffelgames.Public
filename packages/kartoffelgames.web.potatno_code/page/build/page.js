@@ -217,6 +217,16 @@ potatno-code-editor {\r
 \r
     &.active {\r
         display: block;\r
+\r
+        transition: opacity 0.15s ease-in-out, translate 0.15s ease-in-out, left 0.15s ease-in-out, top 0.15s ease-in-out;\r
+        opacity: 1;\r
+        translate: 0px 0px;\r
+\r
+        /* Animate from hidden and slightly below */\r
+        @starting-style {\r
+            opacity: 0;\r
+            translate: 0px 20px;\r
+        }\r
     }\r
 \r
     .popup__header {\r
@@ -448,7 +458,7 @@ $if(this.left) {\r
     opacity: 1;\r
     translate: 0px 0px;\r
 \r
-    /* Animate from hidden and slightly  */\r
+    /* Animate from hidden and slightly above */\r
     @starting-style {\r
         opacity: 0;\r
         translate: 0px -20px;\r

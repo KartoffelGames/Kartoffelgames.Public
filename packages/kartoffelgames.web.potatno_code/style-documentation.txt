@@ -16,4 +16,4 @@ Scale to 0.98 or translate 1px, based on looks on clicks.
 -- Popups
  - Animation time is 0.15s
  - Transition from opacity 0 to 1.
- - Transition from Translate(0 -10) to Translate(0 0)
+ - Transition from Translate(0 -20|20) to Translate(0 0)

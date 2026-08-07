@@ -6,7 +6,7 @@
     opacity: 1;
     translate: 0px 0px;
 
-    /* Animate from hidden and slightly  */
+    /* Animate from hidden and slightly above */
     @starting-style {
         opacity: 0;
         translate: 0px -20px;

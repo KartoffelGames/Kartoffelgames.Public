@@ -1,6 +1,6 @@
 -- General
 border-radius of 2px.
-Hover and action transitions are times at 0.15s.
+Hover and action transitions times are 0.15s.
 
 -- List.
 Padding of 9px to left edge.
@@ -12,3 +12,8 @@ Between each Item are 10px gaps.
 Scale to 0.98 or translate 1px, based on looks on clicks.
  - Buttons usually Scale
  - Action such as dropdowns usually translate.
+
+-- Popups
+ - Animation time is 0.15s
+ - Transition from opacity 0 to 1.
+ - Transition from Translate(0 -10) to Translate(0 0)

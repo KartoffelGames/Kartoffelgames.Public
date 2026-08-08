@@ -1,4 +1,6 @@
+import { Exception } from '@kartoffelgames/core';
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
+import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import { PotatnoCodeUiManagerChangeType, type PotatnoUiManager } from '../potatno-ui-manager.ts';
@@ -16,6 +18,7 @@ export class PotatnoUiManagerGrid {
     private mGridElement: Element | null;
     private readonly mGridPositions: WeakMap<PotatnoDocumentFunction<PotatnoProjectTypesDefinition>, PotatnoUiManagerGridTransformation>;
     private readonly mManager: PotatnoUiManager;
+    private readonly mSelectedNodes: Set<PotatnoDocumentNode<PotatnoProjectTypesDefinition>>;
     private mTransformation: PotatnoUiManagerGridTransformation;
 
     /**
@@ -55,6 +58,13 @@ export class PotatnoUiManagerGrid {
     }
 
     /**
+     * Current selected nodes.
+     */
+    public get selectedNodes(): ReadonlySet<PotatnoDocumentNode<PotatnoProjectTypesDefinition>> {
+        return this.mSelectedNodes;
+    }
+
+    /**
      * Current zoom level.
      */
     public get zoom(): number {
@@ -72,6 +82,7 @@ export class PotatnoUiManagerGrid {
         this.mGridElement = null;
         this.mDraggedPortInformation = new PotatnoUiManagerGridDraggedPort(this.mManager, []);
         this.mGridPositions = new WeakMap<PotatnoDocumentFunction<PotatnoProjectTypesDefinition>, PotatnoUiManagerGridTransformation>();
+        this.mSelectedNodes = new Set<PotatnoDocumentNode<PotatnoProjectTypesDefinition>>();
 
         // Set default position. Wont be used anyway just like anything i made.
         this.mTransformation = {
@@ -92,6 +103,16 @@ export class PotatnoUiManagerGrid {
 
             // Load the current grid positions.
             this.mTransformation = this.mGridPositions.get(this.mManager.activeFunction)!;
+
+            // Find any selected node that is not on active function.
+            const lInvalidSelections = Array.from(this.mSelectedNodes).filter((pSelectedNode) => {
+                return pSelectedNode.function !== this.mManager.activeFunction;
+            });
+
+            // Remove any selected node that is not on active function.
+            for (const lInvalidSelectedNode of lInvalidSelections) {
+                this.mSelectedNodes.delete(lInvalidSelectedNode);
+            }
         });
     }
 
@@ -169,6 +190,104 @@ export class PotatnoUiManagerGrid {
      */
     public pixelToGridSpace(pX: number, pY: number): PotatnoUiManagerGridCoordinate {
         return this.gridPixelSpaceToGridSpace(this.pixelToGridPixelSpace(pX, pY), true);
+    }
+
+    /**
+     * Select nodes and optionaly bring them into view center.
+     * 
+     * @param pNodes - Nodes that should be selected.
+     * @param pFocus - Focus selected nodes.
+     */
+    public selectNodes(pNodes: Array<PotatnoDocumentNode<PotatnoProjectTypesDefinition>>, pFocus: boolean = false): void {
+        // Clear current selected...
+        this.mSelectedNodes.clear();
+
+        // Skip actual selecting when there is nothing to select.
+        if (pNodes.length === 0) {
+            this.mManager.dispatch(PotatnoCodeUiManagerChangeType.SpecialSelectNode, null);
+            return;
+        }
+
+        // Save common function of selected nodes.
+        let lNodeFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null = null;
+
+        // Set new nodes.
+        for (const lSelectedNode of pNodes) {
+            // Store first encountered 
+            if (lNodeFunction === null) {
+                lNodeFunction = lSelectedNode.function;
+            }
+
+            if (lNodeFunction !== lSelectedNode.function) {
+                throw new Exception('Selected nodes must be of the same function', this);
+            }
+
+            this.mSelectedNodes.add(lSelectedNode);
+        }
+
+        // Switch ative function if nodes function is not selected.
+        if (this.mManager.activeFunction !== lNodeFunction) {
+            this.mManager.setActiveFunction(lNodeFunction!);
+        }
+
+        // Bring the current nodes into focus/view.
+        if (pFocus) {
+            // Calculate the bounding box of all selected nodes.
+            const lSelectionBoundingBox = { top: Infinity, right: -Infinity, bottom: -Infinity, left: Infinity };
+            for (const lNode of pNodes) {
+                // Top.
+                const lTop: number = lNode.transformation.y;
+                if (lTop < lSelectionBoundingBox.top) {
+                    lSelectionBoundingBox.top = lTop;
+                }
+
+                // Top.
+                const lRight: number = lNode.transformation.x + lNode.transformation.width;
+                if (lRight > lSelectionBoundingBox.right) {
+                    lSelectionBoundingBox.right = lRight;
+                }
+
+                // Bottom.
+                const lBottom: number = lNode.transformation.y + lNode.transformation.height;
+                if (lBottom > lSelectionBoundingBox.bottom) {
+                    lSelectionBoundingBox.bottom = lBottom;
+                }
+
+                // Left.
+                const lLeft: number = lNode.transformation.x;
+                if (lLeft < lSelectionBoundingBox.left) {
+                    lSelectionBoundingBox.left = lLeft;
+                }
+            }
+
+            // Init default positions for a new active function if it has not already.
+            if (!this.mGridPositions.has(lNodeFunction!)) {
+                this.mGridPositions.set(lNodeFunction!, {
+                    panX: 0,
+                    panY: 0,
+                    zoom: 1.0
+                });
+            }
+
+            // Get the transformation of nodes function.
+            const lGridTransformation: PotatnoUiManagerGridTransformation = this.mGridPositions.get(lNodeFunction!)!;
+
+            // Get the current grid dimension.
+            const lGridDimension = this.mGridElement?.getBoundingClientRect();
+            if (!lGridDimension) {
+                return;
+            }
+
+            // Pan selection bounding box into center
+            lGridTransformation.panX = lGridDimension.width / 2;
+            lGridTransformation.panX -= (lSelectionBoundingBox.left + ((lSelectionBoundingBox.right - lSelectionBoundingBox.left) / 2)) * this.gridSize * lGridTransformation.zoom;
+
+            lGridTransformation.panY = lGridDimension.height / 2;
+            lGridTransformation.panY -= (lSelectionBoundingBox.top + ((lSelectionBoundingBox.bottom - lSelectionBoundingBox.top) / 2)) * this.gridSize * lGridTransformation.zoom;
+        }
+
+        // Dispatch event after selecting nodes.
+        this.mManager.dispatch(PotatnoCodeUiManagerChangeType.SpecialSelectNode, null);
     }
 
     /**

@@ -13,6 +13,7 @@ import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, type PotatnoCodeUiMan
 import { PotatnoPreviewModule } from '../../module/potatno-preview.module.ts';
 import styles from './potatno-preview-component.css' with { type: 'text' };
 import template from './potatno-preview-component.html' with { type: 'text' };
+import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 
 /**
  * Preview main panel for the active function preview.
@@ -176,6 +177,15 @@ export class PotatnoPreviewComponent implements IComponentOnDeconstruct {
     public onDeconstruct(): void {
         this.mUnsubscribeErrorResolve();
         this.mUnsubscribeOutputFetch();
+    }
+
+    /**
+     * Open function and select node.
+     * 
+     * @param pNode - Node to select.
+     */
+    public openNode(pNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition>): void {
+        this.mManager.grid.selectNodes([pNode], true);
     }
 
     /**

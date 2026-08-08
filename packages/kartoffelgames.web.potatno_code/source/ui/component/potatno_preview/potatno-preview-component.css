@@ -196,10 +196,28 @@
     }
 
     .error-item__location {
+        color: var(--potatno-color-text);
         font-size: var(--potatno-font-size-small);
         margin-top: 2px;
 
-        /* Darken text color by mixing in the background color */
-        color: color-mix(in srgb, var(--potatno-color-text) 50%, var(--potatno-color-background));
+        .label {
+            opacity: 0.5;
+        }
+
+        .link {
+            color: var(--potatno-color-text);
+            opacity: 0.5;
+            transition: opacity 0.15s ease-in-out;
+            text-decoration: underline;
+            cursor: pointer;
+
+            &:hover {
+                opacity: 0.8;
+            }
+
+            &:active {
+                opacity: 1;
+            }
+        }
     }
 }

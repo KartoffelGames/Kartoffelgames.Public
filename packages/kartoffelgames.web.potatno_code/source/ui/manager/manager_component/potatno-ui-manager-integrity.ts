@@ -111,11 +111,11 @@ export class PotatnoUiManagerIntegrity {
             // Add error messages to display to the user based on the item type.
             switch (true) {
                 case lError.item instanceof PotatnoDocumentPort: {
-                    this.mErrorList.push({ location: `Node "${lError.item.node.label}"`, message: lError.message });
+                    this.mErrorList.push({ location: lError.item.node, message: lError.message });
                     break;
                 }
                 case lError.item instanceof PotatnoDocumentNode: {
-                    this.mErrorList.push({ location: `Node "${lError.item.label}"`, message: lError.message });
+                    this.mErrorList.push({ location: lError.item, message: lError.message });
                     break;
                 }
             }
@@ -153,6 +153,6 @@ export class PotatnoUiManagerIntegrity {
  * A validation error shaped for the preview panel.
  */
 export type PotatnoCodeUiManagerIntegrityError = {
-    location: string;
+    location: PotatnoDocumentNode<PotatnoProjectTypesDefinition>;
     message: string;
 };

@@ -35,7 +35,6 @@ export class PotatnoNodeGraphComponent implements IComponentOnDeconstruct {
     private mIsMouseInsideGrid: boolean;
     private readonly mKeyboardHandler: (pEvent: KeyboardEvent) => void;
     private readonly mManager: PotatnoUiManager;
-    private readonly mSelectedNodes: Set<PotatnoDocumentNode<PotatnoProjectTypesDefinition>>;
     private readonly mUnsubscribeFunctionChange: PotatnoCodeUiManagerUnsubscribe;
     private readonly mUnsubscribeGraphChange: PotatnoCodeUiManagerUnsubscribe;
 
@@ -81,8 +80,8 @@ export class PotatnoNodeGraphComponent implements IComponentOnDeconstruct {
     /**
      * Current selected nodes.
      */
-    public get selectedNode(): ReadonlySet<PotatnoDocumentNode<PotatnoProjectTypesDefinition>> {
-        return this.mSelectedNodes;
+    public get selectedNodes(): ReadonlySet<PotatnoDocumentNode<PotatnoProjectTypesDefinition>> {
+        return this.mManager.grid.selectedNodes;
     }
 
     /**
@@ -94,7 +93,6 @@ export class PotatnoNodeGraphComponent implements IComponentOnDeconstruct {
     public constructor(pComponent: Component = Injection.use(Component), pManager: PotatnoUiManager = Injection.use(PotatnoUiManager)) {
         this.mComponent = pComponent;
         this.mManager = pManager;
-        this.mSelectedNodes = new Set<PotatnoDocumentNode<PotatnoProjectTypesDefinition>>();
 
         this.mIsMouseInsideGrid = false;
         this.popupPosition = null;
@@ -144,11 +142,10 @@ export class PotatnoNodeGraphComponent implements IComponentOnDeconstruct {
         this.mUnsubscribeFunctionChange = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Document | PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.SpecialActiveFunction, () => {
             this.popupPosition = null;
             this.selectBox = null;
-            this.selectNodes([], false);
         });
 
         // On adding or deletion of nodes, only update the view, nothing more.
-        this.mUnsubscribeGraphChange = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.NodeAdd | PotatnoCodeUiManagerChangeType.NodeDelete | PotatnoCodeUiManagerChangeType.SpecialGrid, () => {
+        this.mUnsubscribeGraphChange = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.NodeAdd | PotatnoCodeUiManagerChangeType.NodeDelete | PotatnoCodeUiManagerChangeType.SpecialGrid | PotatnoCodeUiManagerChangeType.SpecialSelectNode, () => {
             this.mComponent.updater.updateAsync();
         });
     }
@@ -185,7 +182,7 @@ export class PotatnoNodeGraphComponent implements IComponentOnDeconstruct {
      */
     public moveAllSelected(pSourceNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition>, pMovement: PotatnoNodeComponentMove): void {
         // Iterate and move all selected nodes.
-        for (const lSelectedNode of this.mSelectedNodes) {
+        for (const lSelectedNode of this.mManager.grid.selectedNodes) {
             // Skip moving the source node.
             if (lSelectedNode === pSourceNode) {
                 continue;
@@ -226,18 +223,21 @@ export class PotatnoNodeGraphComponent implements IComponentOnDeconstruct {
 
         const lEncounteredNodes: Set<PotatnoDocumentNode<PotatnoProjectTypesDefinition>> = new Set<PotatnoDocumentNode<PotatnoProjectTypesDefinition>>();
 
+        // Copy current selected nodes.
+        const lCurrentSelectedNodes: Set<PotatnoDocumentNode<PotatnoProjectTypesDefinition>> = new Set(this.mManager.grid.selectedNodes);
+
         // Clear previous selections when its not a addative selection.
         if (!lAddativeSelection) {
             // Special single node selection. Happens when nodes are selected and should now be moved.
             // Only triggers when the single selected node is already selected.
-            if (pNodes.length === 1 && this.mSelectedNodes.has(pNodes.at(0)!)) {
+            if (pNodes.length === 1 && lCurrentSelectedNodes.has(pNodes.at(0)!)) {
                 // If a single node is selected without an addative selection, prefill encountered nodes with the current selection.
-                for (const lSelectedNode of this.mSelectedNodes) {
+                for (const lSelectedNode of lCurrentSelectedNodes) {
                     lEncounteredNodes.add(lSelectedNode);
                 }
             } else {
                 // If not handles as a special selection node, just clear the previous selection.
-                this.mSelectedNodes.clear();
+                lCurrentSelectedNodes.clear();
             }
         }
 
@@ -264,14 +264,15 @@ export class PotatnoNodeGraphComponent implements IComponentOnDeconstruct {
             }
 
             // Eighter select a node or deselect when it is already selected.
-            if (this.mSelectedNodes.has(lNode)) {
-                this.mSelectedNodes.delete(lNode);
+            if (lCurrentSelectedNodes.has(lNode)) {
+                lCurrentSelectedNodes.delete(lNode);
             } else {
-                this.mSelectedNodes.add(lNode);
+                lCurrentSelectedNodes.add(lNode);
             }
         }
 
-        this.mComponent.updater.updateAsync();
+        // Select collected nodes.
+        this.mManager.grid.selectNodes([...lCurrentSelectedNodes]);
     }
 
     /**
@@ -429,7 +430,7 @@ export class PotatnoNodeGraphComponent implements IComponentOnDeconstruct {
 
             // Delete all selected nodes.
             case 'Delete': {
-                for (const lNode of this.mSelectedNodes) {
+                for (const lNode of this.mManager.grid.selectedNodes) {
                     this.mManager.graph.removeNode(lNode);
                 }
 
@@ -460,7 +461,7 @@ export class PotatnoNodeGraphComponent implements IComponentOnDeconstruct {
 
             // Copy selected nodes.
             case 'c': {
-                this.mManager.clipboard.copy(this.mSelectedNodes);
+                this.mManager.clipboard.copy(this.mManager.grid.selectedNodes);
                 return;
             }
 

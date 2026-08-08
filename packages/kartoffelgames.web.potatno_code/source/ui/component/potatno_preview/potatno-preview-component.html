@@ -46,7 +46,10 @@
                     <div class="error-item__icon">!</div>
                     <div class="error-item__content">
                         <div class="error-item__message">{{this.error.message}}</div>
-                        <div class="error-item__location">{{this.error.location}}</div>
+                        <div class="error-item__location">
+                            <span class="label">Node: </span> 
+                            <span class="link" (click)="this.openNode(this.error.location)">{{this.error.location.label}}</span>
+                        </div>
                     </div>
                 </div>
             }

@@ -2,31 +2,17 @@
     position: absolute;
     z-index: 200;
 
-    transition: opacity 0.15s ease-in-out, translate 0.15s ease-in-out, left 0.05s ease-in-out, top 0.05s ease-in-out;
-    opacity: 1;
-    translate: 0px 0px;
-
-    /* Animate from hidden and slightly above */
-    @starting-style {
-        opacity: 0;
-        translate: 0px -20px;
-    }
+    transition: left 0.05s ease-in-out, top 0.05s ease-in-out;
 }
 
 .selection-popup {
-    display: flex;
-    flex-direction: column;
+    --popup-border-color: var(--potatno-color-border);
+    --popup-shadow-color: var(--potatno-color-shadow);
+    --popup-background-color: var(--potatno-color-background);
 
     /* Fixed values also defined as constants in the component itself!!! */
     max-height: 320px;
     width: 280px;
-
-    border: 1px solid var(--potatno-color-border);
-    border-radius: 2px;
-
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
-    background-color: var(--potatno-color-background);
-    overflow: hidden;
 
     /* Font should cascade into child ... except inputs :( */
     font-family: var(--potatno-font-family);

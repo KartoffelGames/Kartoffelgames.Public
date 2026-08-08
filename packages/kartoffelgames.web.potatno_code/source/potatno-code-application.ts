@@ -13,8 +13,6 @@ import { PotatnoUiManager } from './ui/manager/potatno-ui-manager.ts';
 
 // TODO: Button as a dedicated component. Allow for [selectable] and a (select) as well as [selected]. Size adjustable.
 
-// TODO: Jump to nodes. 
-
 // TODO: Add real generics to types. With nested generic constrains.
 //       { type: "number", generics?: null }
 //       { type: "vector", generics?: [{ type: "number", generic?: null }] } // Nested?

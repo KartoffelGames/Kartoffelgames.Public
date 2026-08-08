@@ -1,5 +1,5 @@
 <!-- Resizeable part of node -->
-<resize-box #ResizeBox class="node {{this.editMode ? 'edit' : ''}}" [top]="true" [right]="true" [bottom]="true" [left]="true" [snap]="this.gridSize" [virtual]="true" (resize)="this.transformNodeData($event.value)">
+<kg-resize-box #ResizeBox class="node {{this.editMode ? 'edit' : ''}}" [top]="true" [right]="true" [bottom]="true" [left]="true" [snap]="this.gridSize" [virtual]="true" (resize)="this.transformNodeData($event.value)">
     <div class="node-header" (pointerdown)="this.dragNodeOrEnableEdit($event)" (dblclick)="this.editMode = true;">
         <span class="node-header__icon">✎</span>
 
@@ -13,7 +13,7 @@
     </div>
 
     <div class="node-body"/>
-</resize-box>
+</kg-resize-box>
 
 <div style="--zoom-factor: {{this.gridZoom}}; --comment-node-height: {{this.nodeData?.transformation.height}}; --comment-node-width: {{this.nodeData?.transformation.width}};" class="satellite-view {{this.enableBigview ? 'enabled' : ''}}">
     <!-- Div needed to decouple inner text from size restriction of satellite-view flex -->

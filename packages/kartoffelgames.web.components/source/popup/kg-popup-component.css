@@ -1,0 +1,64 @@
+:host {
+    display: block;
+    transition: left 0.05s ease-in-out, top 0.05s ease-in-out;
+
+    --popup-border-color: red;
+    --popup-shadow-color: red;
+    --popup-background-color: red;
+}
+
+.popup {
+    display: flex;
+    flex-direction: column;
+
+    border: 1px solid var(--popup-border-color);
+    border-radius: 2px;
+
+    box-shadow: 0 10px 30px var(--popup-shadow-color);
+    background-color: var(--potatno-color-background);
+    overflow: hidden;
+
+    /* Animation properties */
+    transition: opacity 0.15s ease-in-out, translate 0.15s ease-in-out;
+    opacity: 1;
+    translate: 0px 0px;
+
+    /* Animate from hidden and slightly above */
+    @starting-style {
+        opacity: 0;
+    }
+
+
+}
+
+:host([animate=top]) {
+    .popup {
+        @starting-style {
+            translate: 0px -20px;
+        }
+    }
+}
+
+:host([animate=right]) {
+    .popup {
+        @starting-style {
+            translate: -20px 0px;
+        }
+    }
+}
+
+:host([animate=bottom]) {
+    .popup {
+        @starting-style {
+            translate: 0px 20px;
+        }
+    }
+}
+
+:host([animate=right]) {
+    .popup {
+        @starting-style {
+            translate: 20px 0px;
+        }
+    }
+}

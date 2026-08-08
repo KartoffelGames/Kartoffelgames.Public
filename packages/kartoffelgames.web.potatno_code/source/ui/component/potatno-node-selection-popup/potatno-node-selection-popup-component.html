@@ -1,8 +1,9 @@
-<div class="selection-popup" (pointerdown)="this.stopPropagation($event, false)" (wheel)="this.stopPropagation($event, false)" (contextmenu)="this.stopPropagation($event, true);">
+<kg-popup class="selection-popup" animate="top" (pointerdown)="this.stopPropagation($event, false)" (wheel)="this.stopPropagation($event, false)" (contextmenu)="this.stopPropagation($event, true);">
+
     <input #searchInput type="text" placeholder="Search nodes..." class="selection-popup__search" [(value)]="this.searchValue" (keydown)="this.onKeyDown($event)" />
     <div class="selection-popup__results">
         $for(entry of this.results) {
-            <div class="selection-popup__result {{this.entry.definition.id === this.selectedDefinitionId ? 'selected' : ''}}" (click)="this.sendSelectedEntry(this.entry.definition.id)" style="--item-color: {{this.entry.color}}">
+            <div class="selection-popup__result {{this.entry.definition.id === this.selectedDefinitionId ? 'selected' : ''}}" (click)="this.sendSelectedEntry(this.entry.definition.id)" style="--item-color: {{this.entry.color}}" tabindex="-1">
                 <span class="selection-popup__result-icon">{{this.entry.icon}}</span>
                 <span class="selection-popup__result-label">{{this.entry.label}}</span>
                 <span class="selection-popup__result-category">{{this.entry.category}}</span>
@@ -12,4 +13,5 @@
             <div class="selection-popup__empty">No matching nodes found.</div>
         }
     </div>
-</div>
+
+</kg-popup>

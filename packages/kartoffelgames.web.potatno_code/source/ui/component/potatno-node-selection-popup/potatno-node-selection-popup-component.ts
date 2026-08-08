@@ -5,6 +5,7 @@ import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-pro
 import { PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
 import addNodePopupCss from './potatno-node-selection-popup-component.css' with { type: 'text' };
 import addNodePopupTemplate from './potatno-node-selection-popup-component.html' with { type: 'text' };
+import { KgPopupComponent } from "@kartoffelgames/web-components";
 
 /**
  * Searchable popup listing every node definition available to the active function.
@@ -13,7 +14,8 @@ import addNodePopupTemplate from './potatno-node-selection-popup-component.html'
 @PwbComponent({
     selector: 'potatno-node-selection-popup',
     template: addNodePopupTemplate,
-    style: addNodePopupCss
+    style: addNodePopupCss,
+    components: [KgPopupComponent]
 })
 export class PotatnoNodeSelectionPopupComponent implements IComponentOnConnect, IComponentOnUpdate {
     public static readonly POPUP_HEIGHT: number = 320;

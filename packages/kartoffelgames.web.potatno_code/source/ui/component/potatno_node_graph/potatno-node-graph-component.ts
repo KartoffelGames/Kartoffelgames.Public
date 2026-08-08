@@ -212,8 +212,6 @@ export class PotatnoNodeGraphComponent implements IComponentOnDeconstruct {
      * @param pNode - Node that received the pointer down.
      */
     public selectNodes(pNodes: Array<PotatnoDocumentNode<PotatnoProjectTypesDefinition>>, pAddativeSelection: boolean | PointerEvent): void {
-        this.popupPosition = null;
-
         // Convert boolean|event into boolean.
         let lAddativeSelection: boolean = !!pAddativeSelection;
         if (pAddativeSelection instanceof PointerEvent) {
@@ -479,8 +477,6 @@ export class PotatnoNodeGraphComponent implements IComponentOnDeconstruct {
      * @param pEvent - Pointer event from the graph wrapper.
      */
     private onPointerDown(pEvent: PointerEvent): void {
-        this.popupPosition = null;
-
         switch (pEvent.button) {
             // Left click.
             case 0: {

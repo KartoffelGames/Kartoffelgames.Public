@@ -1,4 +1,4 @@
-<resize-box class="resize-box" right="true" width="250">
+<kg-resize-box class="resize-box" right="true" width="250">
     <div class="function-list">
         $for(functionItem of this.documentFunctions) {
             <div class="function-item {{ this.functionItem.id === this.activeFunctionId ? 'active' : '' }}" (click)="this.selectFunction(this.functionItem)">
@@ -14,15 +14,18 @@
 
     $if(this.userFunctionDefinitions.length > 0) {
         <div class="list-actions" tabindex="-1" (focusout)="this.showPopup = false">
-            <div class="popup {{ this.showPopup ? 'active' : ''}}">
-                <div class="popup__header">Select Function Type</div>
-                $for(functionDefinition of this.userFunctionDefinitions) {
-                    <div class="popup__item" (click)="this.createFunction(this.functionDefinition)">
-                        <div class="icon">ƒ</div>
-                        <div>{{this.functionDefinition.label}}</div>
-                    </div>
-                }
-            </div>
+
+            $if(this.showPopup) {
+                <kg-popup class="popup" animate="bottom">
+                    <div class="popup__header">Select Function Type</div>
+                    $for(functionDefinition of this.userFunctionDefinitions) {
+                        <div class="popup__item" (click)="this.createFunction(this.functionDefinition)">
+                            <div class="icon">ƒ</div>
+                            <div>{{this.functionDefinition.label}}</div>
+                        </div>
+                    }
+                </kg-popup>
+            }
 
             <div class="add-action" (click)="this.showPopup = !this.showPopup">
                 <div>+</div>
@@ -30,4 +33,4 @@
             </div>
         </div>
     }
-</resize-box>
+</kg-resize-box>

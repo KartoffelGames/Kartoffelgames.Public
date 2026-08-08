@@ -1,18 +1,18 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { Component, type ComponentEventEmitter, ComponentState, PwbComponent, PwbComponentEvent, PwbExport } from '@kartoffelgames/web-potato-web-builder';
-import styles from './resize-box-component.css' with { type: 'text' };
-import template from './resize-box-component.html' with { type: 'text' };
+import styles from './kg-resize-box-component.css' with { type: 'text' };
+import template from './kg-resize-box-component.html' with { type: 'text' };
 
 /**
  * User resizeable panel.
  * 
- * Configurable with:
+ * Configurable attributes:
  *  - "top", "right", "bottom" and "left" attributes by setting them "true"
  *  - "width" and "height" to manually set the size.
  *  - "virtual" to only trigger events but not actually resize.
  *  - "snap" as pixel number to snap the size to a virtual grid.
  * 
- * Event:
+ * Events:
  *  - "resize"
  *  - "resize-end"
  * 
@@ -21,36 +21,36 @@ import template from './resize-box-component.html' with { type: 'text' };
  *  - "--resize-box-handle-size"
  */
 @PwbComponent({
-    selector: 'resize-box',
+    selector: 'kg-resize-box',
     template: template,
     style: styles
 })
-export class ResizeBoxComponent {
+export class KgResizeBoxComponent {
     private readonly mComponentElement: HTMLElement;
 
     /**
      * Enabled directions. Used only in template references.
      */
     @ComponentState.state({ proxy: true })
-    private accessor mConfiguration: ResizeBoxComponentConfiguration;
+    private accessor mConfiguration: KgResizeBoxComponentConfiguration;
 
     /**
      * Emitted when the user resizes with a handle.
      */
     @PwbComponentEvent('resize')
-    private accessor mResize!: ComponentEventEmitter<ResizeBoxComponentResize>;
+    private accessor mResize!: ComponentEventEmitter<KgResizeBoxComponentResize>;
 
     /**
      * Emitted when the user ends a resize.
      */
     @PwbComponentEvent('resize-end')
-    private accessor mResizeEnd!: ComponentEventEmitter<ResizeBoxComponentResize>;
+    private accessor mResizeEnd!: ComponentEventEmitter<KgResizeBoxComponentResize>;
 
     /**
      * Transformation element.
      */
     @ComponentState.state({ proxy: true })
-    public accessor transformation: ResizeBoxComponentTransformation;
+    public accessor transformation: KgResizeBoxComponentTransformation;
 
     /**
      * If bottom resize handle is enabled.
@@ -137,7 +137,6 @@ export class ResizeBoxComponent {
      * Create the preview panel.
      *
      * @param pComponent - Injected component reference, used to trigger self-updates.
-     * @param pManager - Injected shared UI manager singleton.
      */
     public constructor(pComponent: Component = Injection.use(Component)) {
         this.mComponentElement = pComponent.element;
@@ -224,13 +223,13 @@ export class ResizeBoxComponent {
     private createResizeEvent(pUsedHandle: number, pWidth: number, pHeight: number, pStartingWidth: number, pStartingHeight: number) {
         let lResizedHandle: number = pUsedHandle;
         if (pWidth === pStartingWidth) {
-            lResizedHandle &= ~(ResizeBoxComponentResizeDirection.right | ResizeBoxComponentResizeDirection.left);
+            lResizedHandle &= ~(KgResizeBoxComponentResizeDirection.right | KgResizeBoxComponentResizeDirection.left);
         }
         if (pHeight === pStartingHeight) {
-            lResizedHandle &= ~(ResizeBoxComponentResizeDirection.top | ResizeBoxComponentResizeDirection.bottom);
+            lResizedHandle &= ~(KgResizeBoxComponentResizeDirection.top | KgResizeBoxComponentResizeDirection.bottom);
         }
 
-        return new ResizeBoxComponentResize(pWidth, pHeight, lResizedHandle);
+        return new KgResizeBoxComponentResize(pWidth, pHeight, lResizedHandle);
     }
 
     /**
@@ -240,7 +239,7 @@ export class ResizeBoxComponent {
      * @param pEvent - The starting pointer down event.
      * @param pAllowedMovement - Allowed movement.
      */
-    private handleResize(pEvent: PointerEvent, pAllowedMovement: ResizeBoxComponentMovement): void {
+    private handleResize(pEvent: PointerEvent, pAllowedMovement: KgResizeBoxComponentMovement): void {
         pEvent.preventDefault();
         pEvent.stopPropagation();
 
@@ -271,8 +270,8 @@ export class ResizeBoxComponent {
 
         // Determinate handles used.
         let lUsedHandles: number = 0;
-        lUsedHandles += (lVerticalInvertion === 1) ? ResizeBoxComponentResizeDirection.right : ResizeBoxComponentResizeDirection.left;
-        lUsedHandles += (lHorizontalInvertion === 1) ? ResizeBoxComponentResizeDirection.bottom : ResizeBoxComponentResizeDirection.top;
+        lUsedHandles += (lVerticalInvertion === 1) ? KgResizeBoxComponentResizeDirection.right : KgResizeBoxComponentResizeDirection.left;
+        lUsedHandles += (lHorizontalInvertion === 1) ? KgResizeBoxComponentResizeDirection.bottom : KgResizeBoxComponentResizeDirection.top;
 
         // Save the current size while resizing to check if the size has actually changed.
         let lCurrentWidth: number = lStartingWidth;
@@ -400,7 +399,7 @@ export class ResizeBoxComponent {
     }
 }
 
-export class ResizeBoxComponentResize {
+export class KgResizeBoxComponentResize {
     private readonly mHeight: number;
     private readonly mResizeHandle: number;
     private readonly mWidth: number;
@@ -440,17 +439,17 @@ export class ResizeBoxComponentResize {
     }
 }
 
-export const ResizeBoxComponentResizeDirection = {
+export const KgResizeBoxComponentResizeDirection = {
     top: 1,
     right: 2,
     bottom: 4,
     left: 8,
 } as const;
-export type ResizeBoxComponentResizeDirection = typeof ResizeBoxComponentResizeDirection[keyof typeof ResizeBoxComponentResizeDirection];
+export type KgResizeBoxComponentResizeDirection = typeof KgResizeBoxComponentResizeDirection[keyof typeof KgResizeBoxComponentResizeDirection];
 
-type ResizeBoxComponentMovement = 'horizontal' | 'vertical' | 'both';
+type KgResizeBoxComponentMovement = 'horizontal' | 'vertical' | 'both';
 
-type ResizeBoxComponentConfiguration = {
+type KgResizeBoxComponentConfiguration = {
     snap: number;
     isVirtual: boolean;
     enabledDirections: {
@@ -461,7 +460,7 @@ type ResizeBoxComponentConfiguration = {
     };
 };
 
-type ResizeBoxComponentTransformation = {
+type KgResizeBoxComponentTransformation = {
     height: number;
     width: number;
 };

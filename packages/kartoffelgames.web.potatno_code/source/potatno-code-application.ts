@@ -11,13 +11,16 @@ import themeCss from './ui/component/potatno-theme.css' with { type: 'text' };
 import { PotatnoCodeEditorComponent } from './ui/component/potatno_code_editor/potatno-code-editor-component.ts';
 import { PotatnoUiManager } from './ui/manager/potatno-ui-manager.ts';
 
+// TODO: Button as a dedicated component. Allow for [selectable] and a (select) as well as [selected]. Size adjustable.
+
+// TODO: Jump to nodes. 
+
 // TODO: Add real generics to types. With nested generic constrains.
 //       { type: "number", generics?: null }
 //       { type: "vector", generics?: [{ type: "number", generic?: null }] } // Nested?
 
 // TODO: Add those generics to nodes too.
 //       A node output should be able to react to a input type to a generic. 
-
 
 // TODO: Simular to functions. Allow dynamic node properties that the user can set.
 //       Maybe add another moveable popup that allows for edits. 

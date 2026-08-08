@@ -1,3 +1,4 @@
+import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import { PotatnoCodeUiManagerChangeType, type PotatnoUiManager } from '../potatno-ui-manager.ts';
@@ -13,10 +14,9 @@ export class PotatnoUiManagerGrid {
 
     private mDraggedPortInformation: PotatnoUiManagerGridDraggedPort;
     private mGridElement: Element | null;
+    private readonly mGridPositions: WeakMap<PotatnoDocumentFunction<PotatnoProjectTypesDefinition>, PotatnoUiManagerGridTransformation>;
     private readonly mManager: PotatnoUiManager;
-    private mPanX: number;
-    private mPanY: number;
-    private mZoom: number;
+    private mTransformation: PotatnoUiManagerGridTransformation;
 
     /**
      * Currently dragged port.
@@ -44,21 +44,21 @@ export class PotatnoUiManagerGrid {
      * Horizontal pan offset in pixels.
      */
     public get panX(): number {
-        return this.mPanX;
+        return this.mTransformation.panX;
     }
 
     /**
      * Vertical pan offset in pixels.
      */
     public get panY(): number {
-        return this.mPanY;
+        return this.mTransformation.panY;
     }
 
     /**
      * Current zoom level.
      */
     public get zoom(): number {
-        return this.mZoom;
+        return this.mTransformation.zoom;
     }
 
     /**
@@ -69,11 +69,30 @@ export class PotatnoUiManagerGrid {
     public constructor(pManager: PotatnoUiManager) {
         this.mManager = pManager;
 
-        this.mPanX = 0;
-        this.mPanY = 0;
-        this.mZoom = 1.0;
         this.mGridElement = null;
         this.mDraggedPortInformation = new PotatnoUiManagerGridDraggedPort(this.mManager, []);
+        this.mGridPositions = new WeakMap<PotatnoDocumentFunction<PotatnoProjectTypesDefinition>, PotatnoUiManagerGridTransformation>();
+
+        // Set default position. Wont be used anyway just like anything i made.
+        this.mTransformation = {
+            panX: 0,
+            panY: 0,
+            zoom: 1.0
+        };
+
+        this.mManager.subscribe(PotatnoCodeUiManagerChangeType.SpecialActiveFunction, () => {
+            // Init default positions for a new active function if it has not already.
+            if (!this.mGridPositions.has(this.mManager.activeFunction)) {
+                this.mGridPositions.set(this.mManager.activeFunction, {
+                    panX: 0,
+                    panY: 0,
+                    zoom: 1.0
+                });
+            }
+
+            // Load the current grid positions.
+            this.mTransformation = this.mGridPositions.get(this.mManager.activeFunction)!;
+        });
     }
 
     /**
@@ -107,8 +126,8 @@ export class PotatnoUiManagerGrid {
      * @param pDeltaY - Vertical delta in screen pixels.
      */
     public pan(pDeltaX: number, pDeltaY: number): void {
-        this.mPanX += pDeltaX;
-        this.mPanY += pDeltaY;
+        this.mTransformation.panX += pDeltaX;
+        this.mTransformation.panY += pDeltaY;
 
         // Dispatch grid change.
         this.mManager.dispatch(PotatnoCodeUiManagerChangeType.SpecialGrid, null);
@@ -135,8 +154,8 @@ export class PotatnoUiManagerGrid {
 
         // Move by panning then zooming.
         return {
-            x: (lPointX - this.mPanX) / this.mZoom,
-            y: (lPointY - this.mPanY) / this.mZoom
+            x: (lPointX - this.mTransformation.panX) / this.mTransformation.zoom,
+            y: (lPointY - this.mTransformation.panY) / this.mTransformation.zoom
         };
     }
 
@@ -171,25 +190,25 @@ export class PotatnoUiManagerGrid {
      * @param pDelta - Zoom delta. Negative values zoom in, positive zoom out.
      */
     public zoomAt(pScreenX: number, pScreenY: number, pDelta: number): void {
-        const lOldZoom: number = this.mZoom;
+        const lOldZoom: number = this.mTransformation.zoom;
 
         // Compute the zoom factor from the scroll delta.
         const lZoomFactor: number = 1 + pDelta;
-        let lNewZoom: number = this.mZoom * lZoomFactor;
+        let lNewZoom: number = this.mTransformation.zoom * lZoomFactor;
 
         // Clamp to allowed range.
         lNewZoom = Math.max(PotatnoUiManagerGrid.MIN_ZOOM, Math.min(PotatnoUiManagerGrid.MAX_ZOOM, lNewZoom));
 
         // Compute the world point under the mouse before zoom.
-        const lWorldX: number = (pScreenX - this.mPanX) / lOldZoom;
-        const lWorldY: number = (pScreenY - this.mPanY) / lOldZoom;
+        const lWorldX: number = (pScreenX - this.mTransformation.panX) / lOldZoom;
+        const lWorldY: number = (pScreenY - this.mTransformation.panY) / lOldZoom;
 
         // Update zoom.
-        this.mZoom = lNewZoom;
+        this.mTransformation.zoom = lNewZoom;
 
         // Adjust pan so that the world point remains under the same screen position.
-        this.mPanX = pScreenX - lWorldX * this.mZoom;
-        this.mPanY = pScreenY - lWorldY * this.mZoom;
+        this.mTransformation.panX = pScreenX - lWorldX * this.mTransformation.zoom;
+        this.mTransformation.panY = pScreenY - lWorldY * this.mTransformation.zoom;
 
         // Dispatch grid change.
         this.mManager.dispatch(PotatnoCodeUiManagerChangeType.SpecialGrid, null);
@@ -204,7 +223,7 @@ export class PotatnoUiManagerGridDraggedPort {
     private readonly mPointerGridPosition: PotatnoUiManagerGridCoordinate;
     private readonly mPortPositions: Map<PotatnoDocumentPort<PotatnoProjectTypesDefinition>, PotatnoUiManagerGridCoordinate>;
     private readonly mPorts: Set<PotatnoDocumentPort<PotatnoProjectTypesDefinition>>;
-    
+
     /**
      * Get if any port is currently dragged.
      */
@@ -295,6 +314,12 @@ export class PotatnoUiManagerGridDraggedPort {
         return true;
     }
 }
+
+type PotatnoUiManagerGridTransformation = {
+    panX: number;
+    panY: number;
+    zoom: number;
+};
 
 export type PotatnoUiManagerGridCoordinate = {
     x: number;

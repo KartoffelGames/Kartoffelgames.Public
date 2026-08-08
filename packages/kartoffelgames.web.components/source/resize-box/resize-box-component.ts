@@ -189,6 +189,27 @@ export class ResizeBoxComponent {
     }
 
     /**
+     * Apply the parent component size.
+     * When set to virtual, only the events are fired.
+     * 
+     * @param pWidth - Width in pixel.
+     * @param pHeight - Height in pixel.
+     */
+    private applyComponentSize(pUsedHandle: number, pWidth: number, pHeight: number) {
+        // Resize with the respected limitations.
+        const lResizedWidth: number = this.updateComponentWidth(pWidth, false);
+        const lResizedHeight: number = this.updateComponentHeight(pHeight, false);
+
+        // Dispatch event after the width has changed.
+        if (lResizedWidth !== this.transformation.width || lResizedHeight !== this.transformation.height) {
+            this.mResize.dispatchEvent(this.createResizeEvent(pUsedHandle, lResizedWidth, lResizedHeight, this.transformation.width, this.transformation.height));
+        }
+
+        // Return back the actual resized values.
+        return [lResizedWidth, lResizedHeight];
+    }
+
+    /**
      * Create the resize event object. 
      * Fills in the correct used handle based on the staring and current size.
      * 
@@ -318,27 +339,6 @@ export class ResizeBoxComponent {
 
         // Whatever the parsed value is now, parse it to boolean.
         return Boolean(lParsedValue);
-    }
-
-    /**
-     * Apply the parent component size.
-     * When set to virtual, only the events are fired.
-     * 
-     * @param pWidth - Width in pixel.
-     * @param pHeight - Height in pixel.
-     */
-    private applyComponentSize(pUsedHandle: number, pWidth: number, pHeight: number) {
-        // Resize with the respected limitations.
-        const lResizedWidth: number = this.updateComponentWidth(pWidth, false);
-        const lResizedHeight: number = this.updateComponentHeight(pHeight, false);
-
-        // Dispatch event after the width has changed.
-        if (lResizedWidth !== this.transformation.width || lResizedHeight !== this.transformation.height) {
-            this.mResize.dispatchEvent(this.createResizeEvent(pUsedHandle, lResizedWidth, lResizedHeight, this.transformation.width, this.transformation.height));
-        }
-
-        // Return back the actual resized values.
-        return [lResizedWidth, lResizedHeight];
     }
 
     /**

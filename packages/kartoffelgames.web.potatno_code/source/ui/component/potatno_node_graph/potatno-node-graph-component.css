@@ -57,7 +57,7 @@
     z-index: 1000;
 }
 
-.controls {
+.information {
     /* Full size overlay without user interaction to contain the control icon */
     position: absolute;
     inset: 0;
@@ -67,7 +67,7 @@
     padding: 20px;
     pointer-events: none;
 
-    & .controls__icon {
+    .information__icon {
         /* Reset pointer events none of parent. */
         pointer-events: auto;
 
@@ -76,5 +76,52 @@
         --information-icon-color: var(--potatno-color-accent);
         --information-border-color: var(--potatno-color-border);
         --information-shadow-color: var(--potatno-color-shadow);
+    }
+}
+
+.controls-information {
+    display: grid;
+    grid-template-columns: 1.1em max-content max-content;
+    align-items: center;
+    column-gap: 10px;
+    row-gap: 5px;
+
+    font-size: 12px;
+    line-height: 1.2;
+    white-space: nowrap;
+    color: var(--potatno-color-text);
+
+    .controls-information__title {
+        grid-column: 1 / -1;
+        margin-bottom: 3px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--potatno-color-border);
+
+        font-weight: bold;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        font-size: 11px;
+        color: var(--potatno-color-text);
+    }
+
+    .controls-information__icon {
+        justify-self: center;
+        font-size: 13px;
+        color: var(--potatno-color-accent);
+    }
+
+    .controls-information__action {
+        font-weight: bold;
+    }
+
+    .controls-information__gesture {
+        justify-self: end;
+        padding: 1px 6px;
+        border: 1px solid var(--potatno-color-border);
+        border-radius: 3px;
+        background-color: var(--potatno-color-background-light);
+        font-size: 11px;
+        color: var(--potatno-color-text);
+        opacity: 0.65;
     }
 }

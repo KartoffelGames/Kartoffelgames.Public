@@ -23,6 +23,12 @@
     }
 </div>
 
+<div class="controls">
+    <kg-information class="controls__icon">
+        Controlls: Yes
+    </kg-information>
+</div>
+
 $if(this.popupPosition !== null) {
     <potatno-node-selection-popup (focusout)="this.popupPosition = null" style="left: {{this.popupPosition.local.x}}px; top: {{this.popupPosition.local.y}}px;" (node-select)="this.createNodeOnPopupPosition($event.value)"/>
 }

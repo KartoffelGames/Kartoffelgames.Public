@@ -20,11 +20,21 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
 .add-action {
     display: flex;
-    
+
     padding: 8px 12px;
-    
+
 
     /* Transition items. */
     border: 1px dashed var(--potatno-color-border);
@@ -42,5 +52,98 @@
     &:active {
         background-color: var(--potatno-color-background);
         scale: 0.98;
+    }
+}
+
+
+.function-item__delete {
+    display: flex;
+    width: 18px;
+    height: 18px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 2px;
+    font-size: 11px;
+    cursor: pointer;
+    color: var(--potatno-color-text);
+
+    /* Cool hover transitions... It literally sucks. */
+    transition: background-color 0.15s;
+
+    &:hover {
+        background-color: color-mix(in srgb, var(--potatno-color-error) 75%, var(--potatno-color-background));
+    }
+
+    &:active {
+        background-color: color-mix(in srgb, var(--potatno-color-error) 50%, var(--potatno-color-background));
+    }
+}
+
+.tab {
+    --tab-selected-color: var(--potatno-color-accent);
+
+    position: relative;
+    margin: 3px;
+    padding: 7px 15px 7px 15px;
+    border-radius: 2px;
+    overflow: hidden;
+    cursor: pointer;
+
+    /* Only animate background color and skip bg-image. */
+    transition: background-color 0.15s ease-in-out;
+    background-color: transparent;
+
+    /* Before used for animating background images */
+    &::before {
+        content: "";
+        position: absolute;
+        background-image: radial-gradient(ellipse at top left, var(--potatno-color-accent) 0%, transparent 100%);
+
+        opacity: 0;
+        transition: opacity 0.15s ease-in-out;
+
+        /* Stretch pseudo element to all sides of host element */
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 1;
+    }
+
+    &:hover {
+        &::before {
+            opacity: 0.5;
+        }
+    }
+
+    &:active {
+        color: var(--potatno-color-text-contrast);
+        scale: 0.98;
+
+        &::before {
+            opacity: 0.8;
+        }
+    }
+
+    &.selected {
+        color: var(--potatno-color-text-contrast);
+
+        &::before {
+            opacity: 1;
+        }
+    }
+
+    &.tab--error {
+        color: var(--potatno-color-text-contrast);
+
+        &::before {
+            background-image: radial-gradient(ellipse at top left, var(--potatno-color-error) 0%, transparent 100%);
+            opacity: 1;
+        }
+    }
+
+    .tab__text {
+        position: relative;
+        z-index: 2;
     }
 }

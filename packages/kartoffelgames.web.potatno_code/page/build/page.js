@@ -248,12 +248,6 @@ potatno-code-editor {\r
     --resize-box-handle-size: 5px;\r
 }\r
 \r
-/*\r
- * Must NOT be nested inside :host { }. CSS nesting rewrites \`&:has(.snap)\` to\r
- * \`:is(:host):has(.snap)\`, and :is(:host) does not match the shadow host\r
- * (:host is "featureless"). Written flat, :host:has(.snap) correctly reacts to\r
- * the shadow-internal .content-container.snap class.\r
- */\r
 :host:has(.snap) {\r
     /* Snappy animation on movement. */\r
     transition: width 0.1s cubic-bezier(0, 1.5, 1, 1), height 0.1s cubic-bezier(0, 1.5, 1, 1);\r

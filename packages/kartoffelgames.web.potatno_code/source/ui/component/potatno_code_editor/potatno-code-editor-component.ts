@@ -14,11 +14,6 @@ import editorTemplate from './potatno-code-editor-component.html' with { type: '
 
 /**
  * Top-level layout shell for the Potatno-code editor.
- *
- * All editor state and behaviour live in the shared {@link PotatnoUiManager}; this component
- * only owns the panel layout, the resize handles, and the bridge from {@link PwbApplication}'s
- * imperative API (project/document/preview tick) into the manager. It re-renders itself when the
- * preview availability changes so the preview panel can appear or disappear.
  */
 @PwbComponent({
     selector: 'potatno-code-editor',

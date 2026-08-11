@@ -98,7 +98,8 @@
 
     .function-item__delete {
         --button-text-color: var(--potatno-color-text);
-        --button-background-color: var(--potatno-color-error);
+        --button-accent-color: var(--potatno-color-error);
+        --button-accent-text-color: var(--potatno-color-text-contrast);
 
         width: 18px;
         height: 18px;

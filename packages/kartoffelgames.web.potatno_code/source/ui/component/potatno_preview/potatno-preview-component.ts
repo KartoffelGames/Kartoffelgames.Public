@@ -1,5 +1,5 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import { KgResizeBoxComponent } from '@kartoffelgames/web-components';
+import { KgButtonComponent, KgResizeBoxComponent } from '@kartoffelgames/web-components';
 import { Component, ComponentState, PwbComponent, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { IPotatnoDocumentItem } from '../../../document/i-potatno-document-item.interface.ts';
 import { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
@@ -24,7 +24,7 @@ import template from './potatno-preview-component.html' with { type: 'text' };
     template: template,
     style: styles,
     modules: [PotatnoPreviewModule],
-    components: [KgResizeBoxComponent]
+    components: [KgResizeBoxComponent, KgButtonComponent]
 })
 export class PotatnoPreviewComponent implements IComponentOnDeconstruct {
     private readonly mComponent: Component;

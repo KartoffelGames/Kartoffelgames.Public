@@ -1,4 +1,8 @@
 :host {
+    --node-border-radius: 2px;
+    --node-border-color: color-mix(in srgb, var(--potatno-color-text) 30%, var(--potatno-color-background));
+    --node-comment-color: var(--potatno-color-accent);
+
     display: block;
     font-family: var(--potatno-font-family);
     font-size: var(--potatno-font-size);
@@ -8,10 +12,6 @@
 
     /* Default z-index. Gets overridden on zoom out.*/
     z-index: -1;
-
-    --node-border-radius: 2px;
-    --node-border-color: color-mix(in srgb, var(--potatno-color-text) 30%, var(--potatno-color-background));
-    --node-comment-color: var(--potatno-color-accent);
 
     /* Hear me out. */
     /* By restricting the height to a single row, the overlapping content does not register or block pointer actions. */

@@ -2,20 +2,14 @@
     <div class="header">
         $if(this.errors.length > 0) {
             <div class="header__tabs">
-                <div class="tab tab--error selected">
-                    <div class="tab__text">Errors ({{this.errors.length}})</div>
-                </div>
+                <kg-button class="tab tab--error" type="secondary" selected="true">Errors ({{this.errors.length}})</kg-button>
             </div>
         }
 
         $if(this.errors.length === 0) {
             <div class="header__tabs">
-                <div class="tab {{ this.selectedTab === 'preview' ? 'selected' : '' }}" (click)="this.selectedTab = 'preview'">
-                    <div class="tab__text">Preview</div>
-                </div>
-                <div class="tab {{ this.selectedTab === 'code' ? 'selected' : '' }}" (click)="this.selectedTab = 'code'">
-                    <div class="tab__text">Code</div>
-                </div>
+                <kg-button class="tab" type="secondary" [selected]="this.selectedTab === 'preview'" (click)="this.selectedTab = 'preview'">Preview</kg-button>
+                <kg-button class="tab" type="secondary" [selected]="this.selectedTab === 'code'" (click)="this.selectedTab = 'code'">Code</kg-button>
             </div>
             <div class="header__selectors">
 

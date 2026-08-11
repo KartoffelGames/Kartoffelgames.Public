@@ -1,4 +1,10 @@
 :host {
+    --button-accent-color: red;
+    --button-accent-text-color: red;
+    --button-text-color: red;
+    --button-border-color: red;
+    --button-background-color: red;
+
     box-sizing: border-box;
     display: flex;
     align-items: center;
@@ -14,11 +20,6 @@
 
     /* Smooth transition for all */
     transition: border-color 0.15s, color 0.15s, background-color 0.15s, scale 0.15s;
-
-    --button-accent-color: red;
-    --button-text-color: red;
-    --button-border-color: red;
-    --button-background-color: red;
 }
 
 .button {
@@ -33,7 +34,7 @@
  * Ugly as fuck but there is no other way to write it. Cant nest shit.
  */
 
-/* 
+/*
  * Primary
  */
 :host:has(.primary) {
@@ -52,31 +53,23 @@
     scale: 0.98;
 }
 
-/* 
+:host:has(.primary.selected) {
+    border-color: var(--button-accent-color);
+    color: var(--button-accent-color);
+}
+
+/*
  * Secondary
  */
-:host(:hover):has(.secondary) {
-    background-color: color-mix(in srgb, var(--button-background-color) 75%, transparent);
-}
-
-:host(:active):has(.secondary) {
-    background-color: color-mix(in srgb, var(--button-background-color) 50%, transparent);
-    scale: 0.98;
-}
-
-/* 
- * Selectable
- */
-:host:has(.selectable) {
+:host:has(.secondary) {
     position: relative;
-    padding: 8px 12px;
     overflow: hidden;
 
     /* Own stacking context so the accent layer stays behind the slotted content. */
     z-index: 0;
 }
 
-:host:has(.selectable)::before {
+:host:has(.secondary)::before {
     content: "";
     position: absolute;
     inset: 0;
@@ -88,23 +81,23 @@
     transition: opacity 0.15s ease-in-out;
 }
 
-:host(:active):has(.selectable) {
-    color: var(--potatno-color-text-contrast);
-    scale: 0.98;
-
-    &::before {
-        opacity: 0.5;
-    }
+:host(:hover):has(.secondary)::before {
+    opacity: 0.5;
 }
 
-:host(:active):has(.selectable)::before {
+:host(:active):has(.secondary) {
+    color: var(--button-accent-text-color);
+    scale: 0.98;
+}
+
+:host(:active):has(.secondary)::before {
     opacity: 0.8;
 }
 
-:host:has(.selectable.selected) {
-    color: var(--potatno-color-text-contrast);
+:host:has(.secondary.selected) {
+    color: var(--button-accent-text-color);
+}
 
-    &::before {
-        opacity: 1;
-    }
+:host:has(.secondary.selected)::before {
+    opacity: 1;
 }

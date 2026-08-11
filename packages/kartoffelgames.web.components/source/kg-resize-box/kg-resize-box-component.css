@@ -1,4 +1,7 @@
 :host {
+    --resize-box-handle-color: red;
+    --resize-box-handle-size: 5px;
+
     position: relative;
     display: flex;
     flex-direction: column;
@@ -6,9 +9,6 @@
     /* Set restrictions to never exeeds blounding restrictions set on the parent component. */
     min-height: 100%;
     min-width: 100%;
-
-    --resize-box-handle-color: red;
-    --resize-box-handle-size: 5px;
 }
 
 :host:has(.snap) {

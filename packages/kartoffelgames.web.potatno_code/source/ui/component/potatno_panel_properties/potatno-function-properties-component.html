@@ -28,7 +28,7 @@
 
                     <!-- Delete button if not static -->
                     $if(!this.functionProperties.statics.inputs) {
-                        <div class="list-item__delete" (click)="this.deletePort(this.functionPort, this.functionProperties.inputs)">✕</div>
+                        <kg-button class="list-item__delete" type="secondary" (click)="this.deletePort(this.functionPort, this.functionProperties.inputs)">✕</kg-button>
                     }
                 </div>
             }
@@ -38,10 +38,10 @@
             }
 
             $if(!this.functionProperties.statics.inputs) {
-                <div class="section__button" (click)="this.addPort(this.functionProperties.inputs)">
+                <kg-button class="section__button" type="primary" (click)="this.addPort(this.functionProperties.inputs)">
                     <div>+</div>
                     <div>Add Input</div>
-                </div>
+                </kg-button>
             }
         </div>
     </div>
@@ -64,7 +64,7 @@
 
                     <!-- Delete button if not static -->
                     $if(!this.functionProperties.statics.outputs) {
-                        <div class="list-item__delete" (click)="this.deletePort(this.functionPort, this.functionProperties.outputs)">✕</div>
+                        <kg-button class="list-item__delete" type="secondary" (click)="this.deletePort(this.functionPort, this.functionProperties.outputs)">✕</kg-button>
                     }
                 </div>
             }
@@ -74,10 +74,10 @@
             }
 
             $if(!this.functionProperties.statics.outputs) {
-                <div class="section__button" (click)="this.addPort(this.functionProperties.outputs)">
+                <kg-button class="section__button" type="primary" (click)="this.addPort(this.functionProperties.outputs)">
                     <div>+</div>
-                    <div>Add Input</div>
-                </div>
+                    <div>Add Output</div>
+                </kg-button>
             }
         </div>
     </div>
@@ -90,7 +90,7 @@
                     <span class="list-item__text">{{this.import.label}}</span>
 
                     $if(!this.functionProperties.statics.imports) {
-                        <div class="list-item__delete" (click)="this.deleteImport(this.import)">✕</div>
+                        <kg-button class="list-item__delete" type="secondary" (click)="this.deleteImport(this.import)">✕</kg-button>
                     }
                 </div>
             }
@@ -106,10 +106,10 @@
                             <option [value]="this.import.id">{{this.import.label}}</option>
                         }
                     </select>
-                    <div class="list-item__button" (click)="this.addSelectedImport()">
+                    <kg-button class="list-item__button" type="primary" (click)="this.addSelectedImport()">
                         <div>+</div>
                         <div>Add</div>
-                    </div>
+                    </kg-button>
                 </div>
             }
         </div>

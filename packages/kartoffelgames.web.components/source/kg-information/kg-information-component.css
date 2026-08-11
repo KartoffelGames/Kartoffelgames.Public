@@ -1,14 +1,11 @@
 :host {
-    /* Sized to the icon only. Left unpositioned so it can be placed freely
-       (e.g. position: absolute) from the outside without being forced to. */
-    display: inline-block;
-
     --information-icon-color: red;
     --information-icon-background-color: red;
-
     --information-background-color: red;
     --information-border-color: red;
     --information-shadow-color: red;
+
+    display: inline-block;
 }
 
 .icon {

@@ -1,15 +1,15 @@
 :host {
-    display: block;
-    position: relative;
-
     --potatno-port-value-size: 5px;
     --potatno-port-flow-size: 15px;
     --potatno-port-handle-width: max(var(--potatno-port-value-size), var(--potatno-port-flow-size));
+
+    display: block;
+    position: relative;
 }
 
 .port-wrapper {
     --potatno-port-color: var(--type-color);
-    
+
     height: var(--potatno-grid-size);
     position: relative;
 }

@@ -50,71 +50,17 @@
         color: var(--potatno-color-text);
 
         .tab {
-            --tab-selected-color: var(--potatno-color-accent);
+            /* Selectable secondary button drives the gradient, hover, active and selected states. */
+            --button-accent-color: var(--potatno-color-accent);
+            --button-accent-text-color: var(--potatno-color-text-contrast);
+            --button-text-color: var(--potatno-color-text);
 
-            position: relative;
             margin: 3px;
             padding: 7px 15px 7px 15px;
-            border-radius: 2px;
-            overflow: hidden;
-            cursor: pointer;
 
-            /* Only animate background color and skip bg-image. */
-            transition: background-color 0.15s ease-in-out;
-            background-color: transparent;
-
-            /* Before used for animating background images */
-            &::before {
-                content: "";
-                position: absolute;
-                background-image: radial-gradient(ellipse at top left, var(--potatno-color-accent) 0%, transparent 100%);
-
-                opacity: 0;
-                transition: opacity 0.15s ease-in-out;
-
-                /* Stretch pseudo element to all sides of host element */
-                top: 0;
-                right: 0;
-                bottom: 0;
-                left: 0;
-                z-index: 1;
-            }
-
-            &:hover {
-                &::before {
-                    opacity: 0.5;
-                }
-            }
-
-            &:active {
-                color: var(--potatno-color-text-contrast);
-                scale: 0.98;
-
-                &::before {
-                    opacity: 0.8;
-                }
-            }
-
-            &.selected {
-                color: var(--potatno-color-text-contrast);
-
-                &::before {
-                    opacity: 1;
-                }
-            }
-
+            /* Error tab reuses the same button but with the error accent. */
             &.tab--error {
-                color: var(--potatno-color-text-contrast);
-
-                &::before {
-                    background-image: radial-gradient(ellipse at top left, var(--potatno-color-error) 0%, transparent 100%);
-                    opacity: 1;
-                }
-            }
-
-            .tab__text {
-                position: relative;
-                z-index: 2;
+                --button-accent-color: var(--potatno-color-error);
             }
         }
     }

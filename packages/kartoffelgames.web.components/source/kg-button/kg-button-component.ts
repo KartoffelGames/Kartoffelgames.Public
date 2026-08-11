@@ -1,4 +1,4 @@
-import { ComponentState, PwbComponent, PwbComponentEvent, PwbExport, type ComponentEventEmitter } from '@kartoffelgames/web-potato-web-builder';
+import { ComponentState, PwbComponent, PwbExport } from '@kartoffelgames/web-potato-web-builder';
 import styles from './kg-button-component.css' with { type: 'text' };
 import template from './kg-button-component.html' with { type: 'text' };
 
@@ -6,14 +6,12 @@ import template from './kg-button-component.html' with { type: 'text' };
  * Button component. Combines multiple button styles selected through the "type" attribute.
  *
  * Configurable attributes:
- *  - "type": "primary", "secondary" or "selectable".
- *  - "selected": "true" or "false". Only handled internally for the "selectable" type.
- *
- * Events:
- *  - "select"
+ *  - "type": "primary" or "secondary". Both types react to the "selected" state.
+ *  - "selected": "true" or "false". Highlights the button as selected. Controlled from the outside.
  *
  * CSS variables:
  *  - "--button-accent-color"
+ *  - "--button-accent-text-color"
  *  - "--button-text-color"
  *  - "--button-border-color"
  *  - "--button-background-color"
@@ -25,13 +23,7 @@ import template from './kg-button-component.html' with { type: 'text' };
 })
 export class KgButtonComponent {
     /**
-     * Emitted when a "selectable" button gets selected.
-     */
-    @PwbComponentEvent('select')
-    private accessor mSelect!: ComponentEventEmitter<boolean>;
-
-    /**
-     * Current selection state. Only ever set internally for the "selectable" type.
+     * Current selection state. Controlled from the outside through the "selected" property.
      */
     @ComponentState.state()
     private accessor mSelected: boolean;
@@ -54,14 +46,14 @@ export class KgButtonComponent {
     }
 
     /**
-     * Button type. One of "primary", "secondary" or "selectable".
+     * Button type. One of "primary" or "secondary".
      */
     @PwbExport
     public get type(): KgButtonComponentType {
         return this.mType;
     } set type(pType: string) {
         // Only allow the known button types.
-        if (pType !== 'primary' && pType !== 'secondary' && pType !== 'selectable') {
+        if (pType !== 'primary' && pType !== 'secondary') {
             this.mType = 'secondary';
             return;
         }
@@ -75,23 +67,6 @@ export class KgButtonComponent {
     public constructor() {
         this.mType = 'primary';
         this.mSelected = false;
-    }
-
-    /**
-     * Handle a click on the button.
-     * Only "selectable" buttons update their selection state and dispatch the "select" event.
-     */
-    public onClick(): void {
-        // Selection and its event are exclusive to the selectable type.
-        if (this.mType !== 'selectable') {
-            return;
-        }
-
-        // A selectable button can only be selected, never unselected by itself.
-        this.mSelected = true;
-
-        // Notify the outside about the selection.
-        this.mSelect.dispatchEvent(this.mSelected);
     }
 
     /**
@@ -114,4 +89,4 @@ export class KgButtonComponent {
     }
 }
 
-export type KgButtonComponentType = 'primary' | 'secondary' | 'selectable';
+export type KgButtonComponentType = 'primary' | 'secondary';

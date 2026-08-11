@@ -127,31 +127,10 @@
 }
 
 .add-action {
-    display: flex;
-    box-sizing: border-box;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    padding: 8px 12px;
-    cursor: pointer;
-
-    /* Transition items. */
-    border: 1px dashed var(--potatno-color-border);
-    border-radius: 2px;
-    color: var(--potatno-color-text);
-    background-color: var(--potatno-color-background-light);
-
-    transition: border-color 0.15s, color 0.15s, background-color 0.15s, scale 0.15s;
-
-    &:hover {
-        border-color: var(--potatno-color-accent);
-        color: var(--potatno-color-accent);
-    }
-
-    &:active {
-        background-color: var(--potatno-color-background);
-        scale: 0.98;
-    }
+    --button-accent-color:  var(--potatno-color-accent);
+    --button-text-color: var(--potatno-color-text);
+    --button-border-color: var(--potatno-color-border);
+    --button-background-color: var(--potatno-color-background-light);
 }
 
 .popup {

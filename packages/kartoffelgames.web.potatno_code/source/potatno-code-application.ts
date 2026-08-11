@@ -11,8 +11,6 @@ import themeCss from './ui/component/potatno-theme.css' with { type: 'text' };
 import { PotatnoCodeEditorComponent } from './ui/component/potatno_code_editor/potatno-code-editor-component.ts';
 import { PotatnoUiManager } from './ui/manager/potatno-ui-manager.ts';
 
-// TODO: Button as a dedicated component. Allow for [selectable] and a (select) as well as [selected]. Size adjustable.
-
 // TODO: Use named output for function code generations, just like the current variables.
 
 // TODO: Add real generics to types. With nested generic constrains.

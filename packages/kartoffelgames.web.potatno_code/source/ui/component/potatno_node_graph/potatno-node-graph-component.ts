@@ -42,7 +42,7 @@ export class PotatnoNodeGraphComponent implements IComponentOnDeconstruct {
      * State for the add-node popup opened from the graph context menu.
      */
     @ComponentState.state()
-    public accessor popupPosition: PotatnoNodeGraphComponentNodeSelectionPopupPosition | null;
+    public accessor popup: PotatnoNodeGraphComponentNodeSelectionPopupState | null;
 
     /**
      * Screen-space rectangle of the drag selection box (top-left position and size). Reassigned
@@ -95,7 +95,7 @@ export class PotatnoNodeGraphComponent implements IComponentOnDeconstruct {
         this.mManager = pManager;
 
         this.mIsMouseInsideGrid = false;
-        this.popupPosition = null;
+        this.popup = null;
         this.selectBox = null;
 
         // Set this element as main grid element.
@@ -140,7 +140,7 @@ export class PotatnoNodeGraphComponent implements IComponentOnDeconstruct {
 
         // Reset current interactions when the document or the active function changes.
         this.mUnsubscribeFunctionChange = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Document | PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.SpecialActiveFunction, () => {
-            this.popupPosition = null;
+            this.popup = null;
             this.selectBox = null;
         });
 
@@ -155,11 +155,11 @@ export class PotatnoNodeGraphComponent implements IComponentOnDeconstruct {
      *
      * @param pEvent - Component event carrying the selected node definition.
      */
-    public createNodeOnPopupPosition(pDefinition: PotatnoNodeDefinition<PotatnoProjectTypesDefinition>): void {
+    public createNode(pDefinition: PotatnoNodeDefinition<PotatnoProjectTypesDefinition>): void {
         // Create new on the popups grid position.
         const lNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition> = this.mManager.graph.addNode(this.mManager.activeFunction, pDefinition, {
-            x: this.popupPosition?.grid.x ?? 0,
-            y: this.popupPosition?.grid.y ?? 0,
+            x: this.popup?.position.grid.x ?? 0,
+            y: this.popup?.position.grid.y ?? 0,
 
             // Let the auto min size do the work.
             height: 0,
@@ -167,7 +167,7 @@ export class PotatnoNodeGraphComponent implements IComponentOnDeconstruct {
         });
 
         // Close popup after popup position information was used.
-        this.popupPosition = null;
+        this.popup = null;
 
         // After creation, select the new node as sole node.
         this.selectNodes([lNode], false);
@@ -422,7 +422,7 @@ export class PotatnoNodeGraphComponent implements IComponentOnDeconstruct {
         switch (pEvent.key) {
             // Close popup.
             case 'Escape': {
-                this.popupPosition = null;
+                this.popup = null;
                 return;
             }
 
@@ -541,12 +541,17 @@ export class PotatnoNodeGraphComponent implements IComponentOnDeconstruct {
         const lMaxLocalX: number = Math.max(0, lWrapper.clientWidth - PotatnoNodeSelectionPopupComponent.POPUP_WIDTH - lGridPositionPadding);
         const lMaxLocalY: number = Math.max(0, lWrapper.clientHeight - PotatnoNodeSelectionPopupComponent.POPUP_HEIGHT - lGridPositionPadding);
 
-        this.popupPosition = {
-            local: {
-                x: Math.max(lGridPositionPadding, Math.min(lGridLocalPosition.x, lMaxLocalX)),
-                y: Math.max(lGridPositionPadding, Math.min(lGridLocalPosition.y, lMaxLocalY))
+        this.popup = {
+            position: {
+                local: {
+                    x: Math.max(lGridPositionPadding, Math.min(lGridLocalPosition.x, lMaxLocalX)),
+                    y: Math.max(lGridPositionPadding, Math.min(lGridLocalPosition.y, lMaxLocalY))
+                },
+                grid: lGridPosition
             },
-            grid: lGridPosition
+            context: {
+                port: null
+            }
         };
     }
 
@@ -646,12 +651,17 @@ export class PotatnoNodeGraphComponent implements IComponentOnDeconstruct {
     }
 }
 
-type PotatnoNodeGraphComponentNodeSelectionPopupPosition = {
-    local: {
-        x: number;
-        y: number;
-    },
-    grid: PotatnoUiManagerGridCoordinate;
+type PotatnoNodeGraphComponentNodeSelectionPopupState = {
+    position: {
+        local: {
+            x: number;
+            y: number;
+        },
+        grid: PotatnoUiManagerGridCoordinate;
+    };
+    context: {
+        port: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null;
+    };
 };
 
 type PotatnoNodeGraphComponentSelectBox = {

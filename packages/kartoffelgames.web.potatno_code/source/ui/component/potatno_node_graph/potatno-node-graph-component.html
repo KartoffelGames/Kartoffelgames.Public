@@ -55,6 +55,6 @@
     </kg-information>
 </div>
 
-$if(this.popupPosition !== null) {
-    <potatno-node-selection-popup (focusout)="this.popupPosition = null" style="left: {{this.popupPosition.local.x}}px; top: {{this.popupPosition.local.y}}px;" (node-select)="this.createNodeOnPopupPosition($event.value)"/>
+$if(this.popup !== null) {
+    <potatno-node-selection-popup (focusout)="this.popup = null" style="left: {{this.popup.position.local.x}}px; top: {{this.popup.position.local.y}}px;" [contextport]="this.popup.context.port" (node-select)="this.createNode($event.value)"/>
 }

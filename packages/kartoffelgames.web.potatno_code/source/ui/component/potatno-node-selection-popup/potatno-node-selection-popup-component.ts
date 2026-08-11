@@ -1,11 +1,11 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
+import { KgPopupComponent } from '@kartoffelgames/web-components';
 import { Component, ComponentState, PwbChild, PwbComponent, PwbComponentEvent, type ComponentEventEmitter, type IComponentOnConnect, type IComponentOnUpdate } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoNodeDefinition } from '../../../project/node_definition/potatno-node-definition.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import { PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
 import addNodePopupCss from './potatno-node-selection-popup-component.css' with { type: 'text' };
 import addNodePopupTemplate from './potatno-node-selection-popup-component.html' with { type: 'text' };
-import { KgPopupComponent } from "@kartoffelgames/web-components";
 
 /**
  * Searchable popup listing every node definition available to the active function.

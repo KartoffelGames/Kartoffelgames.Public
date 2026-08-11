@@ -72,12 +72,12 @@ export class CanvasProjectUserFunctionDefinition extends PotatnoFunctionDefiniti
             generator: {
                 code: {
                     body: (pResult): string => {
-                        const lFunctionName: string = `__fn_${pResult.function.id.replaceAll('-', '_')}`;
+                        const lFunctionName: string = pResult.function.project.generator.value.name(pResult.function.label);
                         const lGraph = pResult.graphResultOf('HelperFunctionEntry');
                         return `const ${lFunctionName} = ${lGraph?.code ?? '() => ({})'};`;
                     },
                     value: (pContext): string => {
-                        const lFunctionName: string = `__fn_${pContext.function.id.replaceAll('-', '_')}`;
+                        const lFunctionName: string = pContext.function.project.generator.value.name(pContext.function.label);
                         const lArgs: string = Object.entries(pContext.inputs)
                             .map(([, pInput]) => pInput.value)
                             .join(', ');

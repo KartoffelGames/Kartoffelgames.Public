@@ -78,11 +78,12 @@ export class PotatnoTestProjectHelperFunctionDefinition extends PotatnoFunctionD
             generator: {
                 code: {
                     body: (pResult): string => {
+                        const lFunctionName: string = pResult.function.project.generator.value.name(pResult.function.label);
                         const lGraph = pResult.graphResultOf('HelperEntry');
-                        return `const ${pResult.function.label} = ${lGraph?.code ?? '() => undefined'};`;
+                        return `const ${lFunctionName} = ${lGraph?.code ?? '() => undefined'};`;
                     },
                     value: (pContext): string => {
-                        const lFunctionName: string = pContext.function.label;
+                        const lFunctionName: string = pContext.function.project.generator.value.name(pContext.function.label);
                         const lArgs: string = Object.values(pContext.inputs)
                             .map((pInput) => pInput.value)
                             .join(', ');

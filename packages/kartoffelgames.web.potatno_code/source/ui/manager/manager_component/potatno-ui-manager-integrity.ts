@@ -118,6 +118,10 @@ export class PotatnoUiManagerIntegrity {
                     this.mErrorList.push({ location: lError.item, message: lError.message });
                     break;
                 }
+                case lError.item instanceof PotatnoDocumentFunction: {
+                    this.mErrorList.push({ location: lError.item, message: lError.message });
+                    break;
+                }
             }
         }
 
@@ -153,6 +157,6 @@ export class PotatnoUiManagerIntegrity {
  * A validation error shaped for the preview panel.
  */
 export type PotatnoCodeUiManagerIntegrityError = {
-    location: PotatnoDocumentNode<PotatnoProjectTypesDefinition>;
+    location: PotatnoDocumentNode<PotatnoProjectTypesDefinition> | PotatnoDocumentFunction<PotatnoProjectTypesDefinition>;
     message: string;
 };

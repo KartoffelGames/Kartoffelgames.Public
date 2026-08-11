@@ -54,7 +54,7 @@ const gUserFunctionExecutor = new PotatnoPreviewFunctionExecutor(gProject.userFu
         }
 
         const lFunction = pGeneratorResult.entryPoint.function;
-        const lFunctionName: string = `__fn_${lFunction.id.replaceAll('-', '_')}`;
+        const lFunctionName: string = lFunction.project.generator.value.name(lFunction.label);
         const lDefaultArguments: Array<unknown> = lFunction.inputs.map((pInput) => pExecutor.projectTypes.getDefaultValue(pInput.dataType));
         const lInstrumented: string = pGeneratorResult.code.replace(pPortTarget.nodeHook, `return ${pPortTarget.value};`);
 

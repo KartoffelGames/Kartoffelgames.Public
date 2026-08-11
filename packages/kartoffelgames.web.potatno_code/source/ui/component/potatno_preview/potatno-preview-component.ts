@@ -1,8 +1,10 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { KgResizeBoxComponent } from '@kartoffelgames/web-components';
 import { Component, ComponentState, PwbComponent, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
-import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
-import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
+import type { IPotatnoDocumentItem } from '../../../document/i-potatno-document-item.interface.ts';
+import { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
+import { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
+import { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import { PotatnoCodeGenerator } from '../../../parser/potatno-code-generator.ts';
 import type { PotatnoPreviewDriver } from '../../../preview/potatno-preview-driver.ts';
 import { PotatnoPreviewFunctionExecutor } from '../../../preview/potatno-preview-function-executor.ts';
@@ -13,7 +15,6 @@ import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, type PotatnoCodeUiMan
 import { PotatnoPreviewModule } from '../../module/potatno-preview.module.ts';
 import styles from './potatno-preview-component.css' with { type: 'text' };
 import template from './potatno-preview-component.html' with { type: 'text' };
-import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 
 /**
  * Preview main panel for the active function preview.
@@ -172,6 +173,36 @@ export class PotatnoPreviewComponent implements IComponentOnDeconstruct {
     }
 
     /**
+     * Open function and select node.
+     * 
+     * @param pDocumentItem - Document item.
+     */
+    public getDocumentItemLabel(pDocumentItem: IPotatnoDocumentItem<PotatnoProjectTypesDefinition>): string {
+        switch (true) {
+            case pDocumentItem instanceof PotatnoDocumentNode: return pDocumentItem.label;
+            case pDocumentItem instanceof PotatnoDocumentPort: return pDocumentItem.label;
+            case pDocumentItem instanceof PotatnoDocumentFunction: return pDocumentItem.label;
+        }
+
+        return 'Item';
+    }
+
+    /**
+     * Get typen name of a potatno document item..
+     * 
+     * @param pDocumentItem - Document item.
+     */
+    public getDocumentItemTypeName(pDocumentItem: IPotatnoDocumentItem<PotatnoProjectTypesDefinition>): string {
+        switch (true) {
+            case pDocumentItem instanceof PotatnoDocumentNode: return 'Node';
+            case pDocumentItem instanceof PotatnoDocumentPort: return 'Port';
+            case pDocumentItem instanceof PotatnoDocumentFunction: return 'Function';
+        }
+
+        return 'Item';
+    }
+
+    /**
      * Detach the manager subscription.
      */
     public onDeconstruct(): void {
@@ -182,10 +213,23 @@ export class PotatnoPreviewComponent implements IComponentOnDeconstruct {
     /**
      * Open function and select node.
      * 
-     * @param pNode - Node to select.
+     * @param pDocumentItem - Document item.
      */
-    public openNode(pNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition>): void {
-        this.mManager.grid.selectNodes([pNode], true);
+    public openDocumentItem(pDocumentItem: IPotatnoDocumentItem<PotatnoProjectTypesDefinition>): void {
+        switch (true) {
+            case pDocumentItem instanceof PotatnoDocumentNode: {
+                this.mManager.grid.selectNodes([pDocumentItem], true);
+                break;
+            }
+            case pDocumentItem instanceof PotatnoDocumentPort: {
+                this.mManager.grid.selectNodes([pDocumentItem.node], true);
+                break;
+            }
+            case pDocumentItem instanceof PotatnoDocumentFunction: {
+                this.mManager.setActiveFunction(pDocumentItem);
+                break;
+            }
+        }
     }
 
     /**

@@ -43,7 +43,11 @@ export class CanvasProject extends PotatnoProject<CanvasProjectTypesDefinition> 
                         return `${pName}_${pIndex}`;
                     },
                     name: (pName: string) => {
-                        return pName.replaceAll(/[^A-Za-z0-9_]/g, '');
+                        // Strip characters that are invalid inside an identifier.
+                        const lName: string = pName.replaceAll(/[^A-Za-z0-9_]/g, '');
+
+                        // Prefix a leading digit so the result is a valid identifier start.
+                        return /^[0-9]/.test(lName) ? `_${lName}` : lName;
                     },
                     hook: (pValueId: string): string => {
                         return `/*[${pValueId}]*/`;

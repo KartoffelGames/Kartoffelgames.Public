@@ -13,9 +13,7 @@ import { PotatnoUiManager } from './ui/manager/potatno-ui-manager.ts';
 
 // TODO: Button as a dedicated component. Allow for [selectable] and a (select) as well as [selected]. Size adjustable.
 
-// TODO: Make a node "invisible" (Dont move the occupying area) for pathfinding on drag start (so the path does not move while dragging.).
-//       Then when the node gets dropped on a node (exact location, with visuals that it is currently hovered) connect the first port from input and output to it.
-//       Maybe make it partly opaque while dragging? Node needs a drag start and drag end event for that.
+// TODO: Use named output for function code generations, just like the current variables.
 
 // TODO: Add real generics to types. With nested generic constrains.
 //       { type: "number", generics?: null }

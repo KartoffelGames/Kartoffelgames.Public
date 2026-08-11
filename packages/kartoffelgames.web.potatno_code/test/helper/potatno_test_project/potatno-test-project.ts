@@ -48,7 +48,11 @@ export class PotatnoTestProject extends PotatnoProject<PotatnoTestProjectTypesDe
                         return `${pName}_${pIndex}`;
                     },
                     name: (pName: string) => {
-                        return pName.replace(/[^A-Za-z0-9_]/, '');
+                        // Strip characters that are invalid inside an identifier.
+                        const lName: string = pName.replace(/[^A-Za-z0-9_]/, '');
+
+                        // Prefix a leading digit so the result is a valid identifier start.
+                        return /^[0-9]/.test(lName) ? `_${lName}` : lName;
                     },
                 }
             }

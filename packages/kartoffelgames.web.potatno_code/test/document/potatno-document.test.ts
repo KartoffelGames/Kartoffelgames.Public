@@ -340,4 +340,61 @@ Deno.test('PotatnoDocument - Validation', async (pContext) => {
         expect(lValidationResult.affectedItems.has(lFunction)).toBe(true);
         expect([...lFunction.nodes].every((pNode) => lValidationResult.affectedItems.has(pNode))).toBe(true);
     });
+
+    await pContext.step('Duplicate function names are rejected', () => {
+        // Setup. Two user functions sharing the same label.
+        const lDocument = new PotatnoDocument(PotatnoHelper.TEST_PROJECT);
+        PotatnoHelper.newHelperFunction(lDocument, 'dup-1', 'duplicateName');
+        PotatnoHelper.newHelperFunction(lDocument, 'dup-2', 'duplicateName');
+
+        // Process.
+        const lValidationResult = lDocument.validate();
+
+        // Evaluation.
+        const lDuplicateErrors = lValidationResult.errors.filter((pError) => /used by multiple functions/.test(pError.message));
+        expect(lDuplicateErrors.length).toBeGreaterThan(0);
+    });
+
+    await pContext.step('Duplicate name error points at second offending function', () => {
+        // Setup. Two user functions whose labels normalize to the same code name.
+        const lDocument = new PotatnoDocument(PotatnoHelper.TEST_PROJECT);
+        const lFirst = PotatnoHelper.newHelperFunction(lDocument, 'dup-1', 'duplicateName');
+        const lSecond = PotatnoHelper.newHelperFunction(lDocument, 'dup-2', 'duplicateName');
+
+        // Process.
+        const lValidationResult = lDocument.validate();
+
+        // Evaluation. Both functions are flagged.
+        const lFlaggedItems = new Set(lValidationResult.errors.filter((pError) => /used by multiple functions/.test(pError.message)).map((pError) => pError.item));
+        expect(lFlaggedItems.has(lFirst)).toBe(false);
+        expect(lFlaggedItems.has(lSecond)).toBe(true);
+    });
+
+    await pContext.step('Distinct labels normalizing to the same name collide', () => {
+        // Setup. "dup name" and "dup!name" both normalize to the same code-compliant name.
+        const lDocument = new PotatnoDocument(PotatnoHelper.TEST_PROJECT);
+        PotatnoHelper.newHelperFunction(lDocument, 'dup-1', 'dup name');
+        PotatnoHelper.newHelperFunction(lDocument, 'dup-2', 'dup!name');
+
+        // Process.
+        const lValidationResult = lDocument.validate();
+
+        // Evaluation.
+        const lDuplicateErrors = lValidationResult.errors.filter((pError) => /used by multiple functions/.test(pError.message));
+        expect(lDuplicateErrors.length).toBeGreaterThan(0);
+    });
+
+    await pContext.step('Unique function names pass validation', () => {
+        // Setup. Two user functions with distinct labels.
+        const lDocument = new PotatnoDocument(PotatnoHelper.TEST_PROJECT);
+        PotatnoHelper.newHelperFunction(lDocument, 'u-1', 'uniqueOne');
+        PotatnoHelper.newHelperFunction(lDocument, 'u-2', 'uniqueTwo');
+
+        // Process.
+        const lValidationResult = lDocument.validate();
+
+        // Evaluation.
+        const lDuplicateErrors = lValidationResult.errors.filter((pError) => /used by multiple functions/.test(pError.message));
+        expect(lDuplicateErrors.length).toBe(0);
+    });
 });

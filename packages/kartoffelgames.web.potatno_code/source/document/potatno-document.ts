@@ -157,6 +157,19 @@ export class PotatnoDocument<TProjectTypes extends PotatnoProjectTypesDefinition
         // Cross-function recursion detection over the function-call graph.
         lValidationItem.pushError(...this.detectCrossFunctionRecursion());
 
+        // Loop all functions, "normalize" the name and check if it already used.
+        const lFunctionNames: Set<string> = new Set<string>();
+        for (const lFunction of this.mFunctions) {
+            const lNormalizedFunctionName: string = this.mProject.generator.value.name(lFunction.label);
+
+            // Push duplication error on second encounter.
+            if (lFunctionNames.has(lNormalizedFunctionName)) {
+                lValidationItem.pushError(new PotatnoDocumentPortValidationError(`Function name "${lNormalizedFunctionName}" is used by multiple functions. Function names must be unique.`, lFunction));
+            }
+
+            lFunctionNames.add(lNormalizedFunctionName);
+        }
+
         return lValidationItem;
     }
 

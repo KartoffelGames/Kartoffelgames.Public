@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import { KgResizeBoxComponent, KgResizeBoxComponentResize, KgResizeBoxComponentResizeDirection } from '@kartoffelgames/web-components';
+import { KgResizeBoxComponent, KgResizeBoxComponentResizeDirection, type KgResizeBoxComponentResize } from '@kartoffelgames/web-components';
 import { Component, ComponentState, PwbChild, PwbComponent, PwbComponentEvent, PwbExport, type ComponentEventEmitter, type IComponentOnConnect, type IComponentOnDeconstruct, type IComponentOnUpdate } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';

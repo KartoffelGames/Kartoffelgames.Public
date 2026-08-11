@@ -94,25 +94,27 @@ export class PotatnoTestProjectCalculatorFunctionDefinition extends PotatnoFunct
             generator: {
                 code: {
                     body: (pResult): string => {
+                        const lFunctionName: string = pResult.function.project.generator.value.name(pResult.function.label);
                         const lDefaultGraph = pResult.graphResultOf('CalculatorDefaultEntry');
                         const lParts: Array<string> = [];
                         const lX10Graph = pResult.graphResultOf('CalculatorX10Entry');
 
                         if (lDefaultGraph) {
-                            lParts.push(`const ${pResult.function.label}Default = ${lDefaultGraph.code};`);
+                            lParts.push(`const ${lFunctionName}Default = ${lDefaultGraph.code};`);
                         }
 
                         if (lX10Graph) {
-                            lParts.push(`const ${pResult.function.label}X10 = ${lX10Graph.code};`);
+                            lParts.push(`const ${lFunctionName}X10 = ${lX10Graph.code};`);
                         }
 
                         return lParts.join('');
                     },
                     value: (pContext): string => {
+                        const lFunctionName: string = pContext.function.project.generator.value.name(pContext.function.label);
                         const lArgs: string = Object.values(pContext.inputs)
                             .map((pInput) => pInput.value)
                             .join(', ');
-                        return `calculatorDefault(${lArgs})`;
+                        return `${lFunctionName}Default(${lArgs})`;
                     }
                 }
             }

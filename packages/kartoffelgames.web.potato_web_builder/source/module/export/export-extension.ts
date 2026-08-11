@@ -90,40 +90,79 @@ export class ExportExtension {
      * Patch setAttribute and getAttribute to set and get exported values.
      */
     private patchHtmlAttributes(pExportedAttributes: Set<string>): void {
-        const lOriginalGetAttribute: (pQualifiedName: string) => string | null = this.mComponent.element.getAttribute;
+        const lElement: HTMLElement = this.mComponent.element;
+        const lOriginalGetAttribute: (pQualifiedName: string) => string | null = lElement.getAttribute;
+        const lOriginalSetAttribute: (pQualifiedName: string, pValue: string) => void = lElement.setAttribute;
 
-        // Init mutation observerm observing attribute changes.
+        // Reflect an attribute value into the processor and notify the component about the change.
+        const lApplyAttribute = (pAttributeName: string, pOldValue: string | null, pNewValue: string | null): boolean => {
+            // Set value in processor and signal it to the component.
+            Reflect.set(lElement, pAttributeName, pNewValue);
+            this.mComponent.attributeChanged(pAttributeName, pOldValue, pNewValue);
+
+            return true;
+        };
+
+        // Save values set directly by "setAttribute" so they are not retriggered by the observer.
+        const lAppliedAttributes: Map<string, string> = new Map<string, string>();
+
+        // Init mutation observer, observing attribute changes made outside of the patched setAttribute.
         const lMutationObserver: MutationObserver = new MutationObserver((pMutationList) => {
             for (const lMutation of pMutationList) {
                 const lAttributeName: string = lMutation.attributeName!;
-                const lAttributeValue: string | null = lOriginalGetAttribute.call(this.mComponent.element, lAttributeName);
 
-                // Set value in processor.
-                Reflect.set(this.mComponent.element, lAttributeName, lAttributeValue);
+                // Read current value.
+                const lAttributeValue: string | null = lOriginalGetAttribute.call(lElement, lAttributeName);
 
-                this.mComponent.attributeChanged(lAttributeName, lMutation.oldValue, lAttributeValue);
+                // Skip mutations when the value is already set as a applied value.
+                if (lAppliedAttributes.get(lAttributeName) === lAttributeValue) {
+                    continue;
+                }
+
+                lApplyAttribute(lAttributeName, lMutation.oldValue, lAttributeValue);
             }
         });
-        lMutationObserver.observe(this.mComponent.element, { attributeFilter: [...pExportedAttributes], attributeOldValue: true });
+        lMutationObserver.observe(lElement, { attributeFilter: [...pExportedAttributes], attributeOldValue: true });
 
-        // Set initial state of attribute.
+        // Set initial state of already present attributes synchronously.
         for (const lAttributeName of pExportedAttributes) {
-            if (this.mComponent.element.hasAttribute(lAttributeName)) {
-                const lCurrentAttributeValue: string = lOriginalGetAttribute.call(this.mComponent.element, lAttributeName)!;
+            if (lElement.hasAttribute(lAttributeName)) {
+                const lCurrentAttributeValue: string = lOriginalGetAttribute.call(lElement, lAttributeName)!;
 
-                // Set again and trigger mutation observer.
-                this.mComponent.element.setAttribute(lAttributeName, lCurrentAttributeValue);
+                // Reflect current attribute value into the processor.
+                lApplyAttribute(lAttributeName, lCurrentAttributeValue, lCurrentAttributeValue);
             }
         }
 
-        // Patch get attribute
-        this.mComponent.element.getAttribute = (pQualifiedName: string): string | null => {
-            // Check if attribute is an exported value and return value of user class object.
-            if (pExportedAttributes.has(pQualifiedName)) {
-                return Reflect.get(this.mComponent.element, pQualifiedName);
+        // path set attribute. So syncron set values are also applied synchron.
+        lElement.setAttribute = (pQualifiedName: string, pValue: string): void => {
+            // Read old value before the actual attribute change.
+            const lOldValue: string | null = lOriginalGetAttribute.call(lElement, pQualifiedName);
+
+            // First of all set the value as attribute.
+            lOriginalSetAttribute.call(lElement, pQualifiedName, pValue);
+
+            // Non exported attributes skip reflection calls.
+            if (!pExportedAttributes.has(pQualifiedName)) {
+                return;
             }
 
-            return lOriginalGetAttribute.call(this.mComponent.element, pQualifiedName);
+            // Mark the upcoming mutation record so the observer does not apply it a second time.
+            lAppliedAttributes.set(pQualifiedName, pValue.toString());
+
+            // Set the real attribute and reflect its value into the processor synchronously.
+            lOriginalSetAttribute.call(lElement, pQualifiedName, pValue);
+            lApplyAttribute(pQualifiedName, lOldValue, pValue);
+        };
+
+        // Patch get attribute
+        lElement.getAttribute = (pQualifiedName: string): string | null => {
+            // Check if attribute is an exported value and return value of user class object.
+            if (pExportedAttributes.has(pQualifiedName)) {
+                return Reflect.get(lElement, pQualifiedName);
+            }
+
+            return lOriginalGetAttribute.call(lElement, pQualifiedName);
         };
     }
 }

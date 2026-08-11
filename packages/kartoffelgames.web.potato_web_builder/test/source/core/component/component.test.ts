@@ -622,7 +622,7 @@ Deno.test('PwbComponent--Functionality: User callbacks', async (pContext) => {
             [
                 lCallPosition.onPwbInitialize,
                 lCallPosition.onPwbUpdate,
-                // lCallPosition.onPwbAttributeChange, JSDOM Complete garbage. Wo ever programmed this piece of * should rethink their life.
+                lCallPosition.onPwbAttributeChange,
                 lCallPosition.onPwbDeconstruct,
             ]
         );

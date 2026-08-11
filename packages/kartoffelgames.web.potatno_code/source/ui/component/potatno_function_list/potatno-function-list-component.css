@@ -12,6 +12,7 @@
     background-color: var(--potatno-color-background-dark);
 
     /* Set min, max and default width */
+    width: 250px;
     max-width: 500px;
     min-width: 200px;
 

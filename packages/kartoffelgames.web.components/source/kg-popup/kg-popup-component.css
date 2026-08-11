@@ -27,8 +27,6 @@
     @starting-style {
         opacity: 0;
     }
-
-
 }
 
 :host([animate=top]) {

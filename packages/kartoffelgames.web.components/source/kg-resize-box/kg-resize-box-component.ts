@@ -47,12 +47,6 @@ export class KgResizeBoxComponent {
     private accessor mResizeEnd!: ComponentEventEmitter<KgResizeBoxComponentResize>;
 
     /**
-     * Transformation element.
-     */
-    @ComponentState.state({ proxy: true })
-    public accessor transformation: KgResizeBoxComponentTransformation;
-
-    /**
      * If bottom resize handle is enabled.
      */
     @PwbExport
@@ -67,7 +61,7 @@ export class KgResizeBoxComponent {
      */
     @PwbExport
     public get height(): number {
-        return this.transformation.height;
+        return this.mComponentElement.clientHeight;
     } set height(pHeight: number) {
         this.updateComponentHeight(pHeight, true);
     }
@@ -128,7 +122,7 @@ export class KgResizeBoxComponent {
      */
     @PwbExport
     public get width(): number {
-        return this.transformation.width;
+        return this.mComponentElement.clientWidth;
     } set width(pWidth: number) {
         this.updateComponentWidth(pWidth, true);
     }
@@ -140,12 +134,6 @@ export class KgResizeBoxComponent {
      */
     public constructor(pComponent: Component = Injection.use(Component)) {
         this.mComponentElement = pComponent.element;
-
-        // Default size set to undefined.
-        this.transformation = {
-            width: NaN,
-            height: NaN
-        };
 
         // Disabled all direction as default.
         this.mConfiguration = {
@@ -200,8 +188,8 @@ export class KgResizeBoxComponent {
         const lResizedHeight: number = this.updateComponentHeight(pHeight, false);
 
         // Dispatch event after the width has changed.
-        if (lResizedWidth !== this.transformation.width || lResizedHeight !== this.transformation.height) {
-            this.mResize.dispatchEvent(this.createResizeEvent(pUsedHandle, lResizedWidth, lResizedHeight, this.transformation.width, this.transformation.height));
+        if (lResizedWidth !== this.width || lResizedHeight !== this.height) {
+            this.mResize.dispatchEvent(this.createResizeEvent(pUsedHandle, lResizedWidth, lResizedHeight, this.width, this.height));
         }
 
         // Return back the actual resized values.
@@ -351,7 +339,7 @@ export class KgResizeBoxComponent {
     private updateComponentHeight(pHeight: number, pIgnoreVirtual: boolean): number {
         // Skip resize if not setup to be resized.
         if (!this.mConfiguration.enabledDirections.top && !this.mConfiguration.enabledDirections.bottom) {
-            return this.transformation.height;
+            return this.height;
         }
 
         // Size should not be divided by zero. Limit that.
@@ -363,7 +351,7 @@ export class KgResizeBoxComponent {
 
         // Resize if the resize should not be virtual.
         if (!this.mConfiguration.isVirtual || pIgnoreVirtual) {
-            this.transformation.height = lResizedHeight;
+            this.mComponentElement.style.setProperty('height', `${lResizedHeight}px`);
         }
 
         return lResizedHeight;
@@ -380,7 +368,7 @@ export class KgResizeBoxComponent {
     private updateComponentWidth(pWidth: number, pIgnoreVirtual: boolean): number {
         // Skip resize if not setup to be resized.
         if (!this.mConfiguration.enabledDirections.left && !this.mConfiguration.enabledDirections.right) {
-            return this.transformation.height;
+            return this.height;
         }
 
         // Size should not be divided by zero. Limit that.
@@ -392,7 +380,7 @@ export class KgResizeBoxComponent {
 
         // Resize if the resize should not be virtual.
         if (!this.mConfiguration.isVirtual || pIgnoreVirtual) {
-            this.transformation.width = lResizedWidth;
+            this.mComponentElement.style.setProperty('width', `${lResizedWidth}px`);
         }
 
         return lResizedWidth;
@@ -458,9 +446,4 @@ type KgResizeBoxComponentConfiguration = {
         bottom: boolean;
         left: boolean;
     };
-};
-
-type KgResizeBoxComponentTransformation = {
-    height: number;
-    width: number;
 };

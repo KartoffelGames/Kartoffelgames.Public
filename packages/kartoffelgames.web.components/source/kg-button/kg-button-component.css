@@ -1,5 +1,19 @@
 :host {
-    display: block;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    user-select: none;
+
+    /* Shared box. Transparent border keeps every type the same size. */
+    border: 1px solid transparent;
+    border-radius: 2px;
+    color: var(--button-text-color);
+    background-color: transparent;
+
+    /* Smooth transition for all */
+    transition: border-color 0.15s, color 0.15s, background-color 0.15s, scale 0.15s;
 
     --button-accent-color: red;
     --button-text-color: red;
@@ -13,91 +27,84 @@
     align-items: center;
     justify-content: center;
     gap: 6px;
-    cursor: pointer;
-    user-select: none;
+}
 
-    /* Default sized to allways fill out parents width. */
-    width: 100%;
+/*
+ * Ugly as fuck but there is no other way to write it. Cant nest shit.
+ */
 
-    /* Shared box. Transparent border keeps every type the same size. */
+/* 
+ * Primary
+ */
+:host:has(.primary) {
     padding: 8px 12px;
-    border: 1px solid transparent;
-    border-radius: 2px;
-    color: var(--button-text-color);
-    background-color: transparent;
+    border-style: dashed;
+    border-color: var(--button-border-color);
+    background-color: var(--button-background-color);
+}
 
-    transition: border-color 0.15s, color 0.15s, background-color 0.15s, scale 0.15s;
+:host(:hover):has(.primary) {
+    border-color: var(--button-accent-color);
+    color: var(--button-accent-color);
+}
 
-    /* Primary: dashed border on a filled background. */
-    &.primary {
-        border-style: dashed;
-        border-color: var(--button-border-color);
-        background-color: var(--button-background-color);
+:host(:active):has(.primary) {
+    scale: 0.98;
+}
 
-        &:hover {
-            border-color: var(--button-accent-color);
-            color: var(--button-accent-color);
-        }
+/* 
+ * Secondary
+ */
+:host(:hover):has(.secondary) {
+    background-color: color-mix(in srgb, var(--button-background-color) 75%, transparent);
+}
 
-        &:active {
-            scale: 0.98;
-        }
+:host(:active):has(.secondary) {
+    background-color: color-mix(in srgb, var(--button-background-color) 50%, transparent);
+    scale: 0.98;
+}
+
+/* 
+ * Selectable
+ */
+:host:has(.selectable) {
+    position: relative;
+    padding: 8px 12px;
+    overflow: hidden;
+
+    /* Own stacking context so the accent layer stays behind the slotted content. */
+    z-index: 0;
+}
+
+:host:has(.selectable)::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+
+    background-image: radial-gradient(ellipse at top left, var(--button-accent-color) 0%, transparent 100%);
+
+    opacity: 0;
+    transition: opacity 0.15s ease-in-out;
+}
+
+:host(:active):has(.selectable) {
+    color: var(--potatno-color-text-contrast);
+    scale: 0.98;
+
+    &::before {
+        opacity: 0.5;
     }
+}
 
-    /* Secondary: no visible background until hovered. */
-    &.secondary {
-        &:hover {
-            background-color: var(--button-background-color);
-        }
+:host(:active):has(.selectable)::before {
+    opacity: 0.8;
+}
 
-        &:active {
-            background-color: var(--button-accent-color);
-            scale: 0.98;
-        }
-    }
+:host:has(.selectable.selected) {
+    color: var(--potatno-color-text-contrast);
 
-    /* Selectable: accent grows in on hover and fills once selected. Can only be selected. */
-    &.selectable {
-        position: relative;
-        overflow: hidden;
-
-        /* Own stacking context so the accent layer stays behind the slotted content. */
-        z-index: 0;
-
-        /* Before used for animating the accent background. */
-        &::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            z-index: -1;
-
-            background-image: radial-gradient(ellipse at top left, var(--button-accent-color) 0%, transparent 100%);
-
-            opacity: 0;
-            transition: opacity 0.15s ease-in-out;
-        }
-
-        &:hover {
-            &::before {
-                opacity: 0.5;
-            }
-        }
-
-        &:active {
-            color: var(--potatno-color-text-contrast);
-            scale: 0.98;
-
-            &::before {
-                opacity: 0.8;
-            }
-        }
-
-        &.selected {
-            color: var(--potatno-color-text-contrast);
-
-            &::before {
-                opacity: 1;
-            }
-        }
+    &::before {
+        opacity: 1;
     }
 }

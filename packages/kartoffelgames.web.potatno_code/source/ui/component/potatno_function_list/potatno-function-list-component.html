@@ -6,7 +6,7 @@
                 <div class="function-item__name">{{this.functionItem.label}}</div>
 
                 $if(!this.functionItem.isSystem) {
-                    <div class="function-item__delete" (click)="this.deleteFunction(this.functionItem)">✕</div>
+                    <kg-button class="function-item__delete" type="secondary" (click)="this.deleteFunction(this.functionItem)">✕</kg-button>
                 }
             </div>
         }

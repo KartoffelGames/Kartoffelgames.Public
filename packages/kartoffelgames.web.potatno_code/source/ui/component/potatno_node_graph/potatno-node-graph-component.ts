@@ -325,60 +325,11 @@ export class PotatnoNodeGraphComponent implements IComponentOnDeconstruct {
         pEvent.preventDefault();
         pEvent.stopPropagation();
 
-        const lDragginPorts: Array<PotatnoDocumentPort<PotatnoProjectTypesDefinition>> = this.mManager.grid.draggedPort.ports;
+        // Get current clicked/dragged position and priorize all dragged ports based on this position.
+        const lGridClickPosition: PotatnoUiManagerGridCoordinate = this.mManager.grid.pixelToGridSpace(pEvent.clientX, pEvent.clientY);
+        const lDragginPorts: Array<PotatnoDocumentPort<PotatnoProjectTypesDefinition>> = this.mManager.graph.priorizePorts(lGridClickPosition, this.mManager.grid.draggedPort.ports);
 
-        this.openNodeSelectionPopupAtPointer(pEvent.clientX, pEvent.clientY);
-
-
-
-
-
-        // Filter dragged ports.
-        const lConnectableDraggedPorts: Array<PotatnoDocumentPort<PotatnoProjectTypesDefinition>> = this.mManager.grid.draggedPort.ports.filter((pDraggedPort) => {
-            // When flow output ports are connected. Skip it.
-            if (pDraggedPort.direction === 'output' && pDraggedPort.portType === 'flow' && pDraggedPort.connectedPorts.size > 0) {
-                return false;
-            }
-
-            // When value input ports are connected. Skip it.
-            if (pDraggedPort.direction === 'input' && pDraggedPort.portType === 'value' && pDraggedPort.connectedPorts.size > 0) {
-                return false;
-            }
-
-            return true;
-        });
-
-        // skip conjunction creation when not ports gonna be connected.
-        if (lConnectableDraggedPorts.length === 0) {
-            return;
-        }
-
-        // Get the correct conjunction definition based on the connected port type.
-        const lConjunctionDefinition: PotatnoNodeDefinition<PotatnoProjectTypesDefinition> = (() => {
-            const lFirstDraggedPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> = this.mManager.grid.draggedPort.ports[0];
-
-            if (lFirstDraggedPort.portType === 'flow') {
-                return this.mManager.project.nodeDefinitions.get(PotatnoFlowConjunctionNodeDefinition.DEFINITION_ID)!;
-            }
-
-            return this.mManager.project.nodeDefinitions.get(PotatnoValueConjunctionNodeDefinition.DEFINITION_ID)!;
-        })();
-
-        // Convert pointer position into local (component space) and grid space.
-        const lGridPosition: PotatnoUiManagerGridCoordinate = this.mManager.grid.pixelToGridSpace(pEvent.clientX, pEvent.clientY);
-
-        // Create new conjunction node on the clicked grid position.
-        const lConjunctionNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition> = this.mManager.graph.addNode(this.mManager.activeFunction, lConjunctionDefinition, {
-            x: lGridPosition.x,
-            y: lGridPosition.y,
-
-            // Let the auto min size do the work.
-            height: 0,
-            width: 0
-        });
-
-        // Connect ports to conjunction.
-        this.mManager.graph.mergeConnectPorts([...lConjunctionNode.inputs.list, ...lConjunctionNode.outputs.list], lConnectableDraggedPorts);
+        this.openPopupAtPosition(pEvent.clientX, pEvent.clientY, lDragginPorts[0]);
     }
 
     /**
@@ -507,7 +458,7 @@ export class PotatnoNodeGraphComponent implements IComponentOnDeconstruct {
 
             // Right click.
             case 2: {
-                this.openNodeSelectionPopupAtPointer(pEvent.clientX, pEvent.clientY);
+                this.openPopupAtPosition(pEvent.clientX, pEvent.clientY, null);
                 return;
             }
         }
@@ -535,7 +486,7 @@ export class PotatnoNodeGraphComponent implements IComponentOnDeconstruct {
      * @param pClientX - Viewport X coordinate.
      * @param pClientY - Viewport Y coordinate.
      */
-    private openNodeSelectionPopupAtPointer(pClientX: number, pClientY: number): void {
+    private openPopupAtPosition(pClientX: number, pClientY: number, pPortContext: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null): void {
         const lWrapper: HTMLElement = this.mComponent.element;
 
         // Convert pointer position into local (component space) and grid space.
@@ -558,7 +509,7 @@ export class PotatnoNodeGraphComponent implements IComponentOnDeconstruct {
                 grid: lGridPosition
             },
             context: {
-                port: null
+                port: pPortContext
             }
         };
     }

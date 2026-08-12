@@ -1,4 +1,3 @@
-import { Exception } from '@kartoffelgames/core';
 import { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoDocumentNode, PotatnoDocumentNodeTransformation } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
@@ -140,30 +139,8 @@ export class PotatnoUiManagerGraph {
             return;
         }
 
-        // Get position of the first source ports node. Port position should allways be the same for all dragged ports.
-        const lSourceNodePosition: PotatnoUiManagerGridCoordinate = this.mManager.connections.getPortGridPoint(pSourcePorts[0]);
-        const lTargetPortPosition: PotatnoUiManagerGridCoordinate = this.mManager.connections.getPortGridPoint(pTargetPorts[0]);
-
-        const lPriorityDraggedPorts = pTargetPorts.sort((pPortA, pPortB) => {
-            // Always prioritize unconnected ports over connected ones.
-            const lUnconnectedA: boolean = pPortA.connectedPorts.size === 0;
-            const lUnconnectedB: boolean = pPortB.connectedPorts.size === 0;
-            if (lUnconnectedA !== lUnconnectedB) {
-                return lUnconnectedA ? -1 : 1;
-            }
-
-            // Same connection state, prioritize by position.
-            // Target port right of source port prioritizes input ports, otherwise output ports.
-            const lPreferredDirection: PotatnoPortDefinitionDirection = lTargetPortPosition.x > lSourceNodePosition.x ? 'input' : 'output';
-
-            const lPreferredA: boolean = pPortA.direction === lPreferredDirection;
-            const lPreferredB: boolean = pPortB.direction === lPreferredDirection;
-            if (lPreferredA !== lPreferredB) {
-                return lPreferredA ? -1 : 1;
-            }
-
-            return 0;
-        });
+        const lSourcePortPosition: PotatnoUiManagerGridCoordinate = this.mManager.connections.getPortGridPoint(pSourcePorts[0]);
+        const lPriorityDraggedPorts = this.priorizePorts(lSourcePortPosition, pTargetPorts);
 
         // Throw each target port against its matching source port. Invalid connections simply return false.
         for (const lTargetPort of lPriorityDraggedPorts) {
@@ -174,6 +151,45 @@ export class PotatnoUiManagerGraph {
                 }
             }
         }
+    }
+
+    /**
+     * Order target ports based on the relative position to the source, their input type and connection state.
+     * 
+     * @param pSourcePosition - Source port.
+     * @param pTargetPorts - Target ports.
+     * 
+     * @returns ordered port list by priority. 
+     */
+    public priorizePorts(pSourcePosition: PotatnoUiManagerGridCoordinate, pTargetPorts: Array<PotatnoDocumentPort<PotatnoProjectTypesDefinition>>): Array<PotatnoDocumentPort<PotatnoProjectTypesDefinition>> {
+        // Skip when nothing can be priorized.
+        if (pTargetPorts.length === 0) {
+            return new Array<PotatnoDocumentPort<PotatnoProjectTypesDefinition>>();
+        }
+
+        // Get position of the first source ports node. Port position should allways be the same for all dragged ports.
+        const lTargetPortPosition: PotatnoUiManagerGridCoordinate = this.mManager.connections.getPortGridPoint(pTargetPorts[0]);
+
+        return pTargetPorts.toSorted((pPortA, pPortB) => {
+            // Always prioritize unconnected ports over connected ones.
+            const lUnconnectedA: boolean = pPortA.connectedPorts.size === 0;
+            const lUnconnectedB: boolean = pPortB.connectedPorts.size === 0;
+            if (lUnconnectedA !== lUnconnectedB) {
+                return lUnconnectedA ? -1 : 1;
+            }
+
+            // Same connection state, prioritize by position.
+            // Target port right of source port prioritizes input ports, otherwise output ports.
+            const lPreferredDirection: PotatnoPortDefinitionDirection = lTargetPortPosition.x > pSourcePosition.x ? 'input' : 'output';
+
+            const lPreferredA: boolean = pPortA.direction === lPreferredDirection;
+            const lPreferredB: boolean = pPortB.direction === lPreferredDirection;
+            if (lPreferredA !== lPreferredB) {
+                return lPreferredA ? -1 : 1;
+            }
+
+            return 0;
+        });
     }
 
     /**

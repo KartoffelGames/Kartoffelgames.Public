@@ -92,60 +92,6 @@ export class PotatnoUiManagerGraph {
     }
 
     /**
-     * Special function to connect to conjunction nodes as they act like a single port instead of two (input and output).
-     * Handles prioirity for connecting the right port when multiple are dragged.
-     * 
-     * @param pConjunction - Conjunction node.
-     * @param pPorts - Ports that should be connected.
-     */
-    public connectConjunction(pConjunction: PotatnoDocumentNode<PotatnoProjectTypesDefinition>, pPorts: Array<PotatnoDocumentPort<PotatnoProjectTypesDefinition>>): void {
-        // Get position of this node and the first port position. Port position should allways be the same for all dragged ports.
-        const lNodePosition: Readonly<PotatnoDocumentNodeTransformation> = pConjunction.transformation;
-        const lPortPosition: PotatnoUiManagerGridCoordinate = this.mManager.grid.draggedPort.portPositions.get(this.mManager.grid.draggedPort.ports[0])!;
-
-        const lPriorityDraggedPorts = pPorts.sort((pPortA, pPortB) => {
-            // Always prioritize unconnected ports over connected ones.
-            const lUnconnectedA: boolean = pPortA.connectedPorts.size === 0;
-            const lUnconnectedB: boolean = pPortB.connectedPorts.size === 0;
-            if (lUnconnectedA !== lUnconnectedB) {
-                return lUnconnectedA ? -1 : 1;
-            }
-
-            // Same connection state, prioritize by position.
-            // Dragged port right of this node prioritizes input ports, otherwise output ports.
-            const lPreferredDirection: PotatnoPortDefinitionDirection = lPortPosition.x > lNodePosition.x ? 'input' : 'output';
-
-            const lPreferredA: boolean = pPortA.direction === lPreferredDirection;
-            const lPreferredB: boolean = pPortB.direction === lPreferredDirection;
-            if (lPreferredA !== lPreferredB) {
-                return lPreferredA ? -1 : 1;
-            }
-
-            return 0;
-        });
-
-        // Guard malformed conjunction nodes.
-        if (pConjunction.inputs.list.length === 0 || pConjunction.outputs.list.length === 0) {
-            throw new Exception('Malformed conjunction node', this);
-        }
-
-        // Get input and output of conjunction.
-        const lInputPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> = pConjunction.inputs.list[0];
-        const lOutputPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> = pConjunction.outputs.list[0];
-
-        // Throw each dragged port against its matching inner port. Invalid connections simply return false.
-        for (const lDraggedPort of lPriorityDraggedPorts) {
-            // Try to connect both ports, input and output.
-            if (this.connectPorts(lDraggedPort, lInputPort)) {
-                return;
-            }
-            if (this.connectPorts(lDraggedPort, lOutputPort)) {
-                return;
-            }
-        }
-    }
-
-    /**
      * Connect two ports and rebuild dependent state.
      *
      * @param pSource - One side of the connection.
@@ -179,6 +125,55 @@ export class PotatnoUiManagerGraph {
         // Dispatch for from-node as well as to-node.
         this.mManager.dispatch(PotatnoCodeUiManagerChangeType.ConnectionDelete, pSource);
         this.mManager.dispatch(PotatnoCodeUiManagerChangeType.ConnectionDelete, pTarget);
+    }
+
+    /**
+     * Handles when multiple source and target ports should be connected.
+     * Connects the target port with the highest priority based on the provided source ports.
+     * 
+     * @param pSourcePorts - List if source ports.
+     * @param pTargetPorts - List if target ports.
+     */
+    public mergeConnectPorts(pSourcePorts: Array<PotatnoDocumentPort<PotatnoProjectTypesDefinition>>, pTargetPorts: Array<PotatnoDocumentPort<PotatnoProjectTypesDefinition>>): void {
+        // Skip when nothing can be connected.
+        if (pSourcePorts.length === 0 || pTargetPorts.length === 0) {
+            return;
+        }
+
+        // Get position of the first source ports node. Port position should allways be the same for all dragged ports.
+        const lSourceNodePosition: PotatnoUiManagerGridCoordinate = this.mManager.connections.getPortGridPoint(pSourcePorts[0]);
+        const lTargetPortPosition: PotatnoUiManagerGridCoordinate = this.mManager.connections.getPortGridPoint(pTargetPorts[0]);
+
+        const lPriorityDraggedPorts = pTargetPorts.sort((pPortA, pPortB) => {
+            // Always prioritize unconnected ports over connected ones.
+            const lUnconnectedA: boolean = pPortA.connectedPorts.size === 0;
+            const lUnconnectedB: boolean = pPortB.connectedPorts.size === 0;
+            if (lUnconnectedA !== lUnconnectedB) {
+                return lUnconnectedA ? -1 : 1;
+            }
+
+            // Same connection state, prioritize by position.
+            // Target port right of source port prioritizes input ports, otherwise output ports.
+            const lPreferredDirection: PotatnoPortDefinitionDirection = lTargetPortPosition.x > lSourceNodePosition.x ? 'input' : 'output';
+
+            const lPreferredA: boolean = pPortA.direction === lPreferredDirection;
+            const lPreferredB: boolean = pPortB.direction === lPreferredDirection;
+            if (lPreferredA !== lPreferredB) {
+                return lPreferredA ? -1 : 1;
+            }
+
+            return 0;
+        });
+
+        // Throw each target port against its matching source port. Invalid connections simply return false.
+        for (const lTargetPort of lPriorityDraggedPorts) {
+            for (const lSourcePort of pSourcePorts) {
+                // Try to connect, when it was successful skip connection cycle.
+                if (this.connectPorts(lTargetPort, lSourcePort)) {
+                    return;
+                }
+            }
+        }
     }
 
     /**

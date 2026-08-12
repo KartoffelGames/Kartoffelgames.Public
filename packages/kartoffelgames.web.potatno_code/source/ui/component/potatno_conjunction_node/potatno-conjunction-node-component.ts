@@ -360,7 +360,7 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
         }
 
         // Connect ports to conjunction.
-        this.mManager.graph.connectConjunction(this.nodeData, this.mManager.grid.draggedPort.ports);
+        this.mManager.graph.mergeConnectPorts([...this.nodeData.inputs.list, ...this.nodeData.outputs.list], this.mManager.grid.draggedPort.ports);
     }
 
     /**

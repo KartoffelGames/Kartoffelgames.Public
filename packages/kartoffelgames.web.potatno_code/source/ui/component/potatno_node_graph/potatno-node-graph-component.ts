@@ -325,6 +325,14 @@ export class PotatnoNodeGraphComponent implements IComponentOnDeconstruct {
         pEvent.preventDefault();
         pEvent.stopPropagation();
 
+        const lDragginPorts: Array<PotatnoDocumentPort<PotatnoProjectTypesDefinition>> = this.mManager.grid.draggedPort.ports;
+
+        this.openNodeSelectionPopupAtPointer(pEvent.clientX, pEvent.clientY);
+
+
+
+
+
         // Filter dragged ports.
         const lConnectableDraggedPorts: Array<PotatnoDocumentPort<PotatnoProjectTypesDefinition>> = this.mManager.grid.draggedPort.ports.filter((pDraggedPort) => {
             // When flow output ports are connected. Skip it.
@@ -370,7 +378,7 @@ export class PotatnoNodeGraphComponent implements IComponentOnDeconstruct {
         });
 
         // Connect ports to conjunction.
-        this.mManager.graph.connectConjunction(lConjunctionNode, lConnectableDraggedPorts);
+        this.mManager.graph.mergeConnectPorts([...lConjunctionNode.inputs.list, ...lConjunctionNode.outputs.list], lConnectableDraggedPorts);
     }
 
     /**

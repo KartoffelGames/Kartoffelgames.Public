@@ -10,13 +10,7 @@
     "exports": {
         ".": "./source/index.ts"
     },
-    "publish": {
-        "include": [
-            "source/",
-            "deno.json",
-            "LICENSE"
-        ]
-    },
+    "publish": false,
     "kg": {
         "name": "Kartoffelgames.Core.Test",
         "config": {

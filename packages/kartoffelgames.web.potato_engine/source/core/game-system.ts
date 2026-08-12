@@ -2,6 +2,21 @@ import { Exception } from '@kartoffelgames/core';
 import type { GameComponentConstructor } from './component/game-component.ts';
 import type { GameEnvironment, GameEnvironmentStateChange } from './environment/game-environment.ts';
 
+// TODO: Add a typed setting object to each system. The user can setup a system for example a AO system.
+//       { AoMethod: 'SSAO' | 'HBAO' | 'SAO' }
+//       Depending on that the system renders something different.
+//       Other systems can request that resource, depending on if it requested by anything, it can be skipped.
+//       That enables a render graph and dependency tree.
+
+// TODO: A system should hardcoded state which resources are exposed and a condition for wich setting must be set and have which values.
+//       Find a way to support numbers as well. Maybe a more general solution with states like "equal", "greaterThan"...
+//       { AoTexture: condition: { AoMethod: ['SSAO', 'HBAO', 'SAO'] } }
+
+// TODO: Find a way to use systems that support running on the same render pass. For a post pass its not necessary to open a new pass for every post stage (AO, Blur, TAA...)
+//       That might be feasible with "subsystems": A system can accept subsystems that require some parameter to run (maybe the current pass, a texture or whatever).
+//       So a subsystem must match some pattern. A subsystem lives inside a system and can not export resources to other system except the parent system.
+//       A subsystem is append the same way as a normal system but is assigned on setup time.
+
 /**
  * Base class for all systems in the environment.
  * Systems are responsible for processing game logic based on the state of components in the environment.

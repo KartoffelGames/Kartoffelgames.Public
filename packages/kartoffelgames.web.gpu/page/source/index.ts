@@ -123,9 +123,9 @@ const gGenerateCubeStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pWorl
     lImageTexture.mipCount = 20;
     (async () => {
         const lSourceList: Array<string> = [
-            '/source/game_objects/cube/texture_one/cube-texture.png',
-            '/source/game_objects/cube/texture_two/cube-texture.png',
-            '/source/game_objects/cube/texture_three/cube-texture.png'
+            './source/game_objects/cube/texture_one/cube-texture.png',
+            './source/game_objects/cube/texture_two/cube-texture.png',
+            './source/game_objects/cube/texture_three/cube-texture.png'
         ];
 
         let lHeight: number = 0;
@@ -430,12 +430,12 @@ const gGenerateSkyboxStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pWo
     lImageTexture.depth = 6;
     (async () => {
         const lSourceList: Array<string> = [
-            '/source/game_objects/skybox/right.jpg',
-            '/source/game_objects/skybox/left.jpg',
-            '/source/game_objects/skybox/top.jpg',
-            '/source/game_objects/skybox/bottom.jpg',
-            '/source/game_objects/skybox/front.jpg',
-            '/source/game_objects/skybox/back.jpg'
+            './source/game_objects/skybox/right.jpg',
+            './source/game_objects/skybox/left.jpg',
+            './source/game_objects/skybox/top.jpg',
+            './source/game_objects/skybox/bottom.jpg',
+            './source/game_objects/skybox/front.jpg',
+            './source/game_objects/skybox/back.jpg'
         ];
 
         let lHeight: number = 0;
@@ -556,7 +556,7 @@ const gGenerateVideoCanvasStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets
     lVideo.preload = 'auto';
     lVideo.loop = true;
     lVideo.muted = true; // Allways muted.
-    lVideo.src = '/source/game_objects/video_canvas/earth.mp4';
+    lVideo.src = './source/game_objects/video_canvas/earth.mp4';
     lVideo.addEventListener('resize', () => {
         lVideoTexture.height = Math.max(lVideo.videoHeight, 1);
         lVideoTexture.width = Math.max(lVideo.videoWidth, 1);
@@ -671,7 +671,7 @@ const gGenerateParticleStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, p
     lImageTexture.depth = 6;
     (async () => {
         const lSourceList: Array<string> = [
-            '/source/game_objects/leaf_particle/leaf.png'
+            './source/game_objects/leaf_particle/leaf.png'
         ];
 
         let lHeight: number = 0;

@@ -101,7 +101,7 @@ export const InitCameraControls = (pCanvas: HTMLCanvasElement, pCamera: ViewProj
         lMouseMoveTimeout = setTimeout(() => {
             lCurrentActionValue.set('Yaw', 0);
             lCurrentActionValue.set('Pitch', 0);
-        }, 16); // ~1 frame at 60fps
+        }, 16) as unknown as number; // ~1 frame at 60fps
     });
 
     pCanvas.addEventListener('click', () => {

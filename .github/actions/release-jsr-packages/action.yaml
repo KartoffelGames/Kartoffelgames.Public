@@ -20,9 +20,9 @@ runs:
       run: deno install
       shell: bash
 
-    # Bundle packages.
+    # Build packages.
     - name: Build
-      run: deno task kg bundle --all
+      run: deno task kg build --all
       shell: bash
 
     # Release Public Packages

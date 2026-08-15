@@ -21,27 +21,27 @@
         "name": "Kartoffelgames.Web.Potato_Engine",
         "config": {
             "package-blueprint": "kg-main",
-            "bundle": {
-                "enabled": false,
-                "bundleSettingsFile": "../../bundle-environment/bundle-settings.ts"
+            "build": {
+                "files": {
+                    "./page/source/index.ts": {
+                        "type": "page",
+                        "output": "./page/bundle/page.js"
+                    }
+                }
             },
             "scratchpad": {
-                "bundleSettingsFile": "../../bundle-environment/bundle-settings.ts",
-                "mainBundleRequired": false,
+                "directory": "./scratchpad",
+                "mimeTypeMapping": {},
+                "build": false,
                 "port": 8088
             },
             "page": {
-                "enabled": true,
-                "bundleSettingsFile": "../../bundle-environment/bundle-settings.ts",
-                "mainBundleRequired": false,
+                "directory": "./page",
+                "mimeTypeMapping": {},
                 "port": 8088
             },
             "test": {
                 "directory": "./test"
-            },
-            "transform": {
-                "enableNode": false,
-                "nodeDirectory": "./node"
             }
         },
         "source": "./source"

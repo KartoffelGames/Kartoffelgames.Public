@@ -11,8 +11,8 @@ import { MeshSystem } from './mesh-system.ts';
 import { TextureSystem } from './texture-system.ts';
 
 // PGSL shader sources.
-import coreParameterShader from '../shader/core/core-parameter.pgsl';
-import coreTemplateShader from '../shader/core/core-template.pgsl';
+import coreParameterShader from '../shader/core/core-parameter.pgsl' with { type: 'text' };
+import coreTemplateShader from '../shader/core/core-template.pgsl' with { type: 'text' };
 
 /**
  * Material system that manages PGSL shader compilation, per-render-mode bind group layouts,

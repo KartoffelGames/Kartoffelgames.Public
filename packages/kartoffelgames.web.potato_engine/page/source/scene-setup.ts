@@ -13,7 +13,7 @@ import { Mesh } from '../../source/component_item/mesh.ts';
 import { Shader } from '../../source/component_item/shader.ts';
 import { Texture } from '../../source/component_item/texture.ts';
 import { GameObject } from '../../source/core/hierarchy/game-object.ts';
-import { default as defaultPbrShader } from '../../source/shader/default-pbr-shader.pgsl';
+import defaultPbrShader from '../../source/shader/default-pbr-shader.pgsl' with { type: 'text' };
 
 /**
  * Central place for scene content creation.

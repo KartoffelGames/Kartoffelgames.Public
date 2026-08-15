@@ -6,7 +6,7 @@ import { Mesh } from '../../source/component_item/mesh.ts';
 import { Shader } from '../../source/component_item/shader.ts';
 import { Texture } from '../../source/component_item/texture.ts';
 import { GameObject } from '../../source/core/hierarchy/game-object.ts';
-import defaultPbrShader from '../../source/shader/default-pbr-shader.pgsl';
+import defaultPbrShader from '../../source/shader/default-pbr-shader.pgsl' with { type: 'text' };
 
 // GLB format constants.
 const gGlbMagic: number = 0x46546C67;

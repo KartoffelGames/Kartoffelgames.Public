@@ -20,8 +20,8 @@ PGSL Source --> Preprocessor --> AST --> Validation --> Transpilation --> WGSL O
 ## Usage
 
 ```typescript
-import { PgslParser } from '@kartoffelgames/core.pgsl';
-import { WgslTranspiler } from '@kartoffelgames/core.pgsl';
+import { PgslParser } from '@kartoffelgames/core-pgsl';
+import { WgslTranspiler } from '@kartoffelgames/core-pgsl';
 
 const parser = new PgslParser();
 

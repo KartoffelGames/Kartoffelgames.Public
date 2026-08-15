@@ -28,11 +28,11 @@ runs:
     # Release Public Packages
     - name: Release
       if: ${{ inputs.dry-run == 'false' }}
-      run: deno publish
+      run: deno publish --allow-dirty
       shell: bash
       
     # Release Public Packages on dry run
     - name: Release dry run
       if: ${{ inputs.dry-run == 'true' }}
-      run: deno publish --dry-run
+      run: deno publish --allow-dirty --dry-run
       shell: bash

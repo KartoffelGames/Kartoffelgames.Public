@@ -26,6 +26,21 @@
                     "./page/source/index.ts": {
                         "type": "page",
                         "output": "./page/bundle/page.js"
+                    },
+                    "./client/client.ts": {
+                        "type": "desktop",
+                        "name": "Potatno Code",
+                        "identifier": "com.kartoffelgames.potatno-code",
+                        "backend": "webview",
+                        "output": {
+                            "x86_64-pc-windows-msvc": { "directory": "./dist/windows/PotatnoCode", "extension": "raw" },
+                            "aarch64-apple-darwin": { "directory": "./dist/macos-arm/PotatnoCode", "extension": "app" },
+                            "x86_64-apple-darwin": { "directory": "./dist/macos-intel/PotatnoCode", "extension": "app" },
+                            "x86_64-unknown-linux-gnu": { "directory": "./dist/linux/PotatnoCode", "extension": "raw" }
+                        },
+                        "include": [
+                            { "directory": "./page", "filter": ["**/*.html", "**/*.css", "**/*.js"] }
+                        ]
                     }
                 }
             },

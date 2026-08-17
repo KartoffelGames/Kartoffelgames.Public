@@ -4,12 +4,11 @@ import type { PotatnoDocumentNode } from '../../../document/potatno-document-nod
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import { PotatnoCommentNodeDefinition } from '../../../project/node_definition/potatno-comment-node-definition.ts';
 import { PotatnoFlowConjunctionNodeDefinition } from '../../../project/node_definition/potatno-flow-conjunction-node-definition.ts';
-import type { PotatnoNodeDefinition } from '../../../project/node_definition/potatno-node-definition.ts';
 import { PotatnoValueConjunctionNodeDefinition } from '../../../project/node_definition/potatno-value-conjunction-node-definition.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import type { PotatnoUiManagerGridCoordinate, PotatnoUiManagerGridPixelCoordinate } from '../../manager/manager_component/potatno-ui-manager-grid.ts';
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, type PotatnoCodeUiManagerUnsubscribe } from '../../manager/potatno-ui-manager.ts';
-import { PotatnoNodeSelectionPopupComponent } from '../potatno-node-selection-popup/potatno-node-selection-popup-component.ts';
+import { PotatnoNodeSelectionPopupComponent, type PotatnoNodeSelectionPopupComponentNodeSelection } from '../potatno-node-selection-popup/potatno-node-selection-popup-component.ts';
 import { PotatnoCommentNodeComponent } from '../potatno_comment-node/potatno-comment-node-component.ts';
 import { PotatnoConjunctionNodeComponent } from '../potatno_conjunction_node/potatno-conjunction-node-component.ts';
 import { PotatnoConnectionLayerComponent } from '../potatno_connection_layer/potatno-connection-layer-component.ts';
@@ -155,9 +154,9 @@ export class PotatnoNodeGraphComponent implements IComponentOnDeconstruct {
      *
      * @param pEvent - Component event carrying the selected node definition.
      */
-    public createNode(pDefinition: PotatnoNodeDefinition<PotatnoProjectTypesDefinition>): void {
+    public createNode(pNodeSelection: PotatnoNodeSelectionPopupComponentNodeSelection): void {
         // Create new on the popups grid position.
-        const lNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition> = this.mManager.graph.addNode(this.mManager.activeFunction, pDefinition, {
+        const lNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition> = this.mManager.graph.addNode(this.mManager.activeFunction, pNodeSelection.definition, {
             x: this.popup?.position.grid.x ?? 0,
             y: this.popup?.position.grid.y ?? 0,
 
@@ -165,6 +164,15 @@ export class PotatnoNodeGraphComponent implements IComponentOnDeconstruct {
             height: 0,
             width: 0
         });
+
+        // When it has a port context, try to connect the two ports.
+        if (pNodeSelection.port) {
+            // Try to find matching new port for connection. 
+            const lFoundNewPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | undefined = lNode.inputs.map.get(pNodeSelection.port.target.id) ?? lNode.outputs.map.get(pNodeSelection.port.target.id);
+            if(lFoundNewPort){
+                this.mManager.graph.connectPorts(lFoundNewPort, pNodeSelection.port.source);
+            }
+        }
 
         // Close popup after popup position information was used.
         this.popup = null;

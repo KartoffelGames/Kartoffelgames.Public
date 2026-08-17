@@ -1,7 +1,10 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { KgPopupComponent } from '@kartoffelgames/web-components';
 import { Component, ComponentState, PwbChild, PwbComponent, PwbComponentEvent, type ComponentEventEmitter, type IComponentOnConnect, type IComponentOnUpdate } from '@kartoffelgames/web-potato-web-builder';
+import { PwbExport } from '../../../../../kartoffelgames.web.potato_web_builder/source/module/export/pwb-export.decorator.ts';
+import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import type { PotatnoNodeDefinition } from '../../../project/node_definition/potatno-node-definition.ts';
+import type { PotatnoPortDefinition } from '../../../project/potatno-port-definition.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import { PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
 import addNodePopupCss from './potatno-node-selection-popup-component.css' with { type: 'text' };
@@ -21,9 +24,22 @@ export class PotatnoNodeSelectionPopupComponent implements IComponentOnConnect, 
     public static readonly POPUP_HEIGHT: number = 320;
     public static readonly POPUP_WIDTH: number = 280;
 
-    private readonly mAvailableEntries: Array<PotatnoNodeSelectionPopupComponentEntry>;
     private readonly mComponent: Component;
     private readonly mManager: PotatnoUiManager;
+    private readonly mNodes: PotatnoNodeSelectionPopupComponentNodes;
+
+    /**
+     * Port context the current list is filted for.
+     * All nodes in the filted node list can connect to this port.
+     */
+    @PwbExport
+    public get contextport(): PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null {
+        return this.mNodes.context;
+    } set contextport(pContext: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null) {
+        this.mNodes.context = pContext;
+
+        this.mNodes.list.filtered = this.contexturizeNodeList(this.mNodes.context);
+    }
 
     /**
      * Filtered result entries shown in the list.
@@ -41,7 +57,7 @@ export class PotatnoNodeSelectionPopupComponent implements IComponentOnConnect, 
      * Emitted with the definition the user picked, for the host to insert.
      */
     @PwbComponentEvent('node-select')
-    private accessor mNodeSelect!: ComponentEventEmitter<PotatnoNodeDefinition<PotatnoProjectTypesDefinition>>;
+    private accessor mNodeSelect!: ComponentEventEmitter<PotatnoNodeSelectionPopupComponentNodeSelection>;
 
     /**
      * Current search field text.
@@ -64,10 +80,19 @@ export class PotatnoNodeSelectionPopupComponent implements IComponentOnConnect, 
         this.mManager = pManager;
         this.mComponent = pComponent;
 
-        this.mAvailableEntries = this.fetchNodeEntries();
         this.selectedDefinitionId = null;
         this.results = new Array<PotatnoNodeSelectionPopupComponentEntry>();
         this.searchValue = '';
+
+        // Load available node list.
+        const lFullNodeList: Array<PotatnoNodeSelectionPopupComponentEntry> = this.fetchNodeEntries();
+        this.mNodes = {
+            context: null,
+            list: {
+                full: lFullNodeList,
+                filtered: lFullNodeList
+            }
+        };
     }
 
     /**
@@ -151,6 +176,25 @@ export class PotatnoNodeSelectionPopupComponent implements IComponentOnConnect, 
     }
 
     /**
+     * Load a contexturized list based on the set context port.
+     * 
+     * @param pPortContext - Context port.
+     * 
+     * @returns filtered list based on context port. 
+     */
+    private contexturizeNodeList(pPortContext: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null): Array<PotatnoNodeSelectionPopupComponentEntry> {
+        // There is nothing to filter for, just use the full list.
+        if (!pPortContext) {
+            return this.mNodes.list.full;
+        }
+
+        // Filter entry list by searchterm.
+        return this.mNodes.list.full.filter((pEntry: PotatnoNodeSelectionPopupComponentEntry) => {
+            return !!this.findMatchingPortDefinition(pPortContext, pEntry.definition);
+        });
+    }
+
+    /**
      * Fetch all selectable node definition entries.
      * 
      * @returns list of active and selectable node defintion entries.
@@ -175,9 +219,43 @@ export class PotatnoNodeSelectionPopupComponent implements IComponentOnConnect, 
         const lSearchTerm: string = this.searchValue.trim().toLowerCase();
 
         // Filter entry list by searchterm.
-        return this.mAvailableEntries.filter((pEntry: PotatnoNodeSelectionPopupComponentEntry) => {
+        return this.mNodes.list.filtered.filter((pEntry: PotatnoNodeSelectionPopupComponentEntry) => {
             return pEntry.label.includes(lSearchTerm);
         });
+    }
+
+    /**
+     * Find the first matching port of a target node for a source port.
+     * 
+     * @param pSourcePort - Source port. 
+     * @param pTargetNode - Target node.
+     * 
+     * @returns - The port definition of target node for a matching source port or null when nothing was found. 
+     */
+    private findMatchingPortDefinition(pSourcePort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pTargetNode: PotatnoNodeDefinition<PotatnoProjectTypesDefinition>): PotatnoPortDefinition<PotatnoProjectTypesDefinition> | null {
+        // Get ports definition for the opposite direction.
+        const lPortDefinitionList: ReadonlyArray<PotatnoPortDefinition<PotatnoProjectTypesDefinition>> = (() => {
+            if (pSourcePort.direction === 'input') {
+                return pTargetNode.outputs;
+            }
+
+            return pTargetNode.inputs;
+        })();
+
+        // Filter for each type or value type.
+        for (const lPortDefinition of lPortDefinitionList) {
+            if (lPortDefinition.portType !== pSourcePort.portType) {
+                continue;
+            }
+
+            if (lPortDefinition.dataType !== pSourcePort.dataType) {
+                continue;
+            }
+
+            return lPortDefinition;
+        }
+
+        return null;
     }
 
     /**
@@ -201,7 +279,20 @@ export class PotatnoNodeSelectionPopupComponent implements IComponentOnConnect, 
             return;
         }
 
-        this.mNodeSelect.dispatchEvent(lEntry.definition);
+        this.mNodeSelect.dispatchEvent({
+            definition: lEntry.definition,
+            port: (() => {
+                // Nothing to filter.
+                if (!this.mNodes.context) {
+                    return null;
+                }
+
+                return {
+                    source: this.mNodes.context,
+                    target: this.findMatchingPortDefinition(this.mNodes.context, lEntry.definition)!
+                };
+            })()
+        });
     }
 }
 
@@ -214,4 +305,20 @@ type PotatnoNodeSelectionPopupComponentEntry = {
     definition: PotatnoNodeDefinition<PotatnoProjectTypesDefinition>;
     label: string;
     icon: string;
+};
+
+type PotatnoNodeSelectionPopupComponentNodes = {
+    list: {
+        full: Array<PotatnoNodeSelectionPopupComponentEntry>;
+        filtered: Array<PotatnoNodeSelectionPopupComponentEntry>;
+    },
+    context: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null;
+};
+
+export type PotatnoNodeSelectionPopupComponentNodeSelection = {
+    definition: PotatnoNodeDefinition<PotatnoProjectTypesDefinition>;
+    port: null | {
+        source: PotatnoDocumentPort<PotatnoProjectTypesDefinition>;
+        target: PotatnoPortDefinition<PotatnoProjectTypesDefinition>;
+    };
 };

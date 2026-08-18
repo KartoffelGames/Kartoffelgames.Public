@@ -73,7 +73,7 @@ export class ExportExtension {
                 Reflect.set(this.mComponent.processor, lExportedPropertyName, pValue);
 
                 // Also update the attribute with the original attribute function.
-                pAttributeAccessor.setAttribute(lExportAttributeName, pValue.toString());
+                pAttributeAccessor.setAttribute(lExportAttributeName, pValue);
             };
             lDescriptor.get = () => {
                 let lValue: any = Reflect.get(this.mComponent.processor, lExportedPropertyName);
@@ -98,8 +98,9 @@ export class ExportExtension {
     private patchHtmlAttributes(pExportedProperties: Map<string, string>): ExportExtensionOriginals {
         const lElement: HTMLElement = this.mComponent.element;
 
-        // Save values set directly by "setAttribute" so they are not retriggered by the observer.
-        const lAppliedAttributes: Map<string, string> = new Map<string, string>();
+        // Attributes mutated by our own setAttribute calls. The observer skips their records and resets this set
+        // after each run, so only external changes are reflected back into the processor.
+        const lSelfMutatedAttributes: Set<string> = new Set<string>();
 
         // Save original attribute accessors.
         const lAttributeAccessor: ExportExtensionOriginals = (() => {
@@ -110,16 +111,22 @@ export class ExportExtension {
                 getAttribute: (pQualifiedName: string): string | null => {
                     return lOriginalGetAttribute.call(lElement, pQualifiedName);
                 },
-                setAttribute: (pQualifiedName: string, pValue: string): void => {
-                    lOriginalSetAttribute.call(lElement, pQualifiedName, pValue);
+                setAttribute: (pQualifiedName: string, pValue: unknown): void => {
+                    // Read the value before the change so we can tell if a mutation record will actually be queued.
+                    const lOldValue: string | null = lOriginalGetAttribute.call(lElement, pQualifiedName);
+                    const lNewValue: string = pValue?.toString() ?? '';
+
+                    lOriginalSetAttribute.call(lElement, pQualifiedName, lNewValue);
 
                     // Non exported attributes skip reflection calls.
                     if (!pExportedProperties.has(pQualifiedName)) {
                         return;
                     }
 
-                    // Mark the upcoming mutation record so the observer does not apply it a second time.
-                    lAppliedAttributes.set(pQualifiedName, pValue.toString());
+                    // The observer does not trigger when the actual value does not change.
+                    if (lOldValue !== lNewValue) {
+                        lSelfMutatedAttributes.add(pQualifiedName);
+                    }
                 }
             };
         })();
@@ -141,16 +148,17 @@ export class ExportExtension {
             for (const lMutation of pMutationList) {
                 const lAttributeName: string = lMutation.attributeName!;
 
-                // Read current value.
-                const lAttributeValue: string | null = lAttributeAccessor.getAttribute(lAttributeName);
-
-                // Skip mutations when the value is already set as a applied value.
-                if (lAppliedAttributes.get(lAttributeName) === lAttributeValue) {
+                // Skip records caused by our own setAttribute calls, so they are not reset back.
+                if (lSelfMutatedAttributes.has(lAttributeName)) {
                     continue;
                 }
 
-                lApplyAttribute(lAttributeName, lMutation.oldValue, lAttributeValue);
+                // External change. Reflect the current attribute value into the processor.
+                lApplyAttribute(lAttributeName, lMutation.oldValue, lAttributeAccessor.getAttribute(lAttributeName));
             }
+
+            // Reset self mutation markers after all attributes are processed.
+            lSelfMutatedAttributes.clear();
         });
         lMutationObserver.observe(lElement, { attributeFilter: [...pExportedProperties.keys()], attributeOldValue: true });
 
@@ -196,7 +204,7 @@ export class ExportExtension {
 
 type ExportExtensionOriginals = {
     getAttribute: (pQualifiedName: string) => string | null;
-    setAttribute: (pQualifiedName: string, pValue: string) => void;
+    setAttribute: (pQualifiedName: string, pValue: unknown) => void;
 };
 
 export type ExportExtensionAttribute = {

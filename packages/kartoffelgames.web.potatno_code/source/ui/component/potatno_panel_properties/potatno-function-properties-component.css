@@ -1,7 +1,6 @@
 :host {
     display: flex;
     flex-direction: column;
-    height: 100%;
     overflow: hidden;
 }
 
@@ -113,7 +112,7 @@
 
         /* Custom borders for animations*/
         border: 1px solid var(--potatno-color-border);
-        border-radius: 2px;
+        border-radius: var(--potatno-border-radius);
         outline: none;
         transition: border-color 0.15s;
 
@@ -140,7 +139,7 @@
 
         /* Custom borders for animations*/
         border: 1px solid var(--potatno-color-border);
-        border-radius: 2px;
+        border-radius: var(--potatno-border-radius);
         outline: none;
         transition: border-color 0.15s;
 

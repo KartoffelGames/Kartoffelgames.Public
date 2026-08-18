@@ -108,7 +108,7 @@
                 width: calc((var(--potatno-port-flow-size) / 3) * 2);
 
                 background-color: color-mix(in srgb, var(--potatno-port-handle-color) 30%, var(--potatno-color-background));
-                border-radius: 2px;
+                border-radius: var(--potatno-border-radius);
             }
 
             &.connected::before {

@@ -4,16 +4,44 @@
 }
 
 .editor {
+    --window-padding: 6px;
+
     position: relative;
     display: flex;
-    width: 100%;
-    height: 100%;
+    width: calc(100% - (var(--window-padding) * 2));
+    height: calc(100% - (var(--window-padding) * 2));
+    padding: var(--window-padding);
+
+    /* Global background color */
+    background-color: var(--potatno-color-background);
 
     .editor__center {
         position: relative;
         flex: 1;
         display: flex;
         flex-direction: column;
+
+        /* "Window" design */
+        margin: 0 calc(var(--window-padding) / 2) 0 calc(var(--window-padding) / 2);
+        border: 1px solid var(--potatno-color-border);
+        border-radius: var(--potatno-border-radius);
+        overflow: hidden;
+    }
+
+    potatno-function-list {
+        /* "Window" design */
+        margin: 0 calc(var(--window-padding) / 2) 0 0;
+        border: 1px solid var(--potatno-color-border);
+        border-radius: var(--potatno-border-radius);
+        overflow: hidden;
+    }
+
+    potatno-function-properties {
+        /* "Window" design */
+        margin: 0 0 0 calc(var(--window-padding) / 2);
+        border: 1px solid var(--potatno-color-border);
+        border-radius: var(--potatno-border-radius);
+        overflow: hidden;
     }
 
     .editor__preview {

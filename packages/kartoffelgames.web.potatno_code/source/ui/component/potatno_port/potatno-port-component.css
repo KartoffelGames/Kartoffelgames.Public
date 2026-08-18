@@ -83,7 +83,7 @@
         gap: 3px;
 
         border: 1px solid var(--potatno-port-color);
-        border-radius: 2px;
+        border-radius: var(--potatno-border-radius);
 
         background-color: color-mix(in srgb, var(--potatno-port-color) 12%, var(--potatno-color-background));
         white-space: nowrap;
@@ -100,7 +100,7 @@
         padding: 1px 3px;
         width: 40px;
         border: 1px solid color-mix(in srgb, var(--potatno-port-color) 35%, transparent);
-        border-radius: 2px;
+        border-radius: var(--potatno-border-radius);
         color: var(--potatno-color-text);
         background-color: color-mix(in srgb, var(--potatno-port-color) 8%, var(--potatno-color-background));
         box-sizing: border-box;
@@ -204,7 +204,7 @@
                     width: calc((var(--potatno-port-flow-size) / 3) * 2);
 
                     background-color: color-mix(in srgb, var(--potatno-port-handle-color) 30%, var(--potatno-color-background));
-                    border-radius: 2px;
+                    border-radius: var(--potatno-border-radius);
                 }
 
                 &.connected::before {

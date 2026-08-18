@@ -1,5 +1,4 @@
 :host {
-    --node-border-radius: 2px;
     --node-border-color: color-mix(in srgb, var(--potatno-color-text) 30%, var(--potatno-color-background));
     --node-comment-color: var(--potatno-color-accent);
 
@@ -68,7 +67,7 @@
     .edit & {
         background-color: var(--potatno-color-background-light);
         border: 1px solid var(--potatno-color-accent);
-        border-radius: 2px;
+        border-radius: var(--potatno-border-radius);
         margin: 2px 2px 0 2px;
     }
 

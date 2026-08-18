@@ -1,5 +1,4 @@
 :host {
-    --node-border-radius: 2px;
     --node-border-color: color-mix(in srgb, var(--potatno-color-text) 30%, var(--potatno-color-background));
     --node-preview-select-height: 24px;
 
@@ -18,7 +17,7 @@
     min-height: 100%;
     background-color: var(--potatno-color-background);
     border: 1px solid var(--node-border-color);
-    border-radius: var(--node-border-radius);
+    border-radius: var(--potatno-border-radius);
 
     overflow: visible;
     user-select: none;
@@ -44,6 +43,9 @@
     font-size: var(--potatno-font-size-small);
     border-bottom: 1px solid var(--potatno-color-border);
     cursor: grab;
+
+    /* Same border radius as node, because we cant set overflow hidden on parent. */
+    border-radius: var(--potatno-border-radius) var(--potatno-border-radius) 0 0;
 
     /* Adjust -2px because node itself has a top border of 1px and the header a border on bottom. */
     height: calc(var(--potatno-grid-size) - 2px);

@@ -19,8 +19,11 @@
     --grid-position-y: 0px;
     --grid-size: 0px;
 
+    --background-color-default: color-mix(in srgb, var(--potatno-color-text) 15%, transparent);
+    --background-color-accent: color-mix(in srgb, var(--potatno-color-accent) 22%, transparent);
+
     /* Background color only used in mask spaces */
-    background-color: color-mix(in srgb, var(--potatno-color-text) 15%, transparent);
+    background-image: linear-gradient(135deg, var(--background-color-accent) 10%, var(--background-color-default) 45%);
 
     /* Mask pattern that scales and positions with grid (size/position set dynamically). */
     mask-size: var(--grid-size) var(--grid-size);

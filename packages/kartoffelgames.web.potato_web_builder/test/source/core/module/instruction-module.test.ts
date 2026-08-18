@@ -107,7 +107,7 @@ Deno.test('PwbInstructionModule--Functionality: Element key - New key reference 
             template: `$newkeyelement`
         })
         class TestComponent {
-            @PwbExport
+            @PwbExport()
             @ComponentState.state()
             public accessor trigger: number = 0;
         }
@@ -169,7 +169,7 @@ Deno.test('PwbInstructionModule--Functionality: Element key - Null key keeps nod
             template: `$nokeyelement`
         })
         class TestComponent {
-            @PwbExport
+            @PwbExport()
             @ComponentState.state()
             public accessor trigger: number = 0;
         }

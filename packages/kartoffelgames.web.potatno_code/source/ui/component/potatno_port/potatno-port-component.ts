@@ -84,7 +84,7 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
     /**
      * The domain port object to render.
      */
-    @PwbExport
+    @PwbExport()
     public get port(): PotatnoDocumentPort<PotatnoProjectTypesDefinition> {
         if (!this.mPort) {
             throw new Exception('Port is not setup', this);

@@ -32,7 +32,7 @@ export class PotatnoNodeSelectionPopupComponent implements IComponentOnConnect, 
      * Port context the current list is filted for.
      * All nodes in the filted node list can connect to this port.
      */
-    @PwbExport
+    @PwbExport()
     public get contextport(): PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null {
         return this.mNodes.context;
     } set contextport(pContext: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null) {

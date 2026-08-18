@@ -48,7 +48,7 @@ Deno.test('ForInstruction--Functionality: Array', async (pContext) => {
             }`
         })
         class TestComponent {
-            @PwbExport
+            @PwbExport()
             @ComponentState.state({ proxy: true })
             public accessor list: Array<string> = ['One'];
         }
@@ -81,7 +81,7 @@ Deno.test('ForInstruction--Functionality: Array', async (pContext) => {
             }`
         })
         class TestComponent {
-            @PwbExport
+            @PwbExport()
             @ComponentState.state({ proxy: true })
             public accessor list: Array<string> = ['One', 'Two'];
         }
@@ -112,7 +112,7 @@ Deno.test('ForInstruction--Functionality: Array', async (pContext) => {
             }`
         })
         class TestComponent {
-            @PwbExport
+            @PwbExport()
             @ComponentState.state({ proxy: true })
             public accessor list: Array<string> = ['One', 'Three'];
         }
@@ -147,7 +147,7 @@ Deno.test('ForInstruction--Functionality: Array', async (pContext) => {
             }`
         })
         class TestComponent {
-            @PwbExport
+            @PwbExport()
             @ComponentState.state({ proxy: true })
             public accessor list: Array<string> = ['One', 'Two', 'Three'];
         }
@@ -251,7 +251,7 @@ Deno.test('ForInstruction--Functionality: Array', async (pContext) => {
             }`
         })
         class TestComponent {
-            @PwbExport
+            @PwbExport()
             @ComponentState.state({ proxy: true })
             public accessor list: Array<string> = ['Some other values'];
         }
@@ -285,7 +285,7 @@ Deno.test('ForInstruction--Functionality: Array', async (pContext) => {
             }`
         })
         class TestComponent {
-            @PwbExport
+            @PwbExport()
             @ComponentState.state()
             public accessor list: Array<string> | null = null;
         }
@@ -345,7 +345,7 @@ Deno.test('ForInstruction--Functionality: Object', async (pContext) => {
             }`
         })
         class TestComponent {
-            @PwbExport
+            @PwbExport()
             @ComponentState.state({ proxy: true })
             public accessor list: { [key: string]: number; } = { One: 1 };
         }
@@ -378,7 +378,7 @@ Deno.test('ForInstruction--Functionality: Object', async (pContext) => {
             }`
         })
         class TestComponent {
-            @PwbExport
+            @PwbExport()
             @ComponentState.state({ proxy: true })
             public accessor list: { [key: string]: number; } = { One: 1, Two: 2 };
         }
@@ -409,7 +409,7 @@ Deno.test('ForInstruction--Functionality: Object', async (pContext) => {
             }`
         })
         class TestComponent {
-            @PwbExport
+            @PwbExport()
             @ComponentState.state({ proxy: true })
             public accessor list: { [key: string]: number; } = { One: 1, Two: 2, Three: 3 };
         }
@@ -445,7 +445,7 @@ Deno.test('ForInstruction--Functionality: Object', async (pContext) => {
             }`
         })
         class TestComponent {
-            @PwbExport
+            @PwbExport()
             @ComponentState.state({ proxy: true })
             public accessor list: { [key: string]: number; } = { One: 99 };
         }
@@ -733,7 +733,7 @@ Deno.test('ForInstruction--Functionality: Context', async (pContext) => {
                     }`
         })
         class TestComponent {
-            @PwbExport
+            @PwbExport()
             @ComponentState.state({ proxy: true })
             public accessor list: Array<number> = [1];
         }
@@ -889,7 +889,7 @@ Deno.test('ForInstruction--Functionality: Key', async (pContext) => {
             }`
         })
         class TestComponent {
-            @PwbExport
+            @PwbExport()
             @ComponentState.state({ proxy: true })
             public accessor list: Array<{ name: string; }> = [{ name: 'One' }];
         }
@@ -922,7 +922,7 @@ Deno.test('ForInstruction--Functionality: Key', async (pContext) => {
             }`
         })
         class TestComponent {
-            @PwbExport
+            @PwbExport()
             @ComponentState.state({ proxy: true })
             public accessor list: Array<{ id: number; name: string; }> = [{ id: 1, name: 'One' }];
         }
@@ -955,7 +955,7 @@ Deno.test('ForInstruction--Functionality: Key', async (pContext) => {
             }`
         })
         class TestComponent {
-            @PwbExport
+            @PwbExport()
             @ComponentState.state({ proxy: true })
             public accessor list: Array<{ id: number; name: string; }> = [{ id: 1, name: 'One' }];
         }
@@ -987,7 +987,7 @@ Deno.test('ForInstruction--Functionality: Key', async (pContext) => {
             }`
         })
         class TestComponent {
-            @PwbExport
+            @PwbExport()
             @ComponentState.state({ proxy: true })
             public accessor list: Array<{ id: number; name: string; }> = [{ id: 5, name: 'A' }, { id: 6, name: 'B' }];
         }
@@ -1069,7 +1069,7 @@ Deno.test('ForInstruction--Functionality: Deconstruct', async (pContext) => {
             }`
         })
         class TestComponent {
-            @PwbExport
+            @PwbExport()
             @ComponentState.state({ proxy: true })
             public accessor list: Array<number> = [1, 2];
         }

@@ -245,7 +245,7 @@ Deno.test('PwbComponent--Functionality: User triggered update', async (pContext)
             template: '<div>{{ this.value }}</div>'
         })
         class TestComponent {
-            @PwbExport
+            @PwbExport()
             public value: string = lInitialValue;
 
             private readonly mComponent: Component;
@@ -254,7 +254,7 @@ Deno.test('PwbComponent--Functionality: User triggered update', async (pContext)
                 this.mComponent = pComponent;
             }
 
-            @PwbExport
+            @PwbExport()
             public update(): void {
                 this.mComponent.updater.update();
             }
@@ -391,7 +391,7 @@ Deno.test('PwbComponent--Functionality: Element reference', async (pContext) => 
                 this.mElementReference = pElementReference.element;
             }
 
-            @PwbExport
+            @PwbExport()
             public element(): Node {
                 return this.mElementReference;
             }
@@ -428,7 +428,7 @@ Deno.test('PwbComponent--Functionality: Parent zone injection', async (pContext)
                 this.mInjection = pInjection;
             }
 
-            @PwbExport
+            @PwbExport()
             public injection(): TestInjection {
                 return this.mInjection;
             }
@@ -473,7 +473,7 @@ Deno.test('PwbComponent--Functionality: Parent zone injection', async (pContext)
                 this.mInjection = pInjection;
             }
 
-            @PwbExport
+            @PwbExport()
             public injection(): TestInjection {
                 return this.mInjection;
             }
@@ -527,12 +527,12 @@ Deno.test('PwbComponent--Functionality: Parent zone injection', async (pContext)
                 this.mInjectionTwo = pInjectionTwo;
             }
 
-            @PwbExport
+            @PwbExport()
             public injectionOne(): TestInjectionOne {
                 return this.mInjectionOne;
             }
 
-            @PwbExport
+            @PwbExport()
             public injectionTwo(): TestInjectionTwo {
                 return this.mInjectionTwo;
             }
@@ -581,7 +581,7 @@ Deno.test('PwbComponent--Functionality: User callbacks', async (pContext) => {
             template: '<div>{{this.innerValue}}</div>'
         })
         class TestComponent implements IComponentOnUpdate, IComponentOnAttributeChange, IComponentOnDeconstruct {
-            @PwbExport
+            @PwbExport()
             @ComponentState.state()
             public accessor innerValue: string = 'DUMMY-VALUE';
 
@@ -681,12 +681,12 @@ Deno.test('PwbComponent--Functionality: Loop detection', async (pContext) => {
                 this.mEnabled = false;
             }
 
-            @PwbExport
+            @PwbExport()
             public disable(): void {
                 this.mEnabled = false;
             }
 
-            @PwbExport
+            @PwbExport()
             public enable(): void {
                 this.mEnabled = true;
                 this.innerValue++;

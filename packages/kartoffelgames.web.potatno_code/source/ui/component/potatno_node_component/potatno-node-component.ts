@@ -109,7 +109,7 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
     /**
      * The domain node object to render.
      */
-    @PwbExport
+    @PwbExport()
     public get nodeData(): PotatnoDocumentNode<PotatnoProjectTypesDefinition> {
         if(!this.mNodeData){
             throw new Exception('Node data not set.', this);

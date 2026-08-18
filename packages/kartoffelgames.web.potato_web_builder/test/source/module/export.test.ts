@@ -16,7 +16,7 @@ Deno.test('Export--Functionality: Default export get', async (pContext) => {
             selector: TestUtil.randomSelector()
         })
         class TestComponent {
-            @PwbExport
+            @PwbExport()
             public value: string = lTestValue;
         }
 
@@ -42,7 +42,7 @@ Deno.test('Export--Functionality: Default export set', async (pContext) => {
             selector: TestUtil.randomSelector()
         })
         class TestComponent {
-            @PwbExport
+            @PwbExport()
             public value: string = '';
         }
 
@@ -70,9 +70,9 @@ Deno.test('Export--Functionality: Two parallel exports get', async (pContext) =>
             selector: TestUtil.randomSelector()
         })
         class TestComponent {
-            @PwbExport
+            @PwbExport()
             public valueOne: string = lTestValueOne;
-            @PwbExport
+            @PwbExport()
             public valueTwo: string = lTestValueTwo;
         }
 
@@ -100,7 +100,7 @@ Deno.test('Export--Functionality: Forbidden static usage', async (pContext) => {
             })
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             class TestComponent {
-                @PwbExport
+                @PwbExport()
                 public static value: string = '';
             }
         };
@@ -120,7 +120,7 @@ Deno.test('Export--Functionality: Linked setAttribute', async (pContext) => {
             selector: TestUtil.randomSelector()
         })
         class TestComponent {
-            @PwbExport
+            @PwbExport()
             public value: string = '';
         }
 
@@ -171,7 +171,7 @@ Deno.test('Export--Functionality: Preserve original getAttribute and setAttribut
             selector: TestUtil.randomSelector()
         })
         class TestComponent {
-            @PwbExport
+            @PwbExport()
             public value: string = '';
         }
 
@@ -198,7 +198,7 @@ Deno.test('Export--Functionality: Override native properties', async (pContext) 
             selector: TestUtil.randomSelector()
         })
         class TestComponent {
-            @PwbExport
+            @PwbExport()
             public children: string = lTestValue;
         }
 
@@ -221,7 +221,7 @@ Deno.test('Export--Functionality: Export parent class exported properties', asyn
 
         // Setup. Define parent class.
         class ParentClass {
-            @PwbExport
+            @PwbExport()
             public children: string = lTestValue;
         }
 
@@ -253,7 +253,7 @@ Deno.test('Export--Functionality: Exported value with getAttribute', async (pCon
             selector: TestUtil.randomSelector()
         })
         class TestComponent {
-            @PwbExport
+            @PwbExport()
             public value: string = lTestValue;
         }
 
@@ -280,10 +280,7 @@ Deno.test('Export--Functionality: Set attribute values on export init', async (p
             selector: lSelector
         })
         class TestComponent {
-            @PwbExport
-            public justSomethingThatStartsUpdate: string = '';
-
-            @PwbExport
+            @PwbExport()
             public value!: string;
         }
 
@@ -291,8 +288,7 @@ Deno.test('Export--Functionality: Set attribute values on export init', async (p
         document.body.innerHTML = `<${lSelector} value="${lValue}" />`;
         const lComponent: HTMLElement & TestComponent = document.body.querySelector(lSelector)!;
 
-        // Process. Start a async task to let the mutation observer to it thing.
-        lComponent.justSomethingThatStartsUpdate = 'RED or GREEN i dont know';
+        // Process.
         await TestUtil.waitForUpdate(lComponent);
 
         // Process. Read attribute value.
@@ -300,6 +296,33 @@ Deno.test('Export--Functionality: Set attribute values on export init', async (p
 
         // Evaluation.
         expect(lExportedValue).toBe(lValue);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
+Deno.test('Export--Functionality: Set for overriden attribute name.', async (pContext) => {
+    await pContext.step('Default', async () => {
+        // Setup.
+        const lTestValue: string = 'TEST-VALUE';
+        const lTestAttributeName: string = 'othervalue';
+
+        // Setup. Define component.
+        @PwbComponent({
+            selector: TestUtil.randomSelector()
+        })
+        class TestComponent {
+            @PwbExport(lTestAttributeName)
+            public value: string = 'Any other value';
+        }
+
+        // Process. Create element and click div.
+        const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
+        lComponent.value = lTestValue
+
+        // Evaluation.
+        expect(lComponent.getAttribute(lTestAttributeName)).toBe(lTestValue);
 
         // Wait for any update to finish to prevent timer leaks.
         await TestUtil.waitForUpdate(lComponent);

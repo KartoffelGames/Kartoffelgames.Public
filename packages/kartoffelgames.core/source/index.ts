@@ -34,6 +34,7 @@ export {
     type ClassAccessorDecorator,
     type ClassMethodDecorator,
     type ClassFieldDecorator,
+    type ClassMemberDecorator,
 
     // Types that should be native
     type TypedArray

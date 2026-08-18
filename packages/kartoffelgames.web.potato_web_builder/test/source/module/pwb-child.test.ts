@@ -19,7 +19,7 @@ Deno.test('PwbChild--Functionality: Read id child', async (pContext) => {
             template: `<div #${lIdName}/>`
         })
         class TestComponent {
-            @PwbExport
+            @PwbExport()
             @PwbChild(lIdName)
             public accessor idChild!: HTMLDivElement | null;
         }
@@ -57,7 +57,7 @@ Deno.test('PwbChild--Functionality: Read child inside a bound setter before the 
 
             private mValue: string = '';
 
-            @PwbExport
+            @PwbExport()
             public get value(): string {
                 return this.mValue;
             } set value(pValue: string) {
@@ -103,7 +103,7 @@ Deno.test('PwbChild--Functionality: Read child after build when created by a par
 
             private mValue: string = '';
 
-            @PwbExport
+            @PwbExport()
             public get value(): string {
                 return this.mValue;
             } set value(pValue: string) {
@@ -172,7 +172,7 @@ Deno.test('PwbChild--Functionality: Read with wrong id child name', async (pCont
             template: `<div #Name/>`
         })
         class TestComponent {
-            @PwbExport
+            @PwbExport()
             @PwbChild(lWrongName)
             public accessor idChild!: HTMLDivElement | null;
         }
@@ -214,7 +214,7 @@ Deno.test('PwbChild--Functionality: Read inherited id child', async (pContext) =
 
         // Setup. Define parent class.
         class ParentClass {
-            @PwbExport
+            @PwbExport()
             @PwbChild(lIdName)
             public accessor idChild!: HTMLDivElement | null;
         }
@@ -252,11 +252,11 @@ Deno.test('PwbChild--Functionality: Remove id child', async (pContext) => {
             }`
         })
         class TestComponent {
-            @PwbExport
+            @PwbExport()
             @PwbChild(lIdName)
             public accessor idChild!: HTMLDivElement | null;
 
-            @PwbExport
+            @PwbExport()
             @ComponentState.state()
             public accessor showChild: boolean = true;
         }

@@ -92,7 +92,7 @@ Deno.test('ComponentEventListener--Functionality: Custom event listener', async 
             @PwbComponentEvent('custom-event')
             private accessor mCustomEvent!: ComponentEventEmitter<string>;
 
-            @PwbExport
+            @PwbExport()
             public callEvent() {
                 this.mCustomEvent.dispatchEvent(lEventValue);
             }

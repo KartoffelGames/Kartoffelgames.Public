@@ -23,7 +23,7 @@ Deno.test('ComponentEvent--Functionality: Correct event value', async (pContext)
             @PwbComponentEvent(lEventName)
             private accessor mEvent!: ComponentEventEmitter<string>;
 
-            @PwbExport
+            @PwbExport()
             public callEvent(): void {
                 this.mEvent.dispatchEvent(lEventValue);
             }
@@ -65,7 +65,7 @@ Deno.test('ComponentEvent--Functionality: Different instances dispatch on own el
             @PwbComponentEvent(lEventName)
             private accessor mEvent!: ComponentEventEmitter<string>;
 
-            @PwbExport
+            @PwbExport()
             public callEvent(pValue: string): void {
                 this.mEvent.dispatchEvent(pValue);
             }
@@ -136,7 +136,7 @@ Deno.test('ComponentEvent--Functionality: Inherited and overridden event-emitter
             @PwbComponentEvent('custom-event')
             private accessor mOverriddenEvent!: ComponentEventEmitter<string>;
 
-            @PwbExport
+            @PwbExport()
             public callEvent(): void {
                 this.mOverriddenEvent.dispatchEvent(lEventValue);
             }
@@ -173,7 +173,7 @@ Deno.test('ComponentEvent--Functionality: Inherited event-emitter event', async 
             @PwbComponentEvent('custom-event')
             private accessor mEvent!: ComponentEventEmitter<string>;
 
-            @PwbExport
+            @PwbExport()
             public callEvent(): void {
                 this.mEvent.dispatchEvent(lEventValue);
             }
@@ -217,7 +217,7 @@ Deno.test('ComponentEvent--Functionality: Override native events', async (pConte
             @PwbComponentEvent('click')
             private accessor mEvent!: ComponentEventEmitter<string>;
 
-            @PwbExport
+            @PwbExport()
             public callEvent(): void {
                 this.mEvent.dispatchEvent('ANY VALUE');
             }
@@ -254,7 +254,7 @@ Deno.test('ComponentEvent--Functionality: Native and custom event parallel', asy
             @PwbComponentEvent('custom-event')
             private accessor mEvent!: ComponentEventEmitter<void>;
 
-            @PwbExport
+            @PwbExport()
             public callEvent(): void {
                 this.mEvent.dispatchEvent();
             }
@@ -306,12 +306,12 @@ Deno.test('ComponentEvent--Functionality: Two parallel custom events correct val
             @PwbComponentEvent('custom-event-two')
             private accessor mEventTwo!: ComponentEventEmitter<string>;
 
-            @PwbExport
+            @PwbExport()
             public callEventOne(): void {
                 this.mEventOne.dispatchEvent(lEventValueOne);
             }
 
-            @PwbExport
+            @PwbExport()
             public callEventTwo(): void {
                 this.mEventTwo.dispatchEvent(lEventValueTwo);
             }

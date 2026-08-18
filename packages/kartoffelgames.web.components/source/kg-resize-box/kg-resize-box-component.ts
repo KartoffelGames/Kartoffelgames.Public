@@ -49,7 +49,7 @@ export class KgResizeBoxComponent {
     /**
      * If bottom resize handle is enabled.
      */
-    @PwbExport
+    @PwbExport()
     public get bottom(): boolean {
         return this.mConfiguration.enabledDirections.bottom;
     } set bottom(pEnabled: unknown) {
@@ -59,7 +59,7 @@ export class KgResizeBoxComponent {
     /**
      * Current height of resize box.
      */
-    @PwbExport
+    @PwbExport()
     public get height(): number {
         return this.mComponentElement.clientHeight;
     } set height(pHeight: number) {
@@ -69,7 +69,7 @@ export class KgResizeBoxComponent {
     /**
      * If left resize handle is enabled.
      */
-    @PwbExport
+    @PwbExport()
     public get left(): boolean {
         return this.mConfiguration.enabledDirections.left;
     } set left(pEnabled: unknown) {
@@ -79,7 +79,7 @@ export class KgResizeBoxComponent {
     /**
      * If right resize handle is enabled.
      */
-    @PwbExport
+    @PwbExport()
     public get right(): boolean {
         return this.mConfiguration.enabledDirections.right;
     } set right(pEnabled: unknown) {
@@ -89,7 +89,7 @@ export class KgResizeBoxComponent {
     /**
      * If top resize handle is enabled.
      */
-    @PwbExport
+    @PwbExport()
     public get snap(): number {
         return this.mConfiguration.snap;
     } set snap(pPixel: number) {
@@ -99,7 +99,7 @@ export class KgResizeBoxComponent {
     /**
      * If top resize handle is enabled.
      */
-    @PwbExport
+    @PwbExport()
     public get top(): boolean {
         return this.mConfiguration.enabledDirections.top;
     } set top(pEnabled: unknown) {
@@ -110,7 +110,7 @@ export class KgResizeBoxComponent {
      * If resize is only virtual and does not actually resize.
      * Still triggers events and can be resized with the exposed resize method.
      */
-    @PwbExport
+    @PwbExport()
     public get virtual(): boolean {
         return this.mConfiguration.isVirtual;
     } set virtual(pEnabled: boolean) {
@@ -120,7 +120,7 @@ export class KgResizeBoxComponent {
     /**
      * Current width of resize box.
      */
-    @PwbExport
+    @PwbExport()
     public get width(): number {
         return this.mComponentElement.clientWidth;
     } set width(pWidth: number) {

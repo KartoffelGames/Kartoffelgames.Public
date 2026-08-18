@@ -82,7 +82,7 @@ Deno.test('IfInstruction--Functionality: Updated false', async (pContext) => {
             }`
         })
         class TestComponent {
-            @PwbExport
+            @PwbExport()
             @ComponentState.state()
             public accessor displayed: boolean = !lDisplayed;
         }
@@ -116,7 +116,7 @@ Deno.test('IfInstruction--Functionality: Updated true', async (pContext) => {
             }`
         })
         class TestComponent {
-            @PwbExport
+            @PwbExport()
             @ComponentState.state()
             public accessor displayed: boolean = !lDisplayed;
         }

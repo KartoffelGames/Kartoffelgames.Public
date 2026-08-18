@@ -18,7 +18,7 @@ Deno.test('OneWayBinding--Functionality: Initial value', async (pContext) => {
             template: '<input [value]="this.userValue"/>'
         })
         class TestComponent {
-            @PwbExport
+            @PwbExport()
             public userValue: string = lInitialValue;
         }
 
@@ -45,7 +45,7 @@ Deno.test('OneWayBinding--Functionality: Initial value', async (pContext) => {
             template: '<input [value]="this.userValue"/>'
         })
         class TestComponent {
-            @PwbExport
+            @PwbExport()
             @ComponentState.state()
             public accessor userValue: string = lInitialValue;
         }
@@ -75,7 +75,7 @@ Deno.test('OneWayBinding--Functionality: Change component value', async (pContex
             template: '<input [value]="this.userValue"/>'
         })
         class TestComponent {
-            @PwbExport
+            @PwbExport()
             @ComponentState.state()
             public accessor userValue: string = 'INITIAL__VALUE';
         }
@@ -107,7 +107,7 @@ Deno.test('OneWayBinding--Functionality: Exchange value to child component', asy
             selector: lChildComponentSelector
         })
         class TestChildComponent {
-            @PwbExport
+            @PwbExport()
             public valueOne!: string;
         }
 
@@ -148,10 +148,10 @@ Deno.test('OneWayBinding--Functionality: Exchange two values to the same compone
             selector: lChildComponentSelector
         })
         class TestChildComponent {
-            @PwbExport
+            @PwbExport()
             public valueOne!: string;
 
-            @PwbExport
+            @PwbExport()
             public valueTwo!: string;
         }
 

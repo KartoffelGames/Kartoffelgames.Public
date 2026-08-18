@@ -29,7 +29,7 @@ export class PotatnoCodeEditorComponent implements IComponentOnDeconstruct {
     /**
      * Document state backing the editor.
      */
-    @PwbExport
+    @PwbExport()
     public get document(): PotatnoDocument<PotatnoProjectTypesDefinition> {
         return this.mManager.graph.document;
     } set document(pFile: PotatnoDocument<PotatnoProjectTypesDefinition>) {
@@ -71,7 +71,7 @@ export class PotatnoCodeEditorComponent implements IComponentOnDeconstruct {
      *
      * @returns A promise resolving once the current render pass finishes.
      */
-    @PwbExport
+    @PwbExport()
     public triggerPreviewUpdate(): void {
         return this.mManager.preview.execute();
     }

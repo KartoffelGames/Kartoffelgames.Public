@@ -49,7 +49,7 @@ Deno.test('MustacheExpression--Functionality: Updated text value', async (pConte
             template: `<div>{{this.text}}</div>`
         })
         class TestComponent {
-            @PwbExport
+            @PwbExport()
             @ComponentState.state()
             public accessor text: string | undefined;
         }
@@ -117,7 +117,7 @@ Deno.test('MustacheExpression--Functionality: Updated attribute value', async (p
             template: `<div attr="{{this.text}}"></div>`
         })
         class TestComponent {
-            @PwbExport
+            @PwbExport()
             @ComponentState.state()
             public accessor text: string | undefined;
         }

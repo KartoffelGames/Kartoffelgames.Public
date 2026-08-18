@@ -38,7 +38,7 @@ export class KgButtonComponent {
      * Selection state of the button.
      * Reading returns the current state, writing overrides it.
      */
-    @PwbExport
+    @PwbExport()
     public get selected(): boolean {
         return this.mSelected;
     } set selected(pSelected: unknown) {
@@ -48,7 +48,7 @@ export class KgButtonComponent {
     /**
      * Button type. One of "primary" or "secondary".
      */
-    @PwbExport
+    @PwbExport()
     public get type(): KgButtonComponentType {
         return this.mType;
     } set type(pType: string) {

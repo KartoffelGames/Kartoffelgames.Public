@@ -1193,7 +1193,7 @@ $if(this.left) {\r
                     width: calc((var(--potatno-port-flow-size) / 3) * 2);\r
 \r
                     background-color: color-mix(in srgb, var(--potatno-port-handle-color) 30%, var(--potatno-color-background));\r
-                    border-radius: var(--potatno-border-radius);\r
+                    border-radius: 2px;\r
                 }\r
 \r
                 &.connected::before {\r

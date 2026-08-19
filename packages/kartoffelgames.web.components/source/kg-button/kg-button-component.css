@@ -37,23 +37,23 @@
 /*
  * Primary
  */
-:host:has(.primary) {
+:host([type=primary]) {
     padding: 8px 12px;
     border-style: dashed;
     border-color: var(--button-border-color);
     background-color: var(--button-background-color);
 }
 
-:host(:hover):has(.primary) {
+:host([type=primary]:hover) {
     border-color: var(--button-accent-color);
     color: var(--button-accent-color);
 }
 
-:host(:active):has(.primary) {
+:host([type=primary]:active) {
     scale: 0.98;
 }
 
-:host:has(.primary.selected) {
+:host([type=primary][selected]:not([selected=false])) {
     border-color: var(--button-accent-color);
     color: var(--button-accent-color);
 }
@@ -61,43 +61,43 @@
 /*
  * Secondary
  */
-:host:has(.secondary) {
+:host([type=secondary]) {
     position: relative;
     overflow: hidden;
 
     /* Own stacking context so the accent layer stays behind the slotted content. */
     z-index: 0;
+
+    &::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+
+        background-image: radial-gradient(ellipse at top left, var(--button-accent-color) 0%, transparent 100%);
+
+        opacity: 0;
+        transition: opacity 0.15s ease-in-out;
+    }
 }
 
-:host:has(.secondary)::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-
-    background-image: radial-gradient(ellipse at top left, var(--button-accent-color) 0%, transparent 100%);
-
-    opacity: 0;
-    transition: opacity 0.15s ease-in-out;
-}
-
-:host(:hover):has(.secondary)::before {
+:host([type=secondary]:hover)::before {
     opacity: 0.5;
 }
 
-:host(:active):has(.secondary) {
+:host([type=secondary]:active) {
     color: var(--button-accent-text-color);
     scale: 0.98;
+
+    &::before {
+        opacity: 0.8;
+    }
 }
 
-:host(:active):has(.secondary)::before {
-    opacity: 0.8;
-}
-
-:host:has(.secondary.selected) {
+:host([type=secondary][selected]:not([selected=false])) {
     color: var(--button-accent-text-color);
-}
 
-:host:has(.secondary.selected)::before {
-    opacity: 1;
+    &::before {
+        opacity: 1;
+    }
 }

@@ -79,6 +79,12 @@ export class KgButtonComponent {
     private parseBoolean(pValue: unknown): boolean {
         // A string attribute might be the literal "true" or "false".
         if (typeof pValue === 'string') {
+            // Empty strings are considered as true also. Because setting a empty attribute also is "true".
+            if (pValue === '') {
+                return true;
+            }
+
+            // Check for a string with the literal true or false string.
             const lValue: string = pValue.toLowerCase();
             if (lValue === 'true' || lValue === 'false') {
                 return lValue === 'true';

@@ -88,23 +88,23 @@ potatno-code-editor {\r
 /*\r
  * Primary\r
  */\r
-:host:has(.primary) {\r
+:host([type=primary]) {\r
     padding: 8px 12px;\r
     border-style: dashed;\r
     border-color: var(--button-border-color);\r
     background-color: var(--button-background-color);\r
 }\r
 \r
-:host(:hover):has(.primary) {\r
+:host([type=primary]:hover) {\r
     border-color: var(--button-accent-color);\r
     color: var(--button-accent-color);\r
 }\r
 \r
-:host(:active):has(.primary) {\r
+:host([type=primary]:active) {\r
     scale: 0.98;\r
 }\r
 \r
-:host:has(.primary.selected) {\r
+:host([type=primary][selected]:not([selected=false])) {\r
     border-color: var(--button-accent-color);\r
     color: var(--button-accent-color);\r
 }\r
@@ -112,49 +112,49 @@ potatno-code-editor {\r
 /*\r
  * Secondary\r
  */\r
-:host:has(.secondary) {\r
+:host([type=secondary]) {\r
     position: relative;\r
     overflow: hidden;\r
 \r
     /* Own stacking context so the accent layer stays behind the slotted content. */\r
     z-index: 0;\r
+\r
+    &::before {\r
+        content: "";\r
+        position: absolute;\r
+        inset: 0;\r
+        z-index: -1;\r
+\r
+        background-image: radial-gradient(ellipse at top left, var(--button-accent-color) 0%, transparent 100%);\r
+\r
+        opacity: 0;\r
+        transition: opacity 0.15s ease-in-out;\r
+    }\r
 }\r
 \r
-:host:has(.secondary)::before {\r
-    content: "";\r
-    position: absolute;\r
-    inset: 0;\r
-    z-index: -1;\r
-\r
-    background-image: radial-gradient(ellipse at top left, var(--button-accent-color) 0%, transparent 100%);\r
-\r
-    opacity: 0;\r
-    transition: opacity 0.15s ease-in-out;\r
-}\r
-\r
-:host(:hover):has(.secondary)::before {\r
+:host([type=secondary]:hover)::before {\r
     opacity: 0.5;\r
 }\r
 \r
-:host(:active):has(.secondary) {\r
+:host([type=secondary]:active) {\r
     color: var(--button-accent-text-color);\r
     scale: 0.98;\r
+\r
+    &::before {\r
+        opacity: 0.8;\r
+    }\r
 }\r
 \r
-:host(:active):has(.secondary)::before {\r
-    opacity: 0.8;\r
-}\r
-\r
-:host:has(.secondary.selected) {\r
+:host([type=secondary][selected]:not([selected=false])) {\r
     color: var(--button-accent-text-color);\r
-}\r
 \r
-:host:has(.secondary.selected)::before {\r
-    opacity: 1;\r
-}`;var Mr=`<div class="button {{this.type}} {{this.selected ? 'selected' : ''}}">\r
+    &::before {\r
+        opacity: 1;\r
+    }\r
+}`;var Mr=`<div class="button">\r
     $slot\r
 </div>\r
-`;function $a(){function y(l,n){return function(c){e(n,"addInitializer"),r(c,"An initializer"),l.push(c)}}function t(l,n,h,c,o,w,p,D,x){var m;switch(o){case 1:m="accessor";break;case 2:m="method";break;case 3:m="getter";break;case 4:m="setter";break;default:m="field"}var s={kind:m,name:p?"#"+n:n,static:w,private:p,metadata:D},f={v:!1};s.addInitializer=y(c,f);var i,a;if(o===0?p?(i=h.get,a=h.set):(i=function(){return this[n]},a=function(g){this[n]=g}):o===2?i=function(){return h.value}:((o===1||o===3)&&(i=function(){return h.get.call(this)}),(o===1||o===4)&&(a=function(g){h.set.call(this,g)})),p)s.access=i&&a?{get:i,set:a}:i?{get:i}:{set:a};else{if(i){var C=i;i=function(g){return arguments.length===0&&(g=this),C.call(g)}}if(a){var P=a;a=function(g,S){return arguments.length===1&&(S=g,g=this),P.call(g,S)}}var E=function(g){return n in g};s.access=i&&a?{has:E,get:i,set:a}:i?{has:E,get:i}:{has:E,set:a}}try{return l(x,s)}finally{f.v=!0}}function e(l,n){if(l.v)throw new Error("attempted to call "+n+" after decoration was finished")}function r(l,n){if(typeof l!="function")throw new TypeError(n+" must be a function")}function u(l,n){var h=typeof n;if(l===1){if(h!=="object"||n===null)throw new TypeError("accessor decorators must return an object with get, set, or init properties or void 0");n.get!==void 0&&r(n.get,"accessor.get"),n.set!==void 0&&r(n.set,"accessor.set"),n.init!==void 0&&r(n.init,"accessor.init")}else if(h!=="function"){var c;throw l===0?c="field":l===10?c="class":c="method",new TypeError(c+" decorators must return a function or void 0")}}function d(l,n,h,c,o,w,p,D,x){var m=h[0],s,f,i;p?o===0||o===1?s={get:h[3],set:h[4]}:o===3?s={get:h[3]}:o===4?s={set:h[3]}:s={value:h[3]}:o!==0&&(s=Object.getOwnPropertyDescriptor(n,c)),o===1?i={get:s.get,set:s.set}:o===2?i=s.value:o===3?i=s.get:o===4&&(i=s.set);var a,C,P;if(typeof m=="function")a=t(m,c,s,D,o,w,p,x,i),a!==void 0&&(u(o,a),o===0?f=a:o===1?(f=a.init,C=a.get||i.get,P=a.set||i.set,i={get:C,set:P}):i=a);else for(var E=m.length-1;E>=0;E--){var g=m[E];if(a=t(g,c,s,D,o,w,p,x,i),a!==void 0){u(o,a);var S;o===0?S=a:o===1?(S=a.init,C=a.get||i.get,P=a.set||i.set,i={get:C,set:P}):i=a,S!==void 0&&(f===void 0?f=S:typeof f=="function"?f=[f,S]:f.push(S))}}if(o===0||o===1){if(f===void 0)f=function(M,I){return I};else if(typeof f!="function"){var F=f;f=function(M,I){for(var A=I,L=0;L<F.length;L++)A=F[L].call(M,A);return A}}else{var j=f;f=function(M,I){return j.call(M,I)}}l.push(f)}o!==0&&(o===1?(s.get=i.get,s.set=i.set):o===2?s.value=i:o===3?s.get=i:o===4&&(s.set=i),p?o===1?(l.push(function(M,I){return i.get.call(M,I)}),l.push(function(M,I){return i.set.call(M,I)})):o===2?l.push(i):l.push(function(M,I){return i.call(M,I)}):Object.defineProperty(n,c,s))}function v(l,n,h){for(var c=[],o,w,p=new Map,D=new Map,x=0;x<n.length;x++){var m=n[x];if(Array.isArray(m)){var s=m[1],f=m[2],i=m.length>3,a=s>=5,C,P;if(a?(C=l,s=s-5,w=w||[],P=w):(C=l.prototype,o=o||[],P=o),s!==0&&!i){var E=a?D:p,g=E.get(f)||0;if(g===!0||g===3&&s!==4||g===4&&s!==3)throw new Error("Attempted to decorate a public method/accessor that has the same name as a previously decorated public method/accessor. This is not currently supported by the decorators plugin. Property name was: "+f);!g&&s>2?E.set(f,s):E.set(f,!0)}d(c,C,m,f,s,a,i,P,h)}}return b(c,o),b(c,w),c}function b(l,n){n&&l.push(function(h){for(var c=0;c<n.length;c++)n[c].call(h);return h})}function T(l,n,h){if(n.length>0){for(var c=[],o=l,w=l.name,p=n.length-1;p>=0;p--){var D={v:!1};try{var x=n[p](o,{kind:"class",name:w,addInitializer:y(c,D),metadata:h})}finally{D.v=!0}x!==void 0&&(u(10,x),o=x)}return[_(o,h),function(){for(var m=0;m<c.length;m++)c[m].call(o)}]}}function _(l,n){return Object.defineProperty(l,Symbol.metadata||Symbol.for("Symbol.metadata"),{configurable:!0,enumerable:!0,value:n})}return function(n,h,c,o){if(o!==void 0)var w=o[Symbol.metadata||Symbol.for("Symbol.metadata")];var p=Object.create(w===void 0?null:w),D=v(n,h,p);return c.length||_(n,p),{e:D,get c(){return T(n,c,p)}}}}function Rr(y,t,e,r){return(Rr=$a())(y,t,e,r)}var Or,Sr,Fr,zr,jr,Vr,_r,Nr,Ar,Ht;Or=B({selector:"kg-button",template:Mr,style:Pr}),Fr=$.state(),zr=$.state(),jr=H(),Vr=H();var Lr=class{static{({e:[_r,Nr,Ar],c:[Ht,Sr]}=Rr(this,[[Fr,1,"mSelected"],[zr,1,"mType"],[jr,3,"selected"],[Vr,3,"type"]],[Or]))}constructor(){this.mType="primary",this.mSelected=!1}#t=(Ar(this),_r(this));get mSelected(){return this.#t}set mSelected(t){this.#t=t}#e=Nr(this);get mType(){return this.#e}set mType(t){this.#e=t}get selected(){return this.mSelected}set selected(t){this.mSelected=this.parseBoolean(t)}get type(){return this.mType}set type(t){if(t!=="primary"&&t!=="secondary"){this.mType="secondary";return}this.mType=t}parseBoolean(t){if(typeof t=="string"){let e=t.toLowerCase();if(e==="true"||e==="false")return e==="true"}return!!t}static{Sr()}};var $r=`:host {\r
+`;function $a(){function y(l,n){return function(c){e(n,"addInitializer"),r(c,"An initializer"),l.push(c)}}function t(l,n,h,c,o,w,p,D,x){var m;switch(o){case 1:m="accessor";break;case 2:m="method";break;case 3:m="getter";break;case 4:m="setter";break;default:m="field"}var s={kind:m,name:p?"#"+n:n,static:w,private:p,metadata:D},f={v:!1};s.addInitializer=y(c,f);var i,a;if(o===0?p?(i=h.get,a=h.set):(i=function(){return this[n]},a=function(g){this[n]=g}):o===2?i=function(){return h.value}:((o===1||o===3)&&(i=function(){return h.get.call(this)}),(o===1||o===4)&&(a=function(g){h.set.call(this,g)})),p)s.access=i&&a?{get:i,set:a}:i?{get:i}:{set:a};else{if(i){var C=i;i=function(g){return arguments.length===0&&(g=this),C.call(g)}}if(a){var P=a;a=function(g,S){return arguments.length===1&&(S=g,g=this),P.call(g,S)}}var E=function(g){return n in g};s.access=i&&a?{has:E,get:i,set:a}:i?{has:E,get:i}:{has:E,set:a}}try{return l(x,s)}finally{f.v=!0}}function e(l,n){if(l.v)throw new Error("attempted to call "+n+" after decoration was finished")}function r(l,n){if(typeof l!="function")throw new TypeError(n+" must be a function")}function u(l,n){var h=typeof n;if(l===1){if(h!=="object"||n===null)throw new TypeError("accessor decorators must return an object with get, set, or init properties or void 0");n.get!==void 0&&r(n.get,"accessor.get"),n.set!==void 0&&r(n.set,"accessor.set"),n.init!==void 0&&r(n.init,"accessor.init")}else if(h!=="function"){var c;throw l===0?c="field":l===10?c="class":c="method",new TypeError(c+" decorators must return a function or void 0")}}function d(l,n,h,c,o,w,p,D,x){var m=h[0],s,f,i;p?o===0||o===1?s={get:h[3],set:h[4]}:o===3?s={get:h[3]}:o===4?s={set:h[3]}:s={value:h[3]}:o!==0&&(s=Object.getOwnPropertyDescriptor(n,c)),o===1?i={get:s.get,set:s.set}:o===2?i=s.value:o===3?i=s.get:o===4&&(i=s.set);var a,C,P;if(typeof m=="function")a=t(m,c,s,D,o,w,p,x,i),a!==void 0&&(u(o,a),o===0?f=a:o===1?(f=a.init,C=a.get||i.get,P=a.set||i.set,i={get:C,set:P}):i=a);else for(var E=m.length-1;E>=0;E--){var g=m[E];if(a=t(g,c,s,D,o,w,p,x,i),a!==void 0){u(o,a);var S;o===0?S=a:o===1?(S=a.init,C=a.get||i.get,P=a.set||i.set,i={get:C,set:P}):i=a,S!==void 0&&(f===void 0?f=S:typeof f=="function"?f=[f,S]:f.push(S))}}if(o===0||o===1){if(f===void 0)f=function(M,I){return I};else if(typeof f!="function"){var F=f;f=function(M,I){for(var A=I,L=0;L<F.length;L++)A=F[L].call(M,A);return A}}else{var j=f;f=function(M,I){return j.call(M,I)}}l.push(f)}o!==0&&(o===1?(s.get=i.get,s.set=i.set):o===2?s.value=i:o===3?s.get=i:o===4&&(s.set=i),p?o===1?(l.push(function(M,I){return i.get.call(M,I)}),l.push(function(M,I){return i.set.call(M,I)})):o===2?l.push(i):l.push(function(M,I){return i.call(M,I)}):Object.defineProperty(n,c,s))}function v(l,n,h){for(var c=[],o,w,p=new Map,D=new Map,x=0;x<n.length;x++){var m=n[x];if(Array.isArray(m)){var s=m[1],f=m[2],i=m.length>3,a=s>=5,C,P;if(a?(C=l,s=s-5,w=w||[],P=w):(C=l.prototype,o=o||[],P=o),s!==0&&!i){var E=a?D:p,g=E.get(f)||0;if(g===!0||g===3&&s!==4||g===4&&s!==3)throw new Error("Attempted to decorate a public method/accessor that has the same name as a previously decorated public method/accessor. This is not currently supported by the decorators plugin. Property name was: "+f);!g&&s>2?E.set(f,s):E.set(f,!0)}d(c,C,m,f,s,a,i,P,h)}}return b(c,o),b(c,w),c}function b(l,n){n&&l.push(function(h){for(var c=0;c<n.length;c++)n[c].call(h);return h})}function T(l,n,h){if(n.length>0){for(var c=[],o=l,w=l.name,p=n.length-1;p>=0;p--){var D={v:!1};try{var x=n[p](o,{kind:"class",name:w,addInitializer:y(c,D),metadata:h})}finally{D.v=!0}x!==void 0&&(u(10,x),o=x)}return[_(o,h),function(){for(var m=0;m<c.length;m++)c[m].call(o)}]}}function _(l,n){return Object.defineProperty(l,Symbol.metadata||Symbol.for("Symbol.metadata"),{configurable:!0,enumerable:!0,value:n})}return function(n,h,c,o){if(o!==void 0)var w=o[Symbol.metadata||Symbol.for("Symbol.metadata")];var p=Object.create(w===void 0?null:w),D=v(n,h,p);return c.length||_(n,p),{e:D,get c(){return T(n,c,p)}}}}function Rr(y,t,e,r){return(Rr=$a())(y,t,e,r)}var Or,Sr,Fr,zr,jr,Vr,_r,Nr,Ar,Ht;Or=B({selector:"kg-button",template:Mr,style:Pr}),Fr=$.state(),zr=$.state(),jr=H(),Vr=H();var Lr=class{static{({e:[_r,Nr,Ar],c:[Ht,Sr]}=Rr(this,[[Fr,1,"mSelected"],[zr,1,"mType"],[jr,3,"selected"],[Vr,3,"type"]],[Or]))}constructor(){this.mType="primary",this.mSelected=!1}#t=(Ar(this),_r(this));get mSelected(){return this.#t}set mSelected(t){this.#t=t}#e=Nr(this);get mType(){return this.#e}set mType(t){this.#e=t}get selected(){return this.mSelected}set selected(t){this.mSelected=this.parseBoolean(t)}get type(){return this.mType}set type(t){if(t!=="primary"&&t!=="secondary"){this.mType="secondary";return}this.mType=t}parseBoolean(t){if(typeof t=="string"){if(t==="")return!0;let e=t.toLowerCase();if(e==="true"||e==="false")return e==="true"}return!!t}static{Sr()}};var $r=`:host {\r
     --information-icon-color: red;\r
     --information-icon-background-color: red;\r
     --information-background-color: red;\r
@@ -299,6 +299,7 @@ potatno-code-editor {\r
     /* Animate from hidden and slightly above */\r
     @starting-style {\r
         opacity: 0;\r
+        translate: 0px -20px;\r
     }\r
 }\r
 \r
@@ -2782,7 +2783,7 @@ $if(this.popup !== null) {\r
             }\r
         }\r
     }\r
-}`;var js=`<kg-resize-box class="resize-box" left top>\r
+}`;var js=`<kg-resize-box class="resize-box" left top bottom="false">\r
     <div class="header">\r
         $if(this.errors.length > 0) {\r
             <div class="header__tabs">\r

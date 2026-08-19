@@ -11,7 +11,7 @@
     min-width: 100%;
 }
 
-:host:has(.snap) {
+:host([snap]) {
     /* Snappy animation on movement. */
     transition: width 0.1s cubic-bezier(0, 1.5, 1, 1), height 0.1s cubic-bezier(0, 1.5, 1, 1);
 }

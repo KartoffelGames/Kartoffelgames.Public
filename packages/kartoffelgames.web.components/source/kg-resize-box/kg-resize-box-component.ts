@@ -316,6 +316,12 @@ export class KgResizeBoxComponent {
         const lParsedValue = (() => {
             // When value is a string, it might be "true" or "false".
             if (typeof pValue === 'string') {
+                // Empty strings are considered as true also. Because setting a empty attribute also is "true".
+                if(pValue === ''){
+                    return true;
+                }
+
+                // Check for a string with the literal true or false string.
                 const lEnabledStateString: string = pValue.toLowerCase();
                 if (['true', 'false'].includes(lEnabledStateString)) {
                     return lEnabledStateString === 'true';

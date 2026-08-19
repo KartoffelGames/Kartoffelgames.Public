@@ -19,6 +19,7 @@
 
 .node {
     --resize-box-handle-color: var(--potatno-color-border);
+    --resize-box-handle-hover-color: var(--potatno-color-accent);
 
     box-sizing: border-box;
     display: flex;

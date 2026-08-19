@@ -1,12 +1,13 @@
 :host {
     --resize-box-handle-color: red;
+    --resize-box-handle-hover-color: red;
     --resize-box-handle-size: 5px;
 
     position: relative;
     display: flex;
     flex-direction: column;
 
-    /* Set restrictions to never exeeds blounding restrictions set on the parent component. */
+    /* Set restrictions to never exeeds bounding restrictions set on the parent component. */
     min-height: 100%;
     min-width: 100%;
 }
@@ -125,6 +126,6 @@
      */
 
     &:hover {
-        border-color: var(--potatno-color-accent);
+        border-color: var(--resize-box-handle-hover-color);
     }
 }

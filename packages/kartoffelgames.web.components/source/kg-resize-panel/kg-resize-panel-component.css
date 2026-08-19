@@ -1,0 +1,108 @@
+:host {
+    --resize-panel-handle-size: 6px;
+    --resize-panel-handle-color: red;
+    --resize-panel-handle-hover-color: red;
+
+    position: relative;
+    display: flex;
+    flex-direction: column;
+
+    /* Set restrictions to never exeeds bounding restrictions set on the parent component. */
+    min-height: 100%;
+    min-width: 100%;
+}
+
+.content-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+
+    /* Somehow this fixes overflow. Maybe min is set lower than current content size it is? */
+    min-height: 0;
+    min-width: 0;
+
+    width: 100%;
+    height: 100%;
+}
+
+.resize-handle {
+    position: absolute;
+    z-index: 1;
+
+    /* "Soft" handle transparent until hovered. */
+    background-color: transparent;
+    transition: background-color 0.15s;
+
+    /* Whatever the parent does. Allways allow pointer events for handles. */
+    pointer-events: all;
+
+    &::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+
+        /* Grip dot. Single dot that is repeated in every direction. */
+        background-image: radial-gradient(circle, var(--resize-panel-handle-color) 1px, transparent 1.6px);
+    }
+
+    &.vertical {
+        top: 0px;
+        bottom: 0px;
+        width: var(--resize-panel-handle-size);
+
+        cursor: ew-resize;
+
+        /* Three dots stacked vertically. */
+        &::before {
+            width: 3px;
+            height: 15px;
+            background-size: 3px 5px;
+        }
+    }
+
+    &.left {
+        /* Place directly left of the panel, outside its box. */
+        left: calc(-1 * var(--resize-panel-handle-size));
+    }
+
+    &.right {
+        /* Place directly right of the panel, outside its box. */
+        right: calc(-1 * var(--resize-panel-handle-size));
+    }
+
+    &.horizontal {
+        left: 0px;
+        right: 0px;
+        height: var(--resize-panel-handle-size);
+
+        cursor: ns-resize;
+
+        /* Three dots in a row. */
+        &::before {
+            width: 15px;
+            height: 3px;
+            background-size: 5px 3px;
+        }
+    }
+
+    &.top {
+        /* Place directly above the panel, outside its box. */
+        top: calc(-1 * var(--resize-panel-handle-size));
+    }
+
+    &.bottom {
+        /* Place directly below the panel, outside its box. */
+        bottom: calc(-1 * var(--resize-panel-handle-size));
+    }
+
+    &:hover {
+        background-color: var(--resize-panel-handle-hover-color);
+
+        &::before {
+            --resize-panel-handle-color: rgba(255, 255, 255, 0.85);
+        }
+    }
+}

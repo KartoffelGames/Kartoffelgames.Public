@@ -1,0 +1,17 @@
+<!-- Four soft edge handles placed next to the panel. Top/bottom resize height, left/right resize width. -->
+$if(this.top) {
+    <div class="resize-handle horizontal top" (pointerdown)="this.resizeHorizontal($event)"></div>
+}
+$if(this.right) {
+    <div class="resize-handle vertical right" (pointerdown)="this.resizeVertical($event)"></div>
+}
+$if(this.bottom) {
+    <div class="resize-handle horizontal bottom" (pointerdown)="this.resizeHorizontal($event)"></div>
+}
+$if(this.left) {
+    <div class="resize-handle vertical left" (pointerdown)="this.resizeVertical($event)"></div>
+}
+
+<div class="content-container">
+    $slot
+</div>

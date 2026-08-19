@@ -1,36 +1,38 @@
-<kg-resize-box class="resize-box" right>
-    <div class="function-list">
-        $for(functionItem of this.documentFunctions) {
-            <div class="function-item {{ this.functionItem.id === this.activeFunctionId ? 'active' : '' }}" (click)="this.selectFunction(this.functionItem)">
-                <div class="function-item__icon" data-type="{{ this.functionItem.isSystem ? 's' : 'u' }}" title="{{ this.functionItem.isSystem ? 'System' : 'User' }}"/>
-                <div class="function-item__name">{{this.functionItem.label}}</div>
+<kg-resize-panel class="resize-panel" right>
+    <div class="panel-content">
+        <div class="function-list">
+            $for(functionItem of this.documentFunctions) {
+                <div class="function-item {{ this.functionItem.id === this.activeFunctionId ? 'active' : '' }}" (click)="this.selectFunction(this.functionItem)">
+                    <div class="function-item__icon" data-type="{{ this.functionItem.isSystem ? 's' : 'u' }}" title="{{ this.functionItem.isSystem ? 'System' : 'User' }}"/>
+                    <div class="function-item__name">{{this.functionItem.label}}</div>
 
-                $if(!this.functionItem.isSystem) {
-                    <kg-button class="function-item__delete" type="secondary" (click)="this.deleteFunction(this.functionItem)">✕</kg-button>
+                    $if(!this.functionItem.isSystem) {
+                        <kg-button class="function-item__delete" type="secondary" (click)="this.deleteFunction(this.functionItem)">✕</kg-button>
+                    }
+                </div>
+            }
+        </div>
+
+        $if(this.userFunctionDefinitions.length > 0) {
+            <div class="list-actions" tabindex="-1" (focusout)="this.showPopup = false">
+
+                $if(this.showPopup) {
+                    <kg-popup class="popup" animate="bottom">
+                        <div class="popup__header">Select Function Type</div>
+                        $for(functionDefinition of this.userFunctionDefinitions) {
+                            <div class="popup__item" (click)="this.createFunction(this.functionDefinition)">
+                                <div class="icon">ƒ</div>
+                                <div>{{this.functionDefinition.label}}</div>
+                            </div>
+                        }
+                    </kg-popup>
                 }
+
+                <kg-button class="add-action" type="primary" (click)="this.showPopup = !this.showPopup">
+                    <div>+</div>
+                    <div>Add Function</div>
+                </kg-button>
             </div>
         }
     </div>
-
-    $if(this.userFunctionDefinitions.length > 0) {
-        <div class="list-actions" tabindex="-1" (focusout)="this.showPopup = false">
-
-            $if(this.showPopup) {
-                <kg-popup class="popup" animate="bottom">
-                    <div class="popup__header">Select Function Type</div>
-                    $for(functionDefinition of this.userFunctionDefinitions) {
-                        <div class="popup__item" (click)="this.createFunction(this.functionDefinition)">
-                            <div class="icon">ƒ</div>
-                            <div>{{this.functionDefinition.label}}</div>
-                        </div>
-                    }
-                </kg-popup>
-            }
-
-            <kg-button class="add-action" type="primary" (click)="this.showPopup = !this.showPopup">
-                <div>+</div>
-                <div>Add Function</div>
-            </kg-button>
-        </div>
-    }
-</kg-resize-box>
+</kg-resize-panel>

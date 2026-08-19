@@ -1,14 +1,13 @@
 :host {
     display: flex;
     flex-direction: column;
-    overflow: hidden;
 }
 
-.resize-box {
-    --resize-box-handle-color: var(--potatno-color-border);
+.resize-panel {
+    --resize-panel-handle-color: var(--potatno-color-border);
+    --resize-panel-handle-hover-color: var(--potatno-color-accent);
 
     height: 100%;
-    background-color: var(--potatno-color-background-dark);
 
     /* Set min, max and default width */
     width: 250px;
@@ -19,10 +18,19 @@
     font-family: var(--potatno-font-family);
     font-size: var(--potatno-font-size);
     color: var(--potatno-color-text);
+}
+
+.panel-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    border-radius: var(--potatno-border-radius);
+    background-color: var(--potatno-color-background-dark);
+    overflow: hidden;
 
     /* Enable content scroll */
     overflow-y: auto;
-    overflow-x: hidden;
+    overflow-x: visible;
     scrollbar-color: var(--potatno-color-scrollbar-thumb) var(--potatno-color-scrollbar-track);
     scrollbar-width: thin;
 }

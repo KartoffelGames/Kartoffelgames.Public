@@ -1,50 +1,49 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { Component, type ComponentEventEmitter, ComponentState, PwbComponent, PwbComponentEvent, PwbExport } from '@kartoffelgames/web-potato-web-builder';
-import styles from './kg-resize-box-component.css' with { type: 'text' };
-import template from './kg-resize-box-component.html' with { type: 'text' };
+import styles from './kg-resize-panel-component.css' with { type: 'text' };
+import template from './kg-resize-panel-component.html' with { type: 'text' };
 
 /**
- * User resizeable box.
- * 
+ * User resizeable panel.
+ *
  * Configurable attributes:
  *  - "top", "right", "bottom" and "left" attributes by setting them "true"
  *  - "width" and "height" to manually set the size.
- *  - "virtual" to only trigger events but not actually resize.
- *  - "snap" as pixel number to snap the size to a virtual grid.
- * 
+ *
  * Events:
  *  - "resize"
  *  - "resize-end"
- * 
+ *
  * CSS variables:
- *  - "--resize-box-handle-color"
- *  - "--resize-box-handle-size"
+ *  - "--resize-panel-handle-size"
+ *  - "--resize-panel-handle-color"
+ *  - "--resize-panel-handle-hover-color"
  */
 @PwbComponent({
-    selector: 'kg-resize-box',
+    selector: 'kg-resize-panel',
     template: template,
     style: styles
 })
-export class KgResizeBoxComponent {
+export class KgResizePanelComponent {
     private readonly mComponentElement: HTMLElement;
 
     /**
      * Enabled directions. Used only in template references.
      */
     @ComponentState.state({ proxy: true })
-    private accessor mConfiguration: KgResizeBoxComponentConfiguration;
+    private accessor mConfiguration: KgResizePanelComponentConfiguration;
 
     /**
      * Emitted when the user resizes with a handle.
      */
     @PwbComponentEvent('resize')
-    private accessor mResize!: ComponentEventEmitter<KgResizeBoxComponentResize>;
+    private accessor mResize!: ComponentEventEmitter<KgResizePanelComponentResize>;
 
     /**
      * Emitted when the user ends a resize.
      */
     @PwbComponentEvent('resize-end')
-    private accessor mResizeEnd!: ComponentEventEmitter<KgResizeBoxComponentResize>;
+    private accessor mResizeEnd!: ComponentEventEmitter<KgResizePanelComponentResize>;
 
     /**
      * If bottom resize handle is enabled.
@@ -57,13 +56,13 @@ export class KgResizeBoxComponent {
     }
 
     /**
-     * Current height of resize box.
+     * Current height of resize panel.
      */
     @PwbExport()
     public get height(): number {
         return this.mComponentElement.clientHeight;
     } set height(pHeight: number) {
-        this.updateComponentHeight(pHeight, true);
+        this.updateComponentHeight(pHeight);
     }
 
     /**
@@ -90,16 +89,6 @@ export class KgResizeBoxComponent {
      * If top resize handle is enabled.
      */
     @PwbExport()
-    public get snap(): number {
-        return this.mConfiguration.snap;
-    } set snap(pPixel: number) {
-        this.mConfiguration.snap = parseInt(pPixel.toString());
-    }
-
-    /**
-     * If top resize handle is enabled.
-     */
-    @PwbExport()
     public get top(): boolean {
         return this.mConfiguration.enabledDirections.top;
     } set top(pEnabled: unknown) {
@@ -107,28 +96,17 @@ export class KgResizeBoxComponent {
     }
 
     /**
-     * If resize is only virtual and does not actually resize.
-     * Still triggers events and can be resized with the exposed resize method.
-     */
-    @PwbExport()
-    public get virtual(): boolean {
-        return this.mConfiguration.isVirtual;
-    } set virtual(pEnabled: boolean) {
-        this.mConfiguration.isVirtual = this.parseBoolean(pEnabled);
-    }
-
-    /**
-     * Current width of resize box.
+     * Current width of resize panel.
      */
     @PwbExport()
     public get width(): number {
         return this.mComponentElement.clientWidth;
     } set width(pWidth: number) {
-        this.updateComponentWidth(pWidth, true);
+        this.updateComponentWidth(pWidth);
     }
 
     /**
-     * Create the preview panel.
+     * Create the resize panel.
      *
      * @param pComponent - Injected component reference, used to trigger self-updates.
      */
@@ -137,8 +115,6 @@ export class KgResizeBoxComponent {
 
         // Disabled all direction as default.
         this.mConfiguration = {
-            snap: 1,
-            isVirtual: false,
             enabledDirections: {
                 top: false,
                 right: false,
@@ -149,16 +125,8 @@ export class KgResizeBoxComponent {
     }
 
     /**
-     * Handle pointer down on the resize corners handle.
-     *
-     * @param pEvent - Pointer event from the resize handle.
-     */
-    public resizeCorner(pEvent: PointerEvent): void {
-        this.handleResize(pEvent, 'both');
-    }
-
-    /**
-     * Handle pointer down on the resize horizontal handles.
+     * Handle pointer down on the horizontal handles (top/bottom).
+     * These handles resize the height, so the width is locked.
      *
      * @param pEvent - Pointer event from the resize handle.
      */
@@ -167,7 +135,8 @@ export class KgResizeBoxComponent {
     }
 
     /**
-     * Handle pointer down on the resize vertical handles.
+     * Handle pointer down on the vertical handles (left/right).
+     * These handles resize the width, so the height is locked.
      *
      * @param pEvent - Pointer event from the resize handle.
      */
@@ -178,14 +147,15 @@ export class KgResizeBoxComponent {
     /**
      * Apply the parent component size.
      * When set to virtual, only the events are fired.
-     * 
+     *
+     * @param pUsedHandle - All used handle for the resize.
      * @param pWidth - Width in pixel.
      * @param pHeight - Height in pixel.
      */
     private applyComponentSize(pUsedHandle: number, pWidth: number, pHeight: number) {
         // Resize with the respected limitations.
-        const lResizedWidth: number = this.updateComponentWidth(pWidth, false);
-        const lResizedHeight: number = this.updateComponentHeight(pHeight, false);
+        const lResizedWidth: number = this.updateComponentWidth(pWidth);
+        const lResizedHeight: number = this.updateComponentHeight(pHeight);
 
         // Dispatch event after the width has changed.
         if (lResizedWidth !== this.width || lResizedHeight !== this.height) {
@@ -197,37 +167,37 @@ export class KgResizeBoxComponent {
     }
 
     /**
-     * Create the resize event object. 
+     * Create the resize event object.
      * Fills in the correct used handle based on the staring and current size.
-     * 
+     *
      * @param pUsedHandle - All used handle for the resize.
      * @param pWidth - Current width.
      * @param pHeight - Current height-
      * @param pStartingWidth - Staring width.
      * @param pStartingHeight - Starting height.
-     * 
-     * @returns fully configurated ResizeBoxComponentResize object.
+     *
+     * @returns fully configurated ResizePanelComponentResize object.
      */
     private createResizeEvent(pUsedHandle: number, pWidth: number, pHeight: number, pStartingWidth: number, pStartingHeight: number) {
         let lResizedHandle: number = pUsedHandle;
         if (pWidth === pStartingWidth) {
-            lResizedHandle &= ~(KgResizeBoxComponentResizeDirection.right | KgResizeBoxComponentResizeDirection.left);
+            lResizedHandle &= ~(KgResizePanelComponentResizeDirection.right | KgResizePanelComponentResizeDirection.left);
         }
         if (pHeight === pStartingHeight) {
-            lResizedHandle &= ~(KgResizeBoxComponentResizeDirection.top | KgResizeBoxComponentResizeDirection.bottom);
+            lResizedHandle &= ~(KgResizePanelComponentResizeDirection.top | KgResizePanelComponentResizeDirection.bottom);
         }
 
-        return new KgResizeBoxComponentResize(pWidth, pHeight, lResizedHandle);
+        return new KgResizePanelComponentResize(pWidth, pHeight, lResizedHandle);
     }
 
     /**
      * Handle the resize logic with a set movement restriction.
      * Applies temporary pointer events to read resizing movements.
-     * 
+     *
      * @param pEvent - The starting pointer down event.
      * @param pAllowedMovement - Allowed movement.
      */
-    private handleResize(pEvent: PointerEvent, pAllowedMovement: KgResizeBoxComponentMovement): void {
+    private handleResize(pEvent: PointerEvent, pAllowedMovement: KgResizePanelComponentMovement): void {
         pEvent.preventDefault();
         pEvent.stopPropagation();
 
@@ -258,8 +228,8 @@ export class KgResizeBoxComponent {
 
         // Determinate handles used.
         let lUsedHandles: number = 0;
-        lUsedHandles += (lVerticalInvertion === 1) ? KgResizeBoxComponentResizeDirection.right : KgResizeBoxComponentResizeDirection.left;
-        lUsedHandles += (lHorizontalInvertion === 1) ? KgResizeBoxComponentResizeDirection.bottom : KgResizeBoxComponentResizeDirection.top;
+        lUsedHandles += (lVerticalInvertion === 1) ? KgResizePanelComponentResizeDirection.right : KgResizePanelComponentResizeDirection.left;
+        lUsedHandles += (lHorizontalInvertion === 1) ? KgResizePanelComponentResizeDirection.bottom : KgResizePanelComponentResizeDirection.top;
 
         // Save the current size while resizing to check if the size has actually changed.
         let lCurrentWidth: number = lStartingWidth;
@@ -306,10 +276,10 @@ export class KgResizeBoxComponent {
 
     /**
      * Parse a value into a boolean.
-     * 
+     *
      * @param pValue - Value.
-     * 
-     * @returns a boolean. 
+     *
+     * @returns a boolean.
      */
     private parseBoolean(pValue: unknown): boolean {
         // Try to parse the value to a boolean parseable state.
@@ -317,7 +287,7 @@ export class KgResizeBoxComponent {
             // When value is a string, it might be "true" or "false".
             if (typeof pValue === 'string') {
                 // Empty strings are considered as true also. Because setting a empty attribute also is "true".
-                if(pValue === ''){
+                if (pValue === '') {
                     return true;
                 }
 
@@ -336,64 +306,48 @@ export class KgResizeBoxComponent {
 
     /**
      * Set component height.
-     * 
+     *
      * @param pHeight - Height in pixel.
-     * @param pIgnoreVirtual - Ignore the virtual setting and set it.
-     * 
-     * @returns resized height. 
+     *
+     * @returns resized height.
      */
-    private updateComponentHeight(pHeight: number, pIgnoreVirtual: boolean): number {
+    private updateComponentHeight(pHeight: number): number {
         // Skip resize if not setup to be resized.
         if (!this.mConfiguration.enabledDirections.top && !this.mConfiguration.enabledDirections.bottom) {
             return this.height;
         }
 
         // Size should not be divided by zero. Limit that.
-        pHeight = Math.max(1, pHeight);
+        const lResizedHeight: number = Math.max(1, pHeight);
 
-        // Snap the resized value.
-        let lResizedHeight: number = Math.ceil(Math.abs(pHeight) / this.mConfiguration.snap) * this.mConfiguration.snap * (pHeight / Math.abs(pHeight));
-        lResizedHeight = Math.max(0, lResizedHeight);
-
-        // Resize if the resize should not be virtual.
-        if (!this.mConfiguration.isVirtual || pIgnoreVirtual) {
-            this.mComponentElement.style.setProperty('height', `${lResizedHeight}px`);
-        }
+        this.mComponentElement.style.setProperty('height', `${lResizedHeight}px`);
 
         return lResizedHeight;
     }
 
     /**
      * Set component width.
-     * 
+     *
      * @param pWidth - Width in pixel.
-     * @param pIgnoreVirtual - Ignore the virtual setting and set it.
-     * 
-     * @returns resized width. 
+     *
+     * @returns resized width.
      */
-    private updateComponentWidth(pWidth: number, pIgnoreVirtual: boolean): number {
+    private updateComponentWidth(pWidth: number): number {
         // Skip resize if not setup to be resized.
         if (!this.mConfiguration.enabledDirections.left && !this.mConfiguration.enabledDirections.right) {
-            return this.height;
+            return this.width;
         }
 
         // Size should not be divided by zero. Limit that.
-        pWidth = Math.max(1, pWidth);
+        const lResizedWidth: number = Math.max(1, pWidth);
 
-        // Snap the resized value.
-        let lResizedWidth: number = Math.ceil(Math.abs(pWidth) / this.mConfiguration.snap) * this.mConfiguration.snap * (pWidth / Math.abs(pWidth));
-        lResizedWidth = Math.max(0, lResizedWidth);
-
-        // Resize if the resize should not be virtual.
-        if (!this.mConfiguration.isVirtual || pIgnoreVirtual) {
-            this.mComponentElement.style.setProperty('width', `${lResizedWidth}px`);
-        }
+        this.mComponentElement.style.setProperty('width', `${lResizedWidth}px`);
 
         return lResizedWidth;
     }
 }
 
-export class KgResizeBoxComponentResize {
+export class KgResizePanelComponentResize {
     private readonly mHeight: number;
     private readonly mResizeHandle: number;
     private readonly mWidth: number;
@@ -421,7 +375,7 @@ export class KgResizeBoxComponentResize {
 
     /**
      * Constructor.
-     * 
+     *
      * @param pWidth - New resized width.
      * @param pHeight - New resized height.
      * @param pResizeHandle - Resize handle where the resize happened.
@@ -433,19 +387,17 @@ export class KgResizeBoxComponentResize {
     }
 }
 
-export const KgResizeBoxComponentResizeDirection = {
+export const KgResizePanelComponentResizeDirection = {
     top: 1,
     right: 2,
     bottom: 4,
     left: 8,
 } as const;
-export type KgResizeBoxComponentResizeDirection = typeof KgResizeBoxComponentResizeDirection[keyof typeof KgResizeBoxComponentResizeDirection];
+export type KgResizePanelComponentResizeDirection = typeof KgResizePanelComponentResizeDirection[keyof typeof KgResizePanelComponentResizeDirection];
 
-type KgResizeBoxComponentMovement = 'horizontal' | 'vertical' | 'both';
+type KgResizePanelComponentMovement = 'horizontal' | 'vertical';
 
-type KgResizeBoxComponentConfiguration = {
-    snap: number;
-    isVirtual: boolean;
+type KgResizePanelComponentConfiguration = {
     enabledDirections: {
         top: boolean;
         right: boolean;

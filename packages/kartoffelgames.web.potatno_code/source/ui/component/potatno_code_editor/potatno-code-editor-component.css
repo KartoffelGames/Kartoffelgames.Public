@@ -33,7 +33,6 @@
         margin: 0 calc(var(--window-padding) / 2) 0 0;
         border: 1px solid var(--potatno-color-border);
         border-radius: var(--potatno-border-radius);
-        overflow: hidden;
     }
 
     potatno-function-properties {
@@ -41,7 +40,6 @@
         margin: 0 0 0 calc(var(--window-padding) / 2);
         border: 1px solid var(--potatno-color-border);
         border-radius: var(--potatno-border-radius);
-        overflow: hidden;
     }
 
     .editor__preview {

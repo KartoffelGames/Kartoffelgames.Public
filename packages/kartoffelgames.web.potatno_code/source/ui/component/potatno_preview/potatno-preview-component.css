@@ -6,6 +6,7 @@
 
 .resize-box {
     --resize-box-handle-color: var(--potatno-color-border);
+    --resize-box-handle-hover-color: var(--potatno-color-accent);
 
     /* Set min sizes to restrict resizing. */
     min-height: 150px;

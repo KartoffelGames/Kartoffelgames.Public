@@ -1,15 +1,14 @@
 :host {
     display: flex;
     flex-direction: column;
-    overflow: hidden;
 }
 
-.resize-box {
-    --resize-box-handle-color: var(--potatno-color-border);
+.resize-panel {
+    --resize-panel-handle-color: var(--potatno-color-border);
+    --resize-panel-handle-hover-color: var(--potatno-color-accent);
 
     height: 100%;
-    background-color: var(--potatno-color-background-dark);
-
+    
     /* Set min, max and default width */
     width: 250px;
     max-width: 500px;
@@ -18,6 +17,16 @@
     /* Hopefully that cascade into all childs. */
     font-family: var(--potatno-font-family);
     font-size: var(--potatno-font-size);
+}
+
+.panel-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    border-radius: var(--potatno-border-radius);
+    background-color: var(--potatno-color-background-dark);
+    overflow: hidden;
 }
 
 .function-list {

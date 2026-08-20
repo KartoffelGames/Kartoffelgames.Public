@@ -1898,6 +1898,7 @@ $if(this.left) {
 }\r
 \r
 .node {\r
+    position: relative;\r
     box-sizing: border-box;\r
     display: flex;\r
     flex-direction: column;\r
@@ -1919,6 +1920,18 @@ $if(this.left) {
 \r
     &.error {\r
         box-shadow: 0 0 0px 2px var(--potatno-color-error);\r
+    }\r
+\r
+    .node__glow {\r
+        position: absolute;\r
+        top: calc(var(--potatno-grid-size) / 2);\r
+        width: 100%;\r
+        height: 0px;\r
+\r
+        /* Allways on back */\r
+        z-index: -1;\r
+\r
+        box-shadow: 0 0 20px 10px var(--node-category-color);\r
     }\r
 }\r
 \r
@@ -2252,8 +2265,8 @@ $if(this.left) {
     }\r
 \r
 }`;var Ds=`<!-- Resizeable part of node -->\r
-<div class="node {{this.hasError ? 'error' : ''}}" style="--node-width: {{ this.nodeTransformation.width }}; --node-height: {{ this.nodeTransformation.height }};">\r
-    <div class="node-header" style="--node-category-color: {{this.nodeColor}}" (pointerdown)="this.dragNode($event)">\r
+<div class="node {{this.hasError ? 'error' : ''}}" style="--node-width: {{ this.nodeTransformation.width }}; --node-height: {{ this.nodeTransformation.height }}; --node-category-color: {{this.nodeColor}}">\r
+    <div class="node-header" (pointerdown)="this.dragNode($event)">\r
         <span class="node-header__bar"></span>\r
         <span class="node-header__icon">{{this.nodeIcon}}</span>\r
         <span class="node-header__label">{{this.nodeLabel}}</span>\r
@@ -2286,6 +2299,9 @@ $if(this.left) {
             <div class="icon"/>\r
         </div>\r
     }\r
+\r
+    <!-- What that? -->\r
+    <div class="node__glow"></div>\r
 </div>\r
 \r
 $if(this.isPreviewActive) {\r

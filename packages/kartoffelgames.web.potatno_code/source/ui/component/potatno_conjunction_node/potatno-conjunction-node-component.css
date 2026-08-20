@@ -108,7 +108,6 @@
                 width: calc((var(--potatno-port-flow-size) / 3) * 2);
 
                 background-color: color-mix(in srgb, var(--potatno-port-handle-color) 30%, var(--potatno-color-background));
-                border-radius: var(--potatno-border-radius);
             }
 
             &.connected::before {
@@ -143,8 +142,12 @@
 
                 /* Adjust arrow geometry and arrow color */
                 &::after {
-                    right: 1px;
+                    right: 0px;
                     border-left: calc(var(--potatno-port-flow-size) / 3) solid color-mix(in srgb, var(--potatno-port-handle-color) 30%, var(--potatno-color-background));
+                }
+
+                &::before {
+                    border-radius: 2px 0 0 2px;
                 }
 
                 &.connected::after {
@@ -173,8 +176,12 @@
 
                 /* Adjust arrow geometry and arrow color */
                 &::after {
-                    left: 1px;
+                    left: 0px;
                     border-right: calc(var(--potatno-port-flow-size) / 3) solid color-mix(in srgb, var(--potatno-port-handle-color) 30%, var(--potatno-color-background));
+                }
+
+                &::before {
+                    border-radius: 0 2px 2px 0;
                 }
 
                 &.connected::after {

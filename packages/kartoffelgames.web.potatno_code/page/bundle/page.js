@@ -483,131 +483,130 @@ $if(this.left) {\r
 \r
 <div class="content-container">\r
     $slot\r
-</div>`;function vl(){function y(l,n){return function(c){e(n,"addInitializer"),r(c,"An initializer"),l.push(c)}}function t(l,n,h,c,o,b,m,D,x){var d;switch(o){case 1:d="accessor";break;case 2:d="method";break;case 3:d="getter";break;case 4:d="setter";break;default:d="field"}var s={kind:d,name:m?"#"+n:n,static:b,private:m,metadata:D},f={v:!1};s.addInitializer=y(c,f);var i,a;if(o===0?m?(i=h.get,a=h.set):(i=function(){return this[n]},a=function(g){this[n]=g}):o===2?i=function(){return h.value}:((o===1||o===3)&&(i=function(){return h.get.call(this)}),(o===1||o===4)&&(a=function(g){h.set.call(this,g)})),m)s.access=i&&a?{get:i,set:a}:i?{get:i}:{set:a};else{if(i){var I=i;i=function(g){return arguments.length===0&&(g=this),I.call(g)}}if(a){var P=a;a=function(g,S){return arguments.length===1&&(S=g,g=this),P.call(g,S)}}var E=function(g){return n in g};s.access=i&&a?{has:E,get:i,set:a}:i?{has:E,get:i}:{has:E,set:a}}try{return l(x,s)}finally{f.v=!0}}function e(l,n){if(l.v)throw new Error("attempted to call "+n+" after decoration was finished")}function r(l,n){if(typeof l!="function")throw new TypeError(n+" must be a function")}function u(l,n){var h=typeof n;if(l===1){if(h!=="object"||n===null)throw new TypeError("accessor decorators must return an object with get, set, or init properties or void 0");n.get!==void 0&&r(n.get,"accessor.get"),n.set!==void 0&&r(n.set,"accessor.set"),n.init!==void 0&&r(n.init,"accessor.init")}else if(h!=="function"){var c;throw l===0?c="field":l===10?c="class":c="method",new TypeError(c+" decorators must return a function or void 0")}}function p(l,n,h,c,o,b,m,D,x){var d=h[0],s,f,i;m?o===0||o===1?s={get:h[3],set:h[4]}:o===3?s={get:h[3]}:o===4?s={set:h[3]}:s={value:h[3]}:o!==0&&(s=Object.getOwnPropertyDescriptor(n,c)),o===1?i={get:s.get,set:s.set}:o===2?i=s.value:o===3?i=s.get:o===4&&(i=s.set);var a,I,P;if(typeof d=="function")a=t(d,c,s,D,o,b,m,x,i),a!==void 0&&(u(o,a),o===0?f=a:o===1?(f=a.init,I=a.get||i.get,P=a.set||i.set,i={get:I,set:P}):i=a);else for(var E=d.length-1;E>=0;E--){var g=d[E];if(a=t(g,c,s,D,o,b,m,x,i),a!==void 0){u(o,a);var S;o===0?S=a:o===1?(S=a.init,I=a.get||i.get,P=a.set||i.set,i={get:I,set:P}):i=a,S!==void 0&&(f===void 0?f=S:typeof f=="function"?f=[f,S]:f.push(S))}}if(o===0||o===1){if(f===void 0)f=function(M,C){return C};else if(typeof f!="function"){var F=f;f=function(M,C){for(var A=C,L=0;L<F.length;L++)A=F[L].call(M,A);return A}}else{var j=f;f=function(M,C){return j.call(M,C)}}l.push(f)}o!==0&&(o===1?(s.get=i.get,s.set=i.set):o===2?s.value=i:o===3?s.get=i:o===4&&(s.set=i),m?o===1?(l.push(function(M,C){return i.get.call(M,C)}),l.push(function(M,C){return i.set.call(M,C)})):o===2?l.push(i):l.push(function(M,C){return i.call(M,C)}):Object.defineProperty(n,c,s))}function v(l,n,h){for(var c=[],o,b,m=new Map,D=new Map,x=0;x<n.length;x++){var d=n[x];if(Array.isArray(d)){var s=d[1],f=d[2],i=d.length>3,a=s>=5,I,P;if(a?(I=l,s=s-5,b=b||[],P=b):(I=l.prototype,o=o||[],P=o),s!==0&&!i){var E=a?D:m,g=E.get(f)||0;if(g===!0||g===3&&s!==4||g===4&&s!==3)throw new Error("Attempted to decorate a public method/accessor that has the same name as a previously decorated public method/accessor. This is not currently supported by the decorators plugin. Property name was: "+f);!g&&s>2?E.set(f,s):E.set(f,!0)}p(c,I,d,f,s,a,i,P,h)}}return w(c,o),w(c,b),c}function w(l,n){n&&l.push(function(h){for(var c=0;c<n.length;c++)n[c].call(h);return h})}function T(l,n,h){if(n.length>0){for(var c=[],o=l,b=l.name,m=n.length-1;m>=0;m--){var D={v:!1};try{var x=n[m](o,{kind:"class",name:b,addInitializer:y(c,D),metadata:h})}finally{D.v=!0}x!==void 0&&(u(10,x),o=x)}return[_(o,h),function(){for(var d=0;d<c.length;d++)c[d].call(o)}]}}function _(l,n){return Object.defineProperty(l,Symbol.metadata||Symbol.for("Symbol.metadata"),{configurable:!0,enumerable:!0,value:n})}return function(n,h,c,o){if(o!==void 0)var b=o[Symbol.metadata||Symbol.for("Symbol.metadata")];var m=Object.create(b===void 0?null:b),D=v(n,h,m);return c.length||_(n,m),{e:D,get c(){return T(n,c,m)}}}}function hn(y,t,e,r){return(hn=vl())(y,t,e,r)}var fn,nn,dn,pn,mn,gn,vn,yn,bn,wn,xn,Tn,Dn,sn,an,ln,cn,Yt;fn=U({selector:"kg-resize-box",template:rn,style:on}),dn=V.state({proxy:!0}),pn=st("resize"),mn=st("resize-end"),gn=B(),vn=B(),yn=B(),bn=B(),wn=B(),xn=B(),Tn=B(),Dn=B();var un=class{static{({e:[sn,an,ln,cn],c:[Yt,nn]}=hn(this,[[dn,1,"mConfiguration"],[pn,1,"mResize"],[mn,1,"mResizeEnd"],[gn,3,"bottom"],[vn,3,"height"],[yn,3,"left"],[bn,3,"right"],[wn,3,"snap"],[xn,3,"top"],[Tn,3,"virtual"],[Dn,3,"width"]],[fn]))}constructor(t=O.use(G)){this.mComponentElement=t.element,this.mConfiguration={snap:1,isVirtual:!1,enabledDirections:{top:!1,right:!1,bottom:!1,left:!1}}}mComponentElement;#t=(cn(this),sn(this));get mConfiguration(){return this.#t}set mConfiguration(t){this.#t=t}#e=an(this);get mResize(){return this.#e}set mResize(t){this.#e=t}#o=ln(this);get mResizeEnd(){return this.#o}set mResizeEnd(t){this.#o=t}get bottom(){return this.mConfiguration.enabledDirections.bottom}set bottom(t){this.mConfiguration.enabledDirections.bottom=this.parseBoolean(t)}get height(){return this.mComponentElement.clientHeight}set height(t){this.updateComponentHeight(t,!0)}get left(){return this.mConfiguration.enabledDirections.left}set left(t){this.mConfiguration.enabledDirections.left=this.parseBoolean(t)}get right(){return this.mConfiguration.enabledDirections.right}set right(t){this.mConfiguration.enabledDirections.right=this.parseBoolean(t)}get snap(){return this.mConfiguration.snap}set snap(t){this.mConfiguration.snap=parseInt(t.toString())}get top(){return this.mConfiguration.enabledDirections.top}set top(t){this.mConfiguration.enabledDirections.top=this.parseBoolean(t)}get virtual(){return this.mConfiguration.isVirtual}set virtual(t){this.mConfiguration.isVirtual=this.parseBoolean(t)}get width(){return this.mComponentElement.clientWidth}set width(t){this.updateComponentWidth(t,!0)}resizeCorner(t){this.handleResize(t,"both")}resizeHorizontal(t){this.handleResize(t,"horizontal")}resizeVertical(t){this.handleResize(t,"vertical")}applyComponentSize(t,e,r){let u=this.updateComponentWidth(e,!1),p=this.updateComponentHeight(r,!1);return(u!==this.width||p!==this.height)&&this.mResize.dispatchEvent(this.createResizeEvent(t,u,p,this.width,this.height)),[u,p]}createResizeEvent(t,e,r,u,p){let v=t;return e===u&&(v&=~(bt.right|bt.left)),r===p&&(v&=~(bt.top|bt.bottom)),new eo(e,r,v)}handleResize(t,e){t.preventDefault(),t.stopPropagation();let r=this.mComponentElement.getBoundingClientRect(),u=this.mComponentElement.offsetWidth?r.width/this.mComponentElement.offsetWidth:1,p=this.mComponentElement.offsetHeight?r.height/this.mComponentElement.offsetHeight:1,v=r.width/u,w=r.height/p,T=t.clientX,_=t.clientY,l=1;Math.abs(T-r.left)<Math.abs(T-r.right)&&(l=-1);let n=1;Math.abs(_-r.top)<Math.abs(_-r.bottom)&&(n=-1);let h=0;h+=l===1?bt.right:bt.left,h+=n===1?bt.bottom:bt.top;let c=v,o=w,b=D=>{let x=(D.clientX-T)/u*l,d=(D.clientY-_)/p*n,s=v+x,f=w+d;e==="horizontal"&&(s=v),e==="vertical"&&(f=w),[c,o]=this.applyComponentSize(h,s,f)},m=()=>{document.removeEventListener("pointermove",b),document.removeEventListener("pointerup",m),(c!==v||o!==w)&&this.mResizeEnd.dispatchEvent(this.createResizeEvent(h,c,o,v,w))};document.addEventListener("pointermove",b),document.addEventListener("pointerup",m)}parseBoolean(t){return!!(()=>{if(typeof t=="string"){if(t==="")return!0;let r=t.toLowerCase();if(["true","false"].includes(r))return r==="true"}return t})()}updateComponentHeight(t,e){if(!this.mConfiguration.enabledDirections.top&&!this.mConfiguration.enabledDirections.bottom)return this.height;t=Math.max(1,t);let r=Math.ceil(Math.abs(t)/this.mConfiguration.snap)*this.mConfiguration.snap*(t/Math.abs(t));return r=Math.max(0,r),(!this.mConfiguration.isVirtual||e)&&this.mComponentElement.style.setProperty("height",`${r}px`),r}updateComponentWidth(t,e){if(!this.mConfiguration.enabledDirections.left&&!this.mConfiguration.enabledDirections.right)return this.height;t=Math.max(1,t);let r=Math.ceil(Math.abs(t)/this.mConfiguration.snap)*this.mConfiguration.snap*(t/Math.abs(t));return r=Math.max(0,r),(!this.mConfiguration.isVirtual||e)&&this.mComponentElement.style.setProperty("width",`${r}px`),r}static{nn()}},eo=class{mHeight;mResizeHandle;mWidth;get height(){return this.mHeight}get resizeHandle(){return this.mResizeHandle}get width(){return this.mWidth}constructor(t,e,r){this.mHeight=e,this.mResizeHandle=r,this.mWidth=t}},bt={top:1,right:2,bottom:4,left:8};var En=`:host {
-    --resize-panel-handle-size: 6px;
-    --resize-panel-handle-color: red;
-    --resize-panel-handle-hover-color: red;
-
-    position: relative;
-    display: flex;
-    flex-direction: column;
-
-    /* Set restrictions to never exeeds bounding restrictions set on the parent component. */
-    min-height: 100%;
-    min-width: 100%;
-}
-
-.content-container {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    box-sizing: border-box;
-
-    /* Somehow this fixes overflow. Maybe min is set lower than current content size it is? */
-    min-height: 0;
-    min-width: 0;
-
-    width: 100%;
-    height: 100%;
-}
-
-.resize-handle {
-    position: absolute;
-    z-index: 1;
-
-    /* "Soft" handle transparent until hovered. */
-    background-color: transparent;
-    transition: background-color 0.15s;
-
-    /* Whatever the parent does. Allways allow pointer events for handles. */
-    pointer-events: all;
-
-    &::before {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-
-        /* Grip dot. Single dot that is repeated in every direction. */
-        background-image: radial-gradient(circle, var(--resize-panel-handle-color) 1px, transparent 1.6px);
-    }
-
-    &.vertical {
-        top: 0px;
-        bottom: 0px;
-        width: var(--resize-panel-handle-size);
-
-        cursor: ew-resize;
-
-        /* Three dots stacked vertically. */
-        &::before {
-            width: 3px;
-            height: 15px;
-            background-size: 3px 5px;
-        }
-    }
-
-    &.left {
-        /* Place directly left of the panel, outside its box. */
-        left: calc(-1 * var(--resize-panel-handle-size));
-    }
-
-    &.right {
-        /* Place directly right of the panel, outside its box. */
-        right: calc(-1 * var(--resize-panel-handle-size));
-    }
-
-    &.horizontal {
-        left: 0px;
-        right: 0px;
-        height: var(--resize-panel-handle-size);
-
-        cursor: ns-resize;
-
-        /* Three dots in a row. */
-        &::before {
-            width: 15px;
-            height: 3px;
-            background-size: 5px 3px;
-        }
-    }
-
-    &.top {
-        /* Place directly above the panel, outside its box. */
-        top: calc(-1 * var(--resize-panel-handle-size));
-    }
-
-    &.bottom {
-        /* Place directly below the panel, outside its box. */
-        bottom: calc(-1 * var(--resize-panel-handle-size));
-    }
-
-    &:hover {
-        background-color: var(--resize-panel-handle-hover-color);
-
-        &::before {
-            --resize-panel-handle-color: rgba(255, 255, 255, 0.85);
-        }
-    }
-}
-`;var Cn=`<!-- Four soft edge handles placed next to the panel. Top/bottom resize height, left/right resize width. -->
-$if(this.top) {
-    <div class="resize-handle horizontal top" (pointerdown)="this.resizeHorizontal($event)"></div>
-}
-$if(this.right) {
-    <div class="resize-handle vertical right" (pointerdown)="this.resizeVertical($event)"></div>
-}
-$if(this.bottom) {
-    <div class="resize-handle horizontal bottom" (pointerdown)="this.resizeHorizontal($event)"></div>
-}
-$if(this.left) {
-    <div class="resize-handle vertical left" (pointerdown)="this.resizeVertical($event)"></div>
-}
-
-<div class="content-container">
-    $slot
-</div>
+</div>`;function vl(){function y(l,n){return function(c){e(n,"addInitializer"),r(c,"An initializer"),l.push(c)}}function t(l,n,h,c,o,b,m,D,x){var d;switch(o){case 1:d="accessor";break;case 2:d="method";break;case 3:d="getter";break;case 4:d="setter";break;default:d="field"}var s={kind:d,name:m?"#"+n:n,static:b,private:m,metadata:D},f={v:!1};s.addInitializer=y(c,f);var i,a;if(o===0?m?(i=h.get,a=h.set):(i=function(){return this[n]},a=function(g){this[n]=g}):o===2?i=function(){return h.value}:((o===1||o===3)&&(i=function(){return h.get.call(this)}),(o===1||o===4)&&(a=function(g){h.set.call(this,g)})),m)s.access=i&&a?{get:i,set:a}:i?{get:i}:{set:a};else{if(i){var I=i;i=function(g){return arguments.length===0&&(g=this),I.call(g)}}if(a){var P=a;a=function(g,S){return arguments.length===1&&(S=g,g=this),P.call(g,S)}}var E=function(g){return n in g};s.access=i&&a?{has:E,get:i,set:a}:i?{has:E,get:i}:{has:E,set:a}}try{return l(x,s)}finally{f.v=!0}}function e(l,n){if(l.v)throw new Error("attempted to call "+n+" after decoration was finished")}function r(l,n){if(typeof l!="function")throw new TypeError(n+" must be a function")}function u(l,n){var h=typeof n;if(l===1){if(h!=="object"||n===null)throw new TypeError("accessor decorators must return an object with get, set, or init properties or void 0");n.get!==void 0&&r(n.get,"accessor.get"),n.set!==void 0&&r(n.set,"accessor.set"),n.init!==void 0&&r(n.init,"accessor.init")}else if(h!=="function"){var c;throw l===0?c="field":l===10?c="class":c="method",new TypeError(c+" decorators must return a function or void 0")}}function p(l,n,h,c,o,b,m,D,x){var d=h[0],s,f,i;m?o===0||o===1?s={get:h[3],set:h[4]}:o===3?s={get:h[3]}:o===4?s={set:h[3]}:s={value:h[3]}:o!==0&&(s=Object.getOwnPropertyDescriptor(n,c)),o===1?i={get:s.get,set:s.set}:o===2?i=s.value:o===3?i=s.get:o===4&&(i=s.set);var a,I,P;if(typeof d=="function")a=t(d,c,s,D,o,b,m,x,i),a!==void 0&&(u(o,a),o===0?f=a:o===1?(f=a.init,I=a.get||i.get,P=a.set||i.set,i={get:I,set:P}):i=a);else for(var E=d.length-1;E>=0;E--){var g=d[E];if(a=t(g,c,s,D,o,b,m,x,i),a!==void 0){u(o,a);var S;o===0?S=a:o===1?(S=a.init,I=a.get||i.get,P=a.set||i.set,i={get:I,set:P}):i=a,S!==void 0&&(f===void 0?f=S:typeof f=="function"?f=[f,S]:f.push(S))}}if(o===0||o===1){if(f===void 0)f=function(M,C){return C};else if(typeof f!="function"){var F=f;f=function(M,C){for(var A=C,L=0;L<F.length;L++)A=F[L].call(M,A);return A}}else{var j=f;f=function(M,C){return j.call(M,C)}}l.push(f)}o!==0&&(o===1?(s.get=i.get,s.set=i.set):o===2?s.value=i:o===3?s.get=i:o===4&&(s.set=i),m?o===1?(l.push(function(M,C){return i.get.call(M,C)}),l.push(function(M,C){return i.set.call(M,C)})):o===2?l.push(i):l.push(function(M,C){return i.call(M,C)}):Object.defineProperty(n,c,s))}function v(l,n,h){for(var c=[],o,b,m=new Map,D=new Map,x=0;x<n.length;x++){var d=n[x];if(Array.isArray(d)){var s=d[1],f=d[2],i=d.length>3,a=s>=5,I,P;if(a?(I=l,s=s-5,b=b||[],P=b):(I=l.prototype,o=o||[],P=o),s!==0&&!i){var E=a?D:m,g=E.get(f)||0;if(g===!0||g===3&&s!==4||g===4&&s!==3)throw new Error("Attempted to decorate a public method/accessor that has the same name as a previously decorated public method/accessor. This is not currently supported by the decorators plugin. Property name was: "+f);!g&&s>2?E.set(f,s):E.set(f,!0)}p(c,I,d,f,s,a,i,P,h)}}return w(c,o),w(c,b),c}function w(l,n){n&&l.push(function(h){for(var c=0;c<n.length;c++)n[c].call(h);return h})}function T(l,n,h){if(n.length>0){for(var c=[],o=l,b=l.name,m=n.length-1;m>=0;m--){var D={v:!1};try{var x=n[m](o,{kind:"class",name:b,addInitializer:y(c,D),metadata:h})}finally{D.v=!0}x!==void 0&&(u(10,x),o=x)}return[_(o,h),function(){for(var d=0;d<c.length;d++)c[d].call(o)}]}}function _(l,n){return Object.defineProperty(l,Symbol.metadata||Symbol.for("Symbol.metadata"),{configurable:!0,enumerable:!0,value:n})}return function(n,h,c,o){if(o!==void 0)var b=o[Symbol.metadata||Symbol.for("Symbol.metadata")];var m=Object.create(b===void 0?null:b),D=v(n,h,m);return c.length||_(n,m),{e:D,get c(){return T(n,c,m)}}}}function hn(y,t,e,r){return(hn=vl())(y,t,e,r)}var fn,nn,dn,pn,mn,gn,vn,yn,bn,wn,xn,Tn,Dn,sn,an,ln,cn,Yt;fn=U({selector:"kg-resize-box",template:rn,style:on}),dn=V.state({proxy:!0}),pn=st("resize"),mn=st("resize-end"),gn=B(),vn=B(),yn=B(),bn=B(),wn=B(),xn=B(),Tn=B(),Dn=B();var un=class{static{({e:[sn,an,ln,cn],c:[Yt,nn]}=hn(this,[[dn,1,"mConfiguration"],[pn,1,"mResize"],[mn,1,"mResizeEnd"],[gn,3,"bottom"],[vn,3,"height"],[yn,3,"left"],[bn,3,"right"],[wn,3,"snap"],[xn,3,"top"],[Tn,3,"virtual"],[Dn,3,"width"]],[fn]))}constructor(t=O.use(G)){this.mComponentElement=t.element,this.mConfiguration={snap:1,isVirtual:!1,enabledDirections:{top:!1,right:!1,bottom:!1,left:!1}}}mComponentElement;#t=(cn(this),sn(this));get mConfiguration(){return this.#t}set mConfiguration(t){this.#t=t}#e=an(this);get mResize(){return this.#e}set mResize(t){this.#e=t}#o=ln(this);get mResizeEnd(){return this.#o}set mResizeEnd(t){this.#o=t}get bottom(){return this.mConfiguration.enabledDirections.bottom}set bottom(t){this.mConfiguration.enabledDirections.bottom=this.parseBoolean(t)}get height(){return this.mComponentElement.clientHeight}set height(t){this.updateComponentHeight(t,!0)}get left(){return this.mConfiguration.enabledDirections.left}set left(t){this.mConfiguration.enabledDirections.left=this.parseBoolean(t)}get right(){return this.mConfiguration.enabledDirections.right}set right(t){this.mConfiguration.enabledDirections.right=this.parseBoolean(t)}get snap(){return this.mConfiguration.snap}set snap(t){this.mConfiguration.snap=parseInt(t.toString())}get top(){return this.mConfiguration.enabledDirections.top}set top(t){this.mConfiguration.enabledDirections.top=this.parseBoolean(t)}get virtual(){return this.mConfiguration.isVirtual}set virtual(t){this.mConfiguration.isVirtual=this.parseBoolean(t)}get width(){return this.mComponentElement.clientWidth}set width(t){this.updateComponentWidth(t,!0)}resizeCorner(t){this.handleResize(t,"both")}resizeHorizontal(t){this.handleResize(t,"horizontal")}resizeVertical(t){this.handleResize(t,"vertical")}applyComponentSize(t,e,r){let u=this.updateComponentWidth(e,!1),p=this.updateComponentHeight(r,!1);return(u!==this.width||p!==this.height)&&this.mResize.dispatchEvent(this.createResizeEvent(t,u,p,this.width,this.height)),[u,p]}createResizeEvent(t,e,r,u,p){let v=t;return e===u&&(v&=~(bt.right|bt.left)),r===p&&(v&=~(bt.top|bt.bottom)),new eo(e,r,v)}handleResize(t,e){t.preventDefault(),t.stopPropagation();let r=this.mComponentElement.getBoundingClientRect(),u=this.mComponentElement.offsetWidth?r.width/this.mComponentElement.offsetWidth:1,p=this.mComponentElement.offsetHeight?r.height/this.mComponentElement.offsetHeight:1,v=r.width/u,w=r.height/p,T=t.clientX,_=t.clientY,l=1;Math.abs(T-r.left)<Math.abs(T-r.right)&&(l=-1);let n=1;Math.abs(_-r.top)<Math.abs(_-r.bottom)&&(n=-1);let h=0;h+=l===1?bt.right:bt.left,h+=n===1?bt.bottom:bt.top;let c=v,o=w,b=D=>{let x=(D.clientX-T)/u*l,d=(D.clientY-_)/p*n,s=v+x,f=w+d;e==="horizontal"&&(s=v),e==="vertical"&&(f=w),[c,o]=this.applyComponentSize(h,s,f)},m=()=>{document.removeEventListener("pointermove",b),document.removeEventListener("pointerup",m),(c!==v||o!==w)&&this.mResizeEnd.dispatchEvent(this.createResizeEvent(h,c,o,v,w))};document.addEventListener("pointermove",b),document.addEventListener("pointerup",m)}parseBoolean(t){return!!(()=>{if(typeof t=="string"){if(t==="")return!0;let r=t.toLowerCase();if(["true","false"].includes(r))return r==="true"}return t})()}updateComponentHeight(t,e){if(!this.mConfiguration.enabledDirections.top&&!this.mConfiguration.enabledDirections.bottom)return this.height;t=Math.max(1,t);let r=Math.ceil(Math.abs(t)/this.mConfiguration.snap)*this.mConfiguration.snap*(t/Math.abs(t));return r=Math.max(0,r),(!this.mConfiguration.isVirtual||e)&&this.mComponentElement.style.setProperty("height",`${r}px`),r}updateComponentWidth(t,e){if(!this.mConfiguration.enabledDirections.left&&!this.mConfiguration.enabledDirections.right)return this.height;t=Math.max(1,t);let r=Math.ceil(Math.abs(t)/this.mConfiguration.snap)*this.mConfiguration.snap*(t/Math.abs(t));return r=Math.max(0,r),(!this.mConfiguration.isVirtual||e)&&this.mComponentElement.style.setProperty("width",`${r}px`),r}static{nn()}},eo=class{mHeight;mResizeHandle;mWidth;get height(){return this.mHeight}get resizeHandle(){return this.mResizeHandle}get width(){return this.mWidth}constructor(t,e,r){this.mHeight=e,this.mResizeHandle=r,this.mWidth=t}},bt={top:1,right:2,bottom:4,left:8};var En=`:host {\r
+    --resize-panel-handle-size: 6px;\r
+    --resize-panel-handle-color: red;\r
+    --resize-panel-handle-hover-color: red;\r
+\r
+    position: relative;\r
+    display: flex;\r
+    flex-direction: column;\r
+\r
+    /* Set restrictions to never exeeds bounding restrictions set on the parent component. */\r
+    min-height: 100%;\r
+    min-width: 100%;\r
+}\r
+\r
+.content-container {\r
+    flex: 1;\r
+    display: flex;\r
+    flex-direction: column;\r
+    box-sizing: border-box;\r
+\r
+    /* Somehow this fixes overflow. Maybe min is set lower than current content size it is? */\r
+    min-height: 0;\r
+    min-width: 0;\r
+\r
+    width: 100%;\r
+    height: 100%;\r
+}\r
+\r
+.resize-handle {\r
+    position: absolute;\r
+    display: flex;\r
+    align-items: center;\r
+    justify-content: center;\r
+\r
+    /* "Soft" handle transparent until hovered. */\r
+    background-color: transparent;\r
+    transition: background-color 0.15s;\r
+\r
+    /* Whatever the parent does. Allways allow pointer events for handles. */\r
+    pointer-events: all;\r
+\r
+    &::before {\r
+        content: '';\r
+        position: absolute;\r
+\r
+        /* Grip dot. Single dot that is repeated in every direction. */\r
+        background-image: radial-gradient(circle, var(--resize-panel-handle-color) 1px, transparent 1.6px);\r
+    }\r
+\r
+    &.vertical {\r
+        top: 0px;\r
+        bottom: 0px;\r
+        width: var(--resize-panel-handle-size);\r
+\r
+        cursor: ew-resize;\r
+\r
+        /* Three dots stacked vertically. */\r
+        &::before {\r
+            width: 3px;\r
+            height: 15px;\r
+            background-size: 3px 5px;\r
+        }\r
+    }\r
+\r
+    &.left {\r
+        /* Place directly left of the panel, outside its box. */\r
+        left: calc(-1 * var(--resize-panel-handle-size));\r
+    }\r
+\r
+    &.right {\r
+        /* Place directly right of the panel, outside its box. */\r
+        right: calc(-1 * var(--resize-panel-handle-size));\r
+    }\r
+\r
+    &.horizontal {\r
+        left: 0px;\r
+        right: 0px;\r
+        height: var(--resize-panel-handle-size);\r
+\r
+        cursor: ns-resize;\r
+\r
+        /* Three dots in a row. */\r
+        &::before {\r
+            width: 15px;\r
+            height: 3px;\r
+            background-size: 5px 3px;\r
+        }\r
+    }\r
+\r
+    &.top {\r
+        /* Place directly above the panel, outside its box. */\r
+        top: calc(-1 * var(--resize-panel-handle-size));\r
+    }\r
+\r
+    &.bottom {\r
+        /* Place directly below the panel, outside its box. */\r
+        bottom: calc(-1 * var(--resize-panel-handle-size));\r
+    }\r
+\r
+    &:hover {\r
+        background-color: var(--resize-panel-handle-hover-color);\r
+\r
+        &::before {\r
+            --resize-panel-handle-color: rgba(255, 255, 255, 0.85);\r
+        }\r
+    }\r
+}\r
+`;var Cn=`<!-- Four soft edge handles placed next to the panel. Top/bottom resize height, left/right resize width. -->\r
+$if(this.top) {\r
+    <div class="resize-handle horizontal top" (pointerdown)="this.resizeHorizontal($event)"></div>\r
+}\r
+$if(this.right) {\r
+    <div class="resize-handle vertical right" (pointerdown)="this.resizeVertical($event)"></div>\r
+}\r
+$if(this.bottom) {\r
+    <div class="resize-handle horizontal bottom" (pointerdown)="this.resizeHorizontal($event)"></div>\r
+}\r
+$if(this.left) {\r
+    <div class="resize-handle vertical left" (pointerdown)="this.resizeVertical($event)"></div>\r
+}\r
+\r
+<div class="content-container">\r
+    $slot\r
+</div>\r
 `;function wl(){function y(l,n){return function(c){e(n,"addInitializer"),r(c,"An initializer"),l.push(c)}}function t(l,n,h,c,o,b,m,D,x){var d;switch(o){case 1:d="accessor";break;case 2:d="method";break;case 3:d="getter";break;case 4:d="setter";break;default:d="field"}var s={kind:d,name:m?"#"+n:n,static:b,private:m,metadata:D},f={v:!1};s.addInitializer=y(c,f);var i,a;if(o===0?m?(i=h.get,a=h.set):(i=function(){return this[n]},a=function(g){this[n]=g}):o===2?i=function(){return h.value}:((o===1||o===3)&&(i=function(){return h.get.call(this)}),(o===1||o===4)&&(a=function(g){h.set.call(this,g)})),m)s.access=i&&a?{get:i,set:a}:i?{get:i}:{set:a};else{if(i){var I=i;i=function(g){return arguments.length===0&&(g=this),I.call(g)}}if(a){var P=a;a=function(g,S){return arguments.length===1&&(S=g,g=this),P.call(g,S)}}var E=function(g){return n in g};s.access=i&&a?{has:E,get:i,set:a}:i?{has:E,get:i}:{has:E,set:a}}try{return l(x,s)}finally{f.v=!0}}function e(l,n){if(l.v)throw new Error("attempted to call "+n+" after decoration was finished")}function r(l,n){if(typeof l!="function")throw new TypeError(n+" must be a function")}function u(l,n){var h=typeof n;if(l===1){if(h!=="object"||n===null)throw new TypeError("accessor decorators must return an object with get, set, or init properties or void 0");n.get!==void 0&&r(n.get,"accessor.get"),n.set!==void 0&&r(n.set,"accessor.set"),n.init!==void 0&&r(n.init,"accessor.init")}else if(h!=="function"){var c;throw l===0?c="field":l===10?c="class":c="method",new TypeError(c+" decorators must return a function or void 0")}}function p(l,n,h,c,o,b,m,D,x){var d=h[0],s,f,i;m?o===0||o===1?s={get:h[3],set:h[4]}:o===3?s={get:h[3]}:o===4?s={set:h[3]}:s={value:h[3]}:o!==0&&(s=Object.getOwnPropertyDescriptor(n,c)),o===1?i={get:s.get,set:s.set}:o===2?i=s.value:o===3?i=s.get:o===4&&(i=s.set);var a,I,P;if(typeof d=="function")a=t(d,c,s,D,o,b,m,x,i),a!==void 0&&(u(o,a),o===0?f=a:o===1?(f=a.init,I=a.get||i.get,P=a.set||i.set,i={get:I,set:P}):i=a);else for(var E=d.length-1;E>=0;E--){var g=d[E];if(a=t(g,c,s,D,o,b,m,x,i),a!==void 0){u(o,a);var S;o===0?S=a:o===1?(S=a.init,I=a.get||i.get,P=a.set||i.set,i={get:I,set:P}):i=a,S!==void 0&&(f===void 0?f=S:typeof f=="function"?f=[f,S]:f.push(S))}}if(o===0||o===1){if(f===void 0)f=function(M,C){return C};else if(typeof f!="function"){var F=f;f=function(M,C){for(var A=C,L=0;L<F.length;L++)A=F[L].call(M,A);return A}}else{var j=f;f=function(M,C){return j.call(M,C)}}l.push(f)}o!==0&&(o===1?(s.get=i.get,s.set=i.set):o===2?s.value=i:o===3?s.get=i:o===4&&(s.set=i),m?o===1?(l.push(function(M,C){return i.get.call(M,C)}),l.push(function(M,C){return i.set.call(M,C)})):o===2?l.push(i):l.push(function(M,C){return i.call(M,C)}):Object.defineProperty(n,c,s))}function v(l,n,h){for(var c=[],o,b,m=new Map,D=new Map,x=0;x<n.length;x++){var d=n[x];if(Array.isArray(d)){var s=d[1],f=d[2],i=d.length>3,a=s>=5,I,P;if(a?(I=l,s=s-5,b=b||[],P=b):(I=l.prototype,o=o||[],P=o),s!==0&&!i){var E=a?D:m,g=E.get(f)||0;if(g===!0||g===3&&s!==4||g===4&&s!==3)throw new Error("Attempted to decorate a public method/accessor that has the same name as a previously decorated public method/accessor. This is not currently supported by the decorators plugin. Property name was: "+f);!g&&s>2?E.set(f,s):E.set(f,!0)}p(c,I,d,f,s,a,i,P,h)}}return w(c,o),w(c,b),c}function w(l,n){n&&l.push(function(h){for(var c=0;c<n.length;c++)n[c].call(h);return h})}function T(l,n,h){if(n.length>0){for(var c=[],o=l,b=l.name,m=n.length-1;m>=0;m--){var D={v:!1};try{var x=n[m](o,{kind:"class",name:b,addInitializer:y(c,D),metadata:h})}finally{D.v=!0}x!==void 0&&(u(10,x),o=x)}return[_(o,h),function(){for(var d=0;d<c.length;d++)c[d].call(o)}]}}function _(l,n){return Object.defineProperty(l,Symbol.metadata||Symbol.for("Symbol.metadata"),{configurable:!0,enumerable:!0,value:n})}return function(n,h,c,o){if(o!==void 0)var b=o[Symbol.metadata||Symbol.for("Symbol.metadata")];var m=Object.create(b===void 0?null:b),D=v(n,h,m);return c.length||_(n,m),{e:D,get c(){return T(n,c,m)}}}}function An(y,t,e,r){return(An=wl())(y,t,e,r)}var Ln,In,Rn,On,Fn,zn,jn,Vn,$n,Gn,Bn,Pn,Mn,Sn,_n,ro;Ln=U({selector:"kg-resize-panel",template:Cn,style:En}),Rn=V.state({proxy:!0}),On=st("resize"),Fn=st("resize-end"),zn=B(),jn=B(),Vn=B(),$n=B(),Gn=B(),Bn=B();var Nn=class{static{({e:[Pn,Mn,Sn,_n],c:[ro,In]}=An(this,[[Rn,1,"mConfiguration"],[On,1,"mResize"],[Fn,1,"mResizeEnd"],[zn,3,"bottom"],[jn,3,"height"],[Vn,3,"left"],[$n,3,"right"],[Gn,3,"top"],[Bn,3,"width"]],[Ln]))}constructor(t=O.use(G)){this.mComponentElement=t.element,this.mConfiguration={enabledDirections:{top:!1,right:!1,bottom:!1,left:!1}}}mComponentElement;#t=(_n(this),Pn(this));get mConfiguration(){return this.#t}set mConfiguration(t){this.#t=t}#e=Mn(this);get mResize(){return this.#e}set mResize(t){this.#e=t}#o=Sn(this);get mResizeEnd(){return this.#o}set mResizeEnd(t){this.#o=t}get bottom(){return this.mConfiguration.enabledDirections.bottom}set bottom(t){this.mConfiguration.enabledDirections.bottom=this.parseBoolean(t)}get height(){return this.mComponentElement.clientHeight}set height(t){this.updateComponentHeight(t)}get left(){return this.mConfiguration.enabledDirections.left}set left(t){this.mConfiguration.enabledDirections.left=this.parseBoolean(t)}get right(){return this.mConfiguration.enabledDirections.right}set right(t){this.mConfiguration.enabledDirections.right=this.parseBoolean(t)}get top(){return this.mConfiguration.enabledDirections.top}set top(t){this.mConfiguration.enabledDirections.top=this.parseBoolean(t)}get width(){return this.mComponentElement.clientWidth}set width(t){this.updateComponentWidth(t)}resizeHorizontal(t){this.handleResize(t,"horizontal")}resizeVertical(t){this.handleResize(t,"vertical")}applyComponentSize(t,e,r){let u=this.updateComponentWidth(e),p=this.updateComponentHeight(r);return(u!==this.width||p!==this.height)&&this.mResize.dispatchEvent(this.createResizeEvent(t,u,p,this.width,this.height)),[u,p]}createResizeEvent(t,e,r,u,p){let v=t;return e===u&&(v&=~(Ot.right|Ot.left)),r===p&&(v&=~(Ot.top|Ot.bottom)),new oo(e,r,v)}handleResize(t,e){t.preventDefault(),t.stopPropagation();let r=this.mComponentElement.getBoundingClientRect(),u=this.mComponentElement.offsetWidth?r.width/this.mComponentElement.offsetWidth:1,p=this.mComponentElement.offsetHeight?r.height/this.mComponentElement.offsetHeight:1,v=r.width/u,w=r.height/p,T=t.clientX,_=t.clientY,l=1;Math.abs(T-r.left)<Math.abs(T-r.right)&&(l=-1);let n=1;Math.abs(_-r.top)<Math.abs(_-r.bottom)&&(n=-1);let h=0;h+=l===1?Ot.right:Ot.left,h+=n===1?Ot.bottom:Ot.top;let c=v,o=w,b=D=>{let x=(D.clientX-T)/u*l,d=(D.clientY-_)/p*n,s=v+x,f=w+d;e==="horizontal"&&(s=v),e==="vertical"&&(f=w),[c,o]=this.applyComponentSize(h,s,f)},m=()=>{document.removeEventListener("pointermove",b),document.removeEventListener("pointerup",m),(c!==v||o!==w)&&this.mResizeEnd.dispatchEvent(this.createResizeEvent(h,c,o,v,w))};document.addEventListener("pointermove",b),document.addEventListener("pointerup",m)}parseBoolean(t){return!!(()=>{if(typeof t=="string"){if(t==="")return!0;let r=t.toLowerCase();if(["true","false"].includes(r))return r==="true"}return t})()}updateComponentHeight(t){if(!this.mConfiguration.enabledDirections.top&&!this.mConfiguration.enabledDirections.bottom)return this.height;let e=Math.max(1,t);return this.mComponentElement.style.setProperty("height",`${e}px`),e}updateComponentWidth(t){if(!this.mConfiguration.enabledDirections.left&&!this.mConfiguration.enabledDirections.right)return this.width;let e=Math.max(1,t);return this.mComponentElement.style.setProperty("width",`${e}px`),e}static{In()}},oo=class{mHeight;mResizeHandle;mWidth;get height(){return this.mHeight}get resizeHandle(){return this.mResizeHandle}get width(){return this.mWidth}constructor(t,e,r){this.mHeight=e,this.mResizeHandle=r,this.mWidth=t}},Ot={top:1,right:2,bottom:4,left:8};var Un=`:host {\r
     display: flex;\r
     flex-direction: column;\r

@@ -28,7 +28,9 @@
 
 .resize-handle {
     position: absolute;
-    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
     /* "Soft" handle transparent until hovered. */
     background-color: transparent;
@@ -40,9 +42,6 @@
     &::before {
         content: '';
         position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
 
         /* Grip dot. Single dot that is repeated in every direction. */
         background-image: radial-gradient(circle, var(--resize-panel-handle-color) 1px, transparent 1.6px);

@@ -1,6 +1,7 @@
 <!-- Resizeable part of node -->
 <div class="node {{this.hasError ? 'error' : ''}}" style="--node-width: {{ this.nodeTransformation.width }}; --node-height: {{ this.nodeTransformation.height }};">
     <div class="node-header" style="--node-category-color: {{this.nodeColor}}" (pointerdown)="this.dragNode($event)">
+        <span class="node-header__bar"></span>
         <span class="node-header__icon">{{this.nodeIcon}}</span>
         <span class="node-header__label">{{this.nodeLabel}}</span>
 

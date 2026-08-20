@@ -77,6 +77,9 @@
 
             color: var(--potatno-color-accent);
             border-left: 3px solid var(--item-color);
+
+            /* That centers a single character at its center line. */
+            line-height: 0;
         }
 
         .selection-popup__result-label {

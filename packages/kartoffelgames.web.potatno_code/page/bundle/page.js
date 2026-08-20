@@ -36,11 +36,11 @@ potatno-code-editor {\r
 \r
     /* Border settings. */\r
     --potatno-border-radius: 4px;\r
-    --potatno-color-border: #4c4c4c;\r
+    --potatno-color-border: #353535;\r
 \r
     /* Supporting colors */\r
     --potatno-color-error: #ff5555;\r
-    --potatno-color-shadow: rgba(0, 0, 0, 0.69);\r
+    --potatno-color-shadow: rgba(16, 16, 16, 0.80);\r
 \r
     /* Scrollbar */\r
     --potatno-color-scrollbar-thumb: #5e5e5e;\r
@@ -904,6 +904,9 @@ $if(this.left) {\r
 \r
             color: var(--potatno-color-accent);\r
             border-left: 3px solid var(--item-color);\r
+\r
+            /* That centers a single character at its center line. */\r
+            line-height: 0;\r
         }\r
 \r
         .selection-popup__result-label {\r
@@ -1870,7 +1873,6 @@ $if(this.left) {\r
     }\r
 </svg>\r
 `;function Vl(){function y(l,n){return function(c){e(n,"addInitializer"),r(c,"An initializer"),l.push(c)}}function t(l,n,h,c,o,b,m,D,x){var d;switch(o){case 1:d="accessor";break;case 2:d="method";break;case 3:d="getter";break;case 4:d="setter";break;default:d="field"}var s={kind:d,name:m?"#"+n:n,static:b,private:m,metadata:D},f={v:!1};s.addInitializer=y(c,f);var i,a;if(o===0?m?(i=h.get,a=h.set):(i=function(){return this[n]},a=function(g){this[n]=g}):o===2?i=function(){return h.value}:((o===1||o===3)&&(i=function(){return h.get.call(this)}),(o===1||o===4)&&(a=function(g){h.set.call(this,g)})),m)s.access=i&&a?{get:i,set:a}:i?{get:i}:{set:a};else{if(i){var I=i;i=function(g){return arguments.length===0&&(g=this),I.call(g)}}if(a){var P=a;a=function(g,S){return arguments.length===1&&(S=g,g=this),P.call(g,S)}}var E=function(g){return n in g};s.access=i&&a?{has:E,get:i,set:a}:i?{has:E,get:i}:{has:E,set:a}}try{return l(x,s)}finally{f.v=!0}}function e(l,n){if(l.v)throw new Error("attempted to call "+n+" after decoration was finished")}function r(l,n){if(typeof l!="function")throw new TypeError(n+" must be a function")}function u(l,n){var h=typeof n;if(l===1){if(h!=="object"||n===null)throw new TypeError("accessor decorators must return an object with get, set, or init properties or void 0");n.get!==void 0&&r(n.get,"accessor.get"),n.set!==void 0&&r(n.set,"accessor.set"),n.init!==void 0&&r(n.init,"accessor.init")}else if(h!=="function"){var c;throw l===0?c="field":l===10?c="class":c="method",new TypeError(c+" decorators must return a function or void 0")}}function p(l,n,h,c,o,b,m,D,x){var d=h[0],s,f,i;m?o===0||o===1?s={get:h[3],set:h[4]}:o===3?s={get:h[3]}:o===4?s={set:h[3]}:s={value:h[3]}:o!==0&&(s=Object.getOwnPropertyDescriptor(n,c)),o===1?i={get:s.get,set:s.set}:o===2?i=s.value:o===3?i=s.get:o===4&&(i=s.set);var a,I,P;if(typeof d=="function")a=t(d,c,s,D,o,b,m,x,i),a!==void 0&&(u(o,a),o===0?f=a:o===1?(f=a.init,I=a.get||i.get,P=a.set||i.set,i={get:I,set:P}):i=a);else for(var E=d.length-1;E>=0;E--){var g=d[E];if(a=t(g,c,s,D,o,b,m,x,i),a!==void 0){u(o,a);var S;o===0?S=a:o===1?(S=a.init,I=a.get||i.get,P=a.set||i.set,i={get:I,set:P}):i=a,S!==void 0&&(f===void 0?f=S:typeof f=="function"?f=[f,S]:f.push(S))}}if(o===0||o===1){if(f===void 0)f=function(M,C){return C};else if(typeof f!="function"){var F=f;f=function(M,C){for(var A=C,L=0;L<F.length;L++)A=F[L].call(M,A);return A}}else{var j=f;f=function(M,C){return j.call(M,C)}}l.push(f)}o!==0&&(o===1?(s.get=i.get,s.set=i.set):o===2?s.value=i:o===3?s.get=i:o===4&&(s.set=i),m?o===1?(l.push(function(M,C){return i.get.call(M,C)}),l.push(function(M,C){return i.set.call(M,C)})):o===2?l.push(i):l.push(function(M,C){return i.call(M,C)}):Object.defineProperty(n,c,s))}function v(l,n,h){for(var c=[],o,b,m=new Map,D=new Map,x=0;x<n.length;x++){var d=n[x];if(Array.isArray(d)){var s=d[1],f=d[2],i=d.length>3,a=s>=5,I,P;if(a?(I=l,s=s-5,b=b||[],P=b):(I=l.prototype,o=o||[],P=o),s!==0&&!i){var E=a?D:m,g=E.get(f)||0;if(g===!0||g===3&&s!==4||g===4&&s!==3)throw new Error("Attempted to decorate a public method/accessor that has the same name as a previously decorated public method/accessor. This is not currently supported by the decorators plugin. Property name was: "+f);!g&&s>2?E.set(f,s):E.set(f,!0)}p(c,I,d,f,s,a,i,P,h)}}return w(c,o),w(c,b),c}function w(l,n){n&&l.push(function(h){for(var c=0;c<n.length;c++)n[c].call(h);return h})}function T(l,n,h){if(n.length>0){for(var c=[],o=l,b=l.name,m=n.length-1;m>=0;m--){var D={v:!1};try{var x=n[m](o,{kind:"class",name:b,addInitializer:y(c,D),metadata:h})}finally{D.v=!0}x!==void 0&&(u(10,x),o=x)}return[_(o,h),function(){for(var d=0;d<c.length;d++)c[d].call(o)}]}}function _(l,n){return Object.defineProperty(l,Symbol.metadata||Symbol.for("Symbol.metadata"),{configurable:!0,enumerable:!0,value:n})}return function(n,h,c,o){if(o!==void 0)var b=o[Symbol.metadata||Symbol.for("Symbol.metadata")];var m=Object.create(b===void 0?null:b),D=v(n,h,m);return c.length||_(n,m),{e:D,get c(){return T(n,c,m)}}}}function ms(y,t,e,r){return(ms=Vl())(y,t,e,r)}var gs,hs,vs,fs,ds,So;gs=U({selector:"potatno-connection-layer",template:us,style:cs}),vs=V.state({complexValue:!0});var ps=class{static{({e:[fs,ds],c:[So,hs]}=ms(this,[[vs,1,"connections"]],[gs]))}constructor(t=O.use(Y)){this.mManager=t,this.connections=new Map;let e=0;this.mUnsubscribe=this.mManager.subscribe(R.SpecialActiveFunction|R.Node|R.Connection,()=>{e===0&&(e=requestAnimationFrame(()=>{e=0,this.updateConnections()}))})}mManager;mUnsubscribe;#t=(ds(this),fs(this));get connections(){return this.#t}set connections(t){this.#t=t}createConjunction(t,e){t.preventDefault(),t.stopPropagation();let r=e.port.output.portType==="flow"?this.mManager.project.nodeDefinitions.get(K.DEFINITION_ID):this.mManager.project.nodeDefinitions.get(et.DEFINITION_ID),u=this.mManager.grid.pixelToGridSpace(t.clientX,t.clientY),p=this.mManager.graph.addNode(this.mManager.activeFunction,r,{x:u.x,y:u.y,height:0,width:0});this.mManager.graph.disconnectPorts(e.port.output,e.port.input);let v=p.inputs.list[0],w=p.outputs.list[0];this.mManager.graph.connectPorts(v,e.port.output),this.mManager.graph.connectPorts(v,e.port.input),this.mManager.graph.connectPorts(w,e.port.output),this.mManager.graph.connectPorts(w,e.port.input)}deleteConnection(t,e){t.button===2&&(t.preventDefault(),t.stopPropagation(),this.mManager.graph.disconnectPorts(e.port.output,e.port.input))}onDeconstruct(){this.mUnsubscribe()}createConnection(t,e,r){let u=this.mManager.integrity.errorItems,p=u.has(e)||u.has(r),v=(()=>{switch(r.portType){case"value":return r;case"flow":return e}})(),w=e.portType==="flow"?"":this.mManager.generateStringColor(e.resolvedDataType),T=this.mManager.connections.getConnectionPath(e,r);return{color:w,path:{attributeValue:T.attributeValue,length:T.length},state:{isNew:!t.has(v),hasError:p},port:{primary:v,output:e,input:r}}}updateConnections(){let t=this.connections;this.connections=new Map;for(let e of this.mManager.activeFunction.nodes)for(let r of e.outputs.list)for(let u of r.connectedPorts){let p=this.createConnection(t,r,u);this.connections.set(p.port.primary,p)}}static{hs()}};function $l(){function y(l,n){return function(c){e(n,"addInitializer"),r(c,"An initializer"),l.push(c)}}function t(l,n,h,c,o,b,m,D,x){var d;switch(o){case 1:d="accessor";break;case 2:d="method";break;case 3:d="getter";break;case 4:d="setter";break;default:d="field"}var s={kind:d,name:m?"#"+n:n,static:b,private:m,metadata:D},f={v:!1};s.addInitializer=y(c,f);var i,a;if(o===0?m?(i=h.get,a=h.set):(i=function(){return this[n]},a=function(g){this[n]=g}):o===2?i=function(){return h.value}:((o===1||o===3)&&(i=function(){return h.get.call(this)}),(o===1||o===4)&&(a=function(g){h.set.call(this,g)})),m)s.access=i&&a?{get:i,set:a}:i?{get:i}:{set:a};else{if(i){var I=i;i=function(g){return arguments.length===0&&(g=this),I.call(g)}}if(a){var P=a;a=function(g,S){return arguments.length===1&&(S=g,g=this),P.call(g,S)}}var E=function(g){return n in g};s.access=i&&a?{has:E,get:i,set:a}:i?{has:E,get:i}:{has:E,set:a}}try{return l(x,s)}finally{f.v=!0}}function e(l,n){if(l.v)throw new Error("attempted to call "+n+" after decoration was finished")}function r(l,n){if(typeof l!="function")throw new TypeError(n+" must be a function")}function u(l,n){var h=typeof n;if(l===1){if(h!=="object"||n===null)throw new TypeError("accessor decorators must return an object with get, set, or init properties or void 0");n.get!==void 0&&r(n.get,"accessor.get"),n.set!==void 0&&r(n.set,"accessor.set"),n.init!==void 0&&r(n.init,"accessor.init")}else if(h!=="function"){var c;throw l===0?c="field":l===10?c="class":c="method",new TypeError(c+" decorators must return a function or void 0")}}function p(l,n,h,c,o,b,m,D,x){var d=h[0],s,f,i;m?o===0||o===1?s={get:h[3],set:h[4]}:o===3?s={get:h[3]}:o===4?s={set:h[3]}:s={value:h[3]}:o!==0&&(s=Object.getOwnPropertyDescriptor(n,c)),o===1?i={get:s.get,set:s.set}:o===2?i=s.value:o===3?i=s.get:o===4&&(i=s.set);var a,I,P;if(typeof d=="function")a=t(d,c,s,D,o,b,m,x,i),a!==void 0&&(u(o,a),o===0?f=a:o===1?(f=a.init,I=a.get||i.get,P=a.set||i.set,i={get:I,set:P}):i=a);else for(var E=d.length-1;E>=0;E--){var g=d[E];if(a=t(g,c,s,D,o,b,m,x,i),a!==void 0){u(o,a);var S;o===0?S=a:o===1?(S=a.init,I=a.get||i.get,P=a.set||i.set,i={get:I,set:P}):i=a,S!==void 0&&(f===void 0?f=S:typeof f=="function"?f=[f,S]:f.push(S))}}if(o===0||o===1){if(f===void 0)f=function(M,C){return C};else if(typeof f!="function"){var F=f;f=function(M,C){for(var A=C,L=0;L<F.length;L++)A=F[L].call(M,A);return A}}else{var j=f;f=function(M,C){return j.call(M,C)}}l.push(f)}o!==0&&(o===1?(s.get=i.get,s.set=i.set):o===2?s.value=i:o===3?s.get=i:o===4&&(s.set=i),m?o===1?(l.push(function(M,C){return i.get.call(M,C)}),l.push(function(M,C){return i.set.call(M,C)})):o===2?l.push(i):l.push(function(M,C){return i.call(M,C)}):Object.defineProperty(n,c,s))}function v(l,n,h){for(var c=[],o,b,m=new Map,D=new Map,x=0;x<n.length;x++){var d=n[x];if(Array.isArray(d)){var s=d[1],f=d[2],i=d.length>3,a=s>=5,I,P;if(a?(I=l,s=s-5,b=b||[],P=b):(I=l.prototype,o=o||[],P=o),s!==0&&!i){var E=a?D:m,g=E.get(f)||0;if(g===!0||g===3&&s!==4||g===4&&s!==3)throw new Error("Attempted to decorate a public method/accessor that has the same name as a previously decorated public method/accessor. This is not currently supported by the decorators plugin. Property name was: "+f);!g&&s>2?E.set(f,s):E.set(f,!0)}p(c,I,d,f,s,a,i,P,h)}}return w(c,o),w(c,b),c}function w(l,n){n&&l.push(function(h){for(var c=0;c<n.length;c++)n[c].call(h);return h})}function T(l,n,h){if(n.length>0){for(var c=[],o=l,b=l.name,m=n.length-1;m>=0;m--){var D={v:!1};try{var x=n[m](o,{kind:"class",name:b,addInitializer:y(c,D),metadata:h})}finally{D.v=!0}x!==void 0&&(u(10,x),o=x)}return[_(o,h),function(){for(var d=0;d<c.length;d++)c[d].call(o)}]}}function _(l,n){return Object.defineProperty(l,Symbol.metadata||Symbol.for("Symbol.metadata"),{configurable:!0,enumerable:!0,value:n})}return function(n,h,c,o){if(o!==void 0)var b=o[Symbol.metadata||Symbol.for("Symbol.metadata")];var m=Object.create(b===void 0?null:b),D=v(n,h,m);return c.length||_(n,m),{e:D,get c(){return T(n,c,m)}}}}function ws(y,t,e,r){return(ws=$l())(y,t,e,r)}var xs,ys,Ne;xs=Ct({access:q.Read,selector:/^potatno-preview$/});var bs=class{static{({c:[Ne,ys]}=ws(this,[],[xs]))}constructor(t=O.use(k),e=O.use(W),r=O.use(it)){this.mTarget=t,this.mProcedure=e.createExpressionProcedure(r.value)}mProcedure;mTarget;onUpdate(){let t=this.mProcedure.execute();if(!t){let r=this.mTarget.childNodes.length>0;return r&&(this.mTarget.innerHTML=""),r}let e=t.element;return this.mTarget.contains(e)?!1:(this.mTarget.innerHTML="",this.mTarget.appendChild(e),!0)}static{ys()}};var Ts=`:host {\r
-    --node-border-color: color-mix(in srgb, var(--potatno-color-text) 30%, var(--potatno-color-background));\r
     --node-preview-select-height: 24px;\r
 \r
     display: block;\r
@@ -1887,7 +1889,7 @@ $if(this.left) {\r
     flex-direction: column;\r
     min-height: 100%;\r
     background-color: var(--potatno-color-background);\r
-    border: 1px solid var(--node-border-color);\r
+    border: 1px solid var(--potatno-color-border);\r
     border-radius: var(--potatno-border-radius);\r
 \r
     overflow: visible;\r
@@ -1909,10 +1911,11 @@ $if(this.left) {\r
 .node-header {\r
     display: flex;\r
     align-items: center;\r
-    color: var(--potatno-color-text-contrast);\r
+    color: var(--potatno-color-text);\r
     font-weight: bold;\r
     font-size: var(--potatno-font-size-small);\r
-    border-bottom: 1px solid var(--potatno-color-border);\r
+    border-bottom: 1px solid var(--node-category-color);\r
+    overflow: hidden;\r
     cursor: grab;\r
 \r
     /* Same border radius as node, because we cant set overflow hidden on parent. */\r
@@ -1922,18 +1925,29 @@ $if(this.left) {\r
     height: calc(var(--potatno-grid-size) - 2px);\r
 \r
     /* Animated background of header */\r
-    transition: background-size 0.15s ease-in-out;\r
-    background-image: radial-gradient(ellipse at top left, var(--node-category-color) 0%, transparent 90%);\r
-    background-color: var(--potatno-color-background-dark);\r
-    background-size: 100% 100%;\r
-\r
-    &:hover {\r
-        background-size: 140% 100%;\r
-    }\r
+    background-image: linear-gradient(90deg, var(--potatno-color-background-dark) 0%, var(--potatno-color-background) 100%);\r
 \r
     &:active {\r
-        background-size: 200% 100%;\r
         cursor: grabbing;\r
+    }\r
+\r
+    .node-header__bar {\r
+        width: 3px;\r
+        height: calc(100% - 10px);\r
+        margin: 0px 0px 0px 9px;\r
+        background-color: var(--node-category-color);\r
+\r
+        transition: box-shadow 0.15s ease-in, background-color 0.15s ease-in;\r
+\r
+        .node-header:hover & {\r
+            background-color: color-mix(in srgb, var(--node-category-color) 70%, #fff);\r
+            box-shadow: 7px 0px 40px 15px var(--node-category-color);\r
+        }\r
+\r
+        .node-header:active & {\r
+            background-color: color-mix(in srgb, var(--node-category-color) 50%, #fff);\r
+            box-shadow: 20px 0px 55px 28px var(--node-category-color);\r
+        }\r
     }\r
 \r
     .node-header__icon {\r
@@ -1942,6 +1956,9 @@ $if(this.left) {\r
         align-items: center;\r
         justify-content: center;\r
         width: calc(var(--potatno-grid-size) - 2px);\r
+\r
+        /* That centers a single character at its center line. */\r
+        line-height: 0;\r
     }\r
 \r
     .node-header__label {\r
@@ -1949,6 +1966,7 @@ $if(this.left) {\r
         white-space: nowrap;\r
         overflow: hidden;\r
         text-overflow: ellipsis;\r
+        line-height: calc(var(--potatno-grid-size) - 2px);\r
     }\r
 \r
     .node-header__open-function {\r
@@ -1960,7 +1978,7 @@ $if(this.left) {\r
         cursor: pointer;\r
 \r
         /* Small cool seperator */\r
-        border: 0px solid var(--node-border-color);\r
+        border: 0px solid var(--potatno-color-border);\r
         border-width: 0 0 0 2px;\r
 \r
         /* Click and hover animation */\r
@@ -1997,7 +2015,7 @@ $if(this.left) {\r
     background-color: var(--potatno-color-background);\r
     cursor: pointer;\r
 \r
-    --preview-toggle-icon-color: var(--node-border-color);\r
+    --preview-toggle-icon-color: var(--potatno-color-border);\r
 \r
     /* Click animation. */\r
     transition: background-color 0.15s, translate 0.15s;\r
@@ -2054,7 +2072,7 @@ $if(this.left) {\r
     display: flex;\r
     flex-direction: column;\r
     background-color: var(--potatno-color-background-dark);\r
-    border: 1px solid var(--node-border-color);\r
+    border: 1px solid var(--potatno-color-border);\r
     border-radius: var(--node-border-radius);\r
     user-select: none;\r
 \r
@@ -2070,7 +2088,7 @@ $if(this.left) {\r
 \r
         display: block;\r
         height: calc(var(--potatno-grid-size) / 2 - 2px);\r
-        border: 1px solid var(--node-border-color);\r
+        border: 1px solid var(--potatno-color-border);\r
     }\r
 \r
     .node-preview__window {\r
@@ -2222,6 +2240,7 @@ $if(this.left) {\r
 }`;var Ds=`<!-- Resizeable part of node -->\r
 <div class="node {{this.hasError ? 'error' : ''}}" style="--node-width: {{ this.nodeTransformation.width }}; --node-height: {{ this.nodeTransformation.height }};">\r
     <div class="node-header" style="--node-category-color: {{this.nodeColor}}" (pointerdown)="this.dragNode($event)">\r
+        <span class="node-header__bar"></span>\r
         <span class="node-header__icon">{{this.nodeIcon}}</span>\r
         <span class="node-header__label">{{this.nodeLabel}}</span>\r
 \r

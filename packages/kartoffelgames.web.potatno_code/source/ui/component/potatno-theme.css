@@ -18,11 +18,11 @@
 
     /* Border settings. */
     --potatno-border-radius: 4px;
-    --potatno-color-border: #4c4c4c;
+    --potatno-color-border: #353535;
 
     /* Supporting colors */
     --potatno-color-error: #ff5555;
-    --potatno-color-shadow: rgba(0, 0, 0, 0.69);
+    --potatno-color-shadow: rgba(16, 16, 16, 0.80);
 
     /* Scrollbar */
     --potatno-color-scrollbar-thumb: #5e5e5e;

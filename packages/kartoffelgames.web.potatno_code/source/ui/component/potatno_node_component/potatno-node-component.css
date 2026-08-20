@@ -1,5 +1,4 @@
 :host {
-    --node-border-color: color-mix(in srgb, var(--potatno-color-text) 30%, var(--potatno-color-background));
     --node-preview-select-height: 24px;
 
     display: block;
@@ -16,7 +15,7 @@
     flex-direction: column;
     min-height: 100%;
     background-color: var(--potatno-color-background);
-    border: 1px solid var(--node-border-color);
+    border: 1px solid var(--potatno-color-border);
     border-radius: var(--potatno-border-radius);
 
     overflow: visible;
@@ -38,10 +37,11 @@
 .node-header {
     display: flex;
     align-items: center;
-    color: var(--potatno-color-text-contrast);
+    color: var(--potatno-color-text);
     font-weight: bold;
     font-size: var(--potatno-font-size-small);
-    border-bottom: 1px solid var(--potatno-color-border);
+    border-bottom: 1px solid var(--node-category-color);
+    overflow: hidden;
     cursor: grab;
 
     /* Same border radius as node, because we cant set overflow hidden on parent. */
@@ -51,18 +51,29 @@
     height: calc(var(--potatno-grid-size) - 2px);
 
     /* Animated background of header */
-    transition: background-size 0.15s ease-in-out;
-    background-image: radial-gradient(ellipse at top left, var(--node-category-color) 0%, transparent 90%);
-    background-color: var(--potatno-color-background-dark);
-    background-size: 100% 100%;
-
-    &:hover {
-        background-size: 140% 100%;
-    }
+    background-image: linear-gradient(90deg, var(--potatno-color-background-dark) 0%, var(--potatno-color-background) 100%);
 
     &:active {
-        background-size: 200% 100%;
         cursor: grabbing;
+    }
+
+    .node-header__bar {
+        width: 3px;
+        height: calc(100% - 10px);
+        margin: 0px 0px 0px 9px;
+        background-color: var(--node-category-color);
+
+        transition: box-shadow 0.15s ease-in, background-color 0.15s ease-in;
+
+        .node-header:hover & {
+            background-color: color-mix(in srgb, var(--node-category-color) 70%, #fff);
+            box-shadow: 7px 0px 40px 15px var(--node-category-color);
+        }
+
+        .node-header:active & {
+            background-color: color-mix(in srgb, var(--node-category-color) 50%, #fff);
+            box-shadow: 20px 0px 55px 28px var(--node-category-color);
+        }
     }
 
     .node-header__icon {
@@ -71,6 +82,9 @@
         align-items: center;
         justify-content: center;
         width: calc(var(--potatno-grid-size) - 2px);
+
+        /* That centers a single character at its center line. */
+        line-height: 0;
     }
 
     .node-header__label {
@@ -78,6 +92,7 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        line-height: calc(var(--potatno-grid-size) - 2px);
     }
 
     .node-header__open-function {
@@ -89,7 +104,7 @@
         cursor: pointer;
 
         /* Small cool seperator */
-        border: 0px solid var(--node-border-color);
+        border: 0px solid var(--potatno-color-border);
         border-width: 0 0 0 2px;
 
         /* Click and hover animation */
@@ -126,7 +141,7 @@
     background-color: var(--potatno-color-background);
     cursor: pointer;
 
-    --preview-toggle-icon-color: var(--node-border-color);
+    --preview-toggle-icon-color: var(--potatno-color-border);
 
     /* Click animation. */
     transition: background-color 0.15s, translate 0.15s;
@@ -183,7 +198,7 @@
     display: flex;
     flex-direction: column;
     background-color: var(--potatno-color-background-dark);
-    border: 1px solid var(--node-border-color);
+    border: 1px solid var(--potatno-color-border);
     border-radius: var(--node-border-radius);
     user-select: none;
 
@@ -199,7 +214,7 @@
 
         display: block;
         height: calc(var(--potatno-grid-size) / 2 - 2px);
-        border: 1px solid var(--node-border-color);
+        border: 1px solid var(--potatno-color-border);
     }
 
     .node-preview__window {

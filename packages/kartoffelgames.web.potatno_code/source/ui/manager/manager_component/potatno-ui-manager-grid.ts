@@ -10,13 +10,14 @@ import { PotatnoCodeUiManagerChangeType, type PotatnoUiManager } from '../potatn
  * Owns grid sizing and panning.
  */
 export class PotatnoUiManagerGrid {
-    private static readonly GRID_SIZE: number = 24;
+    private static readonly GRID_SIZE_REM: number = 2;
     private static readonly MAX_ZOOM: number = 5.0;
     private static readonly MIN_ZOOM: number = 0.1;
 
     private mDraggedPortInformation: PotatnoUiManagerGridDraggedPort;
     private mGridElement: Element | null;
     private readonly mGridPositions: WeakMap<PotatnoDocumentFunction<PotatnoProjectTypesDefinition>, PotatnoUiManagerGridTransformation>;
+    private readonly mGridSize: number;
     private readonly mManager: PotatnoUiManager;
     private readonly mSelectedNodes: Set<PotatnoDocumentNode<PotatnoProjectTypesDefinition>>;
     private mTransformation: PotatnoUiManagerGridTransformation;
@@ -40,7 +41,7 @@ export class PotatnoUiManagerGrid {
      * Grid size in pixels.
      */
     public get gridSize(): number {
-        return PotatnoUiManagerGrid.GRID_SIZE;
+        return this.mGridSize;
     }
 
     /**
@@ -90,6 +91,9 @@ export class PotatnoUiManagerGrid {
             panY: 0,
             zoom: 1.0
         };
+
+        // Calculate pixel size from grid rem size.
+        this.mGridSize = parseInt(getComputedStyle(document.documentElement).fontSize) * PotatnoUiManagerGrid.GRID_SIZE_REM;
 
         this.mManager.subscribe(PotatnoCodeUiManagerChangeType.SpecialActiveFunction, () => {
             // Init default positions for a new active function if it has not already.

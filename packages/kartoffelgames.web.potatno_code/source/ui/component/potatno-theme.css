@@ -1,11 +1,11 @@
 :host {
-    /* Globals */
-    --potatno-grid-size: 24px;
+    /* Placeholder, gets overriten in editor-component */
+    --potatno-grid-size: 2rem;
     
     /* Font */
-    --potatno-font-size: 0.75rem;
-    --potatno-font-size-big: 0.8rem;
-    --potatno-font-size-small: 0.7rem;
+    --potatno-font-size: 1rem;
+    --potatno-font-size-big: 1.25rem;
+    --potatno-font-size-small: 0.8rem;
     --potatno-font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
 
     /* Main colors */

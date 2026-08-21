@@ -1,66 +1,70 @@
-<!-- Resizeable part of node -->
-<div class="node {{this.hasError ? 'error' : ''}}" style="--node-width: {{ this.nodeTransformation.width }}; --node-height: {{ this.nodeTransformation.height }}; --node-category-color: {{this.nodeColor}}">
-    <div class="node-header" (pointerdown)="this.dragNode($event)">
+<div class="node">
+    <!-- Header -->
+    <div class="node-header" style="--node-category-color: {{this.nodeColor}}" (pointerdown)="this.dragNode($event)">
         <span class="node-header__bar"></span>
         <span class="node-header__icon">{{this.nodeIcon}}</span>
         <span class="node-header__label">{{this.nodeLabel}}</span>
 
         $if(this.isFunction) {
-            <div class="node-header__open-function" (click)="this.openFunction()">↪</div>
+        <div class="node-header__open-function" (click)="this.openFunction()">↪</div>
         }
+
     </div>
 
-    <div class="node-body">
-        $if(this.inputPorts.length > 0) {
-            <div class="node-body__ports">    
-                $for(port of this.inputPorts) {
-                    <potatno-port [port]="this.port"/>
-                }   
-            </div>
-        }
+    <!-- Ports -->
+    <div class="node-body {{this.hasError ? 'error' : ''}}" style="--node-width: {{ this.nodeTransformation.width }}; --node-category-color: {{this.nodeColor}}">
 
-        $if(this.outputPorts.length > 0) {
-            <div class="node-body__ports">
-                $for(port of this.outputPorts) {
-                    <potatno-port [port]="this.port"/>
+        <div class="node-ports">
+            $if(this.inputPorts.length > 0) {
+            <div class="node-ports__list">
+                $for(port of this.inputPorts) {
+                <potatno-port [port]="this.port" />
                 }
             </div>
+            }
+
+            $if(this.outputPorts.length > 0) {
+            <div class="node-ports__list">
+                $for(port of this.outputPorts) {
+                <potatno-port [port]="this.port" />
+                }
+            </div>
+            }
+        </div>
+
+        $if(this.canPreview) {
+            <div class="node-preview-toggle {{ this.isPreviewActive ? 'active' : '' }}" (click)="this.selectPreviewPort()">
+                <div class="icon" />
+            </div>
         }
     </div>
-
-    $if(this.canPreview) {
-        <div class="node-preview-toggle {{ this.isPreviewActive ? 'active' : '' }}" (click)="this.selectPreviewPort()">
-            <div class="icon"/>
-        </div>
-    }
-
-    <!-- What that? -->
-    <div class="node__glow"></div>
 </div>
 
-$if(this.isPreviewActive) {
-    <div class="node-preview" style="--node-width: {{ this.nodeTransformation.width }};">
-        <div class="node-preview__selections">
-            <div class="select-button {{ this.isPreviewDisplaySelectionOpen ? 'active' : '' }}" tabindex="-1" (focusout)="this.isPreviewDisplaySelectionOpen = false">
-                <div class="select-button__button" (click)="this.isPreviewDisplaySelectionOpen = !this.isPreviewDisplaySelectionOpen">👁</div>
-                <div class="select-button__options">
-                    $for(display of this.previewDisplays) {
-                        <div class="option {{ this.display.id === this.previewDisplayId ? 'selected' : '' }}" (click)="this.selectPreviewDisplay(this.display.id)">
-                            <div class="option__icon">👁</div>
-                            <div class="option__name">{{this.display.label}}</div>
-                        </div>
-                    }
-                </div>
-            </div>
+<!-- What that? -->
+<div class="node__glow"></div>
 
-            <select class="select" (change)="this.selectPreviewPort($event.target.value)">
-                $for(port of this.previewPorts) {
-                    <option [value]="this.port.definitionId" [selected]="this.port.definitionId === this.previewPortDefinitionId">{{this.port.label}}</option>
+$if(this.isPreviewActive) {
+<div class="node-preview" style="--node-width: {{ this.nodeTransformation.width }};">
+    <div class="node-preview__selections">
+        <div class="select-button {{ this.isPreviewDisplaySelectionOpen ? 'active' : '' }}" tabindex="-1" (focusout)="this.isPreviewDisplaySelectionOpen = false">
+            <div class="select-button__button" (click)="this.isPreviewDisplaySelectionOpen = !this.isPreviewDisplaySelectionOpen">👁</div>
+            <div class="select-button__options">
+                $for(display of this.previewDisplays) {
+                <div class="option {{ this.display.id === this.previewDisplayId ? 'selected' : '' }}" (click)="this.selectPreviewDisplay(this.display.id)">
+                    <div class="option__icon">👁</div>
+                    <div class="option__name">{{this.display.label}}</div>
+                </div>
                 }
-            </select>
+            </div>
         </div>
 
-        <div class="node-preview__window" potatno-preview="this.previewDriver"></div>
+        <select class="select" (change)="this.selectPreviewPort($event.target.value)">
+            $for(port of this.previewPorts) {
+            <option [value]="this.port.definitionId" [selected]="this.port.definitionId === this.previewPortDefinitionId">{{this.port.label}}</option>
+            }
+        </select>
     </div>
+
+    <div class="node-preview__window" potatno-preview="this.previewDriver"></div>
+</div>
 }
-        

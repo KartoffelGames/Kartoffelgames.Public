@@ -64,6 +64,9 @@ export class PotatnoCodeEditorComponent implements IComponentOnDeconstruct {
         this.mUnsubscribe = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Document | PotatnoCodeUiManagerChangeType.SpecialActiveFunction, () => {
             this.mComponent.updater.updateAsync();
         });
+
+        // Set grids size as global css variable.
+        this.mComponent.element.style.setProperty('--potatno-grid-size', `${this.mManager.grid.gridSize}px`); 
     }
 
     /**

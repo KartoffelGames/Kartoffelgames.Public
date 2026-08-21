@@ -508,10 +508,10 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
      */
     private resyncComponent(pNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition>): void {
         // Set the node position on the actual component.
-        const lNodeX: number = pNode.transformation.x * this.mManager.grid.gridSize;
-        const lNodeY: number = pNode.transformation.y * this.mManager.grid.gridSize;
-        this.mComponent.element.style.setProperty('left', `${lNodeX}px`);
-        this.mComponent.element.style.setProperty('top', `${lNodeY}px`);
+        const lNodeX: number = pNode.transformation.x;
+        const lNodeY: number = pNode.transformation.y;
+        this.mComponent.element.style.setProperty('left', `calc(var(--potatno-grid-size) * ${lNodeX})`);
+        this.mComponent.element.style.setProperty('top', `calc(var(--potatno-grid-size) * ${lNodeY} - 0.5rem)`);
 
         // Update general size transformation.
         this.nodeTransformation.width = pNode.transformation.width;

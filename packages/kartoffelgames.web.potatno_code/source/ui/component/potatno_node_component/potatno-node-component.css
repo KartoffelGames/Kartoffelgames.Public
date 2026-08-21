@@ -1,6 +1,4 @@
 :host {
-    --node-preview-select-height: 24px;
-
     display: block;
     font-family: var(--potatno-font-family);
     font-size: var(--potatno-font-size);
@@ -15,20 +13,16 @@
     display: flex;
     flex-direction: column;
     min-height: 100%;
-    background-color: var(--potatno-color-background);
+    background-color: var(--potatno-color-background-dark);
     border: 1px solid var(--potatno-color-border);
     border-radius: var(--potatno-border-radius);
+    padding: 0.25rem;
+
+    /* Fixed node width */
+    width: calc(var(--potatno-grid-size) * 6);
 
     overflow: visible;
     user-select: none;
-
-    /* Default size */
-    --node-width: 6;
-    --node-height: 6;
-
-    /* Resize */
-    width: calc(var(--potatno-grid-size) * var(--node-width));
-    /*height: calc(var(--potatno-grid-size) * var(--node-height));*/
 
     &.error {
         box-shadow: 0 0 0px 2px var(--potatno-color-error);
@@ -52,16 +46,17 @@
     align-items: center;
     color: var(--potatno-color-text);
     font-weight: bold;
-    font-size: var(--potatno-font-size-small);
-    border-bottom: 1px solid var(--node-category-color);
+    font-size: var(--potatno-font-size);
     overflow: hidden;
     cursor: grab;
 
     /* Same border radius as node, because we cant set overflow hidden on parent. */
-    border-radius: var(--potatno-border-radius) var(--potatno-border-radius) 0 0;
+    border: 1px solid var(--node-category-color);
+    border-radius: var(--potatno-border-radius);
 
     /* Adjust -2px because node itself has a top border of 1px and the header a border on bottom. */
-    height: calc(var(--potatno-grid-size) - 2px);
+    margin: 0 0 0.25rem 0;
+    height: calc(var(--potatno-grid-size) - 2px); /* 2: Border */
 
     /* Animated background of header */
     background-image: linear-gradient(90deg, var(--potatno-color-background-dark) 0%, var(--potatno-color-background) 100%);
@@ -71,9 +66,9 @@
     }
 
     .node-header__bar {
-        width: 3px;
-        height: calc(100% - 10px);
-        margin: 0px 0px 0px 9px;
+        width: 0.25rem;
+        height: calc(100% - 0.625rem);
+        margin: 0 0 0 0.5rem;
         background-color: var(--node-category-color);
 
         transition: box-shadow 0.15s ease-in, background-color 0.15s ease-in;
@@ -135,11 +130,29 @@
 }
 
 .node-body {
+    position: relative;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+    background-color: var(--potatno-color-background);
+    border: 1px solid var(--potatno-color-border);
+    border-radius: var(--potatno-border-radius);
+
+    overflow: visible;
+    user-select: none;
+
+    &.error {
+        box-shadow: 0 0 0px 2px var(--potatno-color-error);
+    }
+}
+
+.node-ports {
     flex: 1;
     display: flex;
-    gap: 0 20px;
+    gap: 0 1.25rem;
 
-    .node-body__ports {
+    .node-ports__list {
         flex: 1;
         display: flex;
         flex-direction: column;
@@ -178,8 +191,8 @@
         left: 50%;
         border: 0px solid var(--preview-toggle-icon-color);
         border-width: 0px 1px 1px 0;
-        height: 10px;
-        width: 10px;
+        height: 0.625rem;
+        width: 0.625rem;
         transform: translate(calc(-50% - -1px), -3px) rotate(45deg);
         transition: border-color 0.15s, transform 0.15s;
 
@@ -237,7 +250,7 @@
         overflow: hidden;
 
         /* The whole preview area has a grid height of 6. [6 - toggle-height - select-height] */
-        height: calc((var(--potatno-grid-size) * 5.5) - var(--node-preview-select-height));
+        height: calc((var(--potatno-grid-size) * 5.5) - var(--potatno-grid-size));
     }
 
     .node-preview__selections {
@@ -247,7 +260,7 @@
 
         /* Height minus border */
         flex-shrink: 0;
-        height: calc(var(--node-preview-select-height) - 1px);
+        height: calc(var(--potatno-grid-size) - 1px);
 
         .select {
             flex: 1;

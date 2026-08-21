@@ -69,7 +69,7 @@
         background-color: var(--potatno-color-background-light);
         border: 1px solid var(--potatno-color-accent);
         border-radius: var(--potatno-border-radius);
-        margin: 2px 2px 0 2px;
+        margin: 0.125rem 0.125rem 0 0.125rem;
     }
 
     .node-header__icon {
@@ -149,6 +149,6 @@
         font-size: calc(40px / var(--zoom-factor));
         font-weight: bold;
         text-align: center;
-        text-shadow: 0.05em 0.05em 0.2em #000000;
+        text-shadow: 0.05rem 0.05rem 0.2rem #000000;
     }
 }

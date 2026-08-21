@@ -9,8 +9,8 @@
     --resize-box-handle-hover-color: var(--potatno-color-accent);
 
     /* Set min sizes to restrict resizing. */
-    min-height: 150px;
-    min-width: 200px;
+    min-height: 10rem;
+    min-width: 12.5rem;
 
     /* Globaly restrict to max size of parent. */
     max-width: 100%;
@@ -32,11 +32,11 @@
 
     /* Make wrapped element hide, by giving it a height and vertical gap */
     flex-wrap: wrap;
-    gap: 10px;
-    max-height: 38px;
+    gap: 0.625rem;
+    max-height: 2.5rem;
 
     /* Adjust border for resize box */
-    padding: 2px 2px 0 2px;
+    padding: 0.125rem 0.125rem 0 0.125rem;
 
     /* Should never shrink */
     flex-shrink: 0;
@@ -56,8 +56,8 @@
             --button-accent-text-color: var(--potatno-color-text-contrast);
             --button-text-color: var(--potatno-color-text);
 
-            margin: 3px;
-            padding: 7px 15px 7px 15px;
+            margin: 0.25rem;
+            padding: 0.5rem 1rem 0.5rem 1rem;
 
             /* Error tab reuses the same button but with the error accent. */
             &.tab--error {
@@ -68,11 +68,11 @@
 
     .header__selectors {
         display: flex;
-        gap: 6px;
-        padding: 0px 12px;
+        gap: 0.375rem;
+        padding: 0 0.75rem;
 
         >select {
-            padding: 4px 8px;
+            padding: 0.25rem 0.5rem;
 
             font-family: var(--potatno-font-family);
             font-size: var(--potatno-font-size-small);
@@ -81,7 +81,7 @@
             color: var(--potatno-color-text);
 
             border: 1px solid var(--potatno-color-border);
-            border-radius: 3px;
+            border-radius: var(--potatno-border-radius);
 
             &:focus {
                 border-color: var(--potatno-color-accent);
@@ -92,7 +92,7 @@
 
 .content {
     flex: 1;
-    padding: 4px;
+    padding: 0.25rem;
     background-color: var(--potatno-color-background);
     overflow: auto;
 
@@ -102,8 +102,8 @@
     .content__preview-code {
         box-sizing: border-box;
         width: calc(100% - 20px);
-        margin: 0 10px;
-        padding: 10px 0;
+        margin: 0 0.625rem;
+        padding: 0.625rem 0;
         color: var(--potatno-color-text);
         overflow: auto;
 
@@ -119,16 +119,16 @@
 .error-item {
     display: flex;
     align-items: stretch;
-    padding: 5px;
+    padding: 0.5rem;
 
     .error-item__icon {
         display: flex;
         align-items: center;
 
         color: var(--potatno-color-error);
-        font-size: 18px;
+        font-size: 1.25rem;
         font-weight: bold;
-        padding: 0 10px 0 10px;
+        padding: 0 0.625rem 0 0.625rem;
 
         border-left: 3px solid var(--potatno-color-error);
     }
@@ -145,7 +145,7 @@
     .error-item__location {
         color: var(--potatno-color-text);
         font-size: var(--potatno-font-size-small);
-        margin-top: 2px;
+        margin-top: 0.125rem;
 
         .label {
             opacity: 0.5;

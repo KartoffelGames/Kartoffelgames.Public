@@ -2,12 +2,13 @@
     --popup-border-color: red;
     --popup-shadow-color: red;
     --popup-background-color: red;
+    --popup-border-radius: 4px;
 
     display: flex;
     flex-direction: column;
 
     border: 1px solid var(--popup-border-color);
-    border-radius: 2px;
+    border-radius: var(--popup-border-radius);
 
     box-shadow: 0 10px 30px var(--popup-shadow-color);
     background-color: var(--potatno-color-background);
@@ -21,30 +22,30 @@
     /* Animate from hidden and slightly above */
     @starting-style {
         opacity: 0;
-        translate: 0px -20px;
+        translate: 0px -1.25rem;
     }
 }
 
 :host([animate=top]) {
     @starting-style {
-        translate: 0px -20px;
+        translate: 0px -1.25rem;
     }
 }
 
 :host([animate=right]) {
     @starting-style {
-        translate: -20px 0px;
+        translate: -1.25rem 0px;
     }
 }
 
 :host([animate=bottom]) {
     @starting-style {
-        translate: 0px 20px;
+        translate: 0px 1.25rem;
     }
 }
 
 :host([animate=right]) {
     @starting-style {
-        translate: 20px 0px;
+        translate: 1.25rem 0px;
     }
 }

@@ -3,6 +3,7 @@
     --information-icon-background-color: red;
     --information-background-color: red;
     --information-border-color: red;
+    --information-border-radius: 4px;
     --information-shadow-color: red;
 
     display: inline-block;
@@ -18,8 +19,8 @@
     justify-content: center;
 
     /* Round "i" badge. */
-    width: 16px;
-    height: 16px;
+    width: 1.2rem;
+    height: 1.2rem;
     background-color: var(--information-icon-background-color);
     border: 1px solid var(--information-icon-color);
     border-radius: 50%;
@@ -30,7 +31,7 @@
     font-family: Georgia, 'Times New Roman', serif;
     font-style: italic;
     font-weight: bold;
-    font-size: 11px;
+    font-size: 1rem;
     line-height: 1;
 
     user-select: none;
@@ -51,8 +52,8 @@
     position-anchor: --kg-information-anchor;
 
     /* Default placement: bottom right of the icon. */
-    top: calc(anchor(bottom) + 10px);
-    left: calc(anchor(left) + 10px);
+    top: calc(anchor(bottom) + 0.625rem);
+    left: calc(anchor(left) + 0.625rem);
 
     /* Reposition into whichever space is available. */
     position-try-fallbacks: --kg-information-bottom-left, --kg-information-top-right, --kg-information-top-left;
@@ -62,11 +63,11 @@
     flex-direction: column;
     box-sizing: border-box;
     width: max-content;
-    max-width: 320px;
-    padding: 8px;
+    max-width: 20rem;
+    padding: 0.5rem;
 
     border: 1px solid var(--potatno-color-border);
-    border-radius: 2px;
+    border-radius: var(--information-border-radius);
 
     box-shadow: 0 10px 30px var(--potatno-color-shadow);
     background-color: var(--information-background-color);
@@ -79,7 +80,7 @@
     /* Animation properties (same as kg-popup). */
     transition: opacity 0.15s ease-in-out, translate 0.15s ease-in-out, display 0.15s allow-discrete;
     opacity: 0;
-    translate: 0px -10px;
+    translate: 0px -0.625rem;
 }
 
 :host(:hover) .information {
@@ -90,13 +91,13 @@
     /* Animate from hidden and slightly above. */
     @starting-style {
         opacity: 0;
-        translate: 0px -10px;
+        translate: 0px -0.625rem;
     }
 }
 
 /* Bottom left: below the icon, extending to the left. */
 @position-try --kg-information-bottom-left {
-    top: calc(anchor(bottom) + 10px);
+    top: calc(anchor(bottom) + 0.625rem);
     right: anchor(right);
     bottom: auto;
     left: auto;
@@ -106,7 +107,7 @@
 @position-try --kg-information-top-right {
     top: auto;
     right: auto;
-    bottom: calc(anchor(top) + 10px);
+    bottom: calc(anchor(top) + 0.625rem);
     left: anchor(left);
 }
 
@@ -114,6 +115,6 @@
 @position-try --kg-information-top-left {
     top: auto;
     right: anchor(right);
-    bottom: calc(anchor(top) + 10px);
+    bottom: calc(anchor(top) + 0.625rem);
     left: auto;
 }

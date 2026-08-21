@@ -1,6 +1,6 @@
 :host {
-    --potatno-port-value-size: 5px;
-    --potatno-port-flow-size: 15px;
+    --potatno-port-value-size: 0.375rem;
+    --potatno-port-flow-size: 1rem;
     --potatno-port-width: max(var(--potatno-port-value-size), var(--potatno-port-flow-size));
 
     display: block;
@@ -33,7 +33,6 @@
         content: '';
         height: 2px;
         width: calc(100% - 2px);
-        border-radius: 50px;
         background-color: var(--potatno-port-color);
         z-index: -10;
     }

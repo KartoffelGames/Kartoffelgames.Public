@@ -9,6 +9,7 @@
     --popup-border-color: var(--potatno-color-border);
     --popup-shadow-color: var(--potatno-color-shadow);
     --popup-background-color: var(--potatno-color-background);
+    --popup-border-radius: var(--popup-border-radius);
 
     /* Fixed values also defined as constants in the component itself!!! */
     max-height: 320px;
@@ -21,11 +22,11 @@
     .selection-popup__search {
         width: 100%;
         box-sizing: border-box;
-        padding: 8px 10px;
+        padding: 0.5rem 0.625rem;
         outline: none;
 
         /* Mistreat border as fake background. */
-        border: 5px solid var(--potatno-color-background-light);
+        border: 0.375rem solid var(--potatno-color-background-light);
 
         color: var(--potatno-color-text);
         background-color: var(--potatno-color-background);
@@ -35,11 +36,10 @@
     }
 
     .selection-popup__results {
-        max-height: 280px;
         overflow-x: hidden;
         overflow-y: auto;
-        padding: 4px 0;
-        border-top: 2px solid var(--potatno-color-accent);
+        padding: 0.25rem 0;
+        border-top: 0.125rem solid var(--potatno-color-accent);
 
         scrollbar-color: var(--potatno-color-scrollbar-thumb) var(--potatno-color-scrollbar-track);
         scrollbar-width: thin;
@@ -51,7 +51,7 @@
         display: flex;
         box-sizing: border-box;
         width: 100%;
-        padding: 5px 9px;
+        padding: 0.375rem 0.625rem;
         align-items: center;
         color: var(--potatno-color-text);
         text-align: left;
@@ -71,12 +71,12 @@
         .selection-popup__result-icon {
             display: flex;
             align-items: center;
-            padding: 0 10px;
+            padding: 0 0.625rem;
             width: 1ch;
-            height: 25px;
+            height: 1.5rem;
 
             color: var(--potatno-color-accent);
-            border-left: 3px solid var(--item-color);
+            border-left: 0.25rem solid var(--item-color);
 
             /* That centers a single character at its center line. */
             line-height: 0;
@@ -84,7 +84,7 @@
 
         .selection-popup__result-label {
             flex: 1;
-            padding: 0 8px 0 0;
+            padding: 0 0.5rem 0 0;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -101,7 +101,7 @@
     }
 
     .selection-popup__empty {
-        padding: 14px 10px;
+        padding: 16rem 0.625rem;
         text-align: center;
         font-size: var(--potatno-font-size-small);
 

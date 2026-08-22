@@ -1,11 +1,11 @@
 :host {
     --button-accent-color: red;
-    --button-accent-text-color: red;
     --button-text-color: red;
     --button-border-color: red;
     --button-border-radius: 4px;
     --button-background-color: red;
 
+    position: relative;
     box-sizing: border-box;
     display: flex;
     align-items: center;
@@ -14,6 +14,7 @@
     user-select: none;
 
     /* Shared box. Transparent border keeps every type the same size. */
+    padding: 0.4rem 0.75rem;
     border: 1px solid transparent;
     border-radius: var(--button-border-radius);
     color: var(--button-text-color);
@@ -23,82 +24,80 @@
     transition: border-color 0.15s, color 0.15s, background-color 0.15s, scale 0.15s;
 }
 
+/*
+ * Primary & Secondary starting differences.
+ */
+:host([type=primary]) {
+    border-color: var(--button-border-color);
+    background-color: var(--button-background-color);
+}
+
+:host([type=secondary]) {
+    /* Background animation */
+    background-color: transparent;
+    border-color: transparent;
+}
+
+
 .button {
     box-sizing: border-box;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 0.375rem;
-}
 
-/*
- * Ugly as fuck but there is no other way to write it. Cant nest shit.
- */
-
-/*
- * Primary
- */
-:host([type=primary]) {
-    padding: 0.4rem 0.75rem;
-    border-style: dashed;
-    border-color: var(--button-border-color);
-    background-color: var(--button-background-color);
-}
-
-:host([type=primary]:hover) {
-    border-color: var(--button-accent-color);
-    color: var(--button-accent-color);
-}
-
-:host([type=primary]:active) {
-    scale: 0.98;
-}
-
-:host([type=primary][selected]:not([selected=false])) {
-    border-color: var(--button-accent-color);
-    color: var(--button-accent-color);
-}
-
-/*
- * Secondary
- */
-:host([type=secondary]) {
-    position: relative;
-    overflow: hidden;
-
-    /* Own stacking context so the accent layer stays behind the slotted content. */
-    z-index: 0;
-
-    &::before {
-        content: "";
+    &::after {
         position: absolute;
-        inset: 0;
-        z-index: -1;
+        content: '';
+        border-radius: var(--button-border-radius);
+        border: 1px solid var(--button-accent-color);
+        pointer-events: none;
 
-        background-image: radial-gradient(ellipse at top left, var(--button-accent-color) 0%, transparent 100%);
+        transition: top 0.15s, right 0.15s, bottom 0.15s, left 0.15s, opacity 0.15s;
 
+        /* Animation properties */
         opacity: 0;
-        transition: opacity 0.15s ease-in-out;
+        top: -0.5rem;
+        right: -0.5rem;
+        bottom: -0.5rem;
+        left: -0.5rem;
     }
 }
 
-:host([type=secondary]:hover)::before {
-    opacity: 0.5;
-}
+/*
+ * Shared user interactions.
+ */
 
-:host([type=secondary]:active) {
-    color: var(--button-accent-text-color);
-    scale: 0.98;
+:host(:hover),
+:host(:active),
+:host([selected]:not([selected=false])) {
+    color: var(--button-accent-color);
 
-    &::before {
-        opacity: 0.8;
-    }
-}
-
-:host([type=secondary][selected]:not([selected=false])) {
-    color: var(--button-accent-text-color);
-
-    &::before {
+    .button::after {
         opacity: 1;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+    }
+}
+
+:host(:active) {
+    scale: 0.98;
+}
+
+:host([selected]:not([selected=false])) {
+    color: var(--button-text-color);
+    background-color: color-mix(in srgb, var(--button-accent-color) 50%, transparent);
+}
+
+
+@keyframes background-animate {
+    from {
+        background-position: 0% 0;
+    }
+
+    to {
+        background-position: 400% 0;
     }
 }

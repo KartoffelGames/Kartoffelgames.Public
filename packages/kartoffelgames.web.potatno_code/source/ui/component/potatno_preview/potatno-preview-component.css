@@ -53,7 +53,6 @@
         .tab {
             /* Selectable secondary button drives the gradient, hover, active and selected states. */
             --button-accent-color: var(--potatno-color-accent);
-            --button-accent-text-color: var(--potatno-color-text-contrast);
             --button-text-color: var(--potatno-color-text);
 
             margin: 0.25rem;

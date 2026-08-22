@@ -109,7 +109,6 @@
     .function-item__delete {
         --button-text-color: var(--potatno-color-text);
         --button-accent-color: var(--potatno-color-error);
-        --button-accent-text-color: var(--potatno-color-text-contrast);
 
         width: 1.5rem;
         height: 1.5rem;
@@ -144,7 +143,7 @@
     .popup__header {
         padding: 0.4rem 0rem;
         margin: 0 1rem;
-        color: var(--potatno-color-text);
+        color: var(--potatno-color-accent);
         border-bottom: 2px solid var(--potatno-color-border);
         text-align: center;
         font-weight: bold;

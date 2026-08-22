@@ -24,6 +24,7 @@
     display: flex;
     flex-direction: column;
     height: 100%;
+    padding: 1rem;
     border-radius: var(--potatno-border-radius);
     background-color: var(--potatno-color-background-dark);
     overflow: hidden;
@@ -36,22 +37,25 @@
 }
 
 .section {
-    padding: 0.5rem 0.75rem;
-    border-bottom: 1px solid var(--potatno-color-border);
+    padding: 1rem 0;
+    border-bottom: 2px solid var(--potatno-color-border);
+
+    &:first-child {
+        padding: 0 0 1rem 0;
+    }
 
     &:last-child {
         border-bottom: none;
     }
 
     .section__label {
-        font-size: var(--potatno-font-size-small);
+        font-size: var(--potatno-font-size);
         color: var(--potatno-color-accent);
         text-transform: uppercase;
         margin-bottom: 0.375rem;
     }
 
     .section__empty {
-        padding: 0.25rem 0;
         opacity: 0.5;
 
         font-size: var(--potatno-font-size-small);
@@ -74,7 +78,7 @@
         width: 100%;
         padding: 0.25rem 0.5rem;
 
-        font-size: var(--potatno-font-size-small);
+        font-size: var(--potatno-font-size);
     }
 }
 
@@ -87,7 +91,6 @@
         /* Secondary button with the error accent for the gradient hover/active states. */
         --button-text-color: var(--potatno-color-text);
         --button-accent-color: var(--potatno-color-error);
-        --button-accent-text-color: var(--potatno-color-text-contrast);
 
         width: 1.125rem;
         height: 1.125rem;
@@ -105,7 +108,7 @@
         flex: 0;
         padding: 0.25rem 0.75rem;
 
-        font-size: var(--potatno-font-size-small);
+        font-size: var(--potatno-font-size);
     }
 
     .list-item__text-input {
@@ -115,7 +118,7 @@
 
         padding: 0.375rem 0.375rem;
         background: var(--potatno-color-background-light);
-        font-size: var(--potatno-font-size-small);
+        font-size: var(--potatno-font-size);
         color: var(--potatno-color-text);
 
         /* Custom borders for animations*/
@@ -140,9 +143,9 @@
 
     .list-item__select-input {
         flex: 1;
-        padding: 0.375rem 0.375rem;
+        padding: 0.3rem 0.5rem;
         background: var(--potatno-color-background-light);
-        font-size: var(--potatno-font-size-small);
+        font-size: var(--potatno-font-size);
         color: var(--potatno-color-text);
 
         /* Custom borders for animations*/
@@ -164,7 +167,7 @@
     .list-item__text {
         flex: 1;
         padding: 0.25rem 0.375rem;
-        font-size: var(--potatno-font-size-small);
+        font-size: var(--potatno-font-size);
 
         /* Ellipsis stuff */
         overflow: hidden;

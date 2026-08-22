@@ -39,7 +39,7 @@
  * Primary
  */
 :host([type=primary]) {
-    padding: 0.5rem 0.75rem;
+    padding: 0.4rem 0.75rem;
     border-style: dashed;
     border-color: var(--button-border-color);
     background-color: var(--button-background-color);

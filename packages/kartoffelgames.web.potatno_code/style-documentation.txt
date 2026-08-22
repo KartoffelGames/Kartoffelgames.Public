@@ -1,12 +1,21 @@
 -- General
-border-radius of 2px.
-Hover and action transitions times are 0.15s.
+    - Border-radius of 4px.
+    - Hover and action transitions times are 0.15s.
 
 -- List.
-Padding of 9px to left edge.
-Colored border of 3px on left. Full height.
- - After that, an icon with 10px horizontal padding on each side.
-Between each Item are 10px gaps.
+    - Colored border of 0.25rem on left. Full height (most of the time).
+        - After that, an icon with 0.8rem horizontal padding on each side.
+    - Padding of 0.8rem to left edge.
+        - It the item selectable, the total padding is devided between, padding 0.5rem & margin 0.3rem
+    - Selectable items:
+        - Have a border radius.
+        - Margin/gap of 0.3rem between them.
+        - Padding of 0.3rem 0.6rem 0.3rem 0.5rem;
+
+-- Panels
+    - Dividers are 2px height with a 1rem gap on each side.
+    - Content has a 1rem top and bottom padding.
+
 
 -- Actions
 Scale to 0.98 or translate 1px, based on looks on clicks.

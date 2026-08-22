@@ -8,7 +8,7 @@
     --resize-panel-handle-hover-color: var(--potatno-color-accent);
 
     height: 100%;
-    
+
     /* Set min, max and default width */
     width: 16rem;
     max-width: 32rem;
@@ -31,6 +31,7 @@
 
 .function-list {
     flex: 1;
+    padding: 0.3rem;
     overflow: hidden auto;
 
     scrollbar-color: var(--potatno-color-scrollbar-thumb) var(--potatno-color-scrollbar-track);
@@ -41,8 +42,9 @@
     display: flex;
     box-sizing: border-box;
     width: 100%;
-    min-height: 2rem;
-    padding: 0.375rem 0.75rem 0.375rem 0.5rem;
+    padding: 0.3rem 0.6rem 0.3rem 0.5rem;
+    margin: 0 0 0.3rem 0;
+    border-radius: 4px;
     align-items: center;
     text-align: left;
     color: var(--potatno-color-text);
@@ -63,7 +65,7 @@
         align-items: center;
         width: 1ch;
         height: 1.5rem;
-        padding: 0 0.625rem;
+        padding: 0 0.8rem 0 0.8rem;
 
         text-align: center;
         font-weight: bold;
@@ -109,16 +111,16 @@
         --button-accent-color: var(--potatno-color-error);
         --button-accent-text-color: var(--potatno-color-text-contrast);
 
-        width: 1.125rem;
-        height: 1.125rem;
-        padding: 0px;
+        width: 1.5rem;
+        height: 1.5rem;
     }
 }
 
 .list-actions {
     position: relative;
-    padding: 0.5rem;
-    border-top: 1px solid var(--potatno-color-border);
+    margin: 0 1rem;
+    padding: 1rem 0;
+    border-top: 2px solid var(--potatno-color-border);
 }
 
 .add-action {
@@ -130,51 +132,64 @@
 
 .popup {
     --popup-border-color: var(--potatno-color-border);
-    --popup-border-radius: var(--popup-border-radius);
+    --popup-border-radius: var(--potatno-border-radius);
     --popup-shadow-color: var(--potatno-color-shadow);
     --popup-background-color: var(--potatno-color-background-light);
 
     position: absolute;
-    bottom: calc(100% + 0.5rem);
-    left: 0.5rem;
-    right: 0.5rem;
+    bottom: calc(100% + 1rem);
+    left: 0;
+    right: 0;
 
     .popup__header {
-        padding: 0.375rem 0.75rem;
+        padding: 0.4rem 0rem;
+        margin: 0 1rem;
         color: var(--potatno-color-text);
-        border-bottom: 3px solid var(--potatno-color-border);
+        border-bottom: 2px solid var(--potatno-color-border);
+        text-align: center;
+        font-weight: bold;
         user-select: none;
+    }
+
+    .popup__list {
+        padding: 0.3rem;
     }
 
     .popup__item {
         display: flex;
+        box-sizing: border-box;
+        width: 100%;
+        padding: 0.3rem 0.6rem 0.3rem 0.5rem;
+        margin: 0 0 0.3rem 0;
+        border-radius: 4px;
         align-items: center;
-        padding: 0.375rem 0.75rem 0.375rem 0.5rem;
+        text-align: left;
         color: var(--potatno-color-text);
         cursor: pointer;
-        transition: color 0.15s, background-color 0.15s, scale 0.15s;
+        transition: background-color 0.15s, scale 0.15s;
 
         &:hover {
-            color: var(--potatno-color-accent);
+            background-color: var(--potatno-color-background-light);
         }
 
         &:active {
-            background-color: var(--potatno-color-background);
             scale: 0.98;
         }
 
         .icon {
             box-sizing: border-box;
             height: 1.5rem;
+            line-height: 1.5rem;
+
 
             /* Manually centering shitty function "icon" by offsetting 2px */
-            padding: 0;
+            padding: 0 0.8rem 0 0.8rem;
 
             /* Border defined to mark selected. */
             border-left: 0.25rem solid color-mix(in srgb, var(--potatno-color-text) 25%, var(--potatno-color-background));
             transition: border-color 0.15s;
 
-            .popup__item:hover & {
+            .popup__item:active & {
                 border-color: var(--potatno-color-accent);
             }
         }

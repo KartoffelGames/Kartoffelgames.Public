@@ -22,8 +22,8 @@ potatno-code-editor {\r
     \r
     /* Font */\r
     --potatno-font-size: 1rem;\r
-    --potatno-font-size-big: 1.25rem;\r
-    --potatno-font-size-small: 0.8rem;\r
+    --potatno-font-size-big: 1.12rem;\r
+    --potatno-font-size-small: 0.9rem;\r
     --potatno-font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;\r
 \r
     /* Main colors */\r
@@ -90,7 +90,7 @@ potatno-code-editor {\r
  * Primary\r
  */\r
 :host([type=primary]) {\r
-    padding: 0.5rem 0.75rem;\r
+    padding: 0.4rem 0.75rem;\r
     border-style: dashed;\r
     border-color: var(--button-border-color);\r
     background-color: var(--button-background-color);\r
@@ -620,7 +620,7 @@ $if(this.left) {
     --resize-panel-handle-hover-color: var(--potatno-color-accent);\r
 \r
     height: 100%;\r
-    \r
+\r
     /* Set min, max and default width */\r
     width: 16rem;\r
     max-width: 32rem;\r
@@ -643,6 +643,7 @@ $if(this.left) {
 \r
 .function-list {\r
     flex: 1;\r
+    padding: 0.3rem;\r
     overflow: hidden auto;\r
 \r
     scrollbar-color: var(--potatno-color-scrollbar-thumb) var(--potatno-color-scrollbar-track);\r
@@ -653,8 +654,9 @@ $if(this.left) {
     display: flex;\r
     box-sizing: border-box;\r
     width: 100%;\r
-    min-height: 2rem;\r
-    padding: 0.375rem 0.75rem 0.375rem 0.5rem;\r
+    padding: 0.3rem 0.6rem 0.3rem 0.5rem;\r
+    margin: 0 0 0.3rem 0;\r
+    border-radius: 4px;\r
     align-items: center;\r
     text-align: left;\r
     color: var(--potatno-color-text);\r
@@ -675,7 +677,7 @@ $if(this.left) {
         align-items: center;\r
         width: 1ch;\r
         height: 1.5rem;\r
-        padding: 0 0.625rem;\r
+        padding: 0 0.8rem 0 0.8rem;\r
 \r
         text-align: center;\r
         font-weight: bold;\r
@@ -721,16 +723,16 @@ $if(this.left) {
         --button-accent-color: var(--potatno-color-error);\r
         --button-accent-text-color: var(--potatno-color-text-contrast);\r
 \r
-        width: 1.125rem;\r
-        height: 1.125rem;\r
-        padding: 0px;\r
+        width: 1.5rem;\r
+        height: 1.5rem;\r
     }\r
 }\r
 \r
 .list-actions {\r
     position: relative;\r
-    padding: 0.5rem;\r
-    border-top: 1px solid var(--potatno-color-border);\r
+    margin: 0 1rem;\r
+    padding: 1rem 0;\r
+    border-top: 2px solid var(--potatno-color-border);\r
 }\r
 \r
 .add-action {\r
@@ -742,51 +744,64 @@ $if(this.left) {
 \r
 .popup {\r
     --popup-border-color: var(--potatno-color-border);\r
-    --popup-border-radius: var(--popup-border-radius);\r
+    --popup-border-radius: var(--potatno-border-radius);\r
     --popup-shadow-color: var(--potatno-color-shadow);\r
     --popup-background-color: var(--potatno-color-background-light);\r
 \r
     position: absolute;\r
-    bottom: calc(100% + 0.5rem);\r
-    left: 0.5rem;\r
-    right: 0.5rem;\r
+    bottom: calc(100% + 1rem);\r
+    left: 0;\r
+    right: 0;\r
 \r
     .popup__header {\r
-        padding: 0.375rem 0.75rem;\r
+        padding: 0.4rem 0rem;\r
+        margin: 0 1rem;\r
         color: var(--potatno-color-text);\r
-        border-bottom: 3px solid var(--potatno-color-border);\r
+        border-bottom: 2px solid var(--potatno-color-border);\r
+        text-align: center;\r
+        font-weight: bold;\r
         user-select: none;\r
+    }\r
+\r
+    .popup__list {\r
+        padding: 0.3rem;\r
     }\r
 \r
     .popup__item {\r
         display: flex;\r
+        box-sizing: border-box;\r
+        width: 100%;\r
+        padding: 0.3rem 0.6rem 0.3rem 0.5rem;\r
+        margin: 0 0 0.3rem 0;\r
+        border-radius: 4px;\r
         align-items: center;\r
-        padding: 0.375rem 0.75rem 0.375rem 0.5rem;\r
+        text-align: left;\r
         color: var(--potatno-color-text);\r
         cursor: pointer;\r
-        transition: color 0.15s, background-color 0.15s, scale 0.15s;\r
+        transition: background-color 0.15s, scale 0.15s;\r
 \r
         &:hover {\r
-            color: var(--potatno-color-accent);\r
+            background-color: var(--potatno-color-background-light);\r
         }\r
 \r
         &:active {\r
-            background-color: var(--potatno-color-background);\r
             scale: 0.98;\r
         }\r
 \r
         .icon {\r
             box-sizing: border-box;\r
             height: 1.5rem;\r
+            line-height: 1.5rem;\r
+\r
 \r
             /* Manually centering shitty function "icon" by offsetting 2px */\r
-            padding: 0;\r
+            padding: 0 0.8rem 0 0.8rem;\r
 \r
             /* Border defined to mark selected. */\r
             border-left: 0.25rem solid color-mix(in srgb, var(--potatno-color-text) 25%, var(--potatno-color-background));\r
             transition: border-color 0.15s;\r
 \r
-            .popup__item:hover & {\r
+            .popup__item:active & {\r
                 border-color: var(--potatno-color-accent);\r
             }\r
         }\r
@@ -813,10 +828,13 @@ $if(this.left) {
                     <kg-popup class="popup" animate="bottom">\r
                         <div class="popup__header">Select Function Type</div>\r
                         $for(functionDefinition of this.userFunctionDefinitions) {\r
-                            <div class="popup__item" (click)="this.createFunction(this.functionDefinition)">\r
-                                <div class="icon">\u0192</div>\r
-                                <div>{{this.functionDefinition.label}}</div>\r
+                            <div class="popup__list">\r
+                                <div class="popup__item" (click)="this.createFunction(this.functionDefinition)">\r
+                                    <div class="icon">\u0192</div>\r
+                                    <div>{{this.functionDefinition.label}}</div>\r
+                                </div>\r
                             </div>\r
+                            \r
                         }\r
                     </kg-popup>\r
                 }\r

@@ -20,10 +20,13 @@
                     <kg-popup class="popup" animate="bottom">
                         <div class="popup__header">Select Function Type</div>
                         $for(functionDefinition of this.userFunctionDefinitions) {
-                            <div class="popup__item" (click)="this.createFunction(this.functionDefinition)">
-                                <div class="icon">ƒ</div>
-                                <div>{{this.functionDefinition.label}}</div>
+                            <div class="popup__list">
+                                <div class="popup__item" (click)="this.createFunction(this.functionDefinition)">
+                                    <div class="icon">ƒ</div>
+                                    <div>{{this.functionDefinition.label}}</div>
+                                </div>
                             </div>
+                            
                         }
                     </kg-popup>
                 }

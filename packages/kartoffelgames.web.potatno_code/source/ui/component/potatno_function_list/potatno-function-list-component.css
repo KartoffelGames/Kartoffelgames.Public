@@ -90,7 +90,8 @@
             text-transform: uppercase;
         }
 
-        .function-item:hover & {
+        .function-item:hover &,
+        .function-item:active & {
             border-color: var(--potatno-color-text);
         }
 
@@ -167,7 +168,8 @@
         cursor: pointer;
         transition: background-color 0.15s, scale 0.15s;
 
-        &:hover {
+        &:hover,
+        &:active {
             background-color: var(--potatno-color-background-light);
         }
 

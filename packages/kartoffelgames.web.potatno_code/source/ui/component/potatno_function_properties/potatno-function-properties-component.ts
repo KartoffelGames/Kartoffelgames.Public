@@ -7,6 +7,7 @@ import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-pro
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, type PotatnoCodeUiManagerUnsubscribe } from '../../manager/potatno-ui-manager.ts';
 import templateCss from './potatno-function-properties-component.css' with { type: 'text' };
 import propertiesTemplate from './potatno-function-properties-component.html' with { type: 'text' };
+import { PotatnoImportDefinition } from "../../../project/potatno-import-definition.ts";
 
 /**
  * Properties panel component for the potatno-code visual editor.
@@ -21,7 +22,8 @@ export class PotatnoFunctionPropertiesComponent implements IComponentOnDeconstru
     private readonly mManager: PotatnoUiManager;
     private readonly mProjectTypes: Set<string>;
     private mSelectedImportId: string;
-    private readonly mUnsubscribe: PotatnoCodeUiManagerUnsubscribe;
+    private readonly mUnsubscribeFunctionUpdate: PotatnoCodeUiManagerUnsubscribe;
+    private readonly mUnsubscribeFunctionSwitch: PotatnoCodeUiManagerUnsubscribe;
 
     /**
      * Function properties.
@@ -48,7 +50,7 @@ export class PotatnoFunctionPropertiesComponent implements IComponentOnDeconstru
     /**
      * Import ids available to add (registered but not yet used).
      */
-    public get unusedImports(): Array<PotatnoFunctionPropertiesComponentImport> {
+    public get unusedImports(): Array<PotatnoImportDefinition<PotatnoProjectTypesDefinition>> {
         // Filter all imports with the already selected imports of the function.
         return this.mManager.activeFunction.project.imports.filter((pAvailableImport) => {
             return !this.functionProperties.imports.find((pUsedImport) => {
@@ -69,16 +71,22 @@ export class PotatnoFunctionPropertiesComponent implements IComponentOnDeconstru
         this.mProjectTypes = new Set<string>();
 
         // Create a feedback loop. This component triggers function changes, what triggers a data reload, what triggers a UI update.
-        this.functionProperties = this.convertFunctionProperties();
-        this.mUnsubscribe = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Document | PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.SpecialActiveFunction, () => {
+        this.functionProperties = this.convertFunctionProperties(null);
+
+        this.mUnsubscribeFunctionUpdate = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Function, () => {
+            // Update functions properties. Also triggers update.
+            this.functionProperties = this.convertFunctionProperties(this.functionProperties);
+        });
+
+        this.mUnsubscribeFunctionSwitch = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Document | PotatnoCodeUiManagerChangeType.SpecialActiveFunction, () => {
             // Load all types. Usually types dont change.
             this.mProjectTypes.clear();
             for (const [lTypeName] of this.mManager.project.types.types) {
                 this.mProjectTypes.add(lTypeName);
             }
 
-            // Update functions properties. Also triggers update.
-            this.functionProperties = this.convertFunctionProperties();
+            // Set new functions properties. Also triggers update.
+            this.functionProperties = this.convertFunctionProperties(null);
         });
     }
 
@@ -103,8 +111,12 @@ export class PotatnoFunctionPropertiesComponent implements IComponentOnDeconstru
             return 'Output';
         })();
 
+        // Reset new state before appending a new new state.
+        this.resetNewState();
+
         // Add new "empty" port
         pTargetPortList.push({
+            new: true,
             label: lPortName,
             dataType: lDataType,
             hasError: false // Error is set after submiting and resync.
@@ -118,13 +130,13 @@ export class PotatnoFunctionPropertiesComponent implements IComponentOnDeconstru
      */
     public addSelectedImport(): void {
         // Read all available imports.
-        const lUnusedImports: Array<PotatnoFunctionPropertiesComponentImport> = this.unusedImports;
+        const lUnusedImports: Array<PotatnoImportDefinition<PotatnoProjectTypesDefinition>> = this.unusedImports;
         if (lUnusedImports.length === 0) {
             return;
         }
 
         // Find the selected import.
-        let lSelectedImport: PotatnoFunctionPropertiesComponentImport | undefined = lUnusedImports.find((pUnusedImport) => {
+        let lSelectedImport: PotatnoImportDefinition<PotatnoProjectTypesDefinition> | undefined = lUnusedImports.find((pUnusedImport) => {
             return pUnusedImport.id === this.mSelectedImportId;
         });
 
@@ -133,8 +145,15 @@ export class PotatnoFunctionPropertiesComponent implements IComponentOnDeconstru
             lSelectedImport = lUnusedImports.at(0)!;
         }
 
+        // Reset new state before appending a new new state.
+        this.resetNewState();
+
         // Add import and submit changes.
-        this.functionProperties.imports.push(lSelectedImport);
+        this.functionProperties.imports.push({
+            new: true,
+            id: lSelectedImport.id,
+            label: lSelectedImport.label
+        });
         this.submitChange();
     }
 
@@ -151,6 +170,9 @@ export class PotatnoFunctionPropertiesComponent implements IComponentOnDeconstru
 
         // Remove input from function properties.
         this.functionProperties.imports.splice(lImportIndex, 1);
+
+        // Reset state of all new items as after a delete, none can be new.
+        this.resetNewState()
 
         // And submit the change.
         this.submitChange();
@@ -171,6 +193,9 @@ export class PotatnoFunctionPropertiesComponent implements IComponentOnDeconstru
         // Remove input from function properties.
         pTargetPortList.splice(lInputIndex, 1);
 
+        // Reset state of all new items as after a delete, none can be new.
+        this.resetNewState()
+
         // And submit the change.
         this.submitChange();
     }
@@ -179,7 +204,8 @@ export class PotatnoFunctionPropertiesComponent implements IComponentOnDeconstru
      * Detach the manager subscription.
      */
     public onDeconstruct(): void {
-        this.mUnsubscribe();
+        this.mUnsubscribeFunctionUpdate();
+        this.mUnsubscribeFunctionSwitch();
     }
 
     /**
@@ -266,7 +292,7 @@ export class PotatnoFunctionPropertiesComponent implements IComponentOnDeconstru
      * 
      * @returns the converted function properties.
      */
-    private convertFunctionProperties(): PotatnoFunctionPropertiesComponentProperties {
+    private convertFunctionProperties(pOldProperties: PotatnoFunctionPropertiesComponentProperties | null): PotatnoFunctionPropertiesComponentProperties {
         // Create empty function property list. 
         const lFunctionProperties: PotatnoFunctionPropertiesComponentProperties = {
             label: '',
@@ -303,31 +329,87 @@ export class PotatnoFunctionPropertiesComponent implements IComponentOnDeconstru
                 continue;
             }
 
+            const lIsNew: boolean = (() => {
+                if (!pOldProperties) {
+                    return false;
+                }
+
+                const lExistingImport: PotatnoFunctionPropertiesComponentImport | undefined = pOldProperties.imports.find((pExistingPort) => {
+                    return pExistingPort.id === lImport.id;
+                });
+
+                return lExistingImport?.new ?? false;
+            })();
+
             lFunctionProperties.imports.push({
+                new: lIsNew,
                 id: lImport.id,
                 label: lImport.label
             });
         }
 
         // Insert inputs.
-        for (const lInput of lFunction.inputs) {
+        for (const lPort of lFunction.inputs) {
+            const lIsNew: boolean = (() => {
+                if (!pOldProperties) {
+                    return false;
+                }
+
+                const lExistingPort: PotatnoFunctionPropertiesComponentPort | undefined = pOldProperties.inputs.find((pExistingPort) => {
+                    return pExistingPort.label === lPort.label;
+                });
+
+                return lExistingPort?.new ?? false;
+            })();
+
             lFunctionProperties.inputs.push({
-                label: lInput.label,
-                dataType: lInput.dataType,
+                new: lIsNew,
+                label: lPort.label,
+                dataType: lPort.dataType,
                 hasError: false // Cant be dublicate
             });
         }
 
         // Insert outputs.
-        for (const lInput of lFunction.outputs) {
+        for (const lPort of lFunction.outputs) {
+            const lIsNew: boolean = (() => {
+                if (!pOldProperties) {
+                    return false;
+                }
+
+                const lExistingPort: PotatnoFunctionPropertiesComponentPort | undefined = pOldProperties.outputs.find((pExistingPort) => {
+                    return pExistingPort.label === lPort.label;
+                });
+
+                return lExistingPort?.new ?? false;
+            })();
+
             lFunctionProperties.outputs.push({
-                label: lInput.label,
-                dataType: lInput.dataType,
+                new: lIsNew,
+                label: lPort.label,
+                dataType: lPort.dataType,
                 hasError: false // Cant be dublicate
             });
         }
 
         return lFunctionProperties;
+    }
+
+    /**
+     * Reset all "new" states of ports and imports to avoid double animations.
+     */
+    private resetNewState(): void {
+        for (const lPort of this.functionProperties.inputs) {
+            lPort.new = false;
+        }
+
+        for (const lPort of this.functionProperties.outputs) {
+            lPort.new = false;
+        }
+
+        for (const lImport of this.functionProperties.imports) {
+            lImport.new = false;
+        }
     }
 }
 
@@ -345,12 +427,14 @@ export type PotatnoFunctionPropertiesComponentProperties = {
 };
 
 export type PotatnoFunctionPropertiesComponentPort = {
+    new: boolean;
     label: string;
     dataType: string;
     hasError: boolean;
 };
 
 export type PotatnoFunctionPropertiesComponentImport = {
+    new: boolean;
     id: string;
     label: string;
 };

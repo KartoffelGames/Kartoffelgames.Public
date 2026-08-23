@@ -157,7 +157,7 @@ export class PotatnoNodeSelectionPopupComponent implements IComponentOnConnect, 
         // Look into shadow root to find the selected element and scroll into view.
         const lSelectedElement = this.mComponent.element.shadowRoot!.querySelector('.selection-popup__result.selected');
         if (lSelectedElement) {
-            lSelectedElement.scrollIntoView();
+            lSelectedElement.scrollIntoView({ block: 'center' });
         }
     }
 

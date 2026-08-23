@@ -19,16 +19,17 @@
                             <option [value]="this.display[0]" [selected]="this.display[0] === this.selectedDisplayId">{{this.display[1]}}</option>
                         }
                     </select>
-                }
 
-                $if(this.outputOptions.size > 0) {
-                    <select class="preview-select" (change)="this.selectedOutputId = $event.target.value">
-                        $for(output of this.outputOptions) {
-                            <option [value]="this.output[0]" [selected]="this.output[0] === this.selectedOutputId">{{this.output[1].label}}</option>
-                        }
-                    </select>
-                }
+                    $if(this.outputOptions.size > 0) {
+                        <div class="seperator"/>
 
+                        <select class="preview-select" (change)="this.selectedOutputId = $event.target.value">
+                            $for(output of this.outputOptions) {
+                                <option [value]="this.output[0]" [selected]="this.output[0] === this.selectedOutputId">{{this.output[1].label}}</option>
+                            }
+                        </select>
+                    }
+                }
             </div>
         }
     </div>

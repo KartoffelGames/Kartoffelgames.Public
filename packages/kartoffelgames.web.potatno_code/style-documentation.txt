@@ -6,7 +6,7 @@
     - Colored border of 0.25rem on left. Full height (most of the time).
         - After that, an icon with 0.8rem horizontal padding on each side.
     - Padding of 0.8rem to left edge.
-        - It the item selectable, the total padding is devided between, padding 0.5rem & margin 0.3rem
+        - Is the item selectable, the total padding is devided between, padding 0.5rem & margin 0.3rem
     - Selectable items:
         - Have a border radius.
         - Margin/gap of 0.3rem between them.

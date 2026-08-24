@@ -28,6 +28,7 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
     private readonly mManager: PotatnoUiManager;
     private mNodeData: PotatnoDocumentNode<PotatnoProjectTypesDefinition> | null;
     private readonly mUnsubscribeNodeChange: PotatnoCodeUiManagerUnsubscribe;
+    private readonly mUnsubscribeResize: PotatnoCodeUiManagerUnsubscribe;
     private readonly mUnsubscribeValidation: PotatnoCodeUiManagerUnsubscribe;
 
     /**
@@ -193,6 +194,15 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
         this.mUnsubscribeValidation = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Connection | PotatnoCodeUiManagerChangeType.SpecialValidation, () => {
             this.mComponent.updater.updateAsync();
         });
+
+        // On a grid resize, the pixel position is recalculated from the new grid size.
+        this.mUnsubscribeResize = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.ProgrammResize, () => {
+            if (!this.mNodeData) {
+                return;
+            }
+
+            this.resyncComponent(this.mNodeData);
+        });
     }
 
     /**
@@ -276,6 +286,7 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
      */
     public onDeconstruct(): void {
         this.mUnsubscribeNodeChange();
+        this.mUnsubscribeResize();
         this.mUnsubscribeValidation();
 
         // Remove the global dragover handler when the node gets removed.

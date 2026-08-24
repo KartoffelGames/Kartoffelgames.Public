@@ -54,9 +54,9 @@ export class PotatnoUiManagerPreview {
             lDebounceStructureChanges = globalThis.setTimeout(() => this.refresh(), 1000) as unknown as number;
         });
 
-        // Check for preview element sizes on grid zooms.
+        // Check for preview element sizes on grid zooms and grid resizes.
         let lDebounceGridTransformChanges: number = 0;
-        this.mManager.subscribe(PotatnoCodeUiManagerChangeType.SpecialGrid, () => {
+        this.mManager.subscribe(PotatnoCodeUiManagerChangeType.SpecialGrid | PotatnoCodeUiManagerChangeType.ProgrammResize, () => {
             globalThis.clearTimeout(lDebounceGridTransformChanges);
             lDebounceGridTransformChanges = globalThis.setTimeout(() => {
                 // Iterate all known drivers.

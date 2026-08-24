@@ -228,7 +228,7 @@ export class PotatnoUiManager extends EventTarget {
  * Event types fired by {@link PotatnoUiManager}.
  */
 export const PotatnoCodeUiManagerChangeType = {
-    Any: 0xFFFFFF,
+    Any: 0xFFFFFFF,
 
     // Connections #F
     Connection: 0xF,
@@ -263,7 +263,10 @@ export const PotatnoCodeUiManagerChangeType = {
     SpecialActiveFunction: 0x100000,
     SpecialGrid: 0x200000,
     SpecialValidation: 0x400000,
-    SpecialSelectNode: 0x800000
+    SpecialSelectNode: 0x800000,
+
+    Programm: 0xF000000,
+    ProgrammResize: 0x1000000,
 } as const;
 export type PotatnoCodeUiManagerChangeType = typeof PotatnoCodeUiManagerChangeType[keyof typeof PotatnoCodeUiManagerChangeType] | number;
 

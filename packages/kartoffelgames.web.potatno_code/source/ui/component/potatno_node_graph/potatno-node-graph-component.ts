@@ -144,7 +144,7 @@ export class PotatnoNodeGraphComponent implements IComponentOnDeconstruct {
         });
 
         // On adding or deletion of nodes, only update the view, nothing more.
-        this.mUnsubscribeGraphChange = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.NodeAdd | PotatnoCodeUiManagerChangeType.NodeDelete | PotatnoCodeUiManagerChangeType.SpecialGrid | PotatnoCodeUiManagerChangeType.SpecialSelectNode, () => {
+        this.mUnsubscribeGraphChange = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.NodeAdd | PotatnoCodeUiManagerChangeType.NodeDelete | PotatnoCodeUiManagerChangeType.SpecialGrid | PotatnoCodeUiManagerChangeType.SpecialSelectNode | PotatnoCodeUiManagerChangeType.ProgrammResize, () => {
             this.mComponent.updater.updateAsync();
         });
     }

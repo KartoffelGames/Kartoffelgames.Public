@@ -25,6 +25,7 @@ export class PotatnoCodeEditorComponent implements IComponentOnDeconstruct {
     private readonly mComponent: Component;
     private readonly mManager: PotatnoUiManager;
     private readonly mUnsubscribe: PotatnoCodeUiManagerUnsubscribe;
+    private readonly mUnsubscribeResize: PotatnoCodeUiManagerUnsubscribe;
 
     /**
      * Document state backing the editor.
@@ -66,7 +67,12 @@ export class PotatnoCodeEditorComponent implements IComponentOnDeconstruct {
         });
 
         // Set grids size as global css variable.
-        this.mComponent.element.style.setProperty('--potatno-grid-size', `${this.mManager.grid.gridSize}px`); 
+        this.mComponent.element.style.setProperty('--potatno-grid-size', `${this.mManager.grid.gridSize}px`);
+
+        // Refresh the grid size variable whenever the grid resizes, so all css-var driven layout follows the new font size.
+        this.mUnsubscribeResize = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.ProgrammResize, () => {
+            this.mComponent.element.style.setProperty('--potatno-grid-size', `${this.mManager.grid.gridSize}px`);
+        });
     }
 
     /**
@@ -84,5 +90,6 @@ export class PotatnoCodeEditorComponent implements IComponentOnDeconstruct {
      */
     public onDeconstruct(): void {
         this.mUnsubscribe();
+        this.mUnsubscribeResize();
     }
 }

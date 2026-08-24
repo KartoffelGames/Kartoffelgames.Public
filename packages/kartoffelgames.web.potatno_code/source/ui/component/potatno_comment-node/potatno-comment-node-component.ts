@@ -24,6 +24,7 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
     private mNodeData: PotatnoDocumentNode<PotatnoProjectTypesDefinition> | null;
     private readonly mUnsubscribe: PotatnoCodeUiManagerUnsubscribe;
     private readonly mUnsubscribeGrid: PotatnoCodeUiManagerUnsubscribe;
+    private readonly mUnsubscribeResize: PotatnoCodeUiManagerUnsubscribe;
 
     /**
      * Node display label.
@@ -134,6 +135,15 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
             // Calculate the current size of the component.
             this.resyncComponent(this.nodeData);
         });
+
+        // On a grid resize, the pixel position and size are recalculated from the new grid size.
+        this.mUnsubscribeResize = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.ProgrammResize, () => {
+            if (!this.mNodeData) {
+                return;
+            }
+
+            this.resyncComponent(this.mNodeData);
+        });
     }
 
     /**
@@ -243,6 +253,7 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
     public onDeconstruct(): void {
         this.mUnsubscribe();
         this.mUnsubscribeGrid();
+        this.mUnsubscribeResize();
     }
 
     /**

@@ -15,9 +15,10 @@ export class PotatnoUiManagerGrid {
     private static readonly MIN_ZOOM: number = 0.1;
 
     private mDraggedPortInformation: PotatnoUiManagerGridDraggedPort;
+    private readonly mFontSizeObserver: PotatnoUiManagerGridFontSizeObserver;
     private mGridElement: Element | null;
     private readonly mGridPositions: WeakMap<PotatnoDocumentFunction<PotatnoProjectTypesDefinition>, PotatnoUiManagerGridTransformation>;
-    private readonly mGridSize: number;
+    private mGridSize: number;
     private readonly mManager: PotatnoUiManager;
     private readonly mSelectedNodes: Set<PotatnoDocumentNode<PotatnoProjectTypesDefinition>>;
     private mTransformation: PotatnoUiManagerGridTransformation;
@@ -94,6 +95,33 @@ export class PotatnoUiManagerGrid {
 
         // Calculate pixel size from grid rem size.
         this.mGridSize = parseInt(getComputedStyle(document.documentElement).fontSize) * PotatnoUiManagerGrid.GRID_SIZE_REM;
+
+        // Register a hidden, font-scaled probe element on the document root and observe its size.
+        // Its box tracks the root font size, so whenever the document font changes the observer fires,
+        // letting us recalculate the grid size and re-render the grid.
+        const lFontSizeProbe: HTMLElement = document.createElement('span');
+        lFontSizeProbe.textContent = 'M';
+        lFontSizeProbe.style.display = 'inline-block';
+        lFontSizeProbe.style.position = 'fixed';
+        lFontSizeProbe.style.top = '0';
+        lFontSizeProbe.style.left = '0';
+        lFontSizeProbe.style.visibility = 'hidden';
+        lFontSizeProbe.style.pointerEvents = 'none';
+        document.documentElement.appendChild(lFontSizeProbe);
+
+        const lFontSizeObserver: ResizeObserver = new ResizeObserver(() => {
+            // Recalculate the grid pixel size from the current root font size.
+            this.mGridSize = parseInt(getComputedStyle(document.documentElement).fontSize) * PotatnoUiManagerGrid.GRID_SIZE_REM;
+
+            // Broadcast a programmatic resize so every pixel-space consumer re-renders with the new grid size.
+            this.mManager.dispatch(PotatnoCodeUiManagerChangeType.ProgrammResize, null);
+        });
+        lFontSizeObserver.observe(lFontSizeProbe);
+
+        this.mFontSizeObserver = {
+            element: lFontSizeProbe,
+            observer: lFontSizeObserver
+        };
 
         this.mManager.subscribe(PotatnoCodeUiManagerChangeType.SpecialActiveFunction, () => {
             // Init default positions for a new active function if it has not already.
@@ -442,6 +470,11 @@ type PotatnoUiManagerGridTransformation = {
     panX: number;
     panY: number;
     zoom: number;
+};
+
+type PotatnoUiManagerGridFontSizeObserver = {
+    element: HTMLElement;
+    observer: ResizeObserver;
 };
 
 export type PotatnoUiManagerGridCoordinate = {

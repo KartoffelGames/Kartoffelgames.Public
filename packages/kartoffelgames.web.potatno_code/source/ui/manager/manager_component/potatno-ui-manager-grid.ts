@@ -96,9 +96,9 @@ export class PotatnoUiManagerGrid {
         // Calculate pixel size from grid rem size.
         this.mGridSize = parseInt(getComputedStyle(document.documentElement).fontSize) * PotatnoUiManagerGrid.GRID_SIZE_REM;
 
-        // Register a hidden, font-scaled probe element on the document root and observe its size.
-        // Its box tracks the root font size, so whenever the document font changes the observer fires,
-        // letting us recalculate the grid size and re-render the grid.
+        // TODO: Test element is shit. Anythin else?
+
+        // Register a hidden, font-scaled test element on the document root and observe its size.
         const lFontSizeProbe: HTMLElement = document.createElement('span');
         lFontSizeProbe.textContent = 'M';
         lFontSizeProbe.style.display = 'inline-block';
@@ -113,11 +113,12 @@ export class PotatnoUiManagerGrid {
             // Recalculate the grid pixel size from the current root font size.
             this.mGridSize = parseInt(getComputedStyle(document.documentElement).fontSize) * PotatnoUiManagerGrid.GRID_SIZE_REM;
 
-            // Broadcast a programmatic resize so every pixel-space consumer re-renders with the new grid size.
+            // Dispatch programm wide resize event.
             this.mManager.dispatch(PotatnoCodeUiManagerChangeType.ProgrammResize, null);
         });
         lFontSizeObserver.observe(lFontSizeProbe);
 
+        // TODO: This should be cleaned after deconstruct. :(
         this.mFontSizeObserver = {
             element: lFontSizeProbe,
             observer: lFontSizeObserver

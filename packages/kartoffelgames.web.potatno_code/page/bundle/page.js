@@ -219,8 +219,8 @@ potatno-code-editor {\r
     flex-direction: column;\r
     box-sizing: border-box;\r
     width: max-content;\r
-    max-width: 20rem;\r
-    padding: 0.5rem;\r
+    max-width: 25rem;\r
+    padding: 1rem;\r
 \r
     border: 1px solid var(--potatno-color-border);\r
     border-radius: var(--information-border-radius);\r
@@ -247,7 +247,7 @@ potatno-code-editor {\r
     /* Animate from hidden and slightly above. */\r
     @starting-style {\r
         opacity: 0;\r
-        translate: 0px -0.625rem;\r
+        translate: 0px -1.25rem;\r
     }\r
 }\r
 \r
@@ -592,23 +592,23 @@ $if(this.left) {\r
         }\r
     }\r
 }\r
-`;var Cn=`<!-- Four soft edge handles placed next to the panel. Top/bottom resize height, left/right resize width. -->
-$if(this.top) {
-    <div class="resize-handle horizontal top" (pointerdown)="this.resizeHorizontal($event)"></div>
-}
-$if(this.right) {
-    <div class="resize-handle vertical right" (pointerdown)="this.resizeVertical($event)"></div>
-}
-$if(this.bottom) {
-    <div class="resize-handle horizontal bottom" (pointerdown)="this.resizeHorizontal($event)"></div>
-}
-$if(this.left) {
-    <div class="resize-handle vertical left" (pointerdown)="this.resizeVertical($event)"></div>
-}
-
-<div class="content-container">
-    $slot
-</div>
+`;var Cn=`<!-- Four soft edge handles placed next to the panel. Top/bottom resize height, left/right resize width. -->\r
+$if(this.top) {\r
+    <div class="resize-handle horizontal top" (pointerdown)="this.resizeHorizontal($event)"></div>\r
+}\r
+$if(this.right) {\r
+    <div class="resize-handle vertical right" (pointerdown)="this.resizeVertical($event)"></div>\r
+}\r
+$if(this.bottom) {\r
+    <div class="resize-handle horizontal bottom" (pointerdown)="this.resizeHorizontal($event)"></div>\r
+}\r
+$if(this.left) {\r
+    <div class="resize-handle vertical left" (pointerdown)="this.resizeVertical($event)"></div>\r
+}\r
+\r
+<div class="content-container">\r
+    $slot\r
+</div>\r
 `;function wl(){function y(l,n){return function(c){e(n,"addInitializer"),r(c,"An initializer"),l.push(c)}}function t(l,n,h,c,o,b,p,D,x){var f;switch(o){case 1:f="accessor";break;case 2:f="method";break;case 3:f="getter";break;case 4:f="setter";break;default:f="field"}var s={kind:f,name:p?"#"+n:n,static:b,private:p,metadata:D},d={v:!1};s.addInitializer=y(c,d);var i,a;if(o===0?p?(i=h.get,a=h.set):(i=function(){return this[n]},a=function(g){this[n]=g}):o===2?i=function(){return h.value}:((o===1||o===3)&&(i=function(){return h.get.call(this)}),(o===1||o===4)&&(a=function(g){h.set.call(this,g)})),p)s.access=i&&a?{get:i,set:a}:i?{get:i}:{set:a};else{if(i){var I=i;i=function(g){return arguments.length===0&&(g=this),I.call(g)}}if(a){var P=a;a=function(g,S){return arguments.length===1&&(S=g,g=this),P.call(g,S)}}var E=function(g){return n in g};s.access=i&&a?{has:E,get:i,set:a}:i?{has:E,get:i}:{has:E,set:a}}try{return l(x,s)}finally{d.v=!0}}function e(l,n){if(l.v)throw new Error("attempted to call "+n+" after decoration was finished")}function r(l,n){if(typeof l!="function")throw new TypeError(n+" must be a function")}function u(l,n){var h=typeof n;if(l===1){if(h!=="object"||n===null)throw new TypeError("accessor decorators must return an object with get, set, or init properties or void 0");n.get!==void 0&&r(n.get,"accessor.get"),n.set!==void 0&&r(n.set,"accessor.set"),n.init!==void 0&&r(n.init,"accessor.init")}else if(h!=="function"){var c;throw l===0?c="field":l===10?c="class":c="method",new TypeError(c+" decorators must return a function or void 0")}}function m(l,n,h,c,o,b,p,D,x){var f=h[0],s,d,i;p?o===0||o===1?s={get:h[3],set:h[4]}:o===3?s={get:h[3]}:o===4?s={set:h[3]}:s={value:h[3]}:o!==0&&(s=Object.getOwnPropertyDescriptor(n,c)),o===1?i={get:s.get,set:s.set}:o===2?i=s.value:o===3?i=s.get:o===4&&(i=s.set);var a,I,P;if(typeof f=="function")a=t(f,c,s,D,o,b,p,x,i),a!==void 0&&(u(o,a),o===0?d=a:o===1?(d=a.init,I=a.get||i.get,P=a.set||i.set,i={get:I,set:P}):i=a);else for(var E=f.length-1;E>=0;E--){var g=f[E];if(a=t(g,c,s,D,o,b,p,x,i),a!==void 0){u(o,a);var S;o===0?S=a:o===1?(S=a.init,I=a.get||i.get,P=a.set||i.set,i={get:I,set:P}):i=a,S!==void 0&&(d===void 0?d=S:typeof d=="function"?d=[d,S]:d.push(S))}}if(o===0||o===1){if(d===void 0)d=function(M,C){return C};else if(typeof d!="function"){var F=d;d=function(M,C){for(var A=C,L=0;L<F.length;L++)A=F[L].call(M,A);return A}}else{var j=d;d=function(M,C){return j.call(M,C)}}l.push(d)}o!==0&&(o===1?(s.get=i.get,s.set=i.set):o===2?s.value=i:o===3?s.get=i:o===4&&(s.set=i),p?o===1?(l.push(function(M,C){return i.get.call(M,C)}),l.push(function(M,C){return i.set.call(M,C)})):o===2?l.push(i):l.push(function(M,C){return i.call(M,C)}):Object.defineProperty(n,c,s))}function v(l,n,h){for(var c=[],o,b,p=new Map,D=new Map,x=0;x<n.length;x++){var f=n[x];if(Array.isArray(f)){var s=f[1],d=f[2],i=f.length>3,a=s>=5,I,P;if(a?(I=l,s=s-5,b=b||[],P=b):(I=l.prototype,o=o||[],P=o),s!==0&&!i){var E=a?D:p,g=E.get(d)||0;if(g===!0||g===3&&s!==4||g===4&&s!==3)throw new Error("Attempted to decorate a public method/accessor that has the same name as a previously decorated public method/accessor. This is not currently supported by the decorators plugin. Property name was: "+d);!g&&s>2?E.set(d,s):E.set(d,!0)}m(c,I,f,d,s,a,i,P,h)}}return w(c,o),w(c,b),c}function w(l,n){n&&l.push(function(h){for(var c=0;c<n.length;c++)n[c].call(h);return h})}function T(l,n,h){if(n.length>0){for(var c=[],o=l,b=l.name,p=n.length-1;p>=0;p--){var D={v:!1};try{var x=n[p](o,{kind:"class",name:b,addInitializer:y(c,D),metadata:h})}finally{D.v=!0}x!==void 0&&(u(10,x),o=x)}return[_(o,h),function(){for(var f=0;f<c.length;f++)c[f].call(o)}]}}function _(l,n){return Object.defineProperty(l,Symbol.metadata||Symbol.for("Symbol.metadata"),{configurable:!0,enumerable:!0,value:n})}return function(n,h,c,o){if(o!==void 0)var b=o[Symbol.metadata||Symbol.for("Symbol.metadata")];var p=Object.create(b===void 0?null:b),D=v(n,h,p);return c.length||_(n,p),{e:D,get c(){return T(n,c,p)}}}}function An(y,t,e,r){return(An=wl())(y,t,e,r)}var Ln,In,Rn,On,Fn,zn,jn,Vn,$n,Bn,Gn,Pn,Mn,Sn,_n,ro;Ln=U({selector:"kg-resize-panel",template:Cn,style:En}),Rn=V.state({proxy:!0}),On=st("resize"),Fn=st("resize-end"),zn=G(),jn=G(),Vn=G(),$n=G(),Bn=G(),Gn=G();var Nn=class{static{({e:[Pn,Mn,Sn,_n],c:[ro,In]}=An(this,[[Rn,1,"mConfiguration"],[On,1,"mResize"],[Fn,1,"mResizeEnd"],[zn,3,"bottom"],[jn,3,"height"],[Vn,3,"left"],[$n,3,"right"],[Bn,3,"top"],[Gn,3,"width"]],[Ln]))}constructor(t=O.use(B)){this.mComponentElement=t.element,this.mConfiguration={enabledDirections:{top:!1,right:!1,bottom:!1,left:!1}}}mComponentElement;#t=(_n(this),Pn(this));get mConfiguration(){return this.#t}set mConfiguration(t){this.#t=t}#e=Mn(this);get mResize(){return this.#e}set mResize(t){this.#e=t}#o=Sn(this);get mResizeEnd(){return this.#o}set mResizeEnd(t){this.#o=t}get bottom(){return this.mConfiguration.enabledDirections.bottom}set bottom(t){this.mConfiguration.enabledDirections.bottom=this.parseBoolean(t)}get height(){return this.mComponentElement.clientHeight}set height(t){this.updateComponentHeight(t)}get left(){return this.mConfiguration.enabledDirections.left}set left(t){this.mConfiguration.enabledDirections.left=this.parseBoolean(t)}get right(){return this.mConfiguration.enabledDirections.right}set right(t){this.mConfiguration.enabledDirections.right=this.parseBoolean(t)}get top(){return this.mConfiguration.enabledDirections.top}set top(t){this.mConfiguration.enabledDirections.top=this.parseBoolean(t)}get width(){return this.mComponentElement.clientWidth}set width(t){this.updateComponentWidth(t)}resizeHorizontal(t){this.handleResize(t,"horizontal")}resizeVertical(t){this.handleResize(t,"vertical")}applyComponentSize(t,e,r){let u=this.updateComponentWidth(e),m=this.updateComponentHeight(r);return(u!==this.width||m!==this.height)&&this.mResize.dispatchEvent(this.createResizeEvent(t,u,m,this.width,this.height)),[u,m]}createResizeEvent(t,e,r,u,m){let v=t;return e===u&&(v&=~(Ot.right|Ot.left)),r===m&&(v&=~(Ot.top|Ot.bottom)),new oo(e,r,v)}handleResize(t,e){t.preventDefault(),t.stopPropagation();let r=this.mComponentElement.getBoundingClientRect(),u=this.mComponentElement.offsetWidth?r.width/this.mComponentElement.offsetWidth:1,m=this.mComponentElement.offsetHeight?r.height/this.mComponentElement.offsetHeight:1,v=r.width/u,w=r.height/m,T=t.clientX,_=t.clientY,l=1;Math.abs(T-r.left)<Math.abs(T-r.right)&&(l=-1);let n=1;Math.abs(_-r.top)<Math.abs(_-r.bottom)&&(n=-1);let h=0;h+=l===1?Ot.right:Ot.left,h+=n===1?Ot.bottom:Ot.top;let c=v,o=w,b=D=>{let x=(D.clientX-T)/u*l,f=(D.clientY-_)/m*n,s=v+x,d=w+f;e==="horizontal"&&(s=v),e==="vertical"&&(d=w),[c,o]=this.applyComponentSize(h,s,d)},p=()=>{document.removeEventListener("pointermove",b),document.removeEventListener("pointerup",p),(c!==v||o!==w)&&this.mResizeEnd.dispatchEvent(this.createResizeEvent(h,c,o,v,w))};document.addEventListener("pointermove",b),document.addEventListener("pointerup",p)}parseBoolean(t){return!!(()=>{if(typeof t=="string"){if(t==="")return!0;let r=t.toLowerCase();if(["true","false"].includes(r))return r==="true"}return t})()}updateComponentHeight(t){if(!this.mConfiguration.enabledDirections.top&&!this.mConfiguration.enabledDirections.bottom)return this.height;let e=Math.max(1,t);return this.mComponentElement.style.setProperty("height",`${e}px`),e}updateComponentWidth(t){if(!this.mConfiguration.enabledDirections.left&&!this.mConfiguration.enabledDirections.right)return this.width;let e=Math.max(1,t);return this.mComponentElement.style.setProperty("width",`${e}px`),e}static{In()}},oo=class{mHeight;mResizeHandle;mWidth;get height(){return this.mHeight}get resizeHandle(){return this.mResizeHandle}get width(){return this.mWidth}constructor(t,e,r){this.mHeight=e,this.mResizeHandle=r,this.mWidth=t}},Ot={top:1,right:2,bottom:4,left:8};var Un=`:host {\r
     display: flex;\r
     flex-direction: column;\r
@@ -2458,13 +2458,13 @@ $if(this.isPreviewActive) {\r
 \r
 .controls-information {\r
     display: grid;\r
-    grid-template-columns: 1.1em max-content max-content;\r
+    grid-template-columns: 1.1rem 1fr max-content;\r
     align-items: center;\r
-    column-gap: 0.625rem;\r
-    row-gap: 0.375rem;\r
+    column-gap: 0.8rem;\r
+    row-gap: 0.5rem;\r
 \r
     font-size: var(--potatno-font-size);\r
-    line-height: 1.2rem;\r
+    line-height: 1.3rem;\r
     white-space: nowrap;\r
     color: var(--potatno-color-text);\r
 \r
@@ -2492,12 +2492,12 @@ $if(this.isPreviewActive) {\r
     }\r
 \r
     .controls-information__gesture {\r
-        justify-self: end;\r
         padding: 0.1rem 0.375rem;\r
         border: 1px solid var(--potatno-color-border);\r
         border-radius: var(--potatno-border-radius);\r
         background-color: var(--potatno-color-background-light);\r
         font-size: 0.75rem;\r
+        text-align: center;\r
         color: var(--potatno-color-text);\r
         opacity: 0.65;\r
     }\r

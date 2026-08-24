@@ -63,8 +63,8 @@
     flex-direction: column;
     box-sizing: border-box;
     width: max-content;
-    max-width: 20rem;
-    padding: 0.5rem;
+    max-width: 25rem;
+    padding: 1rem;
 
     border: 1px solid var(--potatno-color-border);
     border-radius: var(--information-border-radius);
@@ -91,7 +91,7 @@
     /* Animate from hidden and slightly above. */
     @starting-style {
         opacity: 0;
-        translate: 0px -0.625rem;
+        translate: 0px -1.25rem;
     }
 }
 

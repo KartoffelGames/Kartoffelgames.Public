@@ -98,6 +98,28 @@ function gRenderFrame(): void {
 document.getElementById('load-button')!.addEventListener('click', gLoadDocument);
 document.getElementById('save-button')!.addEventListener('click', gSaveDocument);
 
+// Debug: drive the document root font size from a toolbar slider to test grid resizing.
+const gFontSizeSlider: HTMLInputElement = document.getElementById('font-size-slider') as HTMLInputElement;
+const gFontSizeValue: HTMLElement = document.getElementById('font-size-value')!;
+
+// Base font size that represents 100%.
+const gFontSizeBasePx: number = 16;
+
+// Update the label with the current font size as a percentage of the base.
+const gUpdateFontSizeLabel = (): void => {
+    const lPercent: number = Math.round((parseFloat(gFontSizeSlider.value) / gFontSizeBasePx) * 100);
+    gFontSizeValue.textContent = `${lPercent}%`;
+};
+
+// Sync the slider and label with the current root font size.
+gFontSizeSlider.value = parseFloat(getComputedStyle(document.documentElement).fontSize).toString();
+gUpdateFontSizeLabel();
+
+gFontSizeSlider.addEventListener('input', () => {
+    document.documentElement.style.fontSize = `${gFontSizeSlider.value}px`;
+    gUpdateFontSizeLabel();
+});
+
 declare global {
     interface StorageManager {
         getDirectory(): Promise<FileSystemDirectoryHandle>;

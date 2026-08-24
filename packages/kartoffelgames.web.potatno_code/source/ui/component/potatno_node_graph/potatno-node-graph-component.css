@@ -67,7 +67,7 @@
     display: flex;
     align-items: flex-start;
     justify-content: flex-end;
-    padding: 1.25rem;
+    padding: 1rem;
     pointer-events: none;
 
     .information__icon {

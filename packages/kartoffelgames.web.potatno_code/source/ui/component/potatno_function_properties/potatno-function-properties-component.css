@@ -24,7 +24,7 @@
     display: flex;
     flex-direction: column;
     height: 100%;
-    padding: 1rem;
+    padding: 0.8rem;
     border-radius: var(--potatno-border-radius);
     background-color: var(--potatno-color-background-dark);
     overflow: hidden;
@@ -37,11 +37,11 @@
 }
 
 .section {
-    padding: 1rem 0;
+    padding: 0.8rem 0;
     border-bottom: 2px solid var(--potatno-color-border);
 
     &:first-child {
-        padding: 0 0 1rem 0;
+        padding: 0 0 0.8rem 0;
     }
 
     &:last-child {
@@ -68,6 +68,8 @@
 
 .section-label {
     display: flex;
+    align-items: center;
+    height: 1.5rem;
 
     span {
         flex: 1;
@@ -99,7 +101,7 @@
 .list-item {
     display: flex;
     align-items: center;
-    padding: 0.3rem 0.5rem;
+    padding: 0.3rem;
     background-color: var(--potatno-color-background);
     border-radius: var(--potatno-border-radius);
     gap: 0.4rem;
@@ -129,7 +131,7 @@
         flex: 1 99999 100%;
         min-width: 2.75rem;
 
-        padding: 0.2rem 0.5rem;
+        padding: 0.3rem 0.3rem;
         background-color: var(--potatno-color-background-light);
         font-size: var(--potatno-font-size);
         color: var(--potatno-color-text);
@@ -160,7 +162,7 @@
     .list-item__select-input {
         flex: 1 1 max-content;
         min-width: 2.75rem;
-        padding: 0.25rem 0.6rem 0.25rem 0.25rem;
+        padding: 0 1rem 0 0;
         background-color: var(--potatno-color-background);
         color: var(--potatno-color-text);
 

@@ -11,9 +11,8 @@
                 <kg-button class="tab" type="secondary" [selected]="this.selectedTab === 'preview'" (click)="this.selectedTab = 'preview'">Preview</kg-button>
                 <kg-button class="tab" type="secondary" [selected]="this.selectedTab === 'code'" (click)="this.selectedTab = 'code'">Code</kg-button>
             </div>
-            <div class="header__selectors">
-
-                $if(this.displayOptions.size > 0) {
+            $if(this.displayOptions.size > 0) {
+                <div class="header__selectors">
                     <select class="preview-select" (change)="this.selectedDisplayId = $event.target.value">
                         $for(display of this.displayOptions) {
                             <option [value]="this.display[0]" [selected]="this.display[0] === this.selectedDisplayId">{{this.display[1]}}</option>
@@ -29,8 +28,8 @@
                             }
                         </select>
                     }
-                }
-            </div>
+                </div>
+            }
         }
     </div>
 

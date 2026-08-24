@@ -22,12 +22,11 @@
     .selection-popup__search {
         width: 100%;
         box-sizing: border-box;
-        padding: 0.5rem 0.6rem;
+        padding: 0.3rem 0.5rem;
         outline: none;
 
-        /* Mistreat border as fake background. */
-        border: 0 solid var(--potatno-color-background-light);
-        border-width: 0.4rem 0.4rem;
+        /* Mistreat border as fake background. Add 1px for a transparent border replacement */
+        border: calc(0.3rem + 1px) solid var(--potatno-color-background-light);
 
         color: var(--potatno-color-text);
         background-color: var(--potatno-color-background);
@@ -52,7 +51,7 @@
         display: flex;
         box-sizing: border-box;
         width: 100%;
-        padding: 0.3rem 0.6rem 0.3rem 0.5rem;
+        padding: 0.3rem 0.5rem;
         margin: 0 0 0.3rem 0;
         border-radius: 4px;
         align-items: center;

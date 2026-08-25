@@ -137,6 +137,9 @@ export class PotatnoNodeGraphComponent implements IComponentOnDeconstruct {
         };
         document.addEventListener('keydown', this.mKeyboardHandler);
 
+        // Set grids size as global css variable.
+        this.mComponent.element.style.setProperty('--potatno-grid-size', `${this.mManager.grid.gridSize}px`);
+
         // Reset current interactions when the document or the active function changes.
         this.mUnsubscribeFunctionChange = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Document | PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.SpecialActiveFunction, () => {
             this.popup = null;
@@ -144,7 +147,7 @@ export class PotatnoNodeGraphComponent implements IComponentOnDeconstruct {
         });
 
         // On adding or deletion of nodes, only update the view, nothing more.
-        this.mUnsubscribeGraphChange = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.NodeAdd | PotatnoCodeUiManagerChangeType.NodeDelete | PotatnoCodeUiManagerChangeType.SpecialGrid | PotatnoCodeUiManagerChangeType.SpecialSelectNode | PotatnoCodeUiManagerChangeType.ProgrammResize, () => {
+        this.mUnsubscribeGraphChange = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.NodeAdd | PotatnoCodeUiManagerChangeType.NodeDelete | PotatnoCodeUiManagerChangeType.SpecialGrid | PotatnoCodeUiManagerChangeType.SpecialSelectNode, () => {
             this.mComponent.updater.updateAsync();
         });
     }

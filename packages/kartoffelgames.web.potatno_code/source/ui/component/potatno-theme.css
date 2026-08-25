@@ -1,7 +1,4 @@
-:host {
-    /* Placeholder, gets overriten in editor-component */
-    --potatno-grid-size: 2rem;
-    
+:host {   
     /* Font */
     --potatno-font-size: 1rem;
     --potatno-font-size-big: 1.12rem;

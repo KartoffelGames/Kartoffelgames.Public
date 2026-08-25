@@ -1,5 +1,6 @@
 -- General
     - Border-radius of 4px.
+    - For fixed sizes use 16px for 1rem.
     - Hover and action transitions times are 0.15s.
     - Content starts at 0.8rem padding. That includes icons, highlights and text. List background is not included and follows the *List* specification
 

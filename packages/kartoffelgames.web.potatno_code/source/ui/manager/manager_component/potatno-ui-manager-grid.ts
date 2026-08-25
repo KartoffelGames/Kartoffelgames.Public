@@ -10,15 +10,13 @@ import { PotatnoCodeUiManagerChangeType, type PotatnoUiManager } from '../potatn
  * Owns grid sizing and panning.
  */
 export class PotatnoUiManagerGrid implements IDeconstructable {
-    private static readonly GRID_SIZE_REM: number = 2;
+    private static readonly GRID_SIZE_PX: number = 32;
     private static readonly MAX_ZOOM: number = 5.0;
     private static readonly MIN_ZOOM: number = 0.1;
 
     private mDraggedPortInformation: PotatnoUiManagerGridDraggedPort;
-    private readonly mFontSizeObserver: PotatnoUiManagerGridFontSizeObserver;
     private mGridElement: Element | null;
     private readonly mGridPositions: WeakMap<PotatnoDocumentFunction<PotatnoProjectTypesDefinition>, PotatnoUiManagerGridTransformation>;
-    private mGridSize: number;
     private readonly mManager: PotatnoUiManager;
     private readonly mSelectedNodes: Set<PotatnoDocumentNode<PotatnoProjectTypesDefinition>>;
     private mTransformation: PotatnoUiManagerGridTransformation;
@@ -42,7 +40,7 @@ export class PotatnoUiManagerGrid implements IDeconstructable {
      * Grid size in pixels.
      */
     public get gridSize(): number {
-        return this.mGridSize;
+        return PotatnoUiManagerGrid.GRID_SIZE_PX;
     }
 
     /**
@@ -92,12 +90,7 @@ export class PotatnoUiManagerGrid implements IDeconstructable {
             panY: 0,
             zoom: 1.0
         };
-
-        // Calculate pixel size from grid rem size.
-        this.mGridSize = parseInt(getComputedStyle(document.documentElement).fontSize) * PotatnoUiManagerGrid.GRID_SIZE_REM;
-
-        // TODO: Test element is shit. Anythin else?
-
+        
         // Register a hidden, font-scaled test element on the document root and observe its size.
         const lFontSizeProbe: HTMLElement = document.createElement('span');
         lFontSizeProbe.textContent = 'M';
@@ -108,21 +101,6 @@ export class PotatnoUiManagerGrid implements IDeconstructable {
         lFontSizeProbe.style.visibility = 'hidden';
         lFontSizeProbe.style.pointerEvents = 'none';
         document.documentElement.appendChild(lFontSizeProbe);
-
-        const lFontSizeObserver: ResizeObserver = new ResizeObserver(() => {
-            // Recalculate the grid pixel size from the current root font size.
-            this.mGridSize = parseInt(getComputedStyle(document.documentElement).fontSize) * PotatnoUiManagerGrid.GRID_SIZE_REM;
-
-            // Dispatch programm wide resize event.
-            this.mManager.dispatch(PotatnoCodeUiManagerChangeType.ProgrammResize, null);
-        });
-        lFontSizeObserver.observe(lFontSizeProbe);
-
-        // TODO: This should be cleaned after deconstruct. :(
-        this.mFontSizeObserver = {
-            element: lFontSizeProbe,
-            observer: lFontSizeObserver
-        };
 
         this.mManager.subscribe(PotatnoCodeUiManagerChangeType.SpecialActiveFunction, () => {
             // Init default positions for a new active function if it has not already.

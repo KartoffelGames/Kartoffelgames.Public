@@ -511,7 +511,7 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
         const lNodeX: number = pNode.transformation.x;
         const lNodeY: number = pNode.transformation.y;
         this.mComponent.element.style.setProperty('left', `calc(var(--potatno-grid-size) * ${lNodeX})`);
-        this.mComponent.element.style.setProperty('top', `calc(var(--potatno-grid-size) * ${lNodeY} - 0.5rem)`);
+        this.mComponent.element.style.setProperty('top', `calc(var(--potatno-grid-size) * ${lNodeY} - 8px)`);
 
         // Update general size transformation.
         this.nodeTransformation.width = pNode.transformation.width;

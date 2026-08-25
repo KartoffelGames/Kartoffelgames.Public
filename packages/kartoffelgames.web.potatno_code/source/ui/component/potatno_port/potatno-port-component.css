@@ -1,6 +1,6 @@
 :host {
-    --potatno-port-value-size: 0.375rem;
-    --potatno-port-flow-size: 1rem;
+    --potatno-port-value-size: 6px;
+    --potatno-port-flow-size: 16px;
     --potatno-port-handle-width: max(var(--potatno-port-value-size), var(--potatno-port-flow-size));
 
     display: block;
@@ -46,7 +46,7 @@
 }
 
 .port-values {
-    --potatno-port-values-line-length: 0.5rem;
+    --potatno-port-values-line-length: 8px;
 
     position: absolute;
     top: 50%;
@@ -57,7 +57,7 @@
     flex-direction: column;
     align-items: flex-end;
     justify-content: center;
-    gap: 0.125rem;
+    gap: 2px;
 
     height: 100%;
     padding-right: var(--potatno-port-values-line-length);
@@ -66,9 +66,9 @@
     &::after {
         content: '';
         position: absolute;
-        right: 0.125rem;
-        height: 0.125rem;
-        width: calc(var(--potatno-port-values-line-length) - 0.125rem);
+        right: 2px;
+        height: 2px;
+        width: calc(var(--potatno-port-values-line-length) - 2px);
         pointer-events: none;
         background-color: var(--potatno-port-color);
     }
@@ -76,11 +76,11 @@
     .port-values__field {
         position: relative;
         display: flex;
-        min-width: 2.5rem;
-        padding: 0.125rem 0.25rem;
-        margin: 0.125rem 0;
+        min-width: 40px;
+        padding: 2px 4px;
+        margin: 2px 0;
         justify-content: center;
-        gap: 0.25rem;
+        gap: 4px;
 
         border: 1px solid var(--potatno-port-color);
         border-radius: var(--potatno-border-radius);
@@ -91,20 +91,20 @@
 
     .port-values__label {
         color: var(--potatno-port-color);
-        font-size: var(--potatno-font-size);
+        font-size: 14px;
         user-select: none;
         white-space: nowrap;
     }
 
     .port-values__input {
-        padding: 0.1rem 0.25rem;
-        width: 2.5rem;
+        padding: 2px 4px;
+        width: 40px;
         border: 1px solid color-mix(in srgb, var(--potatno-port-color) 35%, transparent);
         border-radius: var(--potatno-border-radius);
         color: var(--potatno-color-text);
         background-color: color-mix(in srgb, var(--potatno-port-color) 8%, var(--potatno-color-background));
         box-sizing: border-box;
-        font-size: var(--potatno-font-size-small);
+        font-size: 12px;
         appearance: textfield;
 
         &:focus {
@@ -139,7 +139,7 @@
     .port__label {
         flex: 1;
         color: var(--potatno-color-text);
-        font-size: var(--potatno-font-size);
+        font-size: 16px;
         user-select: none;
         white-space: nowrap;
         overflow: hidden;

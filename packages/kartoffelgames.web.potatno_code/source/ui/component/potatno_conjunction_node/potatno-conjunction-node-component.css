@@ -1,11 +1,9 @@
 :host {
-    --potatno-port-value-size: 0.375rem;
-    --potatno-port-flow-size: 1rem;
+    --potatno-port-value-size: 6px;
+    --potatno-port-flow-size: 16px;
     --potatno-port-width: max(var(--potatno-port-value-size), var(--potatno-port-flow-size));
 
     display: block;
-    font-family: var(--potatno-font-family);
-    font-size: var(--potatno-font-size);
 
     /* Snappy animation on movement. */
     transition: var(--potatno-position-snap-animation);

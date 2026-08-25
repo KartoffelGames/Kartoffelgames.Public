@@ -3,8 +3,6 @@
     --node-comment-color: var(--potatno-color-accent);
 
     display: block;
-    font-family: var(--potatno-font-family);
-    font-size: var(--potatno-font-size);
 
     /* Snappy animation on movement. */
     transition: var(--potatno-position-snap-animation);
@@ -51,7 +49,7 @@
     align-items: center;
     color: var(--potatno-color-text-contrast);
     font-weight: bold;
-    font-size: var(--potatno-font-size-small);
+    font-size: 14px;
     cursor: grab;
 
     /* Disabled in node. Enabled again. */

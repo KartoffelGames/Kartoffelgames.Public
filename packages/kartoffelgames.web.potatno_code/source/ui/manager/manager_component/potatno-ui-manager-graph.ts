@@ -1,3 +1,4 @@
+import { IDeconstructable } from "@kartoffelgames/core";
 import { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoDocumentNode, PotatnoDocumentNodeTransformation } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
@@ -14,7 +15,7 @@ import type { PotatnoUiManagerGridCoordinate } from './potatno-ui-manager-grid.t
  * Ui manager graph component.
  * Handles document changes.
  */
-export class PotatnoUiManagerGraph {
+export class PotatnoUiManagerGraph implements IDeconstructable {
     private mDocument: PotatnoDocument<PotatnoProjectTypesDefinition>;
     private readonly mManager: PotatnoUiManager;
 
@@ -110,6 +111,13 @@ export class PotatnoUiManagerGraph {
         this.mManager.dispatch(PotatnoCodeUiManagerChangeType.ConnectionAdd, pTarget);
 
         return true;
+    }
+
+    /**
+     * Deconstruct manager.
+     */
+    public deconstruct(): void {
+        // Empty for now.
     }
 
     /**

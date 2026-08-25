@@ -1,3 +1,4 @@
+import { IDeconstructable } from "@kartoffelgames/core";
 import type { IPotatnoDocumentItem } from '../../document/i-potatno-document-item.interface.ts';
 import type { PotatnoDocumentFunction } from '../../document/potatno-document-function.ts';
 import type { PotatnoDocument } from '../../document/potatno-document.ts';
@@ -14,7 +15,7 @@ import { PotatnoUiManagerPreview } from './manager_component/potatno-ui-manager-
 /**
  * Central, shared state owner for the whole Potatno-code editor UI.
  */
-export class PotatnoUiManager extends EventTarget {
+export class PotatnoUiManager extends EventTarget implements IDeconstructable {
     private mActiveFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition>;
     private readonly mClipboard: PotatnoUiManagerClipboard;
     private readonly mConnections: PotatnoUiManagerConnections;
@@ -93,6 +94,8 @@ export class PotatnoUiManager extends EventTarget {
 
     /**
      * Create a new, uninitialized manager. Call {@link initialize} before use.
+     * 
+     * @param pProject - Project definition.
      */
     public constructor(pProject: PotatnoProject<PotatnoProjectTypesDefinition>) {
         super();
@@ -115,6 +118,19 @@ export class PotatnoUiManager extends EventTarget {
 
         // Defaultactive function to first.
         this.mActiveFunction = this.mGraph.document.functions.at(0)!;
+    }
+
+    /**
+     * Deconstruct manager.
+     */
+    public deconstruct(): void {
+        this.mIntegrity.deconstruct();
+        this.mConnections.deconstruct();
+        this.mHistory.deconstruct();
+        this.mPreview.deconstruct();
+        this.mGrid.deconstruct();
+        this.mClipboard.deconstruct();
+        this.mGraph.deconstruct();
     }
 
     /**

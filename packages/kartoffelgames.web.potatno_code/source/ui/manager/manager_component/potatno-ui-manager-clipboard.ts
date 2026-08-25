@@ -1,3 +1,4 @@
+import { IDeconstructable } from "@kartoffelgames/core";
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoDocumentNode, PotatnoDocumentNodeTransformation } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
@@ -9,7 +10,7 @@ import type { PotatnoUiManager } from '../potatno-ui-manager.ts';
  * Ui manager clipboard component.
  * Owns copy and paste snapshots for graph nodes.
  */
-export class PotatnoUiManagerClipboard {
+export class PotatnoUiManagerClipboard implements IDeconstructable {
     private static readonly PASTE_OFFSET: number = 2;
 
     private mClipboardNodes: Array<PotatnoUiManagerClipboardDataNode>;
@@ -88,6 +89,13 @@ export class PotatnoUiManagerClipboard {
         }
 
         this.mClipboardNodes = [...lCopiedNodes.values()];
+    }
+
+    /**
+     * Deconstruct manager.
+     */
+    public deconstruct(): void {
+        // Empty for now.
     }
 
     /**

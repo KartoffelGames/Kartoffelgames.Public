@@ -1,4 +1,4 @@
-import { Exception } from '@kartoffelgames/core';
+import { Exception, IDeconstructable } from '@kartoffelgames/core';
 import { PwbApplication } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocument } from './document/potatno-document.ts';
 import applicationCss from './potatno-code-application.css' with { type: 'text' };
@@ -31,9 +31,10 @@ import { PotatnoUiManager } from './ui/manager/potatno-ui-manager.ts';
  * Extends PwbApplication to provide a pre-configured editor component
  * backed by a PotatnoProject (configuration) and a PotatnoCodeFile (document state).
  */
-export class PotatnoCodeApplication<TProjectTypes extends PotatnoProjectTypesDefinition> extends PwbApplication {
+export class PotatnoCodeApplication<TProjectTypes extends PotatnoProjectTypesDefinition> extends PwbApplication implements IDeconstructable {
     private readonly mCodeEditor: PotatnoCodeEditorComponent;
     private readonly mProject: PotatnoProject<TProjectTypes>;
+    private readonly mUiManager: PotatnoUiManager;
 
     /**
      * Get the current code file (document state).
@@ -66,11 +67,21 @@ export class PotatnoCodeApplication<TProjectTypes extends PotatnoProjectTypesDef
         this.addStyle(themeCss);
         this.addStyle(applicationCss);
 
+        // Create ui manager with initialialized project
+        this.mUiManager = new PotatnoUiManager(pProject as unknown as PotatnoProject<PotatnoProjectTypesDefinition>);
+
         // Create and add ui manager to the applications injections.
-        this.setInjection(PotatnoUiManager, new PotatnoUiManager(pProject as unknown as PotatnoProject<PotatnoProjectTypesDefinition>));
+        this.setInjection(PotatnoUiManager, this.mUiManager);
 
         // Add the editor component and store the element reference.
         this.mCodeEditor = this.addContent(PotatnoCodeEditorComponent) as unknown as PotatnoCodeEditorComponent;
+    }
+
+    /**
+     * Deconstruct application.
+     */
+    public deconstruct(): void {
+        this.mUiManager.deconstruct();
     }
 
     /**

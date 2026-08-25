@@ -1,3 +1,4 @@
+import { IDeconstructable } from "@kartoffelgames/core";
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import { PotatnoDeserializer } from '../../../serialization/potatno-deserializer.ts';
 import type { PotatnoCodeFileSerializationResult } from '../../../serialization/potatno-serialization.type.ts';
@@ -8,7 +9,7 @@ import { PotatnoCodeUiManagerChangeType, type PotatnoUiManager } from '../potatn
  * History component of the UI manager.
  * Automaticaly sets a new history entry on changes.
  */
-export class PotatnoUiManagerHistory {
+export class PotatnoUiManagerHistory implements IDeconstructable {
     private static readonly MAX_HISTORY_ITEMS: number = 100;
 
     private readonly mManager: PotatnoUiManager;
@@ -58,6 +59,13 @@ export class PotatnoUiManagerHistory {
     public clear(): void {
         this.mSnapshots.length = 0;
         this.mSnapshotIndex = -1;
+    }
+
+    /**
+     * Deconstruct manager.
+     */
+    public deconstruct(): void {
+        // Empty for now.
     }
 
     /**

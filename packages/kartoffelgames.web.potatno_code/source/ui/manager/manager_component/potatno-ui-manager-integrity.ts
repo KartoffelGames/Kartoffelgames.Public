@@ -1,3 +1,4 @@
+import { IDeconstructable } from "@kartoffelgames/core";
 import type { IPotatnoDocumentItem } from '../../../document/i-potatno-document-item.interface.ts';
 import { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
@@ -10,7 +11,7 @@ import { PotatnoCodeUiManagerChangeType, type PotatnoUiManager } from '../potatn
  * Ui manager integrity component.
  * Handles document integrity.
  */
-export class PotatnoUiManagerIntegrity {
+export class PotatnoUiManagerIntegrity implements IDeconstructable  {
     private readonly mErrorItems: Set<IPotatnoDocumentItem<PotatnoProjectTypesDefinition>>;
     private readonly mErrorList: Array<PotatnoCodeUiManagerIntegrityError>;
     private mIsDirty: boolean;
@@ -87,6 +88,13 @@ export class PotatnoUiManagerIntegrity {
                 this.mIsDirty = false;
             }, 1000) as unknown as number;
         });
+    }
+
+    /**
+     * Deconstruct manager.
+     */
+    public deconstruct(): void {
+        // Empty for now.
     }
 
     /**

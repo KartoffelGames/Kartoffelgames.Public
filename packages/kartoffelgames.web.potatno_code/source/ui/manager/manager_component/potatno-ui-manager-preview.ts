@@ -1,4 +1,4 @@
-import { Exception } from '@kartoffelgames/core';
+import { Exception, IDeconstructable } from '@kartoffelgames/core';
 import type { IPotatnoDocumentItem } from '../../../document/i-potatno-document-item.interface.ts';
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
@@ -10,7 +10,7 @@ import { PotatnoCodeUiManagerChangeType, type PotatnoUiManager } from '../potatn
 /**
  * Handles the UI previews by caching its driver and manages references and cleanup.
  */
-export class PotatnoUiManagerPreview {
+export class PotatnoUiManagerPreview implements IDeconstructable {
     private readonly mDriverElementBigEnough: WeakMap<PotatnoPreviewDriver<PotatnoProjectTypesDefinition>, boolean>;
     private readonly mDriverElementVisible: WeakMap<PotatnoPreviewDriver<PotatnoProjectTypesDefinition>, boolean>;
     private readonly mDriverElements: WeakMap<WeakRef<PotatnoPreviewDriver<PotatnoProjectTypesDefinition>>, Element>;
@@ -95,6 +95,13 @@ export class PotatnoUiManagerPreview {
                 this.mDriverElementVisible.set(lDriver, lEntry.isIntersecting);
             }
         });
+    }
+
+    /**
+     * Deconstruct manager.
+     */
+    public deconstruct(): void {
+        // Empty for now.
     }
 
     /**

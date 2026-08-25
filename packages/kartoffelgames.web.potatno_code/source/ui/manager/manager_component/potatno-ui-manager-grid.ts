@@ -1,4 +1,4 @@
-import { Exception } from '@kartoffelgames/core';
+import { Exception, IDeconstructable } from '@kartoffelgames/core';
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
@@ -9,7 +9,7 @@ import { PotatnoCodeUiManagerChangeType, type PotatnoUiManager } from '../potatn
  * Ui manager grid component.
  * Owns grid sizing and panning.
  */
-export class PotatnoUiManagerGrid {
+export class PotatnoUiManagerGrid implements IDeconstructable {
     private static readonly GRID_SIZE_REM: number = 2;
     private static readonly MAX_ZOOM: number = 5.0;
     private static readonly MIN_ZOOM: number = 0.1;
@@ -147,6 +147,13 @@ export class PotatnoUiManagerGrid {
                 this.mSelectedNodes.delete(lInvalidSelectedNode);
             }
         });
+    }
+
+    /**
+     * Deconstruct manager.
+     */
+    public deconstruct(): void {
+        // Empty for now.
     }
 
     /**

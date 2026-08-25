@@ -1,4 +1,4 @@
-import { Exception } from '@kartoffelgames/core';
+import { Exception, IDeconstructable } from '@kartoffelgames/core';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import { PotatnoFlowConjunctionNodeDefinition } from '../../../project/node_definition/potatno-flow-conjunction-node-definition.ts';
@@ -12,7 +12,7 @@ import type { PotatnoUiManagerGridCoordinate } from './potatno-ui-manager-grid.t
  * Ui manager grid component.
  * Owns grid sizing and rendered port component lookup for the graph UI.
  */
-export class PotatnoUiManagerConnections {
+export class PotatnoUiManagerConnections implements IDeconstructable {
     private readonly mManager: PotatnoUiManager;
     private readonly mPathFinder: PotatnoUiGridPathFinding;
 
@@ -105,6 +105,13 @@ export class PotatnoUiManagerConnections {
             attributeValue: this.createSvgPath(lGridPath),
             length: lGridPath.length
         };
+    }
+
+    /**
+     * Deconstruct manager.
+     */
+    public deconstruct(): void {
+        // Empty for now.
     }
 
     /**

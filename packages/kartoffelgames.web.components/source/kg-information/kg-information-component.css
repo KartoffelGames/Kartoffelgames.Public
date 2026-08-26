@@ -7,6 +7,9 @@
     --information-shadow-color: red;
 
     display: inline-block;
+
+    /* Set a default font size the component use for scaling its em values */
+    font-size: 1rem;
 }
 
 .icon {
@@ -19,19 +22,19 @@
     justify-content: center;
 
     /* Round "i" badge. */
-    width: 1.2rem;
-    height: 1.2rem;
+    width: 1.2em;
+    height: 1.2em;
     background-color: var(--information-icon-background-color);
     border: 1px solid var(--information-icon-color);
     border-radius: 50%;
 
     color: var(--information-icon-color);
-    
+
     /* Shitty "i" as icon. Needs a fixed font family. */
     font-family: Georgia, 'Times New Roman', serif;
     font-style: italic;
     font-weight: bold;
-    font-size: 1rem;
+    font-size: 1em;
     line-height: 1;
 
     user-select: none;
@@ -52,8 +55,8 @@
     position-anchor: --kg-information-anchor;
 
     /* Default placement: bottom right of the icon. */
-    top: calc(anchor(bottom) + 0.625rem);
-    left: calc(anchor(left) + 0.625rem);
+    top: calc(anchor(bottom) + 0.625em);
+    left: calc(anchor(left) + 0.625em);
 
     /* Reposition into whichever space is available. */
     position-try-fallbacks: --kg-information-bottom-left, --kg-information-top-right, --kg-information-top-left;
@@ -63,8 +66,8 @@
     flex-direction: column;
     box-sizing: border-box;
     width: max-content;
-    max-width: 25rem;
-    padding: 1rem;
+    max-width: 25em;
+    padding: 1em;
 
     border: 1px solid var(--potatno-color-border);
     border-radius: var(--information-border-radius);
@@ -80,7 +83,7 @@
     /* Animation properties (same as kg-popup). */
     transition: opacity 0.15s ease-in-out, translate 0.15s ease-in-out, display 0.15s allow-discrete;
     opacity: 0;
-    translate: 0px -0.625rem;
+    translate: 0px -0.625em;
 }
 
 :host(:hover) .information {
@@ -91,13 +94,13 @@
     /* Animate from hidden and slightly above. */
     @starting-style {
         opacity: 0;
-        translate: 0px -1.25rem;
+        translate: 0px -1.25em;
     }
 }
 
 /* Bottom left: below the icon, extending to the left. */
 @position-try --kg-information-bottom-left {
-    top: calc(anchor(bottom) + 0.625rem);
+    top: calc(anchor(bottom) + 0.625em);
     right: anchor(right);
     bottom: auto;
     left: auto;
@@ -107,7 +110,7 @@
 @position-try --kg-information-top-right {
     top: auto;
     right: auto;
-    bottom: calc(anchor(top) + 0.625rem);
+    bottom: calc(anchor(top) + 0.625em);
     left: anchor(left);
 }
 
@@ -115,6 +118,6 @@
 @position-try --kg-information-top-left {
     top: auto;
     right: anchor(right);
-    bottom: calc(anchor(top) + 0.625rem);
+    bottom: calc(anchor(top) + 0.625em);
     left: auto;
 }

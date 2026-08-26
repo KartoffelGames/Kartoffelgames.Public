@@ -1,9 +1,9 @@
 :host {
-    --button-accent-color: red;
-    --button-text-color: red;
-    --button-border-color: red;
-    --button-border-radius: 4px;
-    --button-background-color: red;
+    --select-accent-color: red;
+    --select-text-color: red;
+    --select-border-color: red;
+    --select-border-radius: 4px;
+    --select-background-color: red;
 
     position: relative;
     box-sizing: border-box;
@@ -17,10 +17,10 @@
     font-size: 1rem;
 
     /* Shared box. Transparent border keeps every type the same size. */
-    padding: 0.4em 0.75em;
+    padding: 0.4rem 0.75rem;
     border: 1px solid transparent;
-    border-radius: var(--button-border-radius);
-    color: var(--button-text-color);
+    border-radius: var(--select-border-radius);
+    color: var(--select-text-color);
     background-color: transparent;
 
     /* Smooth transition for all */
@@ -31,8 +31,8 @@
  * Primary & Secondary starting differences.
  */
 :host([type=primary]) {
-    border-color: var(--button-border-color);
-    background-color: var(--button-background-color);
+    border-color: var(--select-border-color);
+    background-color: var(--select-background-color);
 }
 
 :host([type=secondary]) {
@@ -41,18 +41,18 @@
     border-color: transparent;
 }
 
-.button {
+.select {
     box-sizing: border-box;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.375em;
+    width: 100%;
 
     &::after {
         position: absolute;
         content: '';
-        border-radius: var(--button-border-radius);
-        border: 1px solid var(--button-accent-color);
+        border-radius: var(--select-border-radius);
+        border: 1px solid var(--select-accent-color);
         pointer-events: none;
 
         transition: top 0.15s, right 0.15s, bottom 0.15s, left 0.15s, opacity 0.15s;
@@ -67,15 +67,34 @@
 }
 
 /*
+ * Native select reset. Blends the control into the shared box while keeping the native arrow.
+ */
+.select-input {
+    box-sizing: border-box;
+    width: 100%;
+    margin: 0;
+
+    /* Default right padding so the native dropdown arrow has enough space. */
+    padding: 0 1em 0 0;
+
+    border: none;
+    outline: none;
+    color: inherit;
+    font: inherit;
+    cursor: inherit;
+    background-color: transparent;
+}
+
+/*
  * Shared user interactions.
  */
 
 :host(:hover),
 :host(:active),
-:host([selected]:not([selected=false])) {
-    color: var(--button-accent-color);
+:host(:focus-within) {
+    color: var(--select-accent-color);
 
-    .button::after {
+    .select::after {
         opacity: 1;
         top: 0;
         right: 0;
@@ -86,19 +105,4 @@
 
 :host(:active) {
     scale: 0.98;
-}
-
-:host([selected]:not([selected=false])) {
-    color: var(--button-text-color);
-    background-color: color-mix(in srgb, var(--button-accent-color) 30%, transparent);
-}
-
-@keyframes background-animate {
-    from {
-        background-position: 0% 0;
-    }
-
-    to {
-        background-position: 400% 0;
-    }
 }

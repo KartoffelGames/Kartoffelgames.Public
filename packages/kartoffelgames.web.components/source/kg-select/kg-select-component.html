@@ -1,0 +1,10 @@
+<div class="select">
+    <select class="select-input" (change)="this.onChange($event)">
+        $if(this.placeholder !== '') {
+            <option class="placeholder" value="" disabled="disabled" hidden="hidden" [selected]="this.value === ''">{{this.placeholder}}</option>
+        }
+        $for(option of this.options) {
+            <option [value]="option.value" [selected]="option.value === this.value">{{option.label}}</option>
+        }
+    </select>
+</div>

@@ -300,10 +300,10 @@
             height: 100%;
             width: 30px;
             padding: 0;
+            font-size: 16px;
 
             .select-button__button {
                 color: var(--potatno-color-text);
-                font-size: 14px;
             }
 
             .select-button__options {

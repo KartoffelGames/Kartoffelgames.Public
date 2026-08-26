@@ -3,3 +3,4 @@ export { KgInformationComponent } from './kg-information/kg-information-componen
 export { KgPopupComponent } from './kg-popup/kg-popup-component.ts';
 export { KgResizeBoxComponent, KgResizeBoxComponentResize, KgResizeBoxComponentResizeDirection } from './kg-resize-box/kg-resize-box-component.ts';
 export { KgResizePanelComponent, KgResizePanelComponentResize, KgResizePanelComponentResizeDirection } from './kg-resize-panel/kg-resize-panel-component.ts';
+export { KgSelectComponent, type KgSelectComponentOption, type KgSelectComponentType } from './kg-select/kg-select-component.ts';

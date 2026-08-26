@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import { KgButtonComponent } from "@kartoffelgames/web-components";
+import { KgButtonComponent, KgSelectComponent } from "@kartoffelgames/web-components";
 import { Component, ComponentState, PwbComponent, PwbComponentEvent, PwbExport, type ComponentEventEmitter, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
@@ -24,7 +24,7 @@ import nodeTemplate from './potatno-node-component.html' with { type: 'text' };
     template: nodeTemplate,
     style: nodeCss,
     modules: [PotatnoPreviewModule],
-    components: [PotatnoPortComponent, KgButtonComponent]
+    components: [PotatnoPortComponent, KgButtonComponent, KgSelectComponent]
 })
 export class PotatnoNodeComponent implements IComponentOnDeconstruct {
     private readonly mComponent: Component;

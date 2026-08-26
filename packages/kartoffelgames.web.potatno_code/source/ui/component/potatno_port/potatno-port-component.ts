@@ -6,6 +6,7 @@ import type { PotatnoPortDefinitionDirection } from '../../../project/potatno-po
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import type { PotatnoUiManagerGridCoordinate } from '../../manager/manager_component/potatno-ui-manager-grid.ts';
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, type PotatnoCodeUiManagerUnsubscribe } from '../../manager/potatno-ui-manager.ts';
+import { PotatnoPortHandleComponent } from '../potatno_port_handle/potatno-port-handle-component.ts';
 import portCss from './potatno-port-component.css' with { type: 'text' };
 import portTemplate from './potatno-port-component.html' with { type: 'text' };
 
@@ -17,6 +18,7 @@ import portTemplate from './potatno-port-component.html' with { type: 'text' };
     selector: 'potatno-port',
     template: portTemplate,
     style: portCss,
+    components: [PotatnoPortHandleComponent]
 })
 export class PotatnoPortComponent implements IComponentOnDeconstruct {
     private readonly mComponent: Component;

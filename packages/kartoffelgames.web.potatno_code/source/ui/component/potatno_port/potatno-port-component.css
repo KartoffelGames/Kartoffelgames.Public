@@ -128,9 +128,6 @@
     height: 100%;
     position: relative;
 
-    /* Save port internal color */
-    --potatno-port-handle-color: var(--type-color);
-
     /* Reverse port handle and label position on output ports */
     .output & {
         flex-direction: row-reverse;
@@ -155,32 +152,21 @@
     }
 
     /* Small hover animation for ports, hover values excluded */
-    .output &:hover .port-handle {
+    .output &:hover potatno-port-handle {
         transform: translateX(1px);
     }
 
-    .input &:hover .port-handle {
+    .input &:hover potatno-port-handle {
         transform: translateX(-1px);
     }
 
+    /* Positioning wrapper. The handle visual and connect animation live in potatno-port-handle. */
     .port__handle {
         position: relative;
         display: flex;
         width: var(--potatno-port-handle-width);
         align-items: center;
         justify-content: center;
-
-        /* Glow animations for new connections */
-        .connected {
-            .output & {
-                animation: animateOutputConnect var(--potatno-connection-animation) ease-in-out forwards;
-            }
-
-            .input & {
-                animation: animateInputConnect calc(var(--potatno-connection-animation) * 0.5) ease-out forwards;
-                animation-delay: calc(var(--potatno-connection-animation) * 0.7);
-            }
-        }
 
         .output & {
             transform: translateX(calc(var(--potatno-port-handle-width) / 2));
@@ -189,134 +175,5 @@
         .input & {
             transform: translateX(calc(var(--potatno-port-handle-width) / -2));
         }
-
-        .port-handle {
-            position: relative;
-            transition: transform 0.15s ease-in-out;
-
-            &.flow {
-                display: flex;
-
-                &::before {
-                    content: '';
-
-                    height: calc((var(--potatno-port-flow-size) / 3) * 2);
-                    width: calc((var(--potatno-port-flow-size) / 3) * 2);
-
-                    background-color: color-mix(in srgb, var(--potatno-port-handle-color) 30%, var(--potatno-color-background));
-                }
-
-                &.connected::before {
-                    background-color: var(--potatno-port-handle-color);
-                }
-
-                &.error::before {
-                    background-color: var(--potatno-color-error);
-                }
-
-                &::after {
-                    content: '';
-                    position: relative;
-                    height: 0;
-                    width: 0;
-
-                    border-bottom: calc(var(--potatno-port-flow-size) / 3) solid transparent;
-                    border-top: calc(var(--potatno-port-flow-size) / 3) solid transparent;
-                }
-
-                .output & {
-                    &::after {
-                        right: 0px;
-                        border-left: calc(var(--potatno-port-flow-size) / 3) solid color-mix(in srgb, var(--potatno-port-handle-color) 30%, var(--potatno-color-background));
-                    }
-
-                    &::before {
-                        border-radius: 2px 0 0 2px;
-                    }
-
-                    &.connected::after {
-                        border-left-color: var(--potatno-port-handle-color);
-                    }
-
-                    &.error::after {
-                        border-left-color: var(--potatno-color-error);
-                    }
-                }
-
-                .input & {
-                    /* Bibedi bubedi arrow is not on the leftebi */
-                    flex-direction: row-reverse;
-
-                    &::after {
-                        left: 0px;
-                        border-right: calc(var(--potatno-port-flow-size) / 3) solid color-mix(in srgb, var(--potatno-port-handle-color) 30%, var(--potatno-color-background));
-                    }
-
-                    &::before {
-                        border-radius: 0 2px 2px 0;
-                    }
-
-                    &.connected::after {
-                        border-right-color: var(--potatno-port-handle-color);
-                    }
-
-                    &.error::after {
-                        border-right-color: var(--potatno-color-error);
-                    }
-                }
-            }
-
-            &.value {
-                background-color: var(--potatno-port-handle-color);
-                border: 1px solid var(--potatno-port-handle-color);
-                border-radius: 50%;
-                height: calc(var(--potatno-port-value-size) - 1px);
-                width: calc(var(--potatno-port-value-size) - 1px);
-                background-color: color-mix(in srgb, var(--potatno-port-handle-color) 30%, var(--potatno-color-background));
-
-                &.connected {
-                    background-color: var(--potatno-port-handle-color);
-                }
-
-                &.error {
-                    background-color: var(--potatno-color-error);
-                    border-color: var(--potatno-color-error);
-                }
-            }
-        }
-    }
-}
-
-@keyframes animateOutputConnect {
-    0% {
-        filter: drop-shadow(0px 0px 0px var(--potatno-port-handle-color));
-        --potatno-port-handle-color: var(--type-color);
-    }
-
-    23% {
-        filter: drop-shadow(0px 0px 5px var(--potatno-port-handle-color));
-        --potatno-port-handle-color: color-mix(in srgb, var(--type-color) 50%, #fff);
-    }
-
-    50% {
-        filter: drop-shadow(0px 0px 5px var(--potatno-port-handle-color));
-        --potatno-port-handle-color: color-mix(in srgb, var(--type-color) 50%, #fff);
-    }
-
-    100% {
-        filter: drop-shadow(0px 0px 0px var(--potatno-port-handle-color));
-        --potatno-port-handle-color: var(--type-color);
-    }
-}
-
-@keyframes animateInputConnect {
-    0% {
-        filter: drop-shadow(0px 0px 5px var(--potatno-port-handle-color));
-        --potatno-port-handle-color: color-mix(in srgb, var(--type-color) 50%, #fff);
-    }
-
-    100% {
-        filter: drop-shadow(0px 0px 0px var(--potatno-port-handle-color));
-        --potatno-port-handle-color: var(--type-color);
     }
 }

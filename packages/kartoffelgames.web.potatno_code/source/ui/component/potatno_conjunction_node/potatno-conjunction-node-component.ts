@@ -8,7 +8,7 @@ import type { PotatnoPortDefinitionType } from '../../../project/potatno-port-de
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import type { PotatnoUiManagerGridCoordinate } from '../../manager/manager_component/potatno-ui-manager-grid.ts';
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, type PotatnoCodeUiManagerUnsubscribe } from '../../manager/potatno-ui-manager.ts';
-import { PotatnoPortComponent } from '../potatno_port/potatno-port-component.ts';
+import { PotatnoPortHandleComponent } from '../potatno_port_handle/potatno-port-handle-component.ts';
 import nodeCss from './potatno-conjunction-node-component.css' with { type: 'text' };
 import nodeTemplate from './potatno-conjunction-node-component.html' with { type: 'text' };
 
@@ -20,7 +20,7 @@ import nodeTemplate from './potatno-conjunction-node-component.html' with { type
     selector: 'potatno-conjunction-node',
     template: nodeTemplate,
     style: nodeCss,
-    components: [PotatnoPortComponent]
+    components: [PotatnoPortHandleComponent]
 })
 export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct {
     private readonly mComponent: Component;
@@ -28,7 +28,6 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
     private readonly mManager: PotatnoUiManager;
     private mNodeData: PotatnoDocumentNode<PotatnoProjectTypesDefinition> | null;
     private readonly mUnsubscribeNodeChange: PotatnoCodeUiManagerUnsubscribe;
-    private readonly mUnsubscribeResize: PotatnoCodeUiManagerUnsubscribe;
     private readonly mUnsubscribeValidation: PotatnoCodeUiManagerUnsubscribe;
 
     /**
@@ -69,6 +68,20 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
      */
     public get isOutputConnected(): boolean {
         return this.nodePorts.output.connectedPorts.size > 0;
+    }
+
+    /**
+     * The sole input port of the conjunction. Used by the port handle.
+     */
+    public get inputPort(): PotatnoDocumentPort<PotatnoProjectTypesDefinition> {
+        return this.nodePorts.input;
+    }
+
+    /**
+     * The sole output port of the conjunction. Used by the port handle.
+     */
+    public get outputPort(): PotatnoDocumentPort<PotatnoProjectTypesDefinition> {
+        return this.nodePorts.output;
     }
 
     /**
@@ -194,15 +207,6 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
         this.mUnsubscribeValidation = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Connection | PotatnoCodeUiManagerChangeType.SpecialValidation, () => {
             this.mComponent.updater.updateAsync();
         });
-
-        // On a grid resize, the pixel position is recalculated from the new grid size.
-        this.mUnsubscribeResize = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.ProgrammResize, () => {
-            if (!this.mNodeData) {
-                return;
-            }
-
-            this.resyncComponent(this.mNodeData);
-        });
     }
 
     /**
@@ -286,7 +290,6 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
      */
     public onDeconstruct(): void {
         this.mUnsubscribeNodeChange();
-        this.mUnsubscribeResize();
         this.mUnsubscribeValidation();
 
         // Remove the global dragover handler when the node gets removed.

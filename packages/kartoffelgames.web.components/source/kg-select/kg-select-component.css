@@ -82,7 +82,10 @@
     color: inherit;
     font: inherit;
     cursor: inherit;
-    background-color: transparent;
+
+    /* Must be set all the time to style <options> */
+    background-color: var(--select-background-color);
+    color: var(--select-text-color);
 }
 
 /*
@@ -96,10 +99,12 @@
 
     .select::after {
         opacity: 1;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        left: 0;
+
+        /* Actual border. */
+        top: -1px;
+        right: -1px;
+        bottom: -1px;
+        left: -1px;
     }
 }
 

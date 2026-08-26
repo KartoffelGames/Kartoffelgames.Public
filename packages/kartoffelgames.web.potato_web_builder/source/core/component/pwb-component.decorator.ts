@@ -23,6 +23,9 @@ export function PwbComponent(pParameter: HtmlComponentParameter): ClassDecorator
 
         // Create custom html element of parent type.
         const lPwbComponentConstructor = class extends HTMLElement {
+            // Form associate all god damn components. Yes all of them. Not just the nodes, the child and woman nodes too.
+            public static formAssociated = true;
+
             private readonly mComponent: Component;
 
             /**

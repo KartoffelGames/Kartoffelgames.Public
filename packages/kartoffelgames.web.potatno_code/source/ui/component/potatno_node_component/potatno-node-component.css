@@ -1,4 +1,6 @@
 :host {
+    --potatno-node-preview-gap: 10px;
+
     display: block;
     font-family: var(--potatno-font-family);
 
@@ -219,28 +221,30 @@
 .node-preview {
     /* Detached node preview */
     position: relative;
-    top: calc(var(--potatno-grid-size) / 2);
+    top: var(--potatno-node-preview-gap);
 
+    box-sizing: border-box;
     display: flex;
     flex-direction: column;
     padding: 4px;
     border: 1px solid var(--potatno-color-border);
     border-radius: var(--potatno-border-radius);
+    row-gap: 3px;
     background-color: var(--potatno-color-background-dark);
     user-select: none;
 
     /* Previews can size bigger than the node itself and expanding. Limit the width here. */
-    width: calc(var(--potatno-grid-size) * var(--node-width) - 2px);
+    width: calc(var(--potatno-grid-size) * var(--node-width));
 
     /* Small attached line */
     &::before {
         content: '';
         position: absolute;
-        top: calc(var(--potatno-grid-size) / -2 - 1px);
+        top: calc(var(--potatno-node-preview-gap) * -1 - 1px);
         left: 50%;
 
         display: block;
-        height: calc(var(--potatno-grid-size) / 2 - 2px);
+        height: calc(var(--potatno-node-preview-gap) - 1px);
         border: 1px solid var(--potatno-color-border);
     }
 
@@ -250,8 +254,11 @@
         background: var(--potatno-color-background);
         overflow: hidden;
 
+        border: 1px solid var(--potatno-color-border);
+        border-radius: 4px;
+
         /* The whole preview area has a grid height of 6. [6 - toggle-height - select-height] */
-        height: calc((var(--potatno-grid-size) * 5.5) - var(--potatno-grid-size));
+        height: calc(var(--potatno-grid-size) * 5);
     }
 
     .node-preview__selections {
@@ -269,23 +276,19 @@
         height: 30px;
 
         .select {
+            /* Theme the shared kg-select for the preview bar. */
+            --select-accent-color: var(--potatno-color-accent);
+            --select-text-color: var(--potatno-color-text);
+            --select-border-color: var(--potatno-color-border);
+            --select-background-color: var(--potatno-color-background-dark);
+
             flex: 1;
-            box-sizing: border-box;
-            height: 100%;
             min-width: 0;
-            padding: 0;
-            background: transparent;
+            height: 100%;
+
+            /* Compact sizing for the 30px preview bar. Overrides the components :host defaults. */
             font-size: 14px;
-            color: var(--potatno-color-text);
-
-            /* Custom borders for animations*/
-            outline: none;
-            border: 1px solid transparent;
-            transition: border-color 0.15s;
-
-            &:focus {
-                border: 1px solid var(--potatno-color-accent);
-            }
+            padding: 0 6px;
         }
 
         .select-button {
@@ -303,15 +306,22 @@
             font-size: 16px;
 
             .select-button__button {
+                                display: flex;
                 color: var(--potatno-color-text);
+                width: 100%;
+                height: 100%;
+                text-align: center;
+                line-height: 30px;
+                align-items: center;
+                justify-content: center;
             }
 
             .select-button__options {
                 /* Defined as hover window of parent. */
+                display: none;
                 position: absolute;
                 top: calc(100% + 6px);
                 left: 0px;
-                display: none;
 
                 flex-direction: column;
                 background-color: var(--potatno-color-background);

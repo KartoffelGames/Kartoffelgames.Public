@@ -4,7 +4,7 @@
             <option class="placeholder" value="" disabled="disabled" hidden="hidden" [selected]="this.value === ''">{{this.placeholder}}</option>
         }
         $for(option of this.options) {
-            <option [value]="option.value" [selected]="option.value === this.value">{{option.label}}</option>
+            <option [value]="this.itemValue(this.option)" [selected]="this.itemValue(this.option) === this.value">{{this.itemLabel(this.option)}}</option>
         }
     </select>
 </div>

@@ -60,11 +60,7 @@ $if(this.isPreviewActive) {
 
         <div class="select__seperator" />
 
-        <select class="select" (change)="this.selectPreviewPort($event.target.value)">
-            $for(port of this.previewPorts) {
-            <option [value]="this.port.definitionId" [selected]="this.port.definitionId === this.previewPortDefinitionId">{{this.port.label}}</option>
-            }
-        </select>
+        <kg-select class="select" type="secondary" valueKey="definitionId" labelKey="label" [options]="this.previewPorts" [value]="this.previewPortDefinitionId" (change)="this.selectPreviewPort($event.value)" />
     </div>
 
     <div class="node-preview__window" potatno-preview="this.previewDriver"></div>

@@ -46,6 +46,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 100%;
+    height: 100%;
     gap: 0.375em;
 
     &::after {
@@ -77,10 +79,12 @@
 
     .button::after {
         opacity: 1;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        left: 0;
+
+        /* Actual border. */
+        top: -1px;
+        right: -1px;
+        bottom: -1px;
+        left: -1px;
     }
 }
 

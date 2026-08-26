@@ -31,10 +31,12 @@ import template from './kg-select-component.html' with { type: 'text' };
     style: styles
 })
 export class KgSelectComponent {
+    private readonly mValueMapping: KgSelectValueMapping;
+
     /**
      * Available options rendered inside the native select.
      */
-    @ComponentState.state({ proxy: true })
+    @ComponentState.state({ complexValue: true })
     private accessor mOptions: Array<KgSelectComponentOption>;
 
     /**
@@ -60,6 +62,16 @@ export class KgSelectComponent {
      */
     @PwbComponentEvent('change')
     private accessor mChange!: ComponentEventEmitter<string>;
+
+    /**
+     * Label mapping of option.
+     */
+    @PwbExport()
+    public get labelKey(): string {
+        return this.mValueMapping.labelKey;
+    } set labelKey(pValue: unknown) {
+        this.mValueMapping.labelKey = (pValue ?? '').toString();
+    }
 
     /**
      * Selectable options. Each with a "value" and a "label".
@@ -110,6 +122,16 @@ export class KgSelectComponent {
     }
 
     /**
+     * Value mapping of option.
+     */
+    @PwbExport()
+    public get valueKey(): string {
+        return this.mValueMapping.valueKey;
+    } set valueKey(pValue: unknown) {
+        this.mValueMapping.valueKey = (pValue ?? '').toString();
+    }
+
+    /**
      * Create the select with its default configuration.
      */
     public constructor() {
@@ -117,6 +139,11 @@ export class KgSelectComponent {
         this.mValue = '';
         this.mOptions = new Array<KgSelectComponentOption>();
         this.mPlaceholder = '';
+
+        this.mValueMapping = {
+            valueKey: 'value',
+            labelKey: 'label'
+        };
     }
 
     /**
@@ -132,7 +159,34 @@ export class KgSelectComponent {
         this.mValue = lSelectElement.value;
         this.mChange.dispatchEvent(this.mValue);
     }
+
+    /**
+     * Get label property of item.
+     * 
+     * @param pItem - Item object.
+     * 
+     * @returns label of item. 
+     */
+    public itemLabel(pItem: unknown): string {
+        return (<Record<string, string>>pItem)[this.mValueMapping.labelKey];
+    }
+
+    /**
+     * Get value property of item.
+     * 
+     * @param pItem - Item object.
+     * 
+     * @returns value of item. 
+     */
+    public itemValue(pItem: unknown): unknown {
+        return (<Record<string, unknown>>pItem)[this.mValueMapping.valueKey];
+    }
 }
+
+type KgSelectValueMapping = {
+    valueKey: string;
+    labelKey: string;
+};
 
 export type KgSelectComponentType = 'primary' | 'secondary';
 

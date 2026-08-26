@@ -302,6 +302,38 @@ Deno.test('Export--Functionality: Set attribute values on export init', async (p
     });
 });
 
+Deno.test('Export--Functionality: Object export is not corrupted by attribute reflection', async (pContext) => {
+    await pContext.step('Default', async () => {
+        // Setup. Define component with an object (array) valued export.
+        @PwbComponent({
+            selector: TestUtil.randomSelector()
+        })
+        class TestComponent {
+            @PwbExport()
+            public data: Array<object> = new Array<object>();
+        }
+
+        // Process. Create element.
+        const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
+
+        // Process. Set an array and let the mutation observer settle (mirrors the initial render).
+        lComponent.data = [{ a: 1 }, { a: 2 }];
+        await TestUtil.waitForUpdate(lComponent);
+
+        // Process. Set another array of the same length (mirrors a later resync). Both arrays stringify to the
+        // same "[object Object],..." attribute value, so the observer must not reflect that string back into the
+        // processor as an "external" change.
+        lComponent.data = [{ b: 1 }, { b: 2 }];
+        await TestUtil.waitForUpdate(lComponent);
+
+        // Evaluation. The property must still be an array, not the stringified attribute value.
+        expect(Array.isArray(lComponent.data)).toBeTruthy();
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
 Deno.test('Export--Functionality: Set for overriden attribute name.', async (pContext) => {
     await pContext.step('Default', async () => {
         // Setup.

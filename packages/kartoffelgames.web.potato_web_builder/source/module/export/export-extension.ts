@@ -112,8 +112,6 @@ export class ExportExtension {
                     return lOriginalGetAttribute.call(lElement, pQualifiedName);
                 },
                 setAttribute: (pQualifiedName: string, pValue: unknown): void => {
-                    // Read the value before the change so we can tell if a mutation record will actually be queued.
-                    const lOldValue: string | null = lOriginalGetAttribute.call(lElement, pQualifiedName);
                     const lNewValue: string = pValue?.toString() ?? '';
 
                     lOriginalSetAttribute.call(lElement, pQualifiedName, lNewValue);
@@ -123,10 +121,9 @@ export class ExportExtension {
                         return;
                     }
 
-                    // The observer does not trigger when the actual value does not change.
-                    if (lOldValue !== lNewValue) {
-                        lSelfMutatedAttributes.add(pQualifiedName);
-                    }
+                    // Allways mark as selfmutated as setting the same value again, also triggers the mutation observer.
+                    // Just not in the tests. FUCK JSDOM.
+                    lSelfMutatedAttributes.add(pQualifiedName);
                 }
             };
         })();

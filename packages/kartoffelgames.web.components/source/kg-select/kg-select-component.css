@@ -24,7 +24,7 @@
     background-color: transparent;
 
     /* Smooth transition for all */
-    transition: border-color 0.15s, color 0.15s, background-color 0.15s, scale 0.15s;
+    transition: border-color 0.15s, color 0.15s, background-color 0.15s;
 }
 
 /*
@@ -106,8 +106,4 @@
         bottom: -1px;
         left: -1px;
     }
-}
-
-:host(:active) {
-    scale: 0.98;
 }

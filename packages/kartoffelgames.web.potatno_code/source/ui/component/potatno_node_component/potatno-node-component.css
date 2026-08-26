@@ -223,9 +223,10 @@
 
     display: flex;
     flex-direction: column;
-    background-color: var(--potatno-color-background-dark);
+    padding: 4px;
     border: 1px solid var(--potatno-color-border);
-    border-radius: var(--node-border-radius);
+    border-radius: var(--potatno-border-radius);
+    background-color: var(--potatno-color-background-dark);
     user-select: none;
 
     /* Previews can size bigger than the node itself and expanding. Limit the width here. */
@@ -257,63 +258,52 @@
         box-sizing: border-box;
         display: flex;
         justify-content: space-between;
+        align-items: center;
+
+        border: 1px solid var(--potatno-color-border);
+        border-radius: var(--potatno-border-radius);
+        background-color: var(--potatno-color-background-dark);
 
         /* Height minus border */
         flex-shrink: 0;
-        height: calc(var(--potatno-grid-size) - 1px);
+        height: 30px;
 
         .select {
             flex: 1;
             box-sizing: border-box;
             height: 100%;
             min-width: 0;
-            padding: 0 10px;
-            background: var(--potatno-color-background-dark);
+            padding: 0;
+            background: transparent;
             font-size: 14px;
             color: var(--potatno-color-text);
 
             /* Custom borders for animations*/
             outline: none;
-            border: none;
-            border-bottom: 1px solid var(--potatno-color-border);
+            border: 1px solid transparent;
             transition: border-color 0.15s;
 
             &:focus {
-                border-color: var(--potatno-color-accent);
+                border: 1px solid var(--potatno-color-accent);
             }
         }
 
         .select-button {
+            --button-accent-color: var(--potatno-color-accent);
+            --button-text-color: var(--potatno-color-text);
+            --button-border-color: var(--potatno-color-border);
+            --button-background-color: var(--potatno-color-background-light);
+
             position: relative;
-            flex: 0;
+            display: flex;
+            flex-shrink: 0;
             height: 100%;
-            border-right: 2px solid var(--potatno-color-background);
+            width: 30px;
+            padding: 0;
 
             .select-button__button {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                box-sizing: border-box;
-                height: 100%;
-                aspect-ratio: 1 / 1;
                 color: var(--potatno-color-text);
                 font-size: 14px;
-                cursor: pointer;
-
-                /* Transition items. */
-                border: none;
-                border-bottom: 1px solid var(--potatno-color-border);
-                background-color: var(--potatno-color-background-dark);
-
-                &:hover {
-                    border-color: var(--potatno-color-accent);
-                    color: var(--potatno-color-accent);
-                }
-
-                &:active {
-                    background-color: var(--potatno-color-background);
-                    scale: 0.98;
-                }
             }
 
             .select-button__options {
@@ -387,6 +377,12 @@
                 }
             }
         }
-    }
 
+        .select__seperator {
+            flex-shrink: 0;
+            height: 24px;
+            width: 2px;
+            background-color: var(--potatno-color-border);
+        }
+    }
 }

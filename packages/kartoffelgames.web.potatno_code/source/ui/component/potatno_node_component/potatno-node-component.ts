@@ -1,4 +1,6 @@
+import { Exception } from '@kartoffelgames/core';
 import { Injection } from '@kartoffelgames/core-dependency-injection';
+import { KgButtonComponent } from "@kartoffelgames/web-components";
 import { Component, ComponentState, PwbComponent, PwbComponentEvent, PwbExport, type ComponentEventEmitter, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
@@ -12,7 +14,6 @@ import { PotatnoPreviewModule } from '../../module/potatno-preview.module.ts';
 import { PotatnoPortComponent } from '../potatno_port/potatno-port-component.ts';
 import nodeCss from './potatno-node-component.css' with { type: 'text' };
 import nodeTemplate from './potatno-node-component.html' with { type: 'text' };
-import { Exception } from '@kartoffelgames/core';
 
 /**
  * Node component for the potatno-code visual editor.
@@ -23,7 +24,7 @@ import { Exception } from '@kartoffelgames/core';
     template: nodeTemplate,
     style: nodeCss,
     modules: [PotatnoPreviewModule],
-    components: [PotatnoPortComponent]
+    components: [PotatnoPortComponent, KgButtonComponent]
 })
 export class PotatnoNodeComponent implements IComponentOnDeconstruct {
     private readonly mComponent: Component;
@@ -111,7 +112,7 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
      */
     @PwbExport()
     public get nodeData(): PotatnoDocumentNode<PotatnoProjectTypesDefinition> {
-        if(!this.mNodeData){
+        if (!this.mNodeData) {
             throw new Exception('Node data not set.', this);
         }
 
@@ -258,12 +259,12 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
      */
     public dragNode(pEvent: PointerEvent): void {
         // Right click. Delete node.
-        if(pEvent.button === 2) {
+        if (pEvent.button === 2) {
             this.mManager.graph.removeNode(this.nodeData);
         }
 
         // Skip anything that is not a left mouse button.
-        if(pEvent.button !== 0) {
+        if (pEvent.button !== 0) {
             return;
         }
 

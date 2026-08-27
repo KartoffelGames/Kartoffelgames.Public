@@ -3,12 +3,10 @@
     --potatno-port-flow-size: 16px;
     --potatno-port-width: max(var(--potatno-port-value-size), var(--potatno-port-flow-size));
 
-    /* Center the handle. The parent positions the host on the node edge. */
+    /* Give the handle a fixed width and center the content. Child are overflowing but the parent can position based on the absolute center */
     display: flex;
-    align-items: center;
     justify-content: center;
-    width: var(--potatno-port-width);
-    height: var(--potatno-port-width);
+    width: 10px;
 
     /* The connect slide-out and glow shadow must not be clipped. */
     overflow: visible;
@@ -25,7 +23,7 @@
     position: relative;
 
     /* Animate the connect slide-out. */
-    transition: translate 0.15s ease-in-out;
+    transition: translate 0.1s ease-out;
 
     /* Flow port: bar with an arrow tip. */
     &.flow {
@@ -78,8 +76,8 @@
 
             /* Slide out towards the connection wire on connect. */
             &.connected {
-                translate: calc(var(--potatno-port-width) / 2) 0;
-                animation: animateOutputConnect var(--potatno-connection-animation) ease-in-out forwards;
+                translate: 5px 0;
+                animation: animateOutputConnect var(--potatno-connection-animation) ease-in-out 0s forwards;
             }
         }
 
@@ -106,10 +104,9 @@
 
             /* Slide out towards the connection wire on connect. Delayed to stay in sync with the delayed glow. */
             &.connected {
-                translate: calc(var(--potatno-port-width) / -2) 0;
+                translate: -5px 0;
                 transition-delay: calc(var(--potatno-connection-animation) * 0.7);
-                animation: animateInputConnect calc(var(--potatno-connection-animation) * 0.5) ease-out forwards;
-                animation-delay: calc(var(--potatno-connection-animation) * 0.7);
+                animation: animateInputConnect calc(var(--potatno-connection-animation) * 0.5) ease-out calc(var(--potatno-connection-animation) * 0.7) forwards;
             }
         }
     }
@@ -122,6 +119,9 @@
         width: calc(var(--potatno-port-value-size) - 1px);
         background-color: color-mix(in srgb, var(--potatno-port-handle-color) 30%, var(--potatno-color-background));
 
+        /* This tríes to fix a very small offset, that comes from somewhere???  */
+        transform: translateY(-0.2px);
+
         &.connected {
             background-color: var(--potatno-port-handle-color);
         }
@@ -132,12 +132,12 @@
         }
 
         &.output.connected {
-            translate: calc(var(--potatno-port-width) / 2) 0;
+            translate: 5px 0;
             animation: animateOutputConnect var(--potatno-connection-animation) ease-in-out forwards;
         }
 
         &.input.connected {
-            translate: calc(var(--potatno-port-width) / -2) 0;
+            translate: -5px 0;
             transition-delay: calc(var(--potatno-connection-animation) * 0.7);
             animation: animateInputConnect calc(var(--potatno-connection-animation) * 0.5) ease-out forwards;
             animation-delay: calc(var(--potatno-connection-animation) * 0.7);

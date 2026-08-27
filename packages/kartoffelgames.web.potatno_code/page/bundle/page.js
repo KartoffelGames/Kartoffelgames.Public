@@ -1635,12 +1635,10 @@ $if(this.left) {
     --potatno-port-flow-size: 16px;
     --potatno-port-width: max(var(--potatno-port-value-size), var(--potatno-port-flow-size));
 
-    /* Center the handle. The parent positions the host on the node edge. */
+    /* Give the handle a fixed width and center the content. Child are overflowing but the parent can position based on the absolute center */
     display: flex;
-    align-items: center;
     justify-content: center;
-    width: var(--potatno-port-width);
-    height: var(--potatno-port-width);
+    width: 10px;
 
     /* The connect slide-out and glow shadow must not be clipped. */
     overflow: visible;
@@ -1657,7 +1655,7 @@ $if(this.left) {
     position: relative;
 
     /* Animate the connect slide-out. */
-    transition: translate 0.15s ease-in-out;
+    transition: translate 0.1s ease-out;
 
     /* Flow port: bar with an arrow tip. */
     &.flow {
@@ -1710,8 +1708,8 @@ $if(this.left) {
 
             /* Slide out towards the connection wire on connect. */
             &.connected {
-                translate: calc(var(--potatno-port-width) / 2) 0;
-                animation: animateOutputConnect var(--potatno-connection-animation) ease-in-out forwards;
+                translate: 5px 0;
+                animation: animateOutputConnect var(--potatno-connection-animation) ease-in-out 0s forwards;
             }
         }
 
@@ -1738,10 +1736,9 @@ $if(this.left) {
 
             /* Slide out towards the connection wire on connect. Delayed to stay in sync with the delayed glow. */
             &.connected {
-                translate: calc(var(--potatno-port-width) / -2) 0;
+                translate: -5px 0;
                 transition-delay: calc(var(--potatno-connection-animation) * 0.7);
-                animation: animateInputConnect calc(var(--potatno-connection-animation) * 0.5) ease-out forwards;
-                animation-delay: calc(var(--potatno-connection-animation) * 0.7);
+                animation: animateInputConnect calc(var(--potatno-connection-animation) * 0.5) ease-out calc(var(--potatno-connection-animation) * 0.7) forwards;
             }
         }
     }
@@ -1754,6 +1751,9 @@ $if(this.left) {
         width: calc(var(--potatno-port-value-size) - 1px);
         background-color: color-mix(in srgb, var(--potatno-port-handle-color) 30%, var(--potatno-color-background));
 
+        /* This tr\xEDes to fix a very small offset, that comes from somewhere???  */
+        transform: translateY(-0.2px);
+
         &.connected {
             background-color: var(--potatno-port-handle-color);
         }
@@ -1764,12 +1764,12 @@ $if(this.left) {
         }
 
         &.output.connected {
-            translate: calc(var(--potatno-port-width) / 2) 0;
+            translate: 5px 0;
             animation: animateOutputConnect var(--potatno-connection-animation) ease-in-out forwards;
         }
 
         &.input.connected {
-            translate: calc(var(--potatno-port-width) / -2) 0;
+            translate: -5px 0;
             transition-delay: calc(var(--potatno-connection-animation) * 0.7);
             animation: animateInputConnect calc(var(--potatno-connection-animation) * 0.5) ease-out forwards;
             animation-delay: calc(var(--potatno-connection-animation) * 0.7);
@@ -1847,6 +1847,7 @@ $if(this.left) {
         height: 2px;
         width: calc(100% - 2px);
         background-color: var(--potatno-port-color);
+        border-radius: 1px;
         z-index: -10;
     }
 }
@@ -1876,15 +1877,18 @@ $if(this.left) {
         width: var(--potatno-grid-size);
         height: var(--potatno-grid-size);
         border: none;
+
+        /* Disable area on connected state */
+        pointer-events: none;
     }
 
     /* Small hover animation for ports. */
     &:hover.output .port__handle {
-        transform: translateX(1px);
+        transform: translateX(-1px);
     }
 
     &:hover.input .port__handle {
-        transform: translateX(-1px);
+        transform: translateX(1px);
     }
 
     /* Positioning wrapper. The handle visual and connect animation live in potatno-port-handle. */
@@ -1895,12 +1899,12 @@ $if(this.left) {
 
     &.output .port__handle {
         left: 0px;
-        translate: -50% 0;
+        translate: -100% 0;
     }
 
     &.input .port__handle {
-        right: 0px;
-        translate: 50% 0;
+        right: 1px;
+        translate: 100% 0;
     }
 }
 
@@ -1925,8 +1929,7 @@ $if(this.left) {
         stroke-linejoin: round;
         stroke-width: 2;
     }
-}
-`;var Ms=`<div class="node" style="--type-color: {{this.portColor}}" (dragover)="this.onDragOver($event)" (drop)="this.onDrop($event)">\r
+}`;var Ms=`<div class="node" style="--type-color: {{this.portColor}}" (dragover)="this.onDragOver($event)" (drop)="this.onDrop($event)">\r
 \r
     <div class="port input" draggable="true" [title]="this.portValueType" (dragstart)="this.onDragStart($event)" (dragend)="this.onDragEnd($event)">\r
         <potatno-port-handle class="port__handle" [port]="this.inputPort" [connected]="this.isInputConnected" />\r
@@ -2033,10 +2036,6 @@ $if(this.left) {
     }\r
 </svg>\r
 `;function Pc(){function y(l,r){return function(c){e(r,"addInitializer"),i(c,"An initializer"),l.push(c)}}function t(l,r,u,c,o,b,p,T,x){var m;switch(o){case 1:m="accessor";break;case 2:m="method";break;case 3:m="getter";break;case 4:m="setter";break;default:m="field"}var s={kind:m,name:p?"#"+r:r,static:b,private:p,metadata:T},f={v:!1};s.addInitializer=y(c,f);var n,a;if(o===0?p?(n=u.get,a=u.set):(n=function(){return this[r]},a=function(g){this[r]=g}):o===2?n=function(){return u.value}:((o===1||o===3)&&(n=function(){return u.get.call(this)}),(o===1||o===4)&&(a=function(g){u.set.call(this,g)})),p)s.access=n&&a?{get:n,set:a}:n?{get:n}:{set:a};else{if(n){var I=n;n=function(g){return arguments.length===0&&(g=this),I.call(g)}}if(a){var P=a;a=function(g,_){return arguments.length===1&&(_=g,g=this),P.call(g,_)}}var E=function(g){return r in g};s.access=n&&a?{has:E,get:n,set:a}:n?{has:E,get:n}:{has:E,set:a}}try{return l(x,s)}finally{f.v=!0}}function e(l,r){if(l.v)throw new Error("attempted to call "+r+" after decoration was finished")}function i(l,r){if(typeof l!="function")throw new TypeError(r+" must be a function")}function h(l,r){var u=typeof r;if(l===1){if(u!=="object"||r===null)throw new TypeError("accessor decorators must return an object with get, set, or init properties or void 0");r.get!==void 0&&i(r.get,"accessor.get"),r.set!==void 0&&i(r.set,"accessor.set"),r.init!==void 0&&i(r.init,"accessor.init")}else if(u!=="function"){var c;throw l===0?c="field":l===10?c="class":c="method",new TypeError(c+" decorators must return a function or void 0")}}function d(l,r,u,c,o,b,p,T,x){var m=u[0],s,f,n;p?o===0||o===1?s={get:u[3],set:u[4]}:o===3?s={get:u[3]}:o===4?s={set:u[3]}:s={value:u[3]}:o!==0&&(s=Object.getOwnPropertyDescriptor(r,c)),o===1?n={get:s.get,set:s.set}:o===2?n=s.value:o===3?n=s.get:o===4&&(n=s.set);var a,I,P;if(typeof m=="function")a=t(m,c,s,T,o,b,p,x,n),a!==void 0&&(h(o,a),o===0?f=a:o===1?(f=a.init,I=a.get||n.get,P=a.set||n.set,n={get:I,set:P}):n=a);else for(var E=m.length-1;E>=0;E--){var g=m[E];if(a=t(g,c,s,T,o,b,p,x,n),a!==void 0){h(o,a);var _;o===0?_=a:o===1?(_=a.init,I=a.get||n.get,P=a.set||n.set,n={get:I,set:P}):n=a,_!==void 0&&(f===void 0?f=_:typeof f=="function"?f=[f,_]:f.push(_))}}if(o===0||o===1){if(f===void 0)f=function(M,C){return C};else if(typeof f!="function"){var F=f;f=function(M,C){for(var N=C,L=0;L<F.length;L++)N=F[L].call(M,N);return N}}else{var j=f;f=function(M,C){return j.call(M,C)}}l.push(f)}o!==0&&(o===1?(s.get=n.get,s.set=n.set):o===2?s.value=n:o===3?s.get=n:o===4&&(s.set=n),p?o===1?(l.push(function(M,C){return n.get.call(M,C)}),l.push(function(M,C){return n.set.call(M,C)})):o===2?l.push(n):l.push(function(M,C){return n.call(M,C)}):Object.defineProperty(r,c,s))}function v(l,r,u){for(var c=[],o,b,p=new Map,T=new Map,x=0;x<r.length;x++){var m=r[x];if(Array.isArray(m)){var s=m[1],f=m[2],n=m.length>3,a=s>=5,I,P;if(a?(I=l,s=s-5,b=b||[],P=b):(I=l.prototype,o=o||[],P=o),s!==0&&!n){var E=a?T:p,g=E.get(f)||0;if(g===!0||g===3&&s!==4||g===4&&s!==3)throw new Error("Attempted to decorate a public method/accessor that has the same name as a previously decorated public method/accessor. This is not currently supported by the decorators plugin. Property name was: "+f);!g&&s>2?E.set(f,s):E.set(f,!0)}d(c,I,m,f,s,a,n,P,u)}}return w(c,o),w(c,b),c}function w(l,r){r&&l.push(function(u){for(var c=0;c<r.length;c++)r[c].call(u);return u})}function D(l,r,u){if(r.length>0){for(var c=[],o=l,b=l.name,p=r.length-1;p>=0;p--){var T={v:!1};try{var x=r[p](o,{kind:"class",name:b,addInitializer:y(c,T),metadata:u})}finally{T.v=!0}x!==void 0&&(h(10,x),o=x)}return[S(o,u),function(){for(var m=0;m<c.length;m++)c[m].call(o)}]}}function S(l,r){return Object.defineProperty(l,Symbol.metadata||Symbol.for("Symbol.metadata"),{configurable:!0,enumerable:!0,value:r})}return function(r,u,c,o){if(o!==void 0)var b=o[Symbol.metadata||Symbol.for("Symbol.metadata")];var p=Object.create(b===void 0?null:b),T=v(r,u,p);return c.length||S(r,p),{e:T,get c(){return D(r,c,p)}}}}function Ws(y,t,e,i){return(Ws=Pc())(y,t,e,i)}var Zs,Us,qs,Hs,Xs,No;Zs=U({selector:"potatno-connection-layer",template:Gs,style:Bs}),qs=V.state({complexValue:!0});var Ys=class{static{({e:[Hs,Xs],c:[No,Us]}=Ws(this,[[qs,1,"connections"]],[Zs]))}constructor(t=O.use(H)){this.mManager=t,this.connections=new Map;let e=0;this.mUnsubscribe=this.mManager.subscribe(R.SpecialActiveFunction|R.Node|R.Connection|R.ProgrammResize,()=>{e===0&&(e=requestAnimationFrame(()=>{e=0,this.updateConnections()}))})}mManager;mUnsubscribe;#t=(Xs(this),Hs(this));get connections(){return this.#t}set connections(t){this.#t=t}createConjunction(t,e){t.preventDefault(),t.stopPropagation();let i=e.port.output.portType==="flow"?this.mManager.project.nodeDefinitions.get(K.DEFINITION_ID):this.mManager.project.nodeDefinitions.get(et.DEFINITION_ID),h=this.mManager.grid.pixelToGridSpace(t.clientX,t.clientY),d=this.mManager.graph.addNode(this.mManager.activeFunction,i,{x:h.x,y:h.y,height:0,width:0});this.mManager.graph.disconnectPorts(e.port.output,e.port.input);let v=d.inputs.list[0],w=d.outputs.list[0];this.mManager.graph.connectPorts(v,e.port.output),this.mManager.graph.connectPorts(v,e.port.input),this.mManager.graph.connectPorts(w,e.port.output),this.mManager.graph.connectPorts(w,e.port.input)}deleteConnection(t,e){t.button===2&&(t.preventDefault(),t.stopPropagation(),this.mManager.graph.disconnectPorts(e.port.output,e.port.input))}onDeconstruct(){this.mUnsubscribe()}createConnection(t,e,i){let h=this.mManager.integrity.errorItems,d=h.has(e)||h.has(i),v=(()=>{switch(i.portType){case"value":return i;case"flow":return e}})(),w=e.portType==="flow"?"":this.mManager.generateStringColor(e.resolvedDataType),D=this.mManager.connections.getConnectionPath(e,i);return{color:w,path:{attributeValue:D.attributeValue,length:D.length},state:{isNew:!t.has(v),hasError:d},port:{primary:v,output:e,input:i}}}updateConnections(){let t=this.connections;this.connections=new Map;for(let e of this.mManager.activeFunction.nodes)for(let i of e.outputs.list)for(let h of i.connectedPorts){let d=this.createConnection(t,i,h);this.connections.set(d.port.primary,d)}}static{Us()}};function Mc(){function y(l,r){return function(c){e(r,"addInitializer"),i(c,"An initializer"),l.push(c)}}function t(l,r,u,c,o,b,p,T,x){var m;switch(o){case 1:m="accessor";break;case 2:m="method";break;case 3:m="getter";break;case 4:m="setter";break;default:m="field"}var s={kind:m,name:p?"#"+r:r,static:b,private:p,metadata:T},f={v:!1};s.addInitializer=y(c,f);var n,a;if(o===0?p?(n=u.get,a=u.set):(n=function(){return this[r]},a=function(g){this[r]=g}):o===2?n=function(){return u.value}:((o===1||o===3)&&(n=function(){return u.get.call(this)}),(o===1||o===4)&&(a=function(g){u.set.call(this,g)})),p)s.access=n&&a?{get:n,set:a}:n?{get:n}:{set:a};else{if(n){var I=n;n=function(g){return arguments.length===0&&(g=this),I.call(g)}}if(a){var P=a;a=function(g,_){return arguments.length===1&&(_=g,g=this),P.call(g,_)}}var E=function(g){return r in g};s.access=n&&a?{has:E,get:n,set:a}:n?{has:E,get:n}:{has:E,set:a}}try{return l(x,s)}finally{f.v=!0}}function e(l,r){if(l.v)throw new Error("attempted to call "+r+" after decoration was finished")}function i(l,r){if(typeof l!="function")throw new TypeError(r+" must be a function")}function h(l,r){var u=typeof r;if(l===1){if(u!=="object"||r===null)throw new TypeError("accessor decorators must return an object with get, set, or init properties or void 0");r.get!==void 0&&i(r.get,"accessor.get"),r.set!==void 0&&i(r.set,"accessor.set"),r.init!==void 0&&i(r.init,"accessor.init")}else if(u!=="function"){var c;throw l===0?c="field":l===10?c="class":c="method",new TypeError(c+" decorators must return a function or void 0")}}function d(l,r,u,c,o,b,p,T,x){var m=u[0],s,f,n;p?o===0||o===1?s={get:u[3],set:u[4]}:o===3?s={get:u[3]}:o===4?s={set:u[3]}:s={value:u[3]}:o!==0&&(s=Object.getOwnPropertyDescriptor(r,c)),o===1?n={get:s.get,set:s.set}:o===2?n=s.value:o===3?n=s.get:o===4&&(n=s.set);var a,I,P;if(typeof m=="function")a=t(m,c,s,T,o,b,p,x,n),a!==void 0&&(h(o,a),o===0?f=a:o===1?(f=a.init,I=a.get||n.get,P=a.set||n.set,n={get:I,set:P}):n=a);else for(var E=m.length-1;E>=0;E--){var g=m[E];if(a=t(g,c,s,T,o,b,p,x,n),a!==void 0){h(o,a);var _;o===0?_=a:o===1?(_=a.init,I=a.get||n.get,P=a.set||n.set,n={get:I,set:P}):n=a,_!==void 0&&(f===void 0?f=_:typeof f=="function"?f=[f,_]:f.push(_))}}if(o===0||o===1){if(f===void 0)f=function(M,C){return C};else if(typeof f!="function"){var F=f;f=function(M,C){for(var N=C,L=0;L<F.length;L++)N=F[L].call(M,N);return N}}else{var j=f;f=function(M,C){return j.call(M,C)}}l.push(f)}o!==0&&(o===1?(s.get=n.get,s.set=n.set):o===2?s.value=n:o===3?s.get=n:o===4&&(s.set=n),p?o===1?(l.push(function(M,C){return n.get.call(M,C)}),l.push(function(M,C){return n.set.call(M,C)})):o===2?l.push(n):l.push(function(M,C){return n.call(M,C)}):Object.defineProperty(r,c,s))}function v(l,r,u){for(var c=[],o,b,p=new Map,T=new Map,x=0;x<r.length;x++){var m=r[x];if(Array.isArray(m)){var s=m[1],f=m[2],n=m.length>3,a=s>=5,I,P;if(a?(I=l,s=s-5,b=b||[],P=b):(I=l.prototype,o=o||[],P=o),s!==0&&!n){var E=a?T:p,g=E.get(f)||0;if(g===!0||g===3&&s!==4||g===4&&s!==3)throw new Error("Attempted to decorate a public method/accessor that has the same name as a previously decorated public method/accessor. This is not currently supported by the decorators plugin. Property name was: "+f);!g&&s>2?E.set(f,s):E.set(f,!0)}d(c,I,m,f,s,a,n,P,u)}}return w(c,o),w(c,b),c}function w(l,r){r&&l.push(function(u){for(var c=0;c<r.length;c++)r[c].call(u);return u})}function D(l,r,u){if(r.length>0){for(var c=[],o=l,b=l.name,p=r.length-1;p>=0;p--){var T={v:!1};try{var x=r[p](o,{kind:"class",name:b,addInitializer:y(c,T),metadata:u})}finally{T.v=!0}x!==void 0&&(h(10,x),o=x)}return[S(o,u),function(){for(var m=0;m<c.length;m++)c[m].call(o)}]}}function S(l,r){return Object.defineProperty(l,Symbol.metadata||Symbol.for("Symbol.metadata"),{configurable:!0,enumerable:!0,value:r})}return function(r,u,c,o){if(o!==void 0)var b=o[Symbol.metadata||Symbol.for("Symbol.metadata")];var p=Object.create(b===void 0?null:b),T=v(r,u,p);return c.length||S(r,p),{e:T,get c(){return D(r,c,p)}}}}function Qs(y,t,e,i){return(Qs=Mc())(y,t,e,i)}var ks,Js,Ae;ks=Ct({access:q.Read,selector:/^potatno-preview$/});var Ks=class{static{({c:[Ae,Js]}=Qs(this,[],[ks]))}constructor(t=O.use(k),e=O.use(W),i=O.use(st)){this.mTarget=t,this.mProcedure=e.createExpressionProcedure(i.value)}mProcedure;mTarget;onUpdate(){let t=this.mProcedure.execute();if(!t){let i=this.mTarget.childNodes.length>0;return i&&(this.mTarget.innerHTML=""),i}let e=t.element;return this.mTarget.contains(e)?!1:(this.mTarget.innerHTML="",this.mTarget.appendChild(e),!0)}static{Js()}};var ta=`:host {
-    --potatno-port-value-size: 6px;
-    --potatno-port-flow-size: 16px;
-    --potatno-port-handle-width: max(var(--potatno-port-value-size), var(--potatno-port-flow-size));
-
     display: block;
     position: relative;
 }
@@ -2100,9 +2099,9 @@ $if(this.left) {
     &::after {
         content: '';
         position: absolute;
-        right: 2px;
+        right: 3px;
         height: 2px;
-        width: calc(var(--potatno-port-values-line-length) - 2px);
+        width: calc(var(--potatno-port-values-line-length) - 3px);
         pointer-events: none;
         background-color: var(--potatno-port-color);
     }
@@ -2176,6 +2175,9 @@ $if(this.left) {
         overflow: hidden;
         text-overflow: ellipsis;
 
+        /* Manually center text */
+        padding: 0 0 5px 0;
+
         .output & {
             text-align: end;
         }
@@ -2187,27 +2189,27 @@ $if(this.left) {
 
     /* Small hover animation for ports, hover values excluded */
     .output &:hover potatno-port-handle {
-        transform: translateX(1px);
+        transform: translateX(-1px);
     }
 
     .input &:hover potatno-port-handle {
-        transform: translateX(-1px);
+        transform: translateX(1px);
     }
 
     /* Positioning wrapper. The handle visual and connect animation live in potatno-port-handle. */
     .port__handle {
         position: relative;
         display: flex;
-        width: var(--potatno-port-handle-width);
+        width: 15px;
         align-items: center;
         justify-content: center;
 
         .output & {
-            transform: translateX(calc(var(--potatno-port-handle-width) / 2));
+            transform: translateX(8px);
         }
 
         .input & {
-            transform: translateX(calc(var(--potatno-port-handle-width) / -2));
+            transform: translateX(-8px);
         }
     }
 }
@@ -2303,8 +2305,7 @@ $if(this.left) {
 \r
     /* Adjust -2px because node itself has a top border of 1px and the header a border on bottom. */\r
     margin: 0 0 4px 0;\r
-    height: calc(var(--potatno-grid-size) - 2px);\r
-    /* 2: Border */\r
+    height: calc(var(--potatno-grid-size) - 4px);\r
 \r
     /* Animated background of header */\r
     background-image: linear-gradient(90deg, var(--potatno-color-background-dark) 0%, var(--potatno-color-background) 100%);\r
@@ -2415,6 +2416,10 @@ $if(this.left) {
     background-color: var(--potatno-color-background);\r
     cursor: pointer;\r
 \r
+    /* Copy parent border radius on bottom */\r
+    border-radius: 0 0 4px 4px;\r
+    overflow: hidden;\r
+\r
     --preview-toggle-icon-color: var(--potatno-color-border);\r
 \r
     /* Click animation. */\r
@@ -2441,7 +2446,7 @@ $if(this.left) {
         border-width: 0px 1px 1px 0;\r
         height: 10px;\r
         width: 10px;\r
-        transform: translate(calc(-50% - -1px), -3px) rotate(45deg);\r
+        transform: translate(calc(-50% - -1px), 1px) rotate(45deg);\r
         transition: border-color 0.15s, transform 0.15s;\r
 \r
         /* Passive size set for the inner arrow. */\r
@@ -2459,7 +2464,7 @@ $if(this.left) {
         }\r
 \r
         .node-preview-toggle.active & {\r
-            transform: translate(calc(-50% - -1px), 3px) rotate(-135deg)\r
+            transform: translate(calc(-50% - -1px), 7px) rotate(-135deg)\r
         }\r
     }\r
 }\r

@@ -1,8 +1,4 @@
 :host {
-    --potatno-port-value-size: 6px;
-    --potatno-port-flow-size: 16px;
-    --potatno-port-handle-width: max(var(--potatno-port-value-size), var(--potatno-port-flow-size));
-
     display: block;
     position: relative;
 }
@@ -66,9 +62,9 @@
     &::after {
         content: '';
         position: absolute;
-        right: 2px;
+        right: 3px;
         height: 2px;
-        width: calc(var(--potatno-port-values-line-length) - 2px);
+        width: calc(var(--potatno-port-values-line-length) - 3px);
         pointer-events: none;
         background-color: var(--potatno-port-color);
     }
@@ -142,6 +138,9 @@
         overflow: hidden;
         text-overflow: ellipsis;
 
+        /* Manually center text */
+        padding: 0 0 5px 0;
+
         .output & {
             text-align: end;
         }
@@ -153,27 +152,27 @@
 
     /* Small hover animation for ports, hover values excluded */
     .output &:hover potatno-port-handle {
-        transform: translateX(1px);
+        transform: translateX(-1px);
     }
 
     .input &:hover potatno-port-handle {
-        transform: translateX(-1px);
+        transform: translateX(1px);
     }
 
     /* Positioning wrapper. The handle visual and connect animation live in potatno-port-handle. */
     .port__handle {
         position: relative;
         display: flex;
-        width: var(--potatno-port-handle-width);
+        width: 15px;
         align-items: center;
         justify-content: center;
 
         .output & {
-            transform: translateX(calc(var(--potatno-port-handle-width) / 2));
+            transform: translateX(8px);
         }
 
         .input & {
-            transform: translateX(calc(var(--potatno-port-handle-width) / -2));
+            transform: translateX(-8px);
         }
     }
 }

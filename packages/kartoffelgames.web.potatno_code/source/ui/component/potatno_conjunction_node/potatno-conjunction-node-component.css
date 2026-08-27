@@ -32,6 +32,7 @@
         height: 2px;
         width: calc(100% - 2px);
         background-color: var(--potatno-port-color);
+        border-radius: 1px;
         z-index: -10;
     }
 }
@@ -61,15 +62,18 @@
         width: var(--potatno-grid-size);
         height: var(--potatno-grid-size);
         border: none;
+
+        /* Disable area on connected state */
+        pointer-events: none;
     }
 
     /* Small hover animation for ports. */
     &:hover.output .port__handle {
-        transform: translateX(1px);
+        transform: translateX(-1px);
     }
 
     &:hover.input .port__handle {
-        transform: translateX(-1px);
+        transform: translateX(1px);
     }
 
     /* Positioning wrapper. The handle visual and connect animation live in potatno-port-handle. */
@@ -80,12 +84,12 @@
 
     &.output .port__handle {
         left: 0px;
-        translate: -50% 0;
+        translate: -100% 0;
     }
 
     &.input .port__handle {
-        right: 0px;
-        translate: 50% 0;
+        right: 1px;
+        translate: 100% 0;
     }
 }
 

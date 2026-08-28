@@ -25,6 +25,13 @@
     -- Follows the same rule as lists on paddings and margins. Having a 0.3rem margin and 0.5rem padding.
     -- Inner padding of 0.3rem 0.5rem.
     -- Transparent border of 1px. Can be highlighted on focus.
+    -- Combining multiple inputs into a input group:
+        -- The group itself has no padding.
+        -- The inputs are either transparent or have the same background.
+        -- Inputs have the same height and border radius as parent.
+        -- Inputs are seperated by a divider with a with of 2px.
+            -- No horizontal padding or margin.
+            -- Vertical padding of 5 pixel from input group.
 
 -- Actions
 Scale to 0.98 or translate 1px, based on looks on clicks.

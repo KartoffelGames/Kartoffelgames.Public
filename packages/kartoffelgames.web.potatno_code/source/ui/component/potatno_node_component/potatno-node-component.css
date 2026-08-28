@@ -425,7 +425,7 @@
 
         .select__seperator {
             flex-shrink: 0;
-            height: 24px;
+            height: 20px;
             width: 2px;
             background-color: var(--potatno-color-border);
         }

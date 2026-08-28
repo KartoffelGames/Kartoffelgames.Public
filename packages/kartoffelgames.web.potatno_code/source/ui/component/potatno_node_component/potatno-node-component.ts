@@ -35,6 +35,12 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
     private readonly mUnsubscribeValidation: PotatnoCodeUiManagerUnsubscribe;
 
     /**
+     * Selected state of node component.
+     */
+    @ComponentState.state()
+    private accessor mSelected: boolean;
+
+    /**
      * Whether the node exposes a value output that can select a preview display.
      */
     public get canPreview(): boolean {
@@ -214,6 +220,17 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
     }
 
     /**
+     * Selection state of the button.
+     * Reading returns the current state, writing overrides it.
+     */
+    @PwbExport()
+    public get selected(): boolean {
+        return this.mSelected;
+    } set selected(pSelected: unknown) {
+        this.mSelected = this.parseBoolean(pSelected);
+    }
+
+    /**
      * Create the node component.
      *
      * @param pComponent - Injected component reference, used to trigger self-updates.
@@ -224,6 +241,7 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
         this.mManager = pManager;
         this.mNodeDefinition = null;
         this.mNodeData = null;
+        this.mSelected = false;
         this.isPreviewDisplaySelectionOpen = false;
 
         // Define default transformation.
@@ -500,6 +518,31 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
             // Read it again out of the buffer to return it.
             return lTypeBuffer.get(lPortDataType);
         });
+    }
+
+    /**
+     * Parse an unknown (possibly string attribute) value into a boolean.
+     *
+     * @param pValue - Value to parse.
+     *
+     * @returns a boolean.
+     */
+    private parseBoolean(pValue: unknown): boolean {
+        // A string attribute might be the literal "true" or "false".
+        if (typeof pValue === 'string') {
+            // Empty strings are considered as true also. Because setting a empty attribute also is "true".
+            if (pValue === '') {
+                return true;
+            }
+
+            // Check for a string with the literal true or false string.
+            const lValue: string = pValue.toLowerCase();
+            if (lValue === 'true' || lValue === 'false') {
+                return lValue === 'true';
+            }
+        }
+
+        return Boolean(pValue);
     }
 
     /**

@@ -292,6 +292,8 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
             const lLastWidth: number = pNode.transformation.width;
             const lLastheight: number = pNode.transformation.height;
 
+            console.log(pResize.width / this.mManager.grid.gridSize, pResize.height / this.mManager.grid.gridSize)
+
             // Resize size.
             pNode.resizeTo(pResize.width / this.mManager.grid.gridSize, pResize.height / this.mManager.grid.gridSize);
 

@@ -29,11 +29,20 @@
     /* Create a fake connection line in center. */
     &::after {
         content: '';
+        position: absolute;
         height: 2px;
-        width: calc(100% - 2px);
+        width: calc(100% - 4px);
         background-color: var(--potatno-port-color);
         border-radius: 1px;
         z-index: -10;
+
+        /* Transition between glow effect */
+        transition: background-color 0.15s, box-shadow 0.15s;
+    }
+
+    .selected &::after {
+        background-color: color-mix(in srgb, var(--potatno-port-color) 50%, #fff);
+        box-shadow: 0 0 10px 5px var(--potatno-port-color);
     }
 }
 

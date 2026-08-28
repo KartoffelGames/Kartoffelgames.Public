@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import { Component, PwbChild, PwbComponent, PwbComponentEvent, PwbExport, type ComponentEventEmitter, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
+import { Component, ComponentState, PwbChild, PwbComponent, PwbComponentEvent, PwbExport, type ComponentEventEmitter, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import { PotatnoFlowConjunctionNodeDefinition } from '../../../project/node_definition/potatno-flow-conjunction-node-definition.ts';
@@ -167,6 +167,23 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
     }
 
     /**
+     * Selection state of the button.
+     * Reading returns the current state, writing overrides it.
+     */
+    @PwbExport()
+    public get selected(): boolean {
+        return this.mSelected;
+    } set selected(pSelected: unknown) {
+        this.mSelected = this.parseBoolean(pSelected);
+    }
+
+    /**
+     * Selected state of node component.
+     */
+    @ComponentState.state()
+    private accessor mSelected: boolean;
+
+    /**
      * Create the node component.
      *
      * @param pComponent - Injected component reference, used to trigger self-updates.
@@ -176,6 +193,7 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
         this.mComponent = pComponent;
         this.mManager = pManager;
         this.mNodeData = null;
+        this.mSelected = false;
 
         // Create the document wide drag handler, as firefox cant fix a 16 year old bug.
         this.mDragPositionEventHandler = (pEvent: DragEvent) => {
@@ -420,6 +438,31 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
         }
 
         return false;
+    }
+
+    /**
+     * Parse an unknown (possibly string attribute) value into a boolean.
+     *
+     * @param pValue - Value to parse.
+     *
+     * @returns a boolean.
+     */
+    private parseBoolean(pValue: unknown): boolean {
+        // A string attribute might be the literal "true" or "false".
+        if (typeof pValue === 'string') {
+            // Empty strings are considered as true also. Because setting a empty attribute also is "true".
+            if (pValue === '') {
+                return true;
+            }
+
+            // Check for a string with the literal true or false string.
+            const lValue: string = pValue.toLowerCase();
+            if (lValue === 'true' || lValue === 'false') {
+                return lValue === 'true';
+            }
+        }
+
+        return Boolean(pValue);
     }
 
     /**

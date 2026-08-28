@@ -38,9 +38,37 @@
     background-color: var(--background-10-color);
     background-image: linear-gradient(180deg, var(--background-100-color) 0px, var(--background-50-color) calc(var(--potatno-grid-size) * 2), transparent 100%);
 
+    transition: box-shadow 0.15s;
+
     &.edit {
         --node-comment-color: var(--potatno-color-background);
         background-color: var(--potatno-color-background);
+    }
+
+    .node__glow {
+        position: absolute;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        inset: 0px;
+
+        /* Allways on back */
+        z-index: -1;
+
+        .glow-select {
+            flex-shrink: 0;
+            height: 0px;
+            margin: 19px 0;
+
+            width: 0px;
+            box-shadow: 0 0 20px 12px transparent;
+            transition: width 0.15s, box-shadow 0.15s;
+
+            .selected & {
+                width: 100%;
+                box-shadow: 0 0 20px 12px var(--node-comment-color);;
+            }
+        }
     }
 }
 

@@ -87,6 +87,17 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
     }
 
     /**
+     * Selection state of the button.
+     * Reading returns the current state, writing overrides it.
+     */
+    @PwbExport()
+    public get selected(): boolean {
+        return this.mSelected;
+    } set selected(pSelected: unknown) {
+        this.mSelected = this.parseBoolean(pSelected);
+    }
+
+    /**
      * The comment input.
      */
     @PwbChild('CommentInput')
@@ -105,6 +116,12 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
     private accessor mResizeBox!: KgResizeBoxComponent & Element | null;
 
     /**
+     * Selected state of node component.
+     */
+    @ComponentState.state()
+    private accessor mSelected: boolean;
+
+    /**
      * Create the node component.
      *
      * @param pComponent - Injected component reference, used to trigger self-updates.
@@ -114,6 +131,7 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
         this.mComponent = pComponent;
         this.mManager = pManager;
         this.mNodeData = null;
+        this.mSelected = false;
         this.editMode = false;
         this.enableBigview = false;
         this.gridZoom = 0;
@@ -134,15 +152,6 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
 
             // Calculate the current size of the component.
             this.resyncComponent(this.nodeData);
-        });
-
-        // On a grid resize, the pixel position and size are recalculated from the new grid size.
-        this.mUnsubscribeResize = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.ProgrammResize, () => {
-            if (!this.mNodeData) {
-                return;
-            }
-
-            this.resyncComponent(this.mNodeData);
         });
     }
 
@@ -325,6 +334,31 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
 
         // Recursive call into the host elements shadow root.
         return this.getFocusedElement(lRootsActiveElement.shadowRoot);
+    }
+
+    /**
+     * Parse an unknown (possibly string attribute) value into a boolean.
+     *
+     * @param pValue - Value to parse.
+     *
+     * @returns a boolean.
+     */
+    private parseBoolean(pValue: unknown): boolean {
+        // A string attribute might be the literal "true" or "false".
+        if (typeof pValue === 'string') {
+            // Empty strings are considered as true also. Because setting a empty attribute also is "true".
+            if (pValue === '') {
+                return true;
+            }
+
+            // Check for a string with the literal true or false string.
+            const lValue: string = pValue.toLowerCase();
+            if (lValue === 'true' || lValue === 'false') {
+                return lValue === 'true';
+            }
+        }
+
+        return Boolean(pValue);
     }
 
     /**

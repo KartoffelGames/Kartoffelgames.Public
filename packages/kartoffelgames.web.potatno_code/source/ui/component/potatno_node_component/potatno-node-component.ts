@@ -35,12 +35,6 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
     private readonly mUnsubscribeValidation: PotatnoCodeUiManagerUnsubscribe;
 
     /**
-     * Selected state of node component.
-     */
-    @ComponentState.state()
-    private accessor mSelected: boolean;
-
-    /**
      * Whether the node exposes a value output that can select a preview display.
      */
     public get canPreview(): boolean {
@@ -52,6 +46,12 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
      */
     @PwbComponentEvent('node-drag')
     private accessor mDrag!: ComponentEventEmitter<PotatnoNodeComponentMove>;
+
+    /**
+     * Selected state of node component.
+     */
+    @ComponentState.state()
+    private accessor mSelected: boolean;
 
     /**
      * Get if node has any error, including child ports.

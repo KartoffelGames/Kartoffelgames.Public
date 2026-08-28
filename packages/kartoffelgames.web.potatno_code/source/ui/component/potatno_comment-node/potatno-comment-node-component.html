@@ -1,5 +1,5 @@
 <!-- Resizeable part of node -->
-<kg-resize-box #ResizeBox class="node {{this.editMode ? 'edit' : ''}}" top right bottom left virtual [snap]="this.gridSize" (resize)="this.transformNodeData($event.value)">
+<kg-resize-box #ResizeBox class="node {{this.editMode ? 'edit' : ''}} {{this.selected ? 'selected' : ''}}" top right bottom left virtual [snap]="this.gridSize" (resize)="this.transformNodeData($event.value)">
     <div class="node-header" (pointerdown)="this.dragNodeOrEnableEdit($event)" (dblclick)="this.editMode = true;">
         <span class="node-header__icon">✎</span>
 
@@ -13,6 +13,12 @@
     </div>
 
     <div class="node-body"/>
+
+    <!-- Selection and error indication -->
+    <div class="node__glow">
+        <div class="glow-select"></div>
+        <div class="glow-error"></div>
+    </div>
 </kg-resize-box>
 
 <div style="--zoom-factor: {{this.gridZoom}}; --comment-node-height: {{this.nodeData?.transformation.height}}; --comment-node-width: {{this.nodeData?.transformation.width}};" class="satellite-view {{this.enableBigview ? 'enabled' : ''}}">

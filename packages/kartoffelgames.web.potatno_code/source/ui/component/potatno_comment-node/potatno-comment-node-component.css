@@ -141,6 +141,9 @@
         background-color: var(--potatno-color-background-light);
         border: 1px solid var(--potatno-color-accent);
         border-radius: var(--potatno-border-radius);
+
+        /* Reset grab cursor */
+        cursor: default;
     }
 
     .node-header__comment {

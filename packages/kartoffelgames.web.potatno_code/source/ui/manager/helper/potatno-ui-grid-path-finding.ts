@@ -135,7 +135,7 @@ export class PotatnoUiGridPathFinding extends Astar<PotatnoUiManagerGridCoordina
                     lHeight += 1;
 
                     // Additional preview buttons and window height.
-                    lHeight += pNode.preview !== null ? 7 : 1;
+                    lHeight += pNode.preview !== null ? 7 : 0;
                 }
             }
         }

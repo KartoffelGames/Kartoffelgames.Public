@@ -23,6 +23,7 @@
     display: flex;
     flex-direction: column;
     min-height: 100%;
+    padding: 4px;
 
     overflow: visible;
     user-select: none;
@@ -36,13 +37,11 @@
     --background-10-color: color-mix(in srgb, var(--background-100-color) 5%, transparent);
 
     background-color: var(--background-10-color);
-    background-image: linear-gradient(180deg, var(--background-100-color) 0px, var(--background-50-color) calc(var(--potatno-grid-size) * 2), transparent 100%);
-
-    transition: box-shadow 0.15s;
+    background-image: linear-gradient(180deg,  var(--background-50-color) 0px, transparent 100%);
 
     &.edit {
         --node-comment-color: var(--potatno-color-background);
-        background-color: var(--potatno-color-background);
+        background-color: var(--potatno-color-background-dark);
     }
 
     .node__glow {
@@ -75,27 +74,56 @@
 .node-header {
     display: flex;
     align-items: center;
-    color: var(--potatno-color-text-contrast);
+    color: var(--potatno-color-text);
     font-weight: bold;
-    font-size: 14px;
+    font-size: 16px;
+    overflow: hidden;
     cursor: grab;
+
+    /* Same border radius as node, because we cant set overflow hidden on parent. */
+    border: 1px solid var(--potatno-color-border);
+    border-radius: var(--potatno-border-radius);
+
+    /* Move only the header out of the resize handle visible range. +2 for the exit border so it doesnt shift on edit mode. */
+    height: calc(var(--potatno-grid-size) - 2px);
+
+    /* Animated background of header */
+    background-image: linear-gradient(90deg, var(--potatno-color-background-dark) 0%, var(--potatno-color-background) 100%);
 
     /* Disabled in node. Enabled again. */
     pointer-events: all;
-
-    /* Move only the header out of the resize handle visible range. +2 for the exit border so it doesnt shift on edit mode. */
-    margin: 3px 3px 0 3px;
-    height: calc(var(--potatno-grid-size) - 2px);
 
     &:active {
         cursor: grabbing;
     }
 
-    .edit & {
-        background-color: var(--potatno-color-background-light);
-        border: 1px solid var(--potatno-color-accent);
-        border-radius: var(--potatno-border-radius);
-        margin: 0.125rem 0.125rem 0 0.125rem;
+    .node-header__bar {
+        width: 4px;
+        height: calc(100% - 10px);
+        margin: 0 0 0 8px;
+        background-color: var(--potatno-color-accent);
+
+        transition: box-shadow 0.15s ease-in, background-color 0.15s ease-in;
+
+        .selected & {
+            background-color: color-mix(in srgb, var(--potatno-color-accent) 90%, #fff);
+            box-shadow: 7px 0px 40px 15px var(--potatno-color-accent);
+        }
+
+        .node-header:hover & {
+            background-color: color-mix(in srgb, var(--potatno-color-accent) 70%, #fff);
+            box-shadow: 15px 0px 45px 20px var(--potatno-color-accent);
+        }
+
+        .node-header:active & {
+            background-color: color-mix(in srgb, var(--potatno-color-accent) 50%, #fff);
+            box-shadow: 20px 0px 55px 28px var(--potatno-color-accent);
+        }
+
+        .edit .node-header & {
+            background-color: var(--potatno-color-accent);
+            box-shadow: none;
+        }
     }
 
     .node-header__icon {
@@ -104,6 +132,15 @@
         align-items: center;
         justify-content: center;
         width: calc(var(--potatno-grid-size) - 2px);
+
+        /* That centers a single character at its center line. */
+        line-height: 0;
+    }
+
+    .edit & {
+        background-color: var(--potatno-color-background-light);
+        border: 1px solid var(--potatno-color-accent);
+        border-radius: var(--potatno-border-radius);
     }
 
     .node-header__comment {
@@ -126,9 +163,10 @@
         background-color: transparent;
 
         /* Input boxes override anything :( */
-        color: var(--potatno-color-text-contrast);
+        color: var(--potatno-color-text);
+        font-family: var(--potatno-font-family);
         font-weight: bold;
-        font-size: var(--potatno-font-size-small);
+        font-size: 16px;
     }
 }
 

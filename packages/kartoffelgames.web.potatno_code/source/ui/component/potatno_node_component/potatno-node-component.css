@@ -99,9 +99,14 @@
 
         transition: box-shadow 0.15s ease-in, background-color 0.15s ease-in;
 
+        .selected & {
+            background-color: color-mix(in srgb, var(--node-category-color) 90%, #fff);
+            box-shadow: 7px 0px 40px 15px var(--node-category-color);
+        }
+
         .node-header:hover & {
             background-color: color-mix(in srgb, var(--node-category-color) 70%, #fff);
-            box-shadow: 7px 0px 40px 15px var(--node-category-color);
+            box-shadow: 15px 0px 45px 20px var(--node-category-color);
         }
 
         .node-header:active & {

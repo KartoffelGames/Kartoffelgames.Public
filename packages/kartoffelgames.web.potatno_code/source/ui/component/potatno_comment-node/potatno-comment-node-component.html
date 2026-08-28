@@ -1,6 +1,7 @@
 <!-- Resizeable part of node -->
 <kg-resize-box #ResizeBox class="node {{this.editMode ? 'edit' : ''}} {{this.selected ? 'selected' : ''}}" top right bottom left virtual [snap]="this.gridSize" (resize)="this.transformNodeData($event.value)">
     <div class="node-header" (pointerdown)="this.dragNodeOrEnableEdit($event)" (dblclick)="this.editMode = true;">
+        <span class="node-header__bar"></span>
         <span class="node-header__icon">✎</span>
 
         $if(this.editMode) {

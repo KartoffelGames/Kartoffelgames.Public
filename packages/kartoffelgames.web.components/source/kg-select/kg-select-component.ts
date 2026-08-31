@@ -8,7 +8,6 @@ import template from './kg-select-component.html' with { type: 'text' };
  * options can not be projected into a native select inside shadow dom.
  *
  * Configurable attributes:
- *  - "type": "primary" or "secondary". Both mirror the button type styling.
  *  - "placeholder": Text shown as a disabled option while no value is selected.
  *
  * Properties:
@@ -20,9 +19,7 @@ import template from './kg-select-component.html' with { type: 'text' };
  *
  * CSS variables:
  *  - "--select-accent-color"
- *  - "--select-accent-text-color"
  *  - "--select-text-color"
- *  - "--select-border-color"
  *  - "--select-background-color"
  */
 @PwbComponent({
@@ -44,12 +41,6 @@ export class KgSelectComponent {
      */
     @ComponentState.state()
     private accessor mPlaceholder: string;
-
-    /**
-     * Configured select type. Drives the styling, same as the button.
-     */
-    @ComponentState.state()
-    private accessor mType: KgSelectComponentType;
 
     /**
      * Currently selected value.
@@ -95,22 +86,6 @@ export class KgSelectComponent {
     }
 
     /**
-     * Select type. One of "primary" or "secondary".
-     */
-    @PwbExport()
-    public get type(): KgSelectComponentType {
-        return this.mType;
-    } set type(pType: string) {
-        // Only allow the known types.
-        if (pType !== 'primary' && pType !== 'secondary') {
-            this.mType = 'secondary';
-            return;
-        }
-
-        this.mType = pType;
-    }
-
-    /**
      * Selected option value.
      * Reading returns the current value, writing overrides the selection.
      */
@@ -135,7 +110,6 @@ export class KgSelectComponent {
      * Create the select with its default configuration.
      */
     public constructor() {
-        this.mType = 'primary';
         this.mValue = '';
         this.mOptions = new Array<KgSelectComponentOption>();
         this.mPlaceholder = '';
@@ -187,8 +161,6 @@ type KgSelectValueMapping = {
     valueKey: string;
     labelKey: string;
 };
-
-export type KgSelectComponentType = 'primary' | 'secondary';
 
 export type KgSelectComponentOption = {
     value: string;

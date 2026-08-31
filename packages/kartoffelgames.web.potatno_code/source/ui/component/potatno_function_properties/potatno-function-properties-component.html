@@ -7,7 +7,7 @@
             </div>
             <div class="section__list">
                 <div class="list-item">
-                    <input class="list-item__text-input" type="text" [(value)]="this.functionProperties.label" [disabled]="this.functionProperties.statics.label" (change)="this.submitChange()"/>
+                    <kg-input class="list-item__text-input" type="text" [(value)]="this.functionProperties.label" [disabled]="this.functionProperties.statics.label" (change)="this.submitChange()" />
                 </div>
             </div>
         </div>
@@ -27,16 +27,12 @@
                 $for(functionPort of this.functionProperties.inputs) {
                     <div class="list-item {{ this.functionPort.new ? 'new' : '' }}">
                         <!-- Label/Name -->
-                        <input class="list-item__text-input {{ this.functionPort.hasError ? 'error' : '' }}" type="text" [(value)]="this.functionPort.label" [disabled]="this.functionProperties.statics.inputs" (change)="this.submitChange()"/>
+                        <kg-input class="list-item__text-input {{ this.functionPort.hasError ? 'error' : '' }}" type="text" [(value)]="this.functionPort.label" [disabled]="this.functionProperties.statics.inputs" (change)="this.submitChange()" />
 
                         <div class="list-item__seperator" />
 
                         <!-- Type Selection -->
-                        <select class="list-item__select-input" [(value)]="this.functionPort.dataType" [disabled]="this.functionProperties.statics.inputs" (change)="this.submitChange()">
-                            $for(portType of this.projectTypes) {
-                                <option [value]="this.portType">{{this.portType}}</option>
-                            }
-                        </select>
+                        <kg-select class="list-item__select-input" valueKey="name" labelKey="name" [options]="this.projectTypes" [(value)]="this.functionPort.dataType" (change)="this.submitChange()" />
 
                         <!-- Delete button if not static -->
                         $if(!this.functionProperties.statics.inputs) {
@@ -67,16 +63,12 @@
                 $for(functionPort of this.functionProperties.outputs) {
                     <div class="list-item  {{ this.functionPort.new ? 'new' : '' }}">
                         <!-- Label/Name -->
-                        <input class="list-item__text-input {{ this.functionPort.hasError ? 'error' : '' }}" type="text" [(value)]="this.functionPort.label" [disabled]="this.functionProperties.statics.outputs" (change)="this.submitChange()"/>
+                        <kg-input class="list-item__text-input {{ this.functionPort.hasError ? 'error' : '' }}" type="text" [(value)]="this.functionPort.label" [disabled]="this.functionProperties.statics.outputs" (change)="this.submitChange()" />
 
                         <div class="list-item__seperator" />
 
                         <!-- Type Selection -->
-                        <select class="list-item__select-input" [(value)]="this.functionPort.dataType" [disabled]="this.functionProperties.statics.outputs" (change)="this.submitChange()">
-                            $for(portType of this.projectTypes) {
-                                <option [value]="this.portType">{{this.portType}}</option>
-                            }
-                        </select>
+                        <kg-select class="list-item__select-input" valueKey="name" labelKey="name" [options]="this.projectTypes" [(value)]="this.functionPort.dataType" (change)="this.submitChange()" />
 
                         <!-- Delete button if not static -->
                         $if(!this.functionProperties.statics.outputs) {
@@ -115,11 +107,7 @@
 
                 $if(!this.functionProperties.statics.imports && this.unusedImports.length > 0) {
                     <div class="list-item">
-                        <select class="list-item__select-input" [(value)]="this.selectedImportId">
-                            $for(import of this.unusedImports) {
-                                <option [value]="this.import.id">{{this.import.label}}</option>
-                            }
-                        </select>
+                        <kg-select class="list-item__select-input" valueKey="id" labelKey="label" [options]="this.unusedImports" [(value)]="this.selectedImportId" />
 
                         <div class="list-item__seperator" />
 

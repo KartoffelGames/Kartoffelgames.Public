@@ -1,44 +1,42 @@
 :host {
-    --select-accent-color: red;
-    --select-text-color: red;
-    --select-border-radius: 4px;
-    --select-background-color: red;
+    --input-accent-color: red;
+    --input-text-color: red;
+    --input-border-radius: 4px;
+    --input-background-color: transparent;
 
     position: relative;
     box-sizing: border-box;
     display: flex;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
-    user-select: none;
+    cursor: text;
 
     /* Set a default font size the component use for scaling its em values */
     font-size: 1rem;
 
-    /* Shared box. Transparent border keeps every type the same size. */
+    /* Shared box. Transparent border keeps the size stable while the accent border animates. */
     padding: 0.4rem 0.75rem;
     border: 1px solid transparent;
-    border-radius: var(--select-border-radius);
-    color: var(--select-text-color);
+    border-radius: var(--input-border-radius);
+    color: var(--input-text-color);
     background-color: transparent;
 
     /* Smooth transition for all */
     transition: border-color 0.15s, color 0.15s, background-color 0.15s;
 }
 
-.select {
+.input {
     box-sizing: border-box;
     display: flex;
     align-items: center;
     justify-content: center;
     width: 100%;
-    height: 100%;
 
     &::after {
         position: absolute;
         content: '';
-        border-radius: var(--select-border-radius);
-        border: 1px solid var(--select-accent-color);
+        border-radius: var(--input-border-radius);
+        border: 1px solid var(--input-accent-color);
         pointer-events: none;
 
         transition: top 0.15s, right 0.15s, bottom 0.15s, left 0.15s, opacity 0.15s;
@@ -53,26 +51,28 @@
 }
 
 /*
- * Native select reset. Blends the control into the shared box while keeping the native arrow.
+ * Native input reset. Blends the control into the shared box.
  */
-.select-input {
+.input-field {
     box-sizing: border-box;
     width: 100%;
-    height: 100%;
     margin: 0;
-
-    /* Default right padding so the native dropdown arrow has enough space. */
-    padding: 0 1em 0 0;
+    padding: 0;
 
     border: none;
     outline: none;
     color: inherit;
     font: inherit;
     cursor: inherit;
+    background-color: var(--input-background-color);
 
-    /* Must be set all the time to style <options> */
-    background-color: var(--select-background-color);
-    color: var(--select-text-color);
+    /* Text inside the field stays selectable. */
+    user-select: text;
+
+    &::placeholder {
+        color: currentColor;
+        opacity: 0.5;
+    }
 }
 
 /*
@@ -82,9 +82,7 @@
 :host(:hover),
 :host(:active),
 :host(:focus-within) {
-    color: var(--select-accent-color);
-
-    .select::after {
+    .input::after {
         opacity: 1;
 
         /* Actual border. */
@@ -92,5 +90,17 @@
         right: -1px;
         bottom: -1px;
         left: -1px;
+    }
+}
+
+/*
+ * Disabled state. Dims the field and suppresses the border animation.
+ */
+:host([disabled]:not([disabled='false'])) {
+    cursor: not-allowed;
+    opacity: 0.5;
+
+    .input::after {
+        opacity: 0;
     }
 }

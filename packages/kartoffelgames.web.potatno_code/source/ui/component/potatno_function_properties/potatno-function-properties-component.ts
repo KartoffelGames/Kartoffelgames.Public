@@ -1,13 +1,13 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import { KgButtonComponent, KgResizeBoxComponent } from '@kartoffelgames/web-components';
+import { KgButtonComponent, KgInputComponent, KgResizeBoxComponent } from '@kartoffelgames/web-components';
 import { ComponentState, PwbComponent, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import { PotatnoFunctionDefinitionStatics } from '../../../project/potatno-function-definition.ts';
-import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
+import { PotatnoImportDefinition } from "../../../project/potatno-import-definition.ts";
+import type { PotatnoProjectTypeDefinition, PotatnoProjectTypeMapping, PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, type PotatnoCodeUiManagerUnsubscribe } from '../../manager/potatno-ui-manager.ts';
 import templateCss from './potatno-function-properties-component.css' with { type: 'text' };
 import propertiesTemplate from './potatno-function-properties-component.html' with { type: 'text' };
-import { PotatnoImportDefinition } from "../../../project/potatno-import-definition.ts";
 
 /**
  * Properties panel component for the potatno-code visual editor.
@@ -16,11 +16,11 @@ import { PotatnoImportDefinition } from "../../../project/potatno-import-definit
     selector: 'potatno-function-properties',
     template: propertiesTemplate,
     style: templateCss,
-    components: [KgResizeBoxComponent, KgButtonComponent]
+    components: [KgResizeBoxComponent, KgButtonComponent, KgInputComponent]
 })
 export class PotatnoFunctionPropertiesComponent implements IComponentOnDeconstruct {
     private readonly mManager: PotatnoUiManager;
-    private readonly mProjectTypes: Set<string>;
+    private readonly mProjectTypes: Array<PotatnoFunctionPropertiesComponentProjectType>;
     private mSelectedImportId: string;
     private readonly mUnsubscribeFunctionUpdate: PotatnoCodeUiManagerUnsubscribe;
     private readonly mUnsubscribeFunctionSwitch: PotatnoCodeUiManagerUnsubscribe;
@@ -34,7 +34,7 @@ export class PotatnoFunctionPropertiesComponent implements IComponentOnDeconstru
     /**
      * Available port types that can be selected.
      */
-    public get projectTypes(): Set<string> {
+    public get projectTypes(): Array<PotatnoFunctionPropertiesComponentProjectType> {
         return this.mProjectTypes;
     }
 
@@ -68,7 +68,7 @@ export class PotatnoFunctionPropertiesComponent implements IComponentOnDeconstru
     public constructor(pManager: PotatnoUiManager = Injection.use(PotatnoUiManager)) {
         this.mManager = pManager;
         this.mSelectedImportId = '';
-        this.mProjectTypes = new Set<string>();
+        this.mProjectTypes = new Array<PotatnoFunctionPropertiesComponentProjectType>();
 
         // Create a feedback loop. This component triggers function changes, what triggers a data reload, what triggers a UI update.
         this.functionProperties = this.convertFunctionProperties(null);
@@ -80,9 +80,12 @@ export class PotatnoFunctionPropertiesComponent implements IComponentOnDeconstru
 
         this.mUnsubscribeFunctionSwitch = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Document | PotatnoCodeUiManagerChangeType.SpecialActiveFunction, () => {
             // Load all types. Usually types dont change.
-            this.mProjectTypes.clear();
-            for (const [lTypeName] of this.mManager.project.types.types) {
-                this.mProjectTypes.add(lTypeName);
+            this.mProjectTypes.splice(0, this.mProjectTypes.length);
+            for (const [lTypeName, lTypeDefinition] of this.mManager.project.types.types) {
+                this.mProjectTypes.push({
+                    name: lTypeName,
+                    definition: lTypeDefinition
+                });
             }
 
             // Set new functions properties. Also triggers update.
@@ -97,7 +100,7 @@ export class PotatnoFunctionPropertiesComponent implements IComponentOnDeconstru
      */
     public addPort(pTargetPortList: Array<PotatnoFunctionPropertiesComponentPort>): void {
         // Read the first (default) datatype.
-        const lDataType: string | undefined = this.projectTypes.values().next().value;
+        const lDataType: string | undefined = this.projectTypes[0]?.name;
         if (!lDataType) {
             return;
         }
@@ -172,7 +175,7 @@ export class PotatnoFunctionPropertiesComponent implements IComponentOnDeconstru
         this.functionProperties.imports.splice(lImportIndex, 1);
 
         // Reset state of all new items as after a delete, none can be new.
-        this.resetNewState()
+        this.resetNewState();
 
         // And submit the change.
         this.submitChange();
@@ -194,7 +197,7 @@ export class PotatnoFunctionPropertiesComponent implements IComponentOnDeconstru
         pTargetPortList.splice(lInputIndex, 1);
 
         // Reset state of all new items as after a delete, none can be new.
-        this.resetNewState()
+        this.resetNewState();
 
         // And submit the change.
         this.submitChange();
@@ -412,6 +415,11 @@ export class PotatnoFunctionPropertiesComponent implements IComponentOnDeconstru
         }
     }
 }
+
+type PotatnoFunctionPropertiesComponentProjectType = {
+    name: string;
+    definition: PotatnoProjectTypeDefinition<PotatnoProjectTypeMapping>;
+};
 
 export type PotatnoFunctionPropertiesComponentProperties = {
     label: string;

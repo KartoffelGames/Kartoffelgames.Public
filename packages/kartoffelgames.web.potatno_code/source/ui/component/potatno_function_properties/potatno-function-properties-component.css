@@ -101,10 +101,10 @@
 .list-item {
     display: flex;
     align-items: center;
-    padding: 0.3rem;
     background-color: var(--potatno-color-background);
     border-radius: var(--potatno-border-radius);
-    gap: 0.4rem;
+
+    height: 2rem;
 
     transition: left 0.15s ease-in-out, opacity 0.15s ease-in-out;
     position: relative;
@@ -121,75 +121,50 @@
     .list-item__delete {
         --button-text-color: var(--potatno-color-text);
         --button-accent-color: var(--potatno-color-error);
-        width: 1.5rem;
-        height: 1.5rem;
+
+        width: 2rem;
+        height: 100%;
         font-size: 0.75rem;
     }
 
     .list-item__text-input {
+        /* Theme the shared kg-input. */
+        --input-accent-color: var(--potatno-color-accent);
+        --input-text-color: var(--potatno-color-text);
+        --input-background-color: transparent;
+        --input-border-radius: var(--potatno-border-radius);
+
         /* Hear me out... this max the text input but also allows the select to also grow when no text input is present */
         flex: 1 99999 100%;
         min-width: 2.75rem;
 
-        padding: 0.3rem 0.3rem;
-        background-color: var(--potatno-color-background-light);
+        height: 100%;
+        padding: 0 0.8rem;
         font-size: var(--potatno-font-size);
-        color: var(--potatno-color-text);
-        font: inherit;
-
-        /* Custom borders for animations*/
-        border: 1px solid var(--potatno-color-border);
-        border-radius: var(--potatno-border-radius);
-        outline: none;
-        transition: border-color 0.15s;
-
-        &:focus {
-            border-color: var(--potatno-color-accent);
-        }
-
-        &:disabled {
-            border: 1px solid transparent;
-            background-color: transparent;
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
 
         &.error {
+            --input-accent-color: var(--potatno-color-error);
             border-color: var(--potatno-color-error);
         }
     }
 
     .list-item__select-input {
+        /* Theme the shared kg-select for the preview bar. */
+        --select-accent-color: var(--potatno-color-accent);
+        --select-text-color: var(--potatno-color-text);
+        --select-border-color: var(--potatno-color-border);
+        --select-background-color: var(--potatno-color-background);
+
         flex: 1 1 max-content;
         min-width: 2.75rem;
-        padding: 0 1rem 0 0;
-        background-color: var(--potatno-color-background);
-        color: var(--potatno-color-text);
-
-        font: inherit;
+        height: 100%;
+        padding: 0 0.3rem  0 0.5rem;
         font-size: var(--potatno-font-size);
-
-        /* Custom borders for animations*/
-        border: 1px solid transparent;
-        border-radius: 0;
-        outline: none;
-        transition: border-color 0.15s;
-
-        &:focus {
-            border-color: var(--potatno-color-accent);
-            border-width: 1px;
-            border-radius: var(--potatno-border-radius);
-        }
-
-        &:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
     }
 
     .list-item__text {
         flex: 1;
-        padding: 0.3rem 0.3rem;
+        padding: 0 0.8rem;
         font-size: var(--potatno-font-size);
 
         /* Ellipsis stuff */
@@ -200,7 +175,7 @@
 
     .list-item__seperator {
         flex-shrink: 0;
-        height: 1.5rem;
+        height: 1.4rem;
         width: 2px;
         background-color: var(--potatno-color-border);
     }
@@ -213,7 +188,8 @@
         --button-background-color: var(--potatno-color-background-light);
 
         flex: 0;
-        padding: 0.23rem 0.75rem;
+        height: 100%;
+        padding: 0 0.8rem;
 
         font-size: var(--potatno-font-size);
     }

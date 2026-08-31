@@ -28,6 +28,7 @@
     -- Transparent border of 1px. Can be highlighted on focus.
     -- Combining multiple inputs into a input group:
         -- The group itself has no padding.
+        -- The group itself has a 1px border.
         -- The inputs are either transparent or have the same background.
         -- Inputs have the same height and border radius as parent.
         -- Inputs have a 0.8rem padding, except some buttons. Problem are select boxes with internal padding.

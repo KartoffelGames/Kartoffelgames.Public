@@ -1173,6 +1173,8 @@ $if(this.left) {
     display: flex;\r
     align-items: center;\r
     background-color: var(--potatno-color-background);\r
+    \r
+    border: 1px solid var(--potatno-color-border);\r
     border-radius: var(--potatno-border-radius);\r
 \r
     height: 2rem;\r

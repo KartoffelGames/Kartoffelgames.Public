@@ -102,6 +102,8 @@
     display: flex;
     align-items: center;
     background-color: var(--potatno-color-background);
+    
+    border: 1px solid var(--potatno-color-border);
     border-radius: var(--potatno-border-radius);
 
     height: 2rem;

@@ -19,6 +19,9 @@ import template from './kg-resize-box-component.html' with { type: 'text' };
  * CSS variables:
  *  - "--resize-box-handle-color"
  *  - "--resize-box-handle-size"
+ * 
+ * Slots:
+ *  - default: Content inside panel.
  */
 @PwbComponent({
     selector: 'kg-resize-box',

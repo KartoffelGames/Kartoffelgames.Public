@@ -9,8 +9,6 @@ import template from './kg-select-component.html' with { type: 'text' };
  *
  * Configurable attributes:
  *  - "placeholder": Text shown as a disabled option while no value is selected.
- *
- * Properties:
  *  - "options": Selectable options. Each with a "value" and a "label".
  *  - "value": Currently selected option value. Reading returns it, writing overrides it.
  *

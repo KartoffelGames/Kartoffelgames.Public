@@ -8,6 +8,9 @@ import template from './kg-information-component.html' with { type: 'text' };
  * CSS variables:
  *  - "--information-background-color"
  *  - "--information-icon-color"
+ * 
+ * Slots:
+ *  - default: Information content.
  */
 @PwbComponent({
     selector: 'kg-information',

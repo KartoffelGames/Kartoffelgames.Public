@@ -15,6 +15,9 @@ import template from './kg-button-component.html' with { type: 'text' };
  *  - "--button-text-color"
  *  - "--button-border-color"
  *  - "--button-background-color"
+ * 
+ * Slots:
+ *  - default: Button content.
  */
 @PwbComponent({
     selector: 'kg-button',

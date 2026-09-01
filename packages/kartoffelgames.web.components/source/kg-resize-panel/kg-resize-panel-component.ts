@@ -18,6 +18,9 @@ import template from './kg-resize-panel-component.html' with { type: 'text' };
  *  - "--resize-panel-handle-size"
  *  - "--resize-panel-handle-color"
  *  - "--resize-panel-handle-hover-color"
+ * 
+ * Slots:
+ *  - default: Content inside panel.
  */
 @PwbComponent({
     selector: 'kg-resize-panel',

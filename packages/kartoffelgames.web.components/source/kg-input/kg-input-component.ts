@@ -10,8 +10,6 @@ import template from './kg-input-component.html' with { type: 'text' };
  *  - "type": Native input type (e.g. "text", "number"). Defaults to "text".
  *  - "placeholder": Placeholder text shown while the field is empty.
  *  - "disabled": Disables the field. "true"/"false".
- *
- * Properties:
  *  - "value": Current field value. Reading returns it, writing overrides it.
  *
  * Events:

@@ -33,21 +33,21 @@ export class KgInputComponent {
      */
     @PwbExport()
     @ComponentState.state()
-    private accessor placeholder: string;
+    public accessor placeholder: string;
 
     /**
      * Native input type.
      */
     @PwbExport()
     @ComponentState.state()
-    private accessor type: string;
+    public accessor type: string;
 
     /**
      * Current field value.
      */
     @PwbExport()
     @ComponentState.state()
-    private accessor value: string;
+    public accessor value: string;
 
     /**
      * Disabled state of the field.

@@ -2,14 +2,13 @@
     <div class="panel-content">
         <div class="function-list">
             $for(functionItem of this.documentFunctions) {
-                <div class="function-item {{ this.functionItem.id === this.activeFunctionId ? 'active' : '' }}" (click)="this.selectFunction(this.functionItem)">
-                    <div class="function-item__icon" data-type="{{ this.functionItem.isSystem ? 's' : 'u' }}" title="{{ this.functionItem.isSystem ? 'System' : 'User' }}"/>
+                <kg-list-item class="function-item {{ this.functionItem.isSystem ? 'system' : '' }}" selectable [selected]="this.functionItem.id === this.activeFunctionId" icon="{{ this.functionItem.isSystem ? 'S' : 'U' }}" (click)="this.selectFunction(this.functionItem)">
                     <div class="function-item__name">{{this.functionItem.label}}</div>
 
                     $if(!this.functionItem.isSystem) {
                         <kg-button class="function-item__delete" type="secondary" (click)="this.deleteFunction(this.functionItem)">✕</kg-button>
                     }
-                </div>
+                </kg-list-item>
             }
         </div>
 
@@ -21,10 +20,9 @@
                         <div class="popup__header">Select Function Type</div>
                         $for(functionDefinition of this.userFunctionDefinitions) {
                             <div class="popup__list">
-                                <div class="popup__item" (click)="this.createFunction(this.functionDefinition)">
-                                    <div class="icon">ƒ</div>
+                                <kg-list-item class="popup__item" selectable icon="ƒ" (click)="this.createFunction(this.functionDefinition)">
                                     <div>{{this.functionDefinition.label}}</div>
-                                </div>
+                                </kg-list-item>
                             </div>
                             
                         }

@@ -36,6 +36,10 @@
     }
 
     .selection-popup__results {
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+
         overflow-x: hidden;
         overflow-y: auto;
         padding: 0.3rem;
@@ -46,44 +50,10 @@
     }
 
     .selection-popup__result {
-        --item-color: var(--potatno-color-text);
-
-        display: flex;
-        box-sizing: border-box;
-        width: 100%;
-        padding: 0.3rem 0.5rem;
-        margin: 0 0 0.3rem 0;
-        border-radius: 4px;
-        align-items: center;
-        text-align: left;
+        /* Theme the shared list item. Bar color comes from the entry via the "barcolor" attribute. */
         color: var(--potatno-color-text);
-        cursor: pointer;
-        transition: background-color 0.15s, scale 0.15s;
-
-        transition: scale 0.15s;
-
-        &:hover,
-        &.selected {
-            background-color: var(--potatno-color-background-light);
-        }
-
-        &:active {
-            scale: 0.98;
-        }
-
-        .selection-popup__result-icon {
-            display: flex;
-            align-items: center;
-            padding: 0 0.8rem;
-            width: 1.5ch;
-            height: 1.5rem;
-
-            color: var(--potatno-color-accent);
-            border-left: 0.25rem solid var(--item-color);
-
-            /* That centers a single character at its center line. */
-            line-height: 0;
-        }
+        --list-item-icon-color: var(--potatno-color-accent);
+        --list-item-background-color: var(--potatno-color-background-light);
 
         .selection-popup__result-label {
             flex: 1;

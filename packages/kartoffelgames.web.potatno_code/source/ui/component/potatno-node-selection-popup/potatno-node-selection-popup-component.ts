@@ -1,5 +1,5 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import { KgPopupComponent } from '@kartoffelgames/web-components';
+import { KgListItemComponent, KgPopupComponent } from '@kartoffelgames/web-components';
 import { Component, ComponentState, PwbChild, PwbComponent, PwbComponentEvent, type ComponentEventEmitter, type IComponentOnConnect, type IComponentOnUpdate } from '@kartoffelgames/web-potato-web-builder';
 import { PwbExport } from '../../../../../kartoffelgames.web.potato_web_builder/source/module/export/pwb-export.decorator.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
@@ -18,7 +18,7 @@ import addNodePopupTemplate from './potatno-node-selection-popup-component.html'
     selector: 'potatno-node-selection-popup',
     template: addNodePopupTemplate,
     style: addNodePopupCss,
-    components: [KgPopupComponent]
+    components: [KgPopupComponent, KgListItemComponent]
 })
 export class PotatnoNodeSelectionPopupComponent implements IComponentOnConnect, IComponentOnUpdate {
     public static readonly POPUP_HEIGHT: number = 320;
@@ -155,7 +155,7 @@ export class PotatnoNodeSelectionPopupComponent implements IComponentOnConnect, 
         }
 
         // Look into shadow root to find the selected element and scroll into view.
-        const lSelectedElement = this.mComponent.element.shadowRoot!.querySelector('.selection-popup__result.selected');
+        const lSelectedElement = this.mComponent.element.shadowRoot!.querySelector('.selection-popup__result[selected="true"]');
         if (lSelectedElement) {
             lSelectedElement.scrollIntoView({ block: 'center' });
         }

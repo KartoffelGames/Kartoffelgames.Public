@@ -36,16 +36,15 @@
     <div class="content">
         $if(this.errors.length > 0) {
             $for(error of this.errors) {
-                <div class="error-item">
-                    <div class="error-item__icon">!</div>
+                <kg-list-item class="error-item" icon="!">
                     <div class="error-item__content">
                         <div class="error-item__message">{{this.error.message}}</div>
                         <div class="error-item__location">
-                            <span class="label">{{this.getDocumentItemTypeName(this.error.location)}}: </span> 
+                            <span class="label">{{this.getDocumentItemTypeName(this.error.location)}}: </span>
                             <span class="link" (click)="this.openDocumentItem(this.error.location)">{{this.getDocumentItemLabel(this.error.location)}}</span>
                         </div>
                     </div>
-                </div>
+                </kg-list-item>
             }
         }
 

@@ -31,6 +31,9 @@
 
 .function-list {
     flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
     padding: 0.3rem;
     overflow: hidden auto;
 
@@ -39,65 +42,20 @@
 }
 
 .function-item {
-    display: flex;
-    box-sizing: border-box;
-    width: 100%;
-    padding: 0.3rem 0.5rem;
-    margin: 0 0 0.3rem 0;
-    border-radius: var(--potatno-border-radius);
-    align-items: center;
-    text-align: left;
+    --list-item-icon-color: #008000;
+    --list-item-bar-default-color: color-mix(in srgb, var(--potatno-color-text) 25%, var(--potatno-color-background));
+    --list-item-background-color: var(--potatno-color-background-light);
+
     color: var(--potatno-color-text);
-    cursor: pointer;
-    transition: background-color 0.15s, scale 0.15s;
 
-    &.active,
-    &:active {
-        background-color: var(--potatno-color-background-light);
+    &.system {
+        --list-item-icon-color: #ffd700;
     }
 
-    &:active {
-        scale: 0.98;
-    }
-
-    .function-item__icon {
-        display: flex;
-        align-items: center;
-        width: 1ch;
-        height: 1.5rem;
-        padding: 0 0.8rem 0 0.8rem;
-
-        text-align: center;
-        font-weight: bold;
-
-        /* Border defined to mark selected. */
-        border-left: 0.25rem solid var(--potatno-color-accent);
-        border-color: color-mix(in srgb, var(--potatno-color-text) 25%, var(--potatno-color-background));
-        transition: border-color 0.15s;
-
-        /* Both colors are hardcoded and dont represent any theme */
-        &[data-type=u] {
-            color: #008000;
-        }
-
-        &[data-type=s] {
-            color: #ffd700;
-        }
-
-        /* Add type as text. */
-        &::before {
-            content: attr(data-type);
-            text-transform: uppercase;
-        }
-
-        .function-item:hover &,
-        .function-item:active & {
-            border-color: var(--potatno-color-text);
-        }
-
-        .function-item.active & {
-            border-color: var(--potatno-color-accent);
-        }
+    /* Bar turns accent on interaction and while the function is active. */
+    &:hover,
+    &[selected]:not([selected='false']) {
+        --list-item-bar-default-color: var(--potatno-color-accent);
     }
 
     .function-item__name {
@@ -156,43 +114,14 @@
     }
 
     .popup__item {
-        display: flex;
-        box-sizing: border-box;
-        width: 100%;
-        padding: 0.3rem 0.6rem 0.3rem 0.5rem;
-        margin: 0 0 0.3rem 0;
-        border-radius: 4px;
-        align-items: center;
-        text-align: left;
+        /* Theme the shared list item. */
         color: var(--potatno-color-text);
-        cursor: pointer;
-        transition: background-color 0.15s, scale 0.15s;
-
-        &:hover,
-        &:active {
-            background-color: var(--potatno-color-background-light);
-        }
+        --list-item-icon-color: var(--potatno-color-text);
+        --list-item-bar-default-color: color-mix(in srgb, var(--potatno-color-text) 25%, var(--potatno-color-background));
+        --list-item-background-color: var(--potatno-color-background-light);
 
         &:active {
-            scale: 0.98;
-        }
-
-        .icon {
-            box-sizing: border-box;
-            height: 1.5rem;
-            line-height: 1.5rem;
-
-
-            /* Manually centering shitty function "icon" by offsetting 2px */
-            padding: 0 0.8rem 0 0.8rem;
-
-            /* Border defined to mark selected. */
-            border-left: 0.25rem solid color-mix(in srgb, var(--potatno-color-text) 25%, var(--potatno-color-background));
-            transition: border-color 0.15s;
-
-            .popup__item:active & {
-                border-color: var(--potatno-color-accent);
-            }
+            --list-item-bar-default-color: var(--potatno-color-accent);
         }
     }
 }

@@ -11,9 +11,7 @@ import template from './kg-list-item-component.html' with { type: 'text' };
  *  - "icon": Icon glyph shown between the bar and the content.
  *  - "barcolor": Color of the left bar. Falls back to the "--list-item-bar-color" variable when not set.
  *  - "selectable": Marks the item as selectable (highlight, radius, pointer). "true"/"false".
- *
- * State classes (set from the outside):
- *  - "selected": Shows the selectable highlight permanently.
+ *  - "selected": Shows the selectable highlight permanently. "true"/"false".
  *
  * Slots:
  *  - default: The item content, laid out in a row after the icon.
@@ -62,12 +60,30 @@ export class KgListItemComponent {
     }
 
     /**
+     * Selected state of the item.
+     */
+    @ComponentState.state()
+    private accessor mSelected: boolean;
+
+    /**
+     * Whether the item is rendered as selected. Requires "selectable".
+     * Reading returns the current state, writing overrides it.
+     */
+    @PwbExport()
+    public get selected(): boolean {
+        return this.mSelected;
+    } set selected(pSelected: unknown) {
+        this.mSelected = this.parseBoolean(pSelected);
+    }
+
+    /**
      * Create the list item with its default configuration.
      */
     public constructor() {
         this.icon = '';
         this.barcolor = '';
         this.mSelectable = false;
+        this.mSelected = false;
     }
 
     /**

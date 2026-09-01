@@ -18,6 +18,7 @@
     justify-content: center;
     padding: 0 0.8em;
     color: var(--list-item-icon-color);
+    font-weight: bold;
 
     /* Use icons left border as a destinct colored "bar" */
     border-left: 0.25em solid var(--list-item-bar-color, var(--list-item-bar-default-color));
@@ -42,7 +43,7 @@
 
 :host([selectable]:not([selectable='false']):hover),
 :host([selectable]:not([selectable='false']):active),
-:host([selectable]:not([selectable='false']).selected) {
+:host([selectable]:not([selectable='false'])[selected]:not([selected='false'])) {
     background-color: var(--list-item-background-color);
 }
 

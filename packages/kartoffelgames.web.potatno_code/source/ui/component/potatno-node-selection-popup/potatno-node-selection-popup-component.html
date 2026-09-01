@@ -3,11 +3,10 @@
     <input #searchInput type="text" placeholder="Search nodes..." class="selection-popup__search" [(value)]="this.searchValue" (keydown)="this.onKeyDown($event)" />
     <div class="selection-popup__results">
         $for(entry of this.results) {
-            <div class="selection-popup__result {{this.entry.definition.id === this.selectedDefinitionId ? 'selected' : ''}}" (click)="this.sendSelectedEntry(this.entry.definition.id)" style="--item-color: {{this.entry.color}}" tabindex="-1">
-                <span class="selection-popup__result-icon">{{this.entry.icon}}</span>
+            <kg-list-item class="selection-popup__result" selectable [selected]="this.entry.definition.id === this.selectedDefinitionId" [icon]="this.entry.icon" [barcolor]="this.entry.color" (click)="this.sendSelectedEntry(this.entry.definition.id)" tabindex="-1">
                 <span class="selection-popup__result-label">{{this.entry.label}}</span>
                 <span class="selection-popup__result-category">{{this.entry.category}}</span>
-            </div>
+            </kg-list-item>
         }
         $if(this.results.length === 0) {
             <div class="selection-popup__empty">No matching nodes found.</div>

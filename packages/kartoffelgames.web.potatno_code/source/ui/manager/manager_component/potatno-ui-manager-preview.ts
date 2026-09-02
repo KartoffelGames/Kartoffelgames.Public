@@ -56,7 +56,7 @@ export class PotatnoUiManagerPreview implements IDeconstructable {
 
         // Check for preview element sizes on grid zooms and grid resizes.
         let lDebounceGridTransformChanges: number = 0;
-        this.mManager.subscribe(PotatnoCodeUiManagerChangeType.SpecialGrid | PotatnoCodeUiManagerChangeType.ProgrammResize, () => {
+        this.mManager.subscribe(PotatnoCodeUiManagerChangeType.SpecialGrid, () => {
             globalThis.clearTimeout(lDebounceGridTransformChanges);
             lDebounceGridTransformChanges = globalThis.setTimeout(() => {
                 // Iterate all known drivers.

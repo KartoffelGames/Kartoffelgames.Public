@@ -90,17 +90,6 @@ export class PotatnoUiManagerGrid implements IDeconstructable {
             panY: 0,
             zoom: 1.0
         };
-        
-        // Register a hidden, font-scaled test element on the document root and observe its size.
-        const lFontSizeProbe: HTMLElement = document.createElement('span');
-        lFontSizeProbe.textContent = 'M';
-        lFontSizeProbe.style.display = 'inline-block';
-        lFontSizeProbe.style.position = 'fixed';
-        lFontSizeProbe.style.top = '0';
-        lFontSizeProbe.style.left = '0';
-        lFontSizeProbe.style.visibility = 'hidden';
-        lFontSizeProbe.style.pointerEvents = 'none';
-        document.documentElement.appendChild(lFontSizeProbe);
 
         this.mManager.subscribe(PotatnoCodeUiManagerChangeType.SpecialActiveFunction, () => {
             // Init default positions for a new active function if it has not already.

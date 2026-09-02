@@ -3,9 +3,8 @@ import styles from './kg-list-item-component.css' with { type: 'text' };
 import template from './kg-list-item-component.html' with { type: 'text' };
 
 /**
- * List item component. Shared layout for the potatno-style lists: a full height
- * colored bar, an icon and slotted content. All internal spacing scales with the
- * components font-size, so it fits both rem and pixel environments.
+ * List item component.
+ * Selectable item with small hightlight, icon and user content.
  *
  * Configurable attributes:
  *  - "icon": Icon glyph shown between the bar and the content.
@@ -29,14 +28,14 @@ import template from './kg-list-item-component.html' with { type: 'text' };
 })
 export class KgListItemComponent {
     /**
-     * Icon glyph shown between the bar and the content.
+     * Icon shown between the bar and the content.
      */
     @PwbExport()
     @ComponentState.state()
     public accessor icon: string;
 
     /**
-     * Color of the left bar. Falls back to "--list-item-bar-color" when empty.
+     * Color of the left bar.
      */
     @PwbExport()
     @ComponentState.state()
@@ -50,7 +49,6 @@ export class KgListItemComponent {
 
     /**
      * Whether the item is selectable.
-     * Reading returns the current state, writing overrides it.
      */
     @PwbExport()
     public get selectable(): boolean {
@@ -66,8 +64,8 @@ export class KgListItemComponent {
     private accessor mSelected: boolean;
 
     /**
-     * Whether the item is rendered as selected. Requires "selectable".
-     * Reading returns the current state, writing overrides it.
+     * Whether the item is rendered as selected.
+     * Requires "selectable" also to be true.
      */
     @PwbExport()
     public get selected(): boolean {

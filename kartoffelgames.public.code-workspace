@@ -68,8 +68,5 @@
             "name": "_ROOT",
             "path": "."
         }
-    ],
-    "settings": {
-        "javascript.format.semicolons": "insert"
-    }
+    ]
 }

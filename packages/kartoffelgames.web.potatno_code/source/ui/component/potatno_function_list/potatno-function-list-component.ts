@@ -1,7 +1,6 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import { KgButtonComponent, KgListItemComponent, KgPopupComponent } from '@kartoffelgames/web-components';
+import { KgButtonComponent, KgListItemComponent, KgPopupComponent, KgResizePanelComponent } from '@kartoffelgames/web-components';
 import { ComponentState, PwbComponent, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
-import { KgResizePanelComponent } from "../../../../../kartoffelgames.web.components/source/kg-resize-panel/kg-resize-panel-component.ts";
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoFunctionDefinition } from '../../../project/potatno-function-definition.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';

@@ -58,15 +58,18 @@ export class DragHandlerModule implements IAttributeOnDeconstruct {
             return;
         }
 
+        // Save active state before removing everything altogether in "stopDrag."
+        const lDragState: DragHandlerModuleActiveDrag = this.mActiveDrag;
+
         // Detach listeners before dispatching, so a consumer can start a new drag synchronously.
         this.stopDrag();
 
         // When the listener are attached but the drag was not active, dont dispatch a drag end event.
-        if (!this.mActiveDrag.active) {
+        if (!lDragState.active) {
             return;
         }
 
-        const lStartPosition: DragHandlerPosition = this.mActiveDrag.position.start;
+        const lStartPosition: DragHandlerPosition = lDragState.position.start;
         const lCurrentPosition: DragHandlerPosition = {
             x: pEvent.clientX,
             y: pEvent.clientY
@@ -100,11 +103,8 @@ export class DragHandlerModule implements IAttributeOnDeconstruct {
             // When the activation trashold is reached, dispatch drag start event.
             if (lDistance > DragHandlerModule.ACTIVATION_DISTANCE_TRESHOLD) {
                 // Create a new drag event, both start and current position is set the same.
-                const lStartEvent: DragHandlerEvent = new DragHandlerEvent(DragHandlerEventName.DragStart, this.mActiveDrag.position.start, this.mActiveDrag.position.start, { x: 0, y: 0 });
-                this.mTarget.dispatchEvent(lStartEvent);
-
                 // Stop dragging on default prevented.
-                if (lStartEvent.defaultPrevented) {
+                if (!this.mTarget.dispatchEvent(new DragHandlerEvent(DragHandlerEventName.DragStart, this.mActiveDrag.position.start, this.mActiveDrag.position.start, { x: 0, y: 0 }))) {
                     this.stopDrag();
                     return;
                 }
@@ -120,12 +120,8 @@ export class DragHandlerModule implements IAttributeOnDeconstruct {
             y: lCurrentPosition.y - this.mActiveDrag.position.last.y
         };
 
-        // Announce the move.
-        const lMoveEvent: DragHandlerEvent = new DragHandlerEvent(DragHandlerEventName.DragMove, this.mActiveDrag.position.start, lCurrentPosition, lMoveDistance)
-        this.mTarget.dispatchEvent(lMoveEvent);
-
         // Stop dragging on default prevented.
-        if (lMoveEvent.defaultPrevented) {
+        if (!this.mTarget.dispatchEvent(new DragHandlerEvent(DragHandlerEventName.DragMove, this.mActiveDrag.position.start, lCurrentPosition, lMoveDistance))) {
             this.stopDrag();
             return;
         }
@@ -140,6 +136,11 @@ export class DragHandlerModule implements IAttributeOnDeconstruct {
      * @param pEvent - Pointer down event.
      */
     private startDrag(pEvent: PointerEvent): void {
+        // Prevent any button that is not left mouse.
+        if (pEvent.button !== 0) {
+            return;
+        }
+
         // Only a single drag at a time.
         if (this.mActiveDrag) {
             return;
@@ -231,7 +232,7 @@ export class DragHandlerEvent extends Event {
      * @param pMovedDistance - Distance moved since the last event.
      */
     public constructor(pEventType: DragHandlerEventName, pStartPosition: DragHandlerPosition, pPointerPosition: DragHandlerPosition, pMovedDistance: DragHandlerPosition) {
-        super(pEventType, { bubbles: true });
+        super(pEventType, { bubbles: true, cancelable: true });
 
         this.mStartPosition = pStartPosition;
         this.mPointerPosition = pPointerPosition;

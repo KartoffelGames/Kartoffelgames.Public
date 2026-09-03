@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import { KgResizeBoxComponent, KgResizeBoxComponentResizeDirection, type KgResizeBoxComponentResize } from '@kartoffelgames/web-components';
+import { DragHandlerEvent, DragHandlerModule, KgResizeBoxComponent, KgResizeBoxComponentResizeDirection, type KgResizeBoxComponentResize } from '@kartoffelgames/web-components';
 import { Component, ComponentState, PwbChild, PwbComponent, PwbComponentEvent, PwbExport, type ComponentEventEmitter, type IComponentOnConnect, type IComponentOnDeconstruct, type IComponentOnUpdate } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
@@ -16,7 +16,8 @@ import nodeTemplate from './potatno-comment-node-component.html' with { type: 't
     selector: 'potatno-comment-node',
     template: nodeTemplate,
     style: nodeCss,
-    components: [KgResizeBoxComponent]
+    components: [KgResizeBoxComponent],
+    modules: [DragHandlerModule]
 })
 export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, IComponentOnConnect, IComponentOnUpdate {
     private readonly mComponent: Component;
@@ -154,85 +155,62 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
         });
     }
 
+    public nodeDelete(pEvent: PointerEvent): void {
+        // Prevent deletion in edit mode.
+        if (this.editMode) {
+            return;
+        }
+
+        // Only Right clicks.
+        if (pEvent.button !== 2) {
+            return;
+        }
+
+        pEvent.preventDefault();
+        this.mManager.graph.removeNode(this.nodeData);
+    }
+
     /**
      * Handle pointer down on the resize corners handle.
      *
      * @param pEvent - Pointer event from the resize handle.
      */
-    public dragNodeOrEnableEdit(pEvent: PointerEvent): void {
+    public dragNode(pEvent: DragHandlerEvent): void {
         // Prevent dragging or deletion in edit mode.
         if (this.editMode) {
+            pEvent.preventDefault();
             return;
         }
-
-        pEvent.preventDefault();
-
-        // Right click. Delete node.
-        if (pEvent.button === 2) {
-            this.mManager.graph.removeNode(this.nodeData);
-        }
-
-        // Skip anything that is not a left mouse button.
-        if (pEvent.button !== 0) {
-            return;
-        }
-
-        // Save current coordinate so the current pointer position determinates exactly this coordinate.
-        const lStartingCoordinateX: number = this.nodeData.transformation.x * this.mManager.grid.gridSize;
-        const lStartingCoordinateY: number = this.nodeData.transformation.y * this.mManager.grid.gridSize;
-
-        let lCurrentX: number = this.nodeData.transformation.x;
-        let lCurrentY: number = this.nodeData.transformation.y;
 
         // Scale of any transformed parent: ratio of rendered (actual size) to layout (unscaled) size.
         const lComponentSize: DOMRect = this.mComponent.element.getBoundingClientRect();
         const lScaleX: number = this.mComponent.element.offsetWidth ? lComponentSize.width / this.mComponent.element.offsetWidth : 1;
         const lScaleY: number = this.mComponent.element.offsetHeight ? lComponentSize.height / this.mComponent.element.offsetHeight : 1;
 
-        // Save the starting pointer coordinates to only transform the actual movement.
-        const lStartX = pEvent.clientX;
-        const lStartY = pEvent.clientY;
+        // Divide by scale to convert mouse movement into scale actual drag.
+        const lMovementChangeX: number = (pEvent.pointerPosition.x - pEvent.startPosition.x)/ lScaleX;
+        const lMovementChangeY: number = (pEvent.pointerPosition.y - pEvent.startPosition.y)/ lScaleY;
 
-        // Drag magic listener (●'◡'●)つ━☆・*。
-        const lPointerMoveListener = (pMoveEvent: PointerEvent): void => {
-            pMoveEvent.stopPropagation();
+        // Calculate transformation start.
+        const lStartingCoordinateX: number = this.nodeData.transformation.x * this.mManager.grid.gridSize;
+        const lStartingCoordinateY: number = this.nodeData.transformation.y * this.mManager.grid.gridSize;
 
-            // Divide by scale to convert mouse movement into scale actual drag.
-            const lMovementChangeX: number = (pMoveEvent.clientX - lStartX) / lScaleX;
-            const lMovementChangeY: number = (pMoveEvent.clientY - lStartY) / lScaleY;
+        // Calculate position inside grid. Round to keep movement in "center".
+        const lX: number = Math.round((lStartingCoordinateX + lMovementChangeX)  / this.mManager.grid.gridSize);
+        const lY: number = Math.round((lStartingCoordinateY + lMovementChangeY)  / this.mManager.grid.gridSize);
 
-            // Calculate position inside grid. Round to keep movement in "center".
-            const lX: number = Math.round((lStartingCoordinateX + lMovementChangeX) / this.mManager.grid.gridSize);
-            const lY: number = Math.round((lStartingCoordinateY + lMovementChangeY) / this.mManager.grid.gridSize);
+        // Skip any movement when nothing has changed.
+        if (this.nodeData.transformation.x === lX && this.nodeData.transformation.y === lY) {
+            return;
+        }
 
-            // Skip any movement when nothing has changed.
-            if (lCurrentX === lX && lCurrentY === lY) {
-                return;
-            }
+        // Dispatch drag event.
+        this.mDrag.dispatchEvent(new PotatnoNodeComponentMove(lX - this.nodeData.transformation.x, lY - this.nodeData.transformation.y));
 
-            // And then update node position.
-            this.mManager.graph.transformNode(this.nodeData, (pNode) => {
-                pNode.moveTo(lX, lY);
-            });
-
-            // Dispatch drag event.
-            this.mDrag.dispatchEvent(new PotatnoNodeComponentMove(lX - lCurrentX, lY - lCurrentY));
-
-            // Save new current position.
-            lCurrentX = lX;
-            lCurrentY = lY;
-        };
-
-        // Pointer up listener, cleaning up temporary listener.
-        const lPointerUpListener = (): void => {
-            // Remove temporary mouse move listener.
-            document.removeEventListener('pointermove', lPointerMoveListener);
-            document.removeEventListener('pointerup', lPointerUpListener);
-        };
-
-        // Add temporary mouse move listener.
-        document.addEventListener('pointermove', lPointerMoveListener);
-        document.addEventListener('pointerup', lPointerUpListener);
+        // And then update node position.
+        this.mManager.graph.transformNode(this.nodeData, (pNode) => {
+            pNode.moveTo(lX, lY);
+        });
     }
 
     /**
@@ -292,7 +270,7 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
             const lLastWidth: number = pNode.transformation.width;
             const lLastheight: number = pNode.transformation.height;
 
-            console.log(pResize.width / this.mManager.grid.gridSize, pResize.height / this.mManager.grid.gridSize)
+            console.log(pResize.width / this.mManager.grid.gridSize, pResize.height / this.mManager.grid.gridSize);
 
             // Resize size.
             pNode.resizeTo(pResize.width / this.mManager.grid.gridSize, pResize.height / this.mManager.grid.gridSize);

@@ -177,9 +177,9 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
     }
 
     /**
-     * Handle pointer down on the resize corners handle.
+     * Handles the drag event for moving the node.
      *
-     * @param pEvent - Pointer event from the resize handle.
+     * @param pEvent - Drag event.
      */
     public dragNode(pEvent: DragHandlerEvent): void {
         // Prevent dragging or deletion in edit mode.

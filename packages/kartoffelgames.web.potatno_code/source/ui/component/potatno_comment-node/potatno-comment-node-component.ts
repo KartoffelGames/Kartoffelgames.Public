@@ -155,6 +155,12 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
         });
     }
 
+    /**
+     * Delete node based on a pointer event.
+     * Deletes node only on right button clicks.
+     * 
+     * @param pEvent - Pointer event.
+     */
     public nodeDelete(pEvent: PointerEvent): void {
         // Prevent deletion in edit mode.
         if (this.editMode) {
@@ -187,29 +193,29 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
         const lScaleX: number = this.mComponent.element.offsetWidth ? lComponentSize.width / this.mComponent.element.offsetWidth : 1;
         const lScaleY: number = this.mComponent.element.offsetHeight ? lComponentSize.height / this.mComponent.element.offsetHeight : 1;
 
-        // Divide by scale to convert mouse movement into scale actual drag.
-        const lMovementChangeX: number = (pEvent.pointerPosition.x - pEvent.startPosition.x)/ lScaleX;
-        const lMovementChangeY: number = (pEvent.pointerPosition.y - pEvent.startPosition.y)/ lScaleY;
+        // Calculate grid position change for current pointer position.
+        const lCurrentPositionX: number = Math.round((pEvent.pointerPosition.x / lScaleX) / this.mManager.grid.gridSize);
+        const lCurrentPositionY: number = Math.round((pEvent.pointerPosition.y / lScaleY) / this.mManager.grid.gridSize);
 
-        // Calculate transformation start.
-        const lStartingCoordinateX: number = this.nodeData.transformation.x * this.mManager.grid.gridSize;
-        const lStartingCoordinateY: number = this.nodeData.transformation.y * this.mManager.grid.gridSize;
+        // Calculate grid position of previous pointer position
+        const lLastPositionX: number = Math.round(((pEvent.pointerPosition.x - pEvent.moveDistance.x) / lScaleX) / this.mManager.grid.gridSize);
+        const lLastPositionY: number = Math.round(((pEvent.pointerPosition.y - pEvent.moveDistance.y) / lScaleY) / this.mManager.grid.gridSize);
 
-        // Calculate position inside grid. Round to keep movement in "center".
-        const lX: number = Math.round((lStartingCoordinateX + lMovementChangeX)  / this.mManager.grid.gridSize);
-        const lY: number = Math.round((lStartingCoordinateY + lMovementChangeY)  / this.mManager.grid.gridSize);
+        // Calculate grid position change of current movement.
+        const lPositionChangeX: number = lCurrentPositionX - lLastPositionX;
+        const lPositionChangeY: number = lCurrentPositionY - lLastPositionY;
 
         // Skip any movement when nothing has changed.
-        if (this.nodeData.transformation.x === lX && this.nodeData.transformation.y === lY) {
+        if (lPositionChangeX === 0 && lPositionChangeY === 0) {
             return;
         }
 
         // Dispatch drag event.
-        this.mDrag.dispatchEvent(new PotatnoNodeComponentMove(lX - this.nodeData.transformation.x, lY - this.nodeData.transformation.y));
+        this.mDrag.dispatchEvent(new PotatnoNodeComponentMove(lPositionChangeX, lPositionChangeY));
 
         // And then update node position.
         this.mManager.graph.transformNode(this.nodeData, (pNode) => {
-            pNode.moveTo(lX, lY);
+            pNode.moveTo(this.nodeData.transformation.x + lPositionChangeX, this.nodeData.transformation.y + lPositionChangeY);
         });
     }
 
@@ -269,8 +275,6 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
             // Save size before resizing.
             const lLastWidth: number = pNode.transformation.width;
             const lLastheight: number = pNode.transformation.height;
-
-            console.log(pResize.width / this.mManager.grid.gridSize, pResize.height / this.mManager.grid.gridSize);
 
             // Resize size.
             pNode.resizeTo(pResize.width / this.mManager.grid.gridSize, pResize.height / this.mManager.grid.gridSize);

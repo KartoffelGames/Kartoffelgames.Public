@@ -50,6 +50,12 @@
             pointer-events: stroke;
             cursor: pointer;
         }
+
+        /* Temporary drag wire. */
+        &.temporary {
+            opacity: 0.6;
+            stroke-dasharray: 8 4;
+        }
     }
 }
 

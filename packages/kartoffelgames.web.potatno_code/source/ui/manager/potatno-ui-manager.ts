@@ -274,12 +274,12 @@ export const PotatnoCodeUiManagerChangeType = {
     PortUpdate: 0x20000,
     PortDelete: 0x40000,
 
-    // Specials #F00000
-    Special: 0xF00000,
+    // Specials #FF00000
     SpecialActiveFunction: 0x100000,
     SpecialGrid: 0x200000,
     SpecialValidation: 0x400000,
     SpecialSelectNode: 0x800000,
+    SpecialTemporaryConnection: 0x1000000
 } as const;
 export type PotatnoCodeUiManagerChangeType = typeof PotatnoCodeUiManagerChangeType[keyof typeof PotatnoCodeUiManagerChangeType] | number;
 

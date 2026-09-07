@@ -23,13 +23,21 @@ import type { PotatnoUiManagerConnectionsPath } from '../../manager/manager_comp
 })
 export class PotatnoConnectionLayerComponent implements IComponentOnDeconstruct {
     private readonly mManager: PotatnoUiManager;
-    private readonly mUnsubscribe: () => void;
+    private readonly mTemporaryConnectionDragHandler: (pEvent: DragEvent) => void;
+    private readonly mUnsubscribePersistentUpdate: () => void;
+    private readonly mUnsubscribeTemporaryUpdate: () => void;
 
     /**
      * Current connections.
      */
     @ComponentState.state({ complexValue: true })
     public accessor connections: Map<PotatnoDocumentPort<PotatnoProjectTypesDefinition>, PotatnoConnectionLayerComponentConnection>;
+
+    /**
+     * The single temporary connection, or null when none is rendered.
+     */
+    @ComponentState.state({ complexValue: true })
+    public accessor temporaryConnection: PotatnoConnectionLayerComponentTemporaryConnection | null;
 
     /**
      * Create the connection layer.
@@ -39,10 +47,11 @@ export class PotatnoConnectionLayerComponent implements IComponentOnDeconstruct 
     public constructor(pManager: PotatnoUiManager = Injection.use(PotatnoUiManager)) {
         this.mManager = pManager;
         this.connections = new Map<PotatnoDocumentPort<PotatnoProjectTypesDefinition>, PotatnoConnectionLayerComponentConnection>();
+        this.temporaryConnection = null;
 
         // Debounced svg redraw.
         let lRenderConnectionFrame: number = 0;
-        this.mUnsubscribe = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.SpecialActiveFunction | PotatnoCodeUiManagerChangeType.Node | PotatnoCodeUiManagerChangeType.Connection, () => {
+        this.mUnsubscribePersistentUpdate = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.SpecialActiveFunction | PotatnoCodeUiManagerChangeType.Node | PotatnoCodeUiManagerChangeType.Connection, () => {
             if (lRenderConnectionFrame !== 0) {
                 return;
             }
@@ -52,6 +61,34 @@ export class PotatnoConnectionLayerComponent implements IComponentOnDeconstruct 
                 this.updateConnections();
             });
         });
+
+        // Redraw the temporary connection whenever it changes.
+        this.mUnsubscribeTemporaryUpdate = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.SpecialTemporaryConnection, () => {
+            this.temporaryConnection = this.createTemporaryConnection();
+        });
+
+        // Single document wide drag handler tracking the pointer while a port is dragged.
+        // Uses capture so it still fires while hovering ports that stop propagation because firefox cant fix a 16 year old bug.
+        this.mTemporaryConnectionDragHandler = (pEvent: DragEvent) => {
+            // Only track while a port is dragged.
+            if (!this.mManager.grid.draggedPort.isDragging) {
+                return;
+            }
+
+            // Play the gamble and skip event when the time differs too much.
+            if (performance.now() - pEvent.timeStamp > 100) {
+                return;
+            }
+
+            // Skip when the pointer has not moved into a new grid cell.
+            if (!this.mManager.grid.draggedPort.updatePointer(pEvent.clientX, pEvent.clientY)) {
+                return;
+            }
+
+            // Redraw only the temporary connection with the new pointer position.
+            this.mManager.dispatch(PotatnoCodeUiManagerChangeType.SpecialTemporaryConnection, null);
+        };
+        document.addEventListener('dragover', this.mTemporaryConnectionDragHandler, { capture: true });
     }
 
     /**
@@ -123,7 +160,11 @@ export class PotatnoConnectionLayerComponent implements IComponentOnDeconstruct 
      * Detach the manager subscription and cancel any pending render frame.
      */
     public onDeconstruct(): void {
-        this.mUnsubscribe();
+        this.mUnsubscribePersistentUpdate();
+        this.mUnsubscribeTemporaryUpdate();
+
+        // Remove the global dragover handler.
+        document.removeEventListener('dragover', this.mTemporaryConnectionDragHandler, { capture: true });
     }
 
     /**
@@ -183,6 +224,41 @@ export class PotatnoConnectionLayerComponent implements IComponentOnDeconstruct 
     }
 
     /**
+     * Build the temporary connection from the currently dragged port to the pointer, or null when not dragging.
+     */
+    private createTemporaryConnection(): PotatnoConnectionLayerComponentTemporaryConnection | null {
+        const lDraggedPort = this.mManager.grid.draggedPort;
+
+        // No wire when nothing is dragged.
+        if (!lDraggedPort.isDragging || !Number.isFinite(lDraggedPort.pointerGridPosition.x)) {
+            return null;
+        }
+
+        // Draw from the first dragged port to the pointer.
+        const lStartPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> = lDraggedPort.ports[0];
+
+        // Get port color from type name.
+        const lColor: string = (() => {
+            // Leave blank for flow ports. Templare handles that.
+            if (lStartPort.portType === 'flow') {
+                return '';
+            }
+
+            // Set type color as drawing color. 
+            return this.mManager.generateStringColor(lStartPort.resolvedDataType);
+        })();
+        
+        // Build the path in grid space, same as persistent connections.
+        const lEnd: PotatnoUiManagerGridCoordinate = { x: lDraggedPort.pointerGridPosition.x, y: lDraggedPort.pointerGridPosition.y };
+        const lPath: PotatnoUiManagerConnectionsPath = this.mManager.connections.createTemporaryPath(lStartPort, lEnd);
+
+        return {
+            attributeValue: lPath.attributeValue,
+            color: lColor
+        };
+    }
+
+    /**
      * Render the current graph connections into the SVG layer.
      */
     private updateConnections(): void {
@@ -204,6 +280,11 @@ export class PotatnoConnectionLayerComponent implements IComponentOnDeconstruct 
         }
     }
 }
+
+type PotatnoConnectionLayerComponentTemporaryConnection = {
+    attributeValue: string;
+    color: string;
+};
 
 type PotatnoConnectionLayerComponentConnection = {
     /**

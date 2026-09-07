@@ -304,6 +304,9 @@ export class PotatnoUiManagerGrid implements IDeconstructable {
      */
     public setDraggingPort(pPorts: Array<PotatnoDocumentPort<PotatnoProjectTypesDefinition>>): void {
         this.mDraggedPortInformation = new PotatnoUiManagerGridDraggedPort(this.mManager, pPorts);
+
+        // Redraw the temporary connection, as its start port(s) just changed or got cleared.
+        this.mManager.dispatch(PotatnoCodeUiManagerChangeType.SpecialTemporaryConnection, null);
     }
 
     /**
@@ -347,7 +350,6 @@ export class PotatnoUiManagerGrid implements IDeconstructable {
 export class PotatnoUiManagerGridDraggedPort {
     private readonly mManager: PotatnoUiManager;
     private readonly mPointerGridPosition: PotatnoUiManagerGridCoordinate;
-    private readonly mPortPositions: Map<PotatnoDocumentPort<PotatnoProjectTypesDefinition>, PotatnoUiManagerGridCoordinate>;
     private readonly mPorts: Set<PotatnoDocumentPort<PotatnoProjectTypesDefinition>>;
 
     /**
@@ -358,10 +360,10 @@ export class PotatnoUiManagerGridDraggedPort {
     }
 
     /**
-     * Port positions of dragged ports.
+     * Current pointer position in grid space. Infinite until the pointer moves during a drag.
      */
-    public get portPositions(): ReadonlyMap<PotatnoDocumentPort<PotatnoProjectTypesDefinition>, PotatnoUiManagerGridCoordinate> {
-        return this.mPortPositions;
+    public get pointerGridPosition(): PotatnoUiManagerGridCoordinate {
+        return this.mPointerGridPosition;
     }
 
     /**
@@ -374,33 +376,14 @@ export class PotatnoUiManagerGridDraggedPort {
 
     /**
      * Constructor.
-     * 
+     *
      * @param pManager - Instanced ui manager.
      * @param pPorts - Dragged ports. Empty if nothing is dragged.
-     * @param pPortPosition - Port position in grid space.
      */
     public constructor(pManager: PotatnoUiManager, pPorts: Array<PotatnoDocumentPort<PotatnoProjectTypesDefinition>>) {
         this.mManager = pManager;
         this.mPorts = new Set(pPorts);
         this.mPointerGridPosition = { x: Infinity, y: Infinity };
-
-        // Set default position and override with actual if set.
-        this.mPortPositions = new Map<PotatnoDocumentPort<PotatnoProjectTypesDefinition>, PotatnoUiManagerGridCoordinate>();
-        for (const lPort of pPorts) {
-            // Get port position of dragged port.
-            const lPortPosition = this.mManager.connections.getPortGridPoint(lPort);
-
-            // Adjust port position by offsetting one cell to the right for output ports.
-            // Thats because the svg is left aligned in the input port.
-            if (lPort.direction === 'output') {
-                lPortPosition.x += 1;
-            }
-
-            this.mPortPositions.set(lPort, {
-                x: lPortPosition.x,
-                y: lPortPosition.y
-            });
-        }
     }
 
     /**

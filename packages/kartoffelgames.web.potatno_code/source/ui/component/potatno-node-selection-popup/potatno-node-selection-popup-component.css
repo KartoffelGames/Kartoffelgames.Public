@@ -74,7 +74,7 @@
     }
 
     .selection-popup__empty {
-        padding: 16rem 0.625rem;
+        padding: 1.6rem 0.625rem;
         text-align: center;
         font-size: var(--potatno-font-size-small);
 

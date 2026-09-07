@@ -1,12 +1,11 @@
 import { Exception } from '@kartoffelgames/core';
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import { Component, ComponentState, PwbChild, PwbComponent, PwbComponentEvent, PwbExport, type ComponentEventEmitter, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
+import { Component, ComponentState, PwbComponent, PwbComponentEvent, PwbExport, type ComponentEventEmitter, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import { PotatnoFlowConjunctionNodeDefinition } from '../../../project/node_definition/potatno-flow-conjunction-node-definition.ts';
 import type { PotatnoPortDefinitionType } from '../../../project/potatno-port-definition.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
-import type { PotatnoUiManagerGridCoordinate } from '../../manager/manager_component/potatno-ui-manager-grid.ts';
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, type PotatnoCodeUiManagerUnsubscribe } from '../../manager/potatno-ui-manager.ts';
 import { PotatnoPortHandleComponent } from '../potatno_port_handle/potatno-port-handle-component.ts';
 import nodeCss from './potatno-conjunction-node-component.css' with { type: 'text' };
@@ -26,23 +25,10 @@ import { DragHandlerEvent, DragHandlerModule } from "@kartoffelgames/web-compone
 })
 export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct {
     private readonly mComponent: Component;
-    private readonly mDragPositionEventHandler: PotatnoConjunctionNodeGlobalDragoverHandler;
     private readonly mManager: PotatnoUiManager;
     private mNodeData: PotatnoDocumentNode<PotatnoProjectTypesDefinition> | null;
     private readonly mUnsubscribeNodeChange: PotatnoCodeUiManagerUnsubscribe;
     private readonly mUnsubscribeValidation: PotatnoCodeUiManagerUnsubscribe;
-
-    /**
-     * SVG element that stores the drag wire.
-     */
-    @PwbChild('dragConnection')
-    private accessor mDragConnectionSvg!: SVGSVGElement | null;
-
-    /**
-     *  SVG element used for the temporary drag wire.
-     */
-    @PwbChild('dragPath')
-    private accessor mDragConnectionPath!: SVGPathElement | null;
 
     /**
      * Emitted with the definition the user picked, for the host to insert.
@@ -197,22 +183,6 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
         this.mNodeData = null;
         this.mSelected = false;
 
-        // Create the document wide drag handler, as firefox cant fix a 16 year old bug.
-        this.mDragPositionEventHandler = (pEvent: DragEvent) => {
-            // When nothing is dragged, just stop.
-            if (!this.mManager.grid.draggedPort.isDragging) {
-                return;
-            }
-
-            // Play the gamble and skip event when the time differs too much.
-            if (performance.now() - pEvent.timeStamp > 100) {
-                return;
-            }
-
-            this.renderDragWire(pEvent.clientX, pEvent.clientY);
-        };
-        document.addEventListener('dragover', this.mDragPositionEventHandler, { capture: true });
-
         this.mUnsubscribeNodeChange = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Node, (pItem) => {
             // Only trigger a transformation if its affects the current node data.
             if (pItem.item !== this.mNodeData) {
@@ -272,9 +242,6 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
     public onDeconstruct(): void {
         this.mUnsubscribeNodeChange();
         this.mUnsubscribeValidation();
-
-        // Remove the global dragover handler when the node gets removed.
-        document.removeEventListener('dragover', this.mDragPositionEventHandler, { capture: true });
     }
 
     /**
@@ -287,7 +254,6 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
         pEvent.preventDefault();
 
         // Clear drag state.
-        this.mDragConnectionPath?.removeAttribute('d');
         this.mManager.grid.setDraggingPort([]);
 
         this.mComponent.updater.updateAsync();
@@ -359,22 +325,6 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
     }
 
     /**
-     * Create the temporary connection path for a native drag position.
-     *
-     * @param pClientX - Viewport x coordinate.
-     * @param pClientY - Viewport y coordinate.
-     *
-     * @returns SVG path data in local node coordinates.
-     */
-    private createDragPath(pClientX: number, pClientY: number): string {
-        // Convert viewport coordinates into grid-local coordinates.
-        const lEnd: PotatnoUiManagerGridCoordinate = this.mManager.grid.pixelToGridSpace(pClientX, pClientY);
-
-        // Allways draw from input port, as the svg is left aligned.
-        return this.mManager.connections.createTemporaryPath(this.nodePorts.input, lEnd).attributeValue;
-    }
-
-    /**
      * Check whether any dragged port can be connected to this conjunction node.
      * Also check whether a native drag contains Potatno port data.
      *
@@ -426,41 +376,6 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
         }
 
         return Boolean(pValue);
-    }
-
-    /**
-     * Render or update the temporary drag wire path.
-     *
-     * @param pClientX - Viewport x coordinate.
-     * @param pClientY - Viewport y coordinate.
-     */
-    private renderDragWire(pClientX: number, pClientY: number): void {
-        // Check if something is dragged. As both, the input and output are dragged at the same time, only the input port must be checked.
-        const lInputPort = this.nodePorts.input;
-        if (!this.mManager.grid.draggedPort.hasPort(lInputPort)) {
-            return;
-        }
-
-        // Update dragging pointer position and skip if actual grid position has not changed.
-        if (!this.mManager.grid.draggedPort.updatePointer(pClientX, pClientY)) {
-            return;
-        }
-
-        // Read port position of the current dragged input port. Draw only starts from input port, as the svg is left aligned.
-        const lPortPosition: PotatnoUiManagerGridCoordinate | undefined = this.mManager.grid.draggedPort.portPositions.get(lInputPort);
-        if (!lPortPosition) {
-            return;
-        }
-
-        // Calculate offset to grids [0, 0] point.
-        const lPortX: number = lPortPosition.x * this.mManager.grid.gridSize;
-        const lPortY: number = lPortPosition.y * this.mManager.grid.gridSize;
-
-        // Update svg transformation to meet current grid interaction.
-        this.mDragConnectionSvg?.style.setProperty('transform', `translate(${-lPortX}px, ${-lPortY}px)`);
-
-        // Update drag connection path.
-        this.mDragConnectionPath?.setAttribute('d', this.createDragPath(pClientX, pClientY));
     }
 
     /**
@@ -518,5 +433,3 @@ type PotatnoConjunctionNodePorts = {
     input: PotatnoDocumentPort<PotatnoProjectTypesDefinition>;
     output: PotatnoDocumentPort<PotatnoProjectTypesDefinition>;
 };
-
-type PotatnoConjunctionNodeGlobalDragoverHandler = (pEvent: DragEvent) => void;

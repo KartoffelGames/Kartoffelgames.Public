@@ -5,4 +5,8 @@
             <path class="path path--mouse-target" d="{{this.connection.path.attributeValue}}" (pointerdown)="this.deleteConnection($event, this.connection)" (dblclick)="this.createConjunction($event, this.connection)" xmlns="http://www.w3.org/2000/svg"/>
         </g>
     }
+
+    $if(this.temporaryConnection) {
+        <path class="path temporary" style="{{ this.temporaryConnection.color ? `--path-color: ${this.temporaryConnection.color};` : '' }}" d="{{this.temporaryConnection.attributeValue}}" xmlns="http://www.w3.org/2000/svg"/>
+    }
 </svg>

@@ -101,26 +101,3 @@
         translate: 100% 0;
     }
 }
-
-.port-drag-connection {
-    position: absolute;
-    top: 0;
-    height: 1px;
-    width: 1px;
-    overflow: visible;
-    pointer-events: none;
-
-    /* While dragging should stay above all nodes. */
-    z-index: 200;
-
-    path {
-        fill: none;
-        opacity: 0.6;
-        pointer-events: none;
-        stroke: var(--potatno-port-color);
-        stroke-dasharray: 8 4;
-        stroke-linecap: round;
-        stroke-linejoin: round;
-        stroke-width: 2;
-    }
-}

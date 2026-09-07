@@ -1,10 +1,9 @@
 import { Exception } from '@kartoffelgames/core';
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import { Component, PwbChild, PwbComponent, PwbExport, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
+import { Component, PwbComponent, PwbExport, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import type { PotatnoPortDefinitionDirection } from '../../../project/potatno-port-definition.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
-import type { PotatnoUiManagerGridCoordinate } from '../../manager/manager_component/potatno-ui-manager-grid.ts';
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, type PotatnoCodeUiManagerUnsubscribe } from '../../manager/potatno-ui-manager.ts';
 import { PotatnoPortHandleComponent } from '../potatno_port_handle/potatno-port-handle-component.ts';
 import portCss from './potatno-port-component.css' with { type: 'text' };
@@ -22,22 +21,9 @@ import portTemplate from './potatno-port-component.html' with { type: 'text' };
 })
 export class PotatnoPortComponent implements IComponentOnDeconstruct {
     private readonly mComponent: Component;
-    private readonly mDragPositionEventHandler: PotatnoPortComponentGlobalDragoverHandler;
     private readonly mManager: PotatnoUiManager;
     private mPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null;
     private readonly mUnsubscribeValidation: PotatnoCodeUiManagerUnsubscribe;
-
-    /**
-     * SVG element used for the temporary drag wire.
-     */
-    @PwbChild('dragConnection')
-    public accessor mDragConnectionSvg!: SVGSVGElement | null;
-
-    /**
-     *  SVG element used for the temporary drag wire.
-     */
-    @PwbChild('dragPath')
-    private accessor mDragConnectionPath!: SVGPathElement | null;
 
     /**
      * Whether this port currently has a validation error.
@@ -191,23 +177,6 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
         this.mManager = pManager;
         this.mPort = null;
 
-        // Create the document wide drag handler, as firefox cant fix a 16 year old bug.
-        this.mDragPositionEventHandler = (pEvent: DragEvent) => {
-            // When nothing is dragged, just stop.
-            if (!this.mManager.grid.draggedPort.isDragging) {
-                return;
-            }
-
-            // Play the gamble and skip event when the time differs too much.
-            if (performance.now() - pEvent.timeStamp > 100) {
-                return;
-            }
-
-            // Only draws when the current (this) port is dragged.
-            this.renderDragWire(pEvent.clientX, pEvent.clientY);
-        };
-        document.addEventListener('dragover', this.mDragPositionEventHandler, { capture: true });
-
         // Update component on any connection change.
         this.mUnsubscribeValidation = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Connection | PotatnoCodeUiManagerChangeType.SpecialValidation, () => {
             this.mComponent.updater.updateAsync();
@@ -219,9 +188,6 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
      */
     public onDeconstruct(): void {
         this.mUnsubscribeValidation();
-
-        // Remove the global dragover handler when the port gets removed.
-        document.removeEventListener('dragover', this.mDragPositionEventHandler, { capture: true });
     }
 
     /**
@@ -260,7 +226,6 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
         pEvent.preventDefault();
 
         // Clear drag state.
-        this.mDragConnectionPath?.removeAttribute('d');
         this.mManager.grid.setDraggingPort([]);
 
         this.mComponent.updater.updateAsync();
@@ -342,21 +307,6 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
     }
 
     /**
-     * Create the temporary connection path for a native drag position.
-     *
-     * @param pClientX - Viewport x coordinate.
-     * @param pClientY - Viewport y coordinate.
-     *
-     * @returns SVG path data in local port coordinates.
-     */
-    private createDragPath(pClientX: number, pClientY: number): string {
-        // Convert viewport coordinates into this port's grid-local coordinates.
-        const lEnd: PotatnoUiManagerGridCoordinate = this.mManager.grid.pixelToGridSpace(pClientX, pClientY);
-
-        return this.mManager.connections.createTemporaryPath(this.port, lEnd).attributeValue;
-    }
-
-    /**
      * Check whether the dragged port can be connected too this port.
      * Also check whether a native drag contains Potatno port data.
      * Cant check definition id of stored data transfer as its not allways a drop event.
@@ -379,40 +329,6 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
 
         return false;
     }
-
-    /**
-     * Render or update the temporary drag wire path.
-     *
-     * @param pClientX - Viewport x coordinate.
-     * @param pClientY - Viewport y coordinate.
-     */
-    private renderDragWire(pClientX: number, pClientY: number): void {
-        // Check if something is dragged.
-        if (!this.mManager.grid.draggedPort.hasPort(this.port) || !this.mDragConnectionSvg) {
-            return;
-        }
-
-        // Update dragging pointer position and skip if actual grid position has not changed.
-        if (!this.mManager.grid.draggedPort.updatePointer(pClientX, pClientY)) {
-            return;
-        }
-
-        // Read stored port position of the current dragged port.
-        const lPortPosition: PotatnoUiManagerGridCoordinate | undefined = this.mManager.grid.draggedPort.portPositions.get(this.port);
-        if (!lPortPosition) {
-            return;
-        }
-
-        // Calculate offset to grids [0, 0] point.
-        const lPortX: number = lPortPosition.x * this.mManager.grid.gridSize;
-        const lPortY: number = lPortPosition.y * this.mManager.grid.gridSize;
-
-        // Update svg transformation to meet current grid interaction.
-        this.mDragConnectionSvg.style.setProperty('transform', `translate(${-lPortX}px, ${-lPortY}px)`);
-
-        // Update drag connection path.
-        this.mDragConnectionPath?.setAttribute('d', this.createDragPath(pClientX, pClientY));
-    }
 }
 
 export type PotatnoPortComponentValueDefinition = {
@@ -422,5 +338,3 @@ export type PotatnoPortComponentValueDefinition = {
     value: string;
     totalCount: number;
 };
-
-type PotatnoPortComponentGlobalDragoverHandler = (pEvent: DragEvent) => void;

@@ -76,7 +76,7 @@ export class DragHandlerModule implements IAttributeOnDeconstruct {
         };
 
         // Dispatch end event with nulled move distance.
-        this.mTarget.dispatchEvent(new DragHandlerEvent(DragHandlerEventName.DragEnd, lStartPosition, lCurrentPosition, { x: 0, y: 0 }));
+        this.mTarget.dispatchEvent(new DragHandlerEvent(DragHandlerEventName.DragEnd, lStartPosition, lCurrentPosition, { x: 0, y: 0 }, lDragState.data));
     }
 
     /**
@@ -103,14 +103,17 @@ export class DragHandlerModule implements IAttributeOnDeconstruct {
             // When the activation trashold is reached, dispatch drag start event.
             if (lDistance > DragHandlerModule.ACTIVATION_DISTANCE_TRESHOLD) {
                 // Create a new drag event, both start and current position is set the same.
+                const lDragStartEvent: DragHandlerEvent = new DragHandlerEvent(DragHandlerEventName.DragStart, this.mActiveDrag.position.start, this.mActiveDrag.position.start, { x: 0, y: 0 }, this.mActiveDrag.data);
+
                 // Stop dragging on default prevented.
-                if (!this.mTarget.dispatchEvent(new DragHandlerEvent(DragHandlerEventName.DragStart, this.mActiveDrag.position.start, this.mActiveDrag.position.start, { x: 0, y: 0 }))) {
+                if (!this.mTarget.dispatchEvent(lDragStartEvent)) {
                     this.stopDrag();
                     return;
                 }
 
                 // When the start event isnt prevented, activate the drag.
                 this.mActiveDrag.active = true;
+                this.mActiveDrag.data = lDragStartEvent.getData();
             }
         }
 
@@ -120,14 +123,17 @@ export class DragHandlerModule implements IAttributeOnDeconstruct {
             y: lCurrentPosition.y - this.mActiveDrag.position.last.y
         };
 
+        const lDragEvent: DragHandlerEvent =new DragHandlerEvent(DragHandlerEventName.DragMove, this.mActiveDrag.position.start, lCurrentPosition, lMoveDistance, this.mActiveDrag.data)
+
         // Stop dragging on default prevented.
-        if (!this.mTarget.dispatchEvent(new DragHandlerEvent(DragHandlerEventName.DragMove, this.mActiveDrag.position.start, lCurrentPosition, lMoveDistance))) {
+        if (!this.mTarget.dispatchEvent(lDragEvent)) {
             this.stopDrag();
             return;
         }
 
         // Save the current position as the last position.
         this.mActiveDrag.position.last = lCurrentPosition;
+        this.mActiveDrag.data = lDragEvent.getData();
     }
 
     /**
@@ -160,6 +166,7 @@ export class DragHandlerModule implements IAttributeOnDeconstruct {
         // Save active drag state.
         this.mActiveDrag = {
             active: false,
+            data: null,
             position: {
                 start: lStartPosition,
                 last: lStartPosition,
@@ -198,10 +205,11 @@ export class DragHandlerModule implements IAttributeOnDeconstruct {
  * General drag handler event. Used for all drag handler events.
  */
 export class DragHandlerEvent extends Event {
+    private mData: unknown | null;
     private readonly mPointerPosition: DragHandlerPosition;
     private readonly mStartPosition: DragHandlerPosition;
     private readonly mMovedDistance: DragHandlerPosition;
-
+    
     /**
      * Current pointer position.
      */
@@ -231,12 +239,32 @@ export class DragHandlerEvent extends Event {
      * @param pPointerPosition - Current pointer position.
      * @param pMovedDistance - Distance moved since the last event.
      */
-    public constructor(pEventType: DragHandlerEventName, pStartPosition: DragHandlerPosition, pPointerPosition: DragHandlerPosition, pMovedDistance: DragHandlerPosition) {
+    public constructor(pEventType: DragHandlerEventName, pStartPosition: DragHandlerPosition, pPointerPosition: DragHandlerPosition, pMovedDistance: DragHandlerPosition, pData: unknown | null) {
         super(pEventType, { bubbles: true, cancelable: true });
 
         this.mStartPosition = pStartPosition;
         this.mPointerPosition = pPointerPosition;
         this.mMovedDistance = pMovedDistance;
+        this.mData = pData;
+    }
+
+    /**
+     * Attach data to the current drag.
+     * Data can be read from other drag events.
+     * 
+     * @param pData 
+     */
+    public setData<T>(pData: T): void {
+        this.mData = pData;
+    }
+
+    /**
+     * Get the attached data.
+     * 
+     * @returns the attached data.
+     */
+    public getData<T>(): T | null {
+        return this.mData as T;
     }
 }
 
@@ -255,6 +283,7 @@ type DragHandlerEventName = typeof DragHandlerEventName[keyof typeof DragHandler
 
 type DragHandlerModuleActiveDrag = {
     active: boolean;
+    data: unknown | null;
     position: {
         start: DragHandlerPosition;
         last: DragHandlerPosition;

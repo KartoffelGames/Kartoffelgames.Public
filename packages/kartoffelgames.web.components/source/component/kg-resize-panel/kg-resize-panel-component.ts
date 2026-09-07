@@ -130,8 +130,6 @@ export class KgResizePanelComponent {
      * @param pAllowedMovement - Allowed movement.
      */
     public handleResize(pEvent: DragHandlerEvent, pAllowedMovement: KgResizePanelComponentMovement): void {
-        pEvent.stopPropagation();
-
         // Save current size so the current pointer position determinates exactly this size.
         const lComponentSize: DOMRect = this.mComponentElement.getBoundingClientRect();
 

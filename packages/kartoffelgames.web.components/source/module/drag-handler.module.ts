@@ -90,6 +90,10 @@ export class DragHandlerModule implements IAttributeOnDeconstruct {
             return;
         }
 
+        // Prevent default for any event effect.
+        pEvent.preventDefault();
+        pEvent.stopPropagation();
+
         // Current position.
         const lCurrentPosition: DragHandlerPosition = { x: pEvent.clientX, y: pEvent.clientY };
 
@@ -123,7 +127,7 @@ export class DragHandlerModule implements IAttributeOnDeconstruct {
             y: lCurrentPosition.y - this.mActiveDrag.position.last.y
         };
 
-        const lDragEvent: DragHandlerEvent =new DragHandlerEvent(DragHandlerEventName.DragMove, this.mActiveDrag.position.start, lCurrentPosition, lMoveDistance, this.mActiveDrag.data)
+        const lDragEvent: DragHandlerEvent = new DragHandlerEvent(DragHandlerEventName.DragMove, this.mActiveDrag.position.start, lCurrentPosition, lMoveDistance, this.mActiveDrag.data);
 
         // Stop dragging on default prevented.
         if (!this.mTarget.dispatchEvent(lDragEvent)) {
@@ -209,7 +213,7 @@ export class DragHandlerEvent extends Event {
     private readonly mPointerPosition: DragHandlerPosition;
     private readonly mStartPosition: DragHandlerPosition;
     private readonly mMovedDistance: DragHandlerPosition;
-    
+
     /**
      * Current pointer position.
      */

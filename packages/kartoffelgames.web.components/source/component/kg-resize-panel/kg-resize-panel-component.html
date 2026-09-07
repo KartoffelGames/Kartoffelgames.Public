@@ -1,15 +1,15 @@
 <!-- Four soft edge handles placed next to the panel. Top/bottom resize height, left/right resize width. -->
 $if(this.top) {
-    <div class="resize-handle horizontal top" (pointerdown)="this.resizeHorizontal($event)"></div>
+    <div class="resize-handle horizontal top" drop-handler (drag-move)="this.handleResize($event, 'top')"></div>
 }
 $if(this.right) {
-    <div class="resize-handle vertical right" (pointerdown)="this.resizeVertical($event)"></div>
+    <div class="resize-handle vertical right" drop-handler (drag-move)="this.handleResize($event, 'right')"></div>
 }
 $if(this.bottom) {
-    <div class="resize-handle horizontal bottom" (pointerdown)="this.resizeHorizontal($event)"></div>
+    <div class="resize-handle horizontal bottom" drop-handler (drag-move)="this.handleResize($event, 'bottom')"></div>
 }
 $if(this.left) {
-    <div class="resize-handle vertical left" (pointerdown)="this.resizeVertical($event)"></div>
+    <div class="resize-handle vertical left" drop-handler (drag-move)="this.handleResize($event, 'left')"></div>
 }
 
 <div class="content-container">

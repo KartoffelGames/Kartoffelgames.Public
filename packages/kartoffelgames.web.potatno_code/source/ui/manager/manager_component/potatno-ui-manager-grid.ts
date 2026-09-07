@@ -1,4 +1,4 @@
-import { Exception, IDeconstructable } from '@kartoffelgames/core';
+import { Exception, type IDeconstructable } from '@kartoffelgames/core';
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
@@ -428,11 +428,6 @@ type PotatnoUiManagerGridTransformation = {
     panX: number;
     panY: number;
     zoom: number;
-};
-
-type PotatnoUiManagerGridFontSizeObserver = {
-    element: HTMLElement;
-    observer: ResizeObserver;
 };
 
 export type PotatnoUiManagerGridCoordinate = {

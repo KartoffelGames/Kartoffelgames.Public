@@ -3,7 +3,7 @@ import { KgButtonComponent, KgInputComponent, KgResizeBoxComponent } from '@kart
 import { ComponentState, PwbComponent, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import { PotatnoFunctionDefinitionStatics } from '../../../project/potatno-function-definition.ts';
-import { PotatnoImportDefinition } from "../../../project/potatno-import-definition.ts";
+import type { PotatnoImportDefinition } from '../../../project/potatno-import-definition.ts';
 import type { PotatnoProjectTypeDefinition, PotatnoProjectTypeMapping, PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, type PotatnoCodeUiManagerUnsubscribe } from '../../manager/potatno-ui-manager.ts';
 import templateCss from './potatno-function-properties-component.css' with { type: 'text' };
@@ -22,8 +22,8 @@ export class PotatnoFunctionPropertiesComponent implements IComponentOnDeconstru
     private readonly mManager: PotatnoUiManager;
     private readonly mProjectTypes: Array<PotatnoFunctionPropertiesComponentProjectType>;
     private mSelectedImportId: string;
-    private readonly mUnsubscribeFunctionUpdate: PotatnoCodeUiManagerUnsubscribe;
     private readonly mUnsubscribeFunctionSwitch: PotatnoCodeUiManagerUnsubscribe;
+    private readonly mUnsubscribeFunctionUpdate: PotatnoCodeUiManagerUnsubscribe;
 
     /**
      * Function properties.

@@ -1,4 +1,4 @@
-import { Exception, IDeconstructable } from '@kartoffelgames/core';
+import { Exception, type IDeconstructable } from '@kartoffelgames/core';
 import { PwbApplication } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocument } from './document/potatno-document.ts';
 import applicationCss from './potatno-code-application.css' with { type: 'text' };

@@ -1,4 +1,4 @@
-import { IDeconstructable } from "@kartoffelgames/core";
+import type { IDeconstructable } from '@kartoffelgames/core';
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoDocumentNode, PotatnoDocumentNodeTransformation } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';

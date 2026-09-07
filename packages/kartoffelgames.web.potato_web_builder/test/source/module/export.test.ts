@@ -351,7 +351,7 @@ Deno.test('Export--Functionality: Set for overriden attribute name.', async (pCo
 
         // Process. Create element and click div.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
-        lComponent.value = lTestValue
+        lComponent.value = lTestValue;
 
         // Evaluation.
         expect(lComponent.getAttribute(lTestAttributeName)).toBe(lTestValue);

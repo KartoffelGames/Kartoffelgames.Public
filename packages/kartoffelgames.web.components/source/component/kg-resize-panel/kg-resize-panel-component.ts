@@ -2,7 +2,7 @@ import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { Component, type ComponentEventEmitter, ComponentState, PwbComponent, PwbComponentEvent, PwbExport } from '@kartoffelgames/web-potato-web-builder';
 import styles from './kg-resize-panel-component.css' with { type: 'text' };
 import template from './kg-resize-panel-component.html' with { type: 'text' };
-import { DragHandlerEvent } from "../../module/drag-handler.module.ts";
+import type { DragHandlerEvent } from '../../module/drag-handler.module.ts';
 
 /**
  * User resizeable panel.

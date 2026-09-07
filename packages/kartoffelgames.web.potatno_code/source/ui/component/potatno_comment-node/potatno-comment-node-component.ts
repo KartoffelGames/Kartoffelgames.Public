@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import { DragHandlerEvent, DragHandlerModule, KgResizeBoxComponent, KgResizeBoxComponentResizeDirection, type KgResizeBoxComponentResize } from '@kartoffelgames/web-components';
+import { type DragHandlerEvent, DragHandlerModule, KgResizeBoxComponent, KgResizeBoxComponentResizeDirection, type KgResizeBoxComponentResize } from '@kartoffelgames/web-components';
 import { Component, ComponentState, PwbChild, PwbComponent, PwbComponentEvent, PwbExport, type ComponentEventEmitter, type IComponentOnConnect, type IComponentOnDeconstruct, type IComponentOnUpdate } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
@@ -156,27 +156,6 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
     }
 
     /**
-     * Delete node based on a pointer event.
-     * Deletes node only on right button clicks.
-     * 
-     * @param pEvent - Pointer event.
-     */
-    public nodeDelete(pEvent: PointerEvent): void {
-        // Prevent deletion in edit mode.
-        if (this.editMode) {
-            return;
-        }
-
-        // Only Right clicks.
-        if (pEvent.button !== 2) {
-            return;
-        }
-
-        pEvent.preventDefault();
-        this.mManager.graph.removeNode(this.nodeData);
-    }
-
-    /**
      * Handles the drag event for moving the node.
      *
      * @param pEvent - Drag event.
@@ -231,6 +210,28 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
             this.editMode = false;
         }
     }
+
+    /**
+     * Delete node based on a pointer event.
+     * Deletes node only on right button clicks.
+     * 
+     * @param pEvent - Pointer event.
+     */
+    public nodeDelete(pEvent: PointerEvent): void {
+        // Prevent deletion in edit mode.
+        if (this.editMode) {
+            return;
+        }
+
+        // Only Right clicks.
+        if (pEvent.button !== 2) {
+            return;
+        }
+
+        pEvent.preventDefault();
+        this.mManager.graph.removeNode(this.nodeData);
+    }
+
 
     /**
      * Resync component once the component is connected.

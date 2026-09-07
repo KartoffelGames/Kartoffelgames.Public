@@ -10,7 +10,7 @@ import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, type PotatnoCodeUiMan
 import { PotatnoPortHandleComponent } from '../potatno_port_handle/potatno-port-handle-component.ts';
 import nodeCss from './potatno-conjunction-node-component.css' with { type: 'text' };
 import nodeTemplate from './potatno-conjunction-node-component.html' with { type: 'text' };
-import { DragHandlerEvent, DragHandlerModule } from "@kartoffelgames/web-components";
+import { type DragHandlerEvent, DragHandlerModule } from '@kartoffelgames/web-components';
 
 /**
  * Node conjunction component for the potatno-code visual editor.
@@ -37,11 +37,24 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
     private accessor mDrag!: ComponentEventEmitter<PotatnoNodeComponentMove>;
 
     /**
+     * Selected state of node component.
+     */
+    @ComponentState.state()
+    private accessor mSelected: boolean;
+
+    /**
      * CSS class string for the error state.
      */
     public get inputHasError(): boolean {
         // Node has error or input port has an error.
         return this.mManager.integrity.errorItems.has(this.nodeData) || this.mManager.integrity.errorItems.has(this.nodePorts.input);
+    }
+
+    /**
+     * The sole input port of the conjunction. Used by the port handle.
+     */
+    public get inputPort(): PotatnoDocumentPort<PotatnoProjectTypesDefinition> {
+        return this.nodePorts.input;
     }
 
     /**
@@ -56,20 +69,6 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
      */
     public get isOutputConnected(): boolean {
         return this.nodePorts.output.connectedPorts.size > 0;
-    }
-
-    /**
-     * The sole input port of the conjunction. Used by the port handle.
-     */
-    public get inputPort(): PotatnoDocumentPort<PotatnoProjectTypesDefinition> {
-        return this.nodePorts.input;
-    }
-
-    /**
-     * The sole output port of the conjunction. Used by the port handle.
-     */
-    public get outputPort(): PotatnoDocumentPort<PotatnoProjectTypesDefinition> {
-        return this.nodePorts.output;
     }
 
     /**
@@ -101,6 +100,13 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
     public get outputHasError(): boolean {
         // Node has error or output port has an error.
         return this.mManager.integrity.errorItems.has(this.nodeData) || this.mManager.integrity.errorItems.has(this.nodePorts.output);
+    }
+
+    /**
+     * The sole output port of the conjunction. Used by the port handle.
+     */
+    public get outputPort(): PotatnoDocumentPort<PotatnoProjectTypesDefinition> {
+        return this.nodePorts.output;
     }
 
     /**
@@ -141,6 +147,17 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
     }
 
     /**
+     * Selection state of the button.
+     * Reading returns the current state, writing overrides it.
+     */
+    @PwbExport()
+    public get selected(): boolean {
+        return this.mSelected;
+    } set selected(pSelected: unknown) {
+        this.mSelected = this.parseBoolean(pSelected);
+    }
+
+    /**
      * Get nodes input and output port.
      */
     private get nodePorts(): PotatnoConjunctionNodePorts {
@@ -153,23 +170,6 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
             output: this.nodeData.outputs.list[0],
         };
     }
-
-    /**
-     * Selection state of the button.
-     * Reading returns the current state, writing overrides it.
-     */
-    @PwbExport()
-    public get selected(): boolean {
-        return this.mSelected;
-    } set selected(pSelected: unknown) {
-        this.mSelected = this.parseBoolean(pSelected);
-    }
-
-    /**
-     * Selected state of node component.
-     */
-    @ComponentState.state()
-    private accessor mSelected: boolean;
 
     /**
      * Create the node component.
@@ -234,6 +234,20 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
         this.mManager.graph.transformNode(this.nodeData, (pNode) => {
             pNode.moveTo(this.nodeData.transformation.x + lPositionChangeX, this.nodeData.transformation.y + lPositionChangeY);
         });
+    }
+
+    /**
+     * Remove node on right click.
+     * 
+     * @param pEvent - Pointer event.
+     */
+    public nodeDelete(pEvent: PointerEvent): void {
+        pEvent.preventDefault();
+
+        // Right click. Delete node.
+        if (pEvent.button === 2) {
+            this.mManager.graph.removeNode(this.nodeData);
+        }
     }
 
     /**
@@ -322,20 +336,6 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
 
         // Connect ports to conjunction.
         this.mManager.graph.mergeConnectPorts([...this.nodeData.inputs.list, ...this.nodeData.outputs.list], this.mManager.grid.draggedPort.ports);
-    }
-
-    /**
-     * Remove node on right click.
-     * 
-     * @param pEvent - Pointer event.
-     */
-    public removeNode(pEvent: PointerEvent): void {
-        pEvent.preventDefault();
-
-        // Right click. Delete node.
-        if (pEvent.button === 2) {
-            this.mManager.graph.removeNode(this.nodeData);
-        }
     }
 
     /**

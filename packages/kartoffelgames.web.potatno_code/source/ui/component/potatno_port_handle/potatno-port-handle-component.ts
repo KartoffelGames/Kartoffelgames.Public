@@ -25,8 +25,8 @@ import handleTemplate from './potatno-port-handle-component.html' with { type: '
 })
 export class PotatnoPortHandleComponent implements IComponentOnDeconstruct {
     private readonly mComponent: Component;
-    private readonly mManager: PotatnoUiManager;
     private mConnected: boolean;
+    private readonly mManager: PotatnoUiManager;
     private mPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null;
     private readonly mUnsubscribe: PotatnoCodeUiManagerUnsubscribe;
 

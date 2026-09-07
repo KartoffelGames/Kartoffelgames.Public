@@ -1,4 +1,4 @@
-import { Exception, IDeconstructable } from '@kartoffelgames/core';
+import { Exception, type IDeconstructable } from '@kartoffelgames/core';
 import type { IPotatnoDocumentItem } from '../../../document/i-potatno-document-item.interface.ts';
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';

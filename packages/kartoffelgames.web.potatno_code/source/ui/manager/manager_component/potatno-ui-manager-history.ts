@@ -1,4 +1,4 @@
-import { IDeconstructable } from "@kartoffelgames/core";
+import type { IDeconstructable } from '@kartoffelgames/core';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import { PotatnoDeserializer } from '../../../serialization/potatno-deserializer.ts';
 import type { PotatnoCodeFileSerializationResult } from '../../../serialization/potatno-serialization.type.ts';

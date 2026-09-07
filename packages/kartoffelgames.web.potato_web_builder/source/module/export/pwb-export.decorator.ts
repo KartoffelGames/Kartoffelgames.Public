@@ -1,7 +1,7 @@
-import { ClassMemberDecorator, Exception } from '@kartoffelgames/core';
+import { Exception } from '@kartoffelgames/core';
 import type { ConstructorMetadata } from '@kartoffelgames/core-dependency-injection';
 import { Metadata } from '@kartoffelgames/core-dependency-injection';
-import { ExportExtension, ExportExtensionAttribute } from './export-extension.ts';
+import { ExportExtension, type ExportExtensionAttribute } from './export-extension.ts';
 
 /**
  * AtScript.

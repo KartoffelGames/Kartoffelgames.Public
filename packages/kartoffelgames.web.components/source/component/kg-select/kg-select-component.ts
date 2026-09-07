@@ -119,20 +119,6 @@ export class KgSelectComponent {
     }
 
     /**
-     * Handle the native selects change event.
-     * Reads the new value and re-dispatches it as the components "change" event.
-     *
-     * @param pEvent - Change event from the inner select element.
-     */
-    public onChange(pEvent: Event): void {
-        const lSelectElement: HTMLSelectElement = pEvent.target as HTMLSelectElement;
-
-        // Store and re-emit the new selection.
-        this.mValue = lSelectElement.value;
-        this.mChange.dispatchEvent(this.mValue);
-    }
-
-    /**
      * Get label property of item.
      * 
      * @param pItem - Item object.
@@ -152,6 +138,20 @@ export class KgSelectComponent {
      */
     public itemValue(pItem: unknown): unknown {
         return (<Record<string, unknown>>pItem)[this.mValueMapping.valueKey];
+    }
+
+    /**
+     * Handle the native selects change event.
+     * Reads the new value and re-dispatches it as the components "change" event.
+     *
+     * @param pEvent - Change event from the inner select element.
+     */
+    public onChange(pEvent: Event): void {
+        const lSelectElement: HTMLSelectElement = pEvent.target as HTMLSelectElement;
+
+        // Store and re-emit the new selection.
+        this.mValue = lSelectElement.value;
+        this.mChange.dispatchEvent(this.mValue);
     }
 }
 

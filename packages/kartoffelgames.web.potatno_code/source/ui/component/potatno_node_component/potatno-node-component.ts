@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import { DragHandlerEvent, DragHandlerModule, KgButtonComponent, KgSelectComponent } from "@kartoffelgames/web-components";
+import { type DragHandlerEvent, DragHandlerModule, KgButtonComponent, KgSelectComponent } from '@kartoffelgames/web-components';
 import { Component, ComponentState, PwbComponent, PwbComponentEvent, PwbExport, type ComponentEventEmitter, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
@@ -308,6 +308,20 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
     }
 
     /**
+     * Remove node on right click.
+     * 
+     * @param pEvent - Pointer event.
+     */
+    public nodeDelete(pEvent: PointerEvent): void {
+        pEvent.preventDefault();
+
+        // Right click. Delete node.
+        if (pEvent.button === 2) {
+            this.mManager.graph.removeNode(this.nodeData);
+        }
+    }
+
+    /**
      * Detach the manager subscription.
      */
     public onDeconstruct(): void {
@@ -326,20 +340,6 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
 
         // Set nodes function.
         this.mManager.setActiveFunction(this.mNodeDefinition.function);
-    }
-
-    /**
-     * Remove node on right click.
-     * 
-     * @param pEvent - Pointer event.
-     */
-    public removeNode(pEvent: PointerEvent): void {
-        pEvent.preventDefault();
-
-        // Right click. Delete node.
-        if (pEvent.button === 2) {
-            this.mManager.graph.removeNode(this.nodeData);
-        }
     }
 
     /**

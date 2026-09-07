@@ -210,9 +210,16 @@ export class DragHandlerModule implements IAttributeOnDeconstruct {
  */
 export class DragHandlerEvent extends Event {
     private mData: unknown | null;
+    private readonly mMovedDistance: DragHandlerPosition;
     private readonly mPointerPosition: DragHandlerPosition;
     private readonly mStartPosition: DragHandlerPosition;
-    private readonly mMovedDistance: DragHandlerPosition;
+    
+    /**
+     * Distance moved since the last event.
+     */
+    public get moveDistance(): DragHandlerPosition {
+        return this.mMovedDistance;
+    }
 
     /**
      * Current pointer position.
@@ -226,13 +233,6 @@ export class DragHandlerEvent extends Event {
      */
     public get startPosition(): DragHandlerPosition {
         return this.mStartPosition;
-    }
-
-    /**
-     * Distance moved since the last event.
-     */
-    public get moveDistance(): DragHandlerPosition {
-        return this.mMovedDistance;
     }
 
     /**
@@ -253,6 +253,15 @@ export class DragHandlerEvent extends Event {
     }
 
     /**
+     * Get the attached data.
+     * 
+     * @returns the attached data.
+     */
+    public getData<T>(): T | null {
+        return this.mData as T;
+    }
+
+    /**
      * Attach data to the current drag.
      * Data can be read from other drag events.
      * 
@@ -260,15 +269,6 @@ export class DragHandlerEvent extends Event {
      */
     public setData<T>(pData: T): void {
         this.mData = pData;
-    }
-
-    /**
-     * Get the attached data.
-     * 
-     * @returns the attached data.
-     */
-    public getData<T>(): T | null {
-        return this.mData as T;
     }
 }
 
@@ -278,6 +278,7 @@ export type DragHandlerPosition = {
 };
 
 // Event name enum.
+// eslint-disable-next-line @typescript-eslint/naming-convention
 const DragHandlerEventName = {
     DragStart: 'drag-start',
     DragMove: 'drag-move',

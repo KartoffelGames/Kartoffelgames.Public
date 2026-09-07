@@ -325,6 +325,20 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
     }
 
     /**
+     * Remove node on right click.
+     * 
+     * @param pEvent - Pointer event.
+     */
+    public removeNode(pEvent: PointerEvent): void {
+        pEvent.preventDefault();
+
+        // Right click. Delete node.
+        if (pEvent.button === 2) {
+            this.mManager.graph.removeNode(this.nodeData);
+        }
+    }
+
+    /**
      * Check whether any dragged port can be connected to this conjunction node.
      * Also check whether a native drag contains Potatno port data.
      *

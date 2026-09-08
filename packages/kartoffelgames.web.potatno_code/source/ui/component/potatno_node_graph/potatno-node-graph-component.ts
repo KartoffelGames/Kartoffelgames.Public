@@ -111,24 +111,9 @@ export class PotatnoNodeGraphComponent implements IComponentOnDeconstruct {
         pComponent.element.addEventListener('pointerenter', () => { this.mIsMouseInsideGrid = true; });
         pComponent.element.addEventListener('pointerleave', () => { this.mIsMouseInsideGrid = false; });
 
-        // Implement a drop zone to create conjunction when dragging connections on empty spaces.
-        pComponent.element.addEventListener('dragover', (pEvent) => {
-            // Validate current dragged ports.
-            if (!this.mManager.grid.draggedPort.isDragging) {
-                return;
-            }
-
-            // Allow a drop on this port.
-            pEvent.preventDefault();
-            pEvent.stopPropagation();
-
-            // Update the dragging effect.
-            if (pEvent.dataTransfer) {
-                pEvent.dataTransfer.dropEffect = 'link';
-            }
-        });
-        pComponent.element.addEventListener('drop', (pEvent: MouseEvent) => {
-            // Create a conjunction dropped position.
+        // Implement a drop zone to create conjunction when releasing a port connection on empty space.
+        pComponent.element.addEventListener('pointerup', (pEvent: PointerEvent) => {
+            // Create a conjunction on the released position.
             this.createDroppedConjunction(pEvent);
         });
 
@@ -172,7 +157,7 @@ export class PotatnoNodeGraphComponent implements IComponentOnDeconstruct {
         if (pNodeSelection.port) {
             // Try to find matching new port for connection. 
             const lFoundNewPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | undefined = lNode.inputs.map.get(pNodeSelection.port.target.id) ?? lNode.outputs.map.get(pNodeSelection.port.target.id);
-            if(lFoundNewPort){
+            if (lFoundNewPort) {
                 this.mManager.graph.connectPorts(lFoundNewPort, pNodeSelection.port.source);
             }
         }
@@ -322,19 +307,19 @@ export class PotatnoNodeGraphComponent implements IComponentOnDeconstruct {
     }
 
     /**
-     * Create a new conjunction when a connection is dropped on an empty space.
-     * 
-     * @param pEvent - Drop event.
-     * @returns 
+     * Create a new conjunction when a port connection is released on an empty space.
+     *
+     * @param pEvent - Pointer up event.
      */
-    private createDroppedConjunction(pEvent: MouseEvent): void {
-        if (!this.mManager.grid.draggedPort.isDragging) {
+    private createDroppedConjunction(pEvent: PointerEvent): void {
+        // When the event has a prevented default, it was set by another component because it already used the drop data.
+        if (pEvent.defaultPrevented) {
             return;
         }
 
-        // Connect and consume the drop.
-        pEvent.preventDefault();
-        pEvent.stopPropagation();
+        if (!this.mManager.grid.draggedPort.isDragging) {
+            return;
+        }
 
         // Get current clicked/dragged position and priorize all dragged ports based on this position.
         const lGridClickPosition: PotatnoUiManagerGridCoordinate = this.mManager.grid.pixelToGridSpace(pEvent.clientX, pEvent.clientY);

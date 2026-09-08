@@ -259,80 +259,32 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
     }
 
     /**
-     * Clear native drag state.
-     *
-     * @param pEvent - Drag event.
+     * Clear drag state on drag end.
      */
-    public onDragEnd(pEvent: DragEvent): void {
-        pEvent.stopPropagation();
-        pEvent.preventDefault();
-
-        // Clear drag state.
+    public onDragEnd(): void {
         this.mManager.grid.setDraggingPort([]);
-
-        this.mComponent.updater.updateAsync();
     }
 
     /**
-     * Keep a valid native port drag droppable on the whole node.
-     *
-     * @param pEvent - Drag event.
+     * Set both conjunction ports as the global dragging ports on drag start.
      */
-    public onDragOver(pEvent: DragEvent): void {
-        // Validate current dragged ports.
-        if (!this.draggedPortCanConnect()) {
-            return;
-        }
-
-        // Allow a drop on this node.
-        pEvent.preventDefault();
-        pEvent.stopPropagation();
-
-        // Update the dragging effect.
-        if (pEvent.dataTransfer) {
-            pEvent.dataTransfer.dropEffect = 'link';
-        }
-    }
-
-    /**
-     * Start a native port drag from both ports.
-     *
-     * @param pEvent - Drag event.
-     */
-    public onDragStart(pEvent: DragEvent): void {
-        // Register native drag data. Reuse the port components mime type for interoperability.
-        pEvent.stopPropagation();
-        pEvent.dataTransfer!.effectAllowed = 'link';
-
-        // Hide the native drag ghost.
-        pEvent.dataTransfer!.setDragImage(document.createElement('div'), 0, 0);
-
-        // Set this port as global dragging port information.
+    public onDragStart(): void {
         this.mManager.grid.setDraggingPort([this.nodePorts.input, this.nodePorts.output]);
-
-        // Trigger update.
-        this.mComponent.updater.updateAsync();
     }
 
     /**
-     * Complete a native port drop on this conjunction node.
+     * Complete a port drop on this conjunction node.
      *
-     * @param pEvent - Drag event.
+     * @param pEvent - Pointer up event.
      */
-    public onDrop(pEvent: DragEvent): void {
+    public onDrop(pEvent: PointerEvent): void {
         // Validate current dragged ports.
         if (!this.draggedPortCanConnect()) {
             return;
         }
 
-        // Connect and consume the drop.
+        // Mark event as "handled" to inform components in the chain, that the drop data has been used.
         pEvent.preventDefault();
-        pEvent.stopPropagation();
-
-        // Check if something is dragged.
-        if (!this.mManager.grid.draggedPort.isDragging) {
-            return;
-        }
 
         // Connect ports to conjunction.
         this.mManager.graph.mergeConnectPorts([...this.nodeData.inputs.list, ...this.nodeData.outputs.list], this.mManager.grid.draggedPort.ports);
@@ -340,7 +292,6 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
 
     /**
      * Check whether any dragged port can be connected to this conjunction node.
-     * Also check whether a native drag contains Potatno port data.
      *
      * @returns True when at least one dragged port can be connected.
      */

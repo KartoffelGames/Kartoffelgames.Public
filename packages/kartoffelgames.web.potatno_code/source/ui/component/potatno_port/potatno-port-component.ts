@@ -1,5 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import { Injection } from '@kartoffelgames/core-dependency-injection';
+import { DragHandlerModule } from '@kartoffelgames/web-components';
 import { Component, PwbComponent, PwbExport, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import type { PotatnoPortDefinitionDirection } from '../../../project/potatno-port-definition.ts';
@@ -17,7 +18,8 @@ import portTemplate from './potatno-port-component.html' with { type: 'text' };
     selector: 'potatno-port',
     template: portTemplate,
     style: portCss,
-    components: [PotatnoPortHandleComponent]
+    components: [PotatnoPortHandleComponent],
+    modules: [DragHandlerModule]
 })
 export class PotatnoPortComponent implements IComponentOnDeconstruct {
     private readonly mComponent: Component;
@@ -217,60 +219,19 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
     }
 
     /**
-     * Clear native drag state.
-     *
-     * @param pEvent - Drag event.
+     * Clear drag state on drag end.
      */
-    public onDragEnd(pEvent: DragEvent): void {
-        pEvent.stopPropagation();
-        pEvent.preventDefault();
-
-        // Clear drag state.
+    public onDragEnd(): void {
         this.mManager.grid.setDraggingPort([]);
 
+        // Trigger update to add potential direct values.
         this.mComponent.updater.updateAsync();
     }
 
     /**
-     * Keep a valid native port drag droppable on compatible ports.
-     *
-     * @param pEvent - Drag event.
+     * Set this port as the global dragging port on drag start.
      */
-    public onDragOver(pEvent: DragEvent): void {
-        // Validate current dragged ports.
-        if (!this.draggedPortCanConnect()) {
-            return;
-        }
-
-        // Allow a drop on this port.
-        pEvent.preventDefault();
-        pEvent.stopPropagation();
-
-        // Update the dragging effect.
-        if (pEvent.dataTransfer) {
-            pEvent.dataTransfer.dropEffect = 'link';
-        }
-    }
-
-    /**
-     * Start a native port drag.
-     *
-     * @param pEvent - Drag event.
-     */
-    public onDragStart(pEvent: DragEvent): void {
-        if (!pEvent.dataTransfer) {
-            pEvent.preventDefault();
-            return;
-        }
-
-        // Register native drag data.
-        pEvent.stopPropagation();
-        pEvent.dataTransfer.effectAllowed = 'link';
-
-        // Hide the native drag ghost.
-        pEvent.dataTransfer.setDragImage(document.createElement('div'), 0, 0);
-
-        // Set this port as global draggin port information.
+    public onDragStart(): void {
         this.mManager.grid.setDraggingPort([this.port]);
 
         // Trigger update to remove potential direct values.
@@ -278,28 +239,21 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
     }
 
     /**
-     * Complete a native port drop.
+     * Complete a port drop by connecting each dragged port to this port.
      *
-     * @param pEvent - Drag event.
+     * @param pEvent - Pointer up event.
      */
-    public onDrop(pEvent: DragEvent): void {
-        // Connect and consume the drop.
-        pEvent.preventDefault();
-        pEvent.stopPropagation();
-        
+    public onDrop(pEvent: PointerEvent): void {
         // Validate current dragged ports.
         if (!this.draggedPortCanConnect()) {
             return;
         }
 
-        // Check if something is dragged.
-        if (!this.mManager.grid.draggedPort.isDragging) {
-            return;
-        }
+        // Mark event as "handled" to inform components in the chain, that the drop data has been used.
+        pEvent.preventDefault();
 
         // Throw each dragged port agains the connection. Connections that are not allowed simply return false (ignore the return)
         // In the end only the valid connections are connected. ??? => Profit.
-        // Check each dragged port for valid connectivity. Accept if any is valid.
         for (const lDraggedPort of this.mManager.grid.draggedPort.ports) {
             // Connect ports.
             this.mManager.graph.connectPorts(lDraggedPort, this.port);
@@ -307,9 +261,7 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
     }
 
     /**
-     * Check whether the dragged port can be connected too this port.
-     * Also check whether a native drag contains Potatno port data.
-     * Cant check definition id of stored data transfer as its not allways a drop event.
+     * Check whether the currently dragged port can be connected to this port.
      *
      * @returns True when the ports can be connected.
      */

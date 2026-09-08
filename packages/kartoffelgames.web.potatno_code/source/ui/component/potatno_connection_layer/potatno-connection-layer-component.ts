@@ -7,11 +7,11 @@ import { PotatnoFlowConjunctionNodeDefinition } from '../../../project/node_defi
 import type { PotatnoNodeDefinition } from '../../../project/node_definition/potatno-node-definition.ts';
 import { PotatnoValueConjunctionNodeDefinition } from '../../../project/node_definition/potatno-value-conjunction-node-definition.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
+import type { PotatnoUiManagerConnectionsPath } from '../../manager/manager_component/potatno-ui-manager-connections.ts';
 import type { PotatnoUiManagerGridCoordinate } from '../../manager/manager_component/potatno-ui-manager-grid.ts';
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
 import connectionLayerCss from './potatno-connection-layer-component.css' with { type: 'text' };
 import connectionLayerTemplate from './potatno-connection-layer-component.html' with { type: 'text' };
-import type { PotatnoUiManagerConnectionsPath } from '../../manager/manager_component/potatno-ui-manager-connections.ts';
 
 /**
  * SVG connection layer for the node graph.
@@ -23,7 +23,7 @@ import type { PotatnoUiManagerConnectionsPath } from '../../manager/manager_comp
 })
 export class PotatnoConnectionLayerComponent implements IComponentOnDeconstruct {
     private readonly mManager: PotatnoUiManager;
-    private readonly mTemporaryConnectionDragHandler: (pEvent: DragEvent) => void;
+    private readonly mTemporaryConnectionPointerHandler: (pEvent: PointerEvent) => void;
     private readonly mUnsubscribePersistentUpdate: () => void;
     private readonly mUnsubscribeTemporaryUpdate: () => void;
 
@@ -67,16 +67,10 @@ export class PotatnoConnectionLayerComponent implements IComponentOnDeconstruct 
             this.temporaryConnection = this.createTemporaryConnection();
         });
 
-        // Single document wide drag handler tracking the pointer while a port is dragged.
-        // Uses capture so it still fires while hovering ports that stop propagation because firefox cant fix a 16 year old bug.
-        this.mTemporaryConnectionDragHandler = (pEvent: DragEvent) => {
+        // Track the pointer while a port is dragged to redraw the temporary connection.
+        this.mTemporaryConnectionPointerHandler = (pEvent: PointerEvent) => {
             // Only track while a port is dragged.
             if (!this.mManager.grid.draggedPort.isDragging) {
-                return;
-            }
-
-            // Play the gamble and skip event when the time differs too much.
-            if (performance.now() - pEvent.timeStamp > 100) {
                 return;
             }
 
@@ -88,7 +82,7 @@ export class PotatnoConnectionLayerComponent implements IComponentOnDeconstruct 
             // Redraw only the temporary connection with the new pointer position.
             this.mManager.dispatch(PotatnoCodeUiManagerChangeType.SpecialTemporaryConnection, null);
         };
-        document.addEventListener('dragover', this.mTemporaryConnectionDragHandler, { capture: true });
+        document.addEventListener('pointermove', this.mTemporaryConnectionPointerHandler);
     }
 
     /**
@@ -163,8 +157,8 @@ export class PotatnoConnectionLayerComponent implements IComponentOnDeconstruct 
         this.mUnsubscribePersistentUpdate();
         this.mUnsubscribeTemporaryUpdate();
 
-        // Remove the global dragover handler.
-        document.removeEventListener('dragover', this.mTemporaryConnectionDragHandler, { capture: true });
+        // Remove the pointer handler.
+        document.removeEventListener('pointermove', this.mTemporaryConnectionPointerHandler);
     }
 
     /**

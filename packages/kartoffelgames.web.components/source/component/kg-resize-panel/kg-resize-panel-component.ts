@@ -2,7 +2,7 @@ import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { Component, type ComponentEventEmitter, ComponentState, PwbComponent, PwbComponentEvent, PwbExport } from '@kartoffelgames/web-potato-web-builder';
 import styles from './kg-resize-panel-component.css' with { type: 'text' };
 import template from './kg-resize-panel-component.html' with { type: 'text' };
-import type { DragHandlerEvent } from '../../module/drag-handler.module.ts';
+import type { KgPanModuleEvent } from '../../module/kg-pan.module.ts';
 
 /**
  * User resizeable panel.
@@ -129,7 +129,7 @@ export class KgResizePanelComponent {
      * @param pEvent - The starting pointer down event.
      * @param pAllowedMovement - Allowed movement.
      */
-    public handleResize(pEvent: DragHandlerEvent, pAllowedMovement: KgResizePanelComponentMovement): void {
+    public handleResize(pEvent: KgPanModuleEvent, pAllowedMovement: KgResizePanelComponentMovement): void {
         // Save current size so the current pointer position determinates exactly this size.
         const lComponentSize: DOMRect = this.mComponentElement.getBoundingClientRect();
 

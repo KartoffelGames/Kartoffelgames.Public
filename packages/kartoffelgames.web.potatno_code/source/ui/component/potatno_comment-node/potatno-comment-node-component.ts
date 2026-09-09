@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import { type DragHandlerEvent, DragHandlerModule, KgResizeBoxComponent, KgResizeBoxComponentResizeDirection, type KgResizeBoxComponentResize } from '@kartoffelgames/web-components';
+import { KgPanModule, KgResizeBoxComponent, KgResizeBoxComponentResizeDirection, type KgPanModuleEvent, type KgResizeBoxComponentResize } from '@kartoffelgames/web-components';
 import { Component, ComponentState, PwbChild, PwbComponent, PwbComponentEvent, PwbExport, type ComponentEventEmitter, type IComponentOnConnect, type IComponentOnDeconstruct, type IComponentOnUpdate } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
@@ -17,7 +17,7 @@ import nodeTemplate from './potatno-comment-node-component.html' with { type: 't
     template: nodeTemplate,
     style: nodeCss,
     components: [KgResizeBoxComponent],
-    modules: [DragHandlerModule]
+    modules: [KgPanModule]
 })
 export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, IComponentOnConnect, IComponentOnUpdate {
     private readonly mComponent: Component;
@@ -160,7 +160,7 @@ export class PotatnoCommentNodeComponent implements IComponentOnDeconstruct, ICo
      *
      * @param pEvent - Drag event.
      */
-    public dragNode(pEvent: DragHandlerEvent): void {
+    public dragNode(pEvent: KgPanModuleEvent): void {
         // Prevent dragging or deletion in edit mode.
         if (this.editMode) {
             pEvent.preventDefault();

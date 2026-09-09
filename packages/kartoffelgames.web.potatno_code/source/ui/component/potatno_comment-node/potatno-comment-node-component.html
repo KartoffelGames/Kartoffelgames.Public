@@ -1,6 +1,6 @@
 <!-- Resizeable part of node -->
 <kg-resize-box #ResizeBox class="node {{this.editMode ? 'edit' : ''}} {{this.selected ? 'selected' : ''}}" top right bottom left virtual [snap]="this.gridSize" (resize)="this.transformNodeData($event.value)">
-    <div class="node-header" drop-handler (drag-move)="this.dragNode($event)" (pointerdown)="this.nodeDelete($event)" (dblclick)="this.editMode = true;">
+    <div class="node-header" kg-pannable (kg-pan)="this.dragNode($event)" (pointerdown)="this.nodeDelete($event)" (dblclick)="this.editMode = true;">
         <span class="node-header__bar"></span>
         <span class="node-header__icon">✎</span>
 

@@ -6,5 +6,5 @@ export { KgPopupComponent } from './component/kg-popup/kg-popup-component.ts';
 export { KgResizeBoxComponent, KgResizeBoxComponentResize, KgResizeBoxComponentResizeDirection } from './component/kg-resize-box/kg-resize-box-component.ts';
 export { KgResizePanelComponent, KgResizePanelComponentResize, KgResizePanelComponentResizeDirection } from './component/kg-resize-panel/kg-resize-panel-component.ts';
 export { KgSelectComponent, type KgSelectComponentOption } from './component/kg-select/kg-select-component.ts';
-export { DragHandlerModule, DragHandlerEvent, type DragHandlerPosition } from './module/drag-handler.module.ts';
+export { KgPanModule, KgPanModuleEvent, type KgPanModulePosition } from './module/kg-pan.module.ts';
 export { KgDraggableModule, KgDraggableModuleEvent, type KgDraggableModulePosition } from './module/kg-draggable.module.ts';

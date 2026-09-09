@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import { type DragHandlerEvent, DragHandlerModule, KgButtonComponent, KgSelectComponent } from '@kartoffelgames/web-components';
+import { KgButtonComponent, KgPanModule, KgSelectComponent, type KgPanModuleEvent } from '@kartoffelgames/web-components';
 import { Component, ComponentState, PwbComponent, PwbComponentEvent, PwbExport, type ComponentEventEmitter, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
@@ -23,7 +23,7 @@ import nodeTemplate from './potatno-node-component.html' with { type: 'text' };
     selector: 'potatno-node',
     template: nodeTemplate,
     style: nodeCss,
-    modules: [PotatnoPreviewModule, DragHandlerModule],
+    modules: [PotatnoPreviewModule, KgPanModule],
     components: [PotatnoPortComponent, KgButtonComponent, KgSelectComponent]
 })
 export class PotatnoNodeComponent implements IComponentOnDeconstruct {
@@ -275,7 +275,7 @@ export class PotatnoNodeComponent implements IComponentOnDeconstruct {
      *
      * @param pEvent - Drag event.
      */
-    public dragNode(pEvent: DragHandlerEvent): void {
+    public dragNode(pEvent: KgPanModuleEvent): void {
         // Scale of any transformed parent: ratio of rendered (actual size) to layout (unscaled) size.
         const lComponentSize: DOMRect = this.mComponent.element.getBoundingClientRect();
         const lScaleX: number = this.mComponent.element.offsetWidth ? lComponentSize.width / this.mComponent.element.offsetWidth : 1;

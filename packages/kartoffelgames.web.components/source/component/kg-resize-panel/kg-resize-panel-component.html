@@ -1,15 +1,15 @@
 <!-- Four soft edge handles placed next to the panel. Top/bottom resize height, left/right resize width. -->
 $if(this.top) {
-    <div class="resize-handle horizontal top" drop-handler (drag-move)="this.handleResize($event, 'top')"></div>
+    <div class="resize-handle horizontal top" kg-pannable (kg-pan)="this.handleResize($event, 'top')"></div>
 }
 $if(this.right) {
-    <div class="resize-handle vertical right" drop-handler (drag-move)="this.handleResize($event, 'right')"></div>
+    <div class="resize-handle vertical right" kg-pannable (kg-pan)="this.handleResize($event, 'right')"></div>
 }
 $if(this.bottom) {
-    <div class="resize-handle horizontal bottom" drop-handler (drag-move)="this.handleResize($event, 'bottom')"></div>
+    <div class="resize-handle horizontal bottom" kg-pannable (kg-pan)="this.handleResize($event, 'bottom')"></div>
 }
 $if(this.left) {
-    <div class="resize-handle vertical left" drop-handler (drag-move)="this.handleResize($event, 'left')"></div>
+    <div class="resize-handle vertical left" kg-pannable (kg-pan)="this.handleResize($event, 'left')"></div>
 }
 
 <div class="content-container">

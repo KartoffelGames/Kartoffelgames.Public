@@ -4,7 +4,7 @@
         <potatno-port-handle class="port__handle" [port]="this.inputPort" [connected]="this.isInputConnected" />
     </div>
 
-    <div class="drag-area" drop-handler (drag-move)="this.dragNode($event)" (pointerdown)="this.nodeDelete($event)"/>
+    <div class="drag-area" kg-pannable (kg-pan)="this.dragNode($event)" (pointerdown)="this.nodeDelete($event)"/>
 
     <div class="port output" kg-draggable [title]="this.portValueType" (kg-drag-start)="this.onDragStart($event)">
         <potatno-port-handle class="port__handle" [port]="this.outputPort" [connected]="this.isOutputConnected" />

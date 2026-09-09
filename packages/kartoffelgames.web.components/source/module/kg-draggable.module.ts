@@ -1,6 +1,6 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { AccessMode, type IAttributeOnDeconstruct, ModuleTargetNode, PwbAttributeModule } from '@kartoffelgames/web-potato-web-builder';
-import { Exception } from "@kartoffelgames/core";
+import { Exception } from '@kartoffelgames/core';
 
 /**
  * Attribute that adds drag events to its host.
@@ -19,9 +19,9 @@ export class KgDraggableModule implements IAttributeOnDeconstruct {
     private static readonly ACTIVATION_DISTANCE_TRESHOLD: number = 5;
     private static mActiveDrag: KgDraggableModuleActiveDrag | null = null;
 
+    private mListeners: KgDraggableModuleListeners | null;
     private readonly mPointerDownListener: (pEvent: PointerEvent) => void;
     private readonly mTarget: HTMLElement;
-    private mListeners: KgDraggableModuleListeners | null;
 
     /**
      * Constructor.
@@ -77,9 +77,11 @@ export class KgDraggableModule implements IAttributeOnDeconstruct {
             y: pEvent.clientY
         };
 
-        // Before ending the drag, dispatch a kg-drop event on the dragged element.
-        if(pEvent.target && pEvent.target instanceof Element){
-            pEvent.target.dispatchEvent(new KgDraggableModuleEvent(KgDraggableModuleEventName.Drop, lCurrentPosition, lDragState.data))
+        // Before ending the drag, dispatch a kg-drop event on the hovered element.
+        // Composed path so the elements inside open shadow roots can be retargeted.
+        const lDropTarget: EventTarget = pEvent.composedPath()[0];
+        if (lDropTarget instanceof EventTarget) {
+            lDropTarget.dispatchEvent(new KgDraggableModuleEvent(KgDraggableModuleEventName.Drop, lCurrentPosition, lDragState.data));
         }
 
         // Dispatch end event with nulled move distance.
@@ -114,7 +116,7 @@ export class KgDraggableModule implements IAttributeOnDeconstruct {
             // When the activation trashold is reached, dispatch drag start event.
             if (lDistance > KgDraggableModule.ACTIVATION_DISTANCE_TRESHOLD) {
                 // Create a new drag event, both start and current position is set the same.
-                const lDragStartEvent: KgDraggableModuleEvent = new KgDraggableModuleEvent(KgDraggableModuleEventName.DragStart, KgDraggableModule.mActiveDrag.startPosition, KgDraggableModule.mActiveDrag);
+                const lDragStartEvent: KgDraggableModuleEvent = new KgDraggableModuleEvent(KgDraggableModuleEventName.DragStart, KgDraggableModule.mActiveDrag.startPosition, KgDraggableModule.mActiveDrag.data);
 
                 // Stop dragging on default prevented.
                 if (!this.mTarget.dispatchEvent(lDragStartEvent)) {
@@ -137,8 +139,10 @@ export class KgDraggableModule implements IAttributeOnDeconstruct {
         }
 
         // Also trigger the same event on hovered items.
-        if(pEvent.target && pEvent.target instanceof Element){
-            pEvent.target.dispatchEvent(lDragEvent)
+        // Composed path so the elements inside open shadow roots can be retargeted.
+        const lHoverTarget: EventTarget = pEvent.composedPath()[0];
+        if (lHoverTarget instanceof EventTarget) {
+            lHoverTarget.dispatchEvent(lDragEvent);
         }
     }
 
@@ -226,7 +230,7 @@ export class KgDraggableModuleEvent extends Event {
      * @param pMovedDistance - Distance moved since the last event.
      */
     public constructor(pEventType: KgDraggableModuleEventName, pPointerPosition: KgDraggableModulePosition, pData: unknown | null) {
-        super(pEventType, { bubbles: true, cancelable: true });
+        super(pEventType, { bubbles: true, cancelable: true, composed: true });
 
         this.mPointerPosition = pPointerPosition;
         this.mData = pData;

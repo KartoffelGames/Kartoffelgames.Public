@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import { DragHandlerModule } from '@kartoffelgames/web-components';
+import { KgDraggableModule, type KgDraggableModuleEvent } from '@kartoffelgames/web-components';
 import { Component, PwbComponent, PwbExport, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import type { PotatnoPortDefinitionDirection } from '../../../project/potatno-port-definition.ts';
@@ -19,7 +19,7 @@ import portTemplate from './potatno-port-component.html' with { type: 'text' };
     template: portTemplate,
     style: portCss,
     components: [PotatnoPortHandleComponent],
-    modules: [DragHandlerModule]
+    modules: [KgDraggableModule]
 })
 export class PotatnoPortComponent implements IComponentOnDeconstruct {
     private readonly mComponent: Component;
@@ -229,9 +229,15 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
     }
 
     /**
-     * Set this port as the global dragging port on drag start.
+     * Share this port as the dragged data and set it as the global dragging port on drag start.
+     *
+     * @param pEvent - Drag start event.
      */
-    public onDragStart(): void {
+    public onDragStart(pEvent: KgDraggableModuleEvent): void {
+        // Share the dragged port with drop targets.
+        pEvent.setData<Array<PotatnoDocumentPort<PotatnoProjectTypesDefinition>>>([this.port]);
+
+        // Keep the global dragging state for the temporary wire and value input hiding.
         this.mManager.grid.setDraggingPort([this.port]);
 
         // Trigger update to remove potential direct values.
@@ -241,11 +247,17 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
     /**
      * Complete a port drop by connecting each dragged port to this port.
      *
-     * @param pEvent - Pointer up event.
+     * @param pEvent - Drop event.
      */
-    public onDrop(pEvent: PointerEvent): void {
-        // Validate current dragged ports.
-        if (!this.draggedPortCanConnect()) {
+    public onDrop(pEvent: KgDraggableModuleEvent): void {
+        // Read the dragged ports shared by the drag source.
+        const lDraggedPorts: Array<PotatnoDocumentPort<PotatnoProjectTypesDefinition>> | null = pEvent.getData();
+        if (!lDraggedPorts) {
+            return;
+        }
+
+        // Validate the dragged ports. Let the grid handle the release when nothing connects.
+        if (!this.draggedPortCanConnect(lDraggedPorts)) {
             return;
         }
 
@@ -254,25 +266,22 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
 
         // Throw each dragged port agains the connection. Connections that are not allowed simply return false (ignore the return)
         // In the end only the valid connections are connected. ??? => Profit.
-        for (const lDraggedPort of this.mManager.grid.draggedPort.ports) {
+        for (const lDraggedPort of lDraggedPorts) {
             // Connect ports.
             this.mManager.graph.connectPorts(lDraggedPort, this.port);
         }
     }
 
     /**
-     * Check whether the currently dragged port can be connected to this port.
+     * Check whether any of the dragged ports can be connected to this port.
+     *
+     * @param pDraggedPorts - Currently dragged ports.
      *
      * @returns True when the ports can be connected.
      */
-    private draggedPortCanConnect(): boolean {
-        // Check if something is dragged.
-        if (!this.mManager.grid.draggedPort.isDragging) {
-            return false;
-        }
-
+    private draggedPortCanConnect(pDraggedPorts: Array<PotatnoDocumentPort<PotatnoProjectTypesDefinition>>): boolean {
         // Check each dragged port for valid connectivity. Accept if any is valid.
-        for (const lDraggedPort of this.mManager.grid.draggedPort.ports) {
+        for (const lDraggedPort of pDraggedPorts) {
             // Not same port, opposing direction and must have the same port type. (For a connection, the value type does not matter).
             if (lDraggedPort !== this.port && lDraggedPort.direction !== this.port.direction && lDraggedPort.portType === this.port.portType) {
                 return true;

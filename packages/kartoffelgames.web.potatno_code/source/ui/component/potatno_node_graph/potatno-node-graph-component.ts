@@ -1,5 +1,6 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { Component, ComponentState, PwbComponent, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
+import type { KgDraggableModuleEvent } from '@kartoffelgames/web-components';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import { PotatnoCommentNodeDefinition } from '../../../project/node_definition/potatno-comment-node-definition.ts';
@@ -112,9 +113,9 @@ export class PotatnoNodeGraphComponent implements IComponentOnDeconstruct {
         pComponent.element.addEventListener('pointerleave', () => { this.mIsMouseInsideGrid = false; });
 
         // Implement a drop zone to create conjunction when releasing a port connection on empty space.
-        pComponent.element.addEventListener('pointerup', (pEvent: PointerEvent) => {
+        pComponent.element.addEventListener('kg-drop', (pEvent) => {
             // Create a conjunction on the released position.
-            this.createDroppedConjunction(pEvent);
+            this.createDroppedConjunction(pEvent as KgDraggableModuleEvent);
         });
 
         this.mKeyboardHandler = (pEvent: KeyboardEvent) => {
@@ -309,23 +310,25 @@ export class PotatnoNodeGraphComponent implements IComponentOnDeconstruct {
     /**
      * Create a new conjunction when a port connection is released on an empty space.
      *
-     * @param pEvent - Pointer up event.
+     * @param pEvent - Drop event.
      */
-    private createDroppedConjunction(pEvent: PointerEvent): void {
+    private createDroppedConjunction(pEvent: KgDraggableModuleEvent): void {
         // When the event has a prevented default, it was set by another component because it already used the drop data.
         if (pEvent.defaultPrevented) {
             return;
         }
 
-        if (!this.mManager.grid.draggedPort.isDragging) {
+        // Read the dragged ports shared by the drag source.
+        const lDraggedPorts: Array<PotatnoDocumentPort<PotatnoProjectTypesDefinition>> | null = pEvent.getData();
+        if (!lDraggedPorts || lDraggedPorts.length === 0) {
             return;
         }
 
-        // Get current clicked/dragged position and priorize all dragged ports based on this position.
-        const lGridClickPosition: PotatnoUiManagerGridCoordinate = this.mManager.grid.pixelToGridSpace(pEvent.clientX, pEvent.clientY);
-        const lDragginPorts: Array<PotatnoDocumentPort<PotatnoProjectTypesDefinition>> = this.mManager.graph.priorizePorts(lGridClickPosition, this.mManager.grid.draggedPort.ports);
+        // Get current released position and priorize all dragged ports based on this position.
+        const lGridClickPosition: PotatnoUiManagerGridCoordinate = this.mManager.grid.pixelToGridSpace(pEvent.pointerPosition.x, pEvent.pointerPosition.y);
+        const lDragginPorts: Array<PotatnoDocumentPort<PotatnoProjectTypesDefinition>> = this.mManager.graph.priorizePorts(lGridClickPosition, lDraggedPorts);
 
-        this.openPopupAtPosition(pEvent.clientX, pEvent.clientY, lDragginPorts[0]);
+        this.openPopupAtPosition(pEvent.pointerPosition.x, pEvent.pointerPosition.y, lDragginPorts[0]);
     }
 
     /**

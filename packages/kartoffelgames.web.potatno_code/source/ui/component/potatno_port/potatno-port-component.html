@@ -1,7 +1,7 @@
-<div class="port-wrapper {{this.portDirection}}" style="--type-color: {{this.portColor}}" (pointerup)="this.onDrop($event)">
+<div class="port-wrapper {{this.portDirection}}" style="--type-color: {{this.portColor}}" (kg-drop)="this.onDrop($event)">
 
     <!-- Actual port handle. -->
-    <div class="port" drop-handler [title]="this.portValueType" (drag-start)="this.onDragStart()" (drag-end)="this.onDragEnd()">
+    <div class="port" kg-draggable [title]="this.portValueType" (kg-drag-start)="this.onDragStart($event)" (kg-drag-end)="this.onDragEnd()">
         <div class="port__handle">
             <potatno-port-handle [port]="this.port" [connected]="this.isConnected" />
         </div>

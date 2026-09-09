@@ -1,12 +1,12 @@
-<div class="node {{this.selected ? 'selected' : ''}}" style="--type-color: {{this.portColor}}" (pointerup)="this.onDrop($event)">
+<div class="node {{this.selected ? 'selected' : ''}}" style="--type-color: {{this.portColor}}" (kg-drop)="this.onDrop($event)">
 
-    <div class="port input" drop-handler [title]="this.portValueType" (drag-start)="this.onDragStart()" (drag-end)="this.onDragEnd()">
+    <div class="port input" kg-draggable [title]="this.portValueType" (kg-drag-start)="this.onDragStart($event)" (kg-drag-end)="this.onDragEnd()">
         <potatno-port-handle class="port__handle" [port]="this.inputPort" [connected]="this.isInputConnected" />
     </div>
 
     <div class="drag-area" drop-handler (drag-move)="this.dragNode($event)" (pointerdown)="this.nodeDelete($event)"/>
 
-    <div class="port output" drop-handler [title]="this.portValueType" (drag-start)="this.onDragStart()" (drag-end)="this.onDragEnd()">
+    <div class="port output" kg-draggable [title]="this.portValueType" (kg-drag-start)="this.onDragStart($event)" (kg-drag-end)="this.onDragEnd()">
         <potatno-port-handle class="port__handle" [port]="this.outputPort" [connected]="this.isOutputConnected" />
     </div>
 

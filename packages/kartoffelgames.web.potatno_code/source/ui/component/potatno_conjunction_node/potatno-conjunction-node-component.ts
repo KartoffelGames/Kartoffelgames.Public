@@ -10,7 +10,7 @@ import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, type PotatnoCodeUiMan
 import { PotatnoPortHandleComponent } from '../potatno_port_handle/potatno-port-handle-component.ts';
 import nodeCss from './potatno-conjunction-node-component.css' with { type: 'text' };
 import nodeTemplate from './potatno-conjunction-node-component.html' with { type: 'text' };
-import { type DragHandlerEvent, DragHandlerModule } from '@kartoffelgames/web-components';
+import { type DragHandlerEvent, DragHandlerModule, KgDraggableModule, type KgDraggableModuleEvent } from '@kartoffelgames/web-components';
 
 /**
  * Node conjunction component for the potatno-code visual editor.
@@ -21,7 +21,7 @@ import { type DragHandlerEvent, DragHandlerModule } from '@kartoffelgames/web-co
     template: nodeTemplate,
     style: nodeCss,
     components: [PotatnoPortHandleComponent],
-    modules: [DragHandlerModule]
+    modules: [DragHandlerModule, KgDraggableModule]
 })
 export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct {
     private readonly mComponent: Component;
@@ -266,20 +266,32 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
     }
 
     /**
-     * Set both conjunction ports as the global dragging ports on drag start.
+     * Share both conjunction ports as the dragged data and set them as the global dragging ports on drag start.
+     *
+     * @param pEvent - Drag start event.
      */
-    public onDragStart(): void {
+    public onDragStart(pEvent: KgDraggableModuleEvent): void {
+        // Share the dragged ports with drop targets.
+        pEvent.setData<Array<PotatnoDocumentPort<PotatnoProjectTypesDefinition>>>([this.nodePorts.input, this.nodePorts.output]);
+
+        // Keep the global dragging state for the temporary wire.
         this.mManager.grid.setDraggingPort([this.nodePorts.input, this.nodePorts.output]);
     }
 
     /**
      * Complete a port drop on this conjunction node.
      *
-     * @param pEvent - Pointer up event.
+     * @param pEvent - Drop event.
      */
-    public onDrop(pEvent: PointerEvent): void {
-        // Validate current dragged ports.
-        if (!this.draggedPortCanConnect()) {
+    public onDrop(pEvent: KgDraggableModuleEvent): void {
+        // Read the dragged ports shared by the drag source.
+        const lDraggedPorts: Array<PotatnoDocumentPort<PotatnoProjectTypesDefinition>> | null = pEvent.getData();
+        if (!lDraggedPorts) {
+            return;
+        }
+
+        // Validate the dragged ports. Let the grid handle the release when nothing connects.
+        if (!this.draggedPortCanConnect(lDraggedPorts)) {
             return;
         }
 
@@ -287,26 +299,23 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
         pEvent.preventDefault();
 
         // Connect ports to conjunction.
-        this.mManager.graph.mergeConnectPorts([...this.nodeData.inputs.list, ...this.nodeData.outputs.list], this.mManager.grid.draggedPort.ports);
+        this.mManager.graph.mergeConnectPorts([...this.nodeData.inputs.list, ...this.nodeData.outputs.list], lDraggedPorts);
     }
 
     /**
-     * Check whether any dragged port can be connected to this conjunction node.
+     * Check whether any of the dragged ports can be connected to this conjunction node.
+     *
+     * @param pDraggedPorts - Currently dragged ports.
      *
      * @returns True when at least one dragged port can be connected.
      */
-    private draggedPortCanConnect(): boolean {
-        // Check if something is dragged.
-        if (!this.mManager.grid.draggedPort.isDragging) {
-            return false;
-        }
-
+    private draggedPortCanConnect(pDraggedPorts: Array<PotatnoDocumentPort<PotatnoProjectTypesDefinition>>): boolean {
         // Read sole input and output into a list.
         const lPorts: PotatnoConjunctionNodePorts = this.nodePorts;
         const lPortList: Array<PotatnoDocumentPort<PotatnoProjectTypesDefinition>> = [lPorts.input, lPorts.output];
 
         // Accept when any dragged port has a valid inner target port.
-        for (const lDraggedPort of this.mManager.grid.draggedPort.ports) {
+        for (const lDraggedPort of pDraggedPorts) {
             for (const lTargetPort of lPortList) {
                 // Not same port, opposing direction and must have the same port type. (For a connection, the value type does not matter).
                 if (lDraggedPort !== lTargetPort && lDraggedPort.direction !== lTargetPort.direction && lDraggedPort.portType === lTargetPort.portType) {

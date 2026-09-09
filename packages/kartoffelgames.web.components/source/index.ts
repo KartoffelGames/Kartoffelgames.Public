@@ -7,3 +7,4 @@ export { KgResizeBoxComponent, KgResizeBoxComponentResize, KgResizeBoxComponentR
 export { KgResizePanelComponent, KgResizePanelComponentResize, KgResizePanelComponentResizeDirection } from './component/kg-resize-panel/kg-resize-panel-component.ts';
 export { KgSelectComponent, type KgSelectComponentOption } from './component/kg-select/kg-select-component.ts';
 export { DragHandlerModule, DragHandlerEvent, type DragHandlerPosition } from './module/drag-handler.module.ts';
+export { KgDraggableModule, KgDraggableModuleEvent, type KgDraggableModulePosition } from './module/kg-draggable.module.ts';

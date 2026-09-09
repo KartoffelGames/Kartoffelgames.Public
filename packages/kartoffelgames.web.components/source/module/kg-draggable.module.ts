@@ -8,7 +8,7 @@ import { Exception } from '@kartoffelgames/core';
  * All events dispatches a {@link KgDraggableModuleEvent}:
  *  - "kg-drag-start" ({@link KgDraggableModuleEvent}): pointer went down. Cancelable, call preventDefault() to abort the drag before it begins.
  *  - "kg-drag-end" ({@link KgDraggableModuleEvent}): pointer was released or the drag was canceled.
- *  - "kg-dragging" ({@link KgDraggableModuleEvent}): pointer moved while dragging. Also triggered on any element that are hovered.
+ *  - "kg-drag-move" ({@link KgDraggableModuleEvent}): pointer moved while dragging. Also triggered on any element that are hovered.
  *  - "kg-drop" ({@link KgDraggableModuleEvent}): on drag end triggered on a target element that is currently hovered.
  */
 @PwbAttributeModule({
@@ -270,7 +270,7 @@ export type KgDraggableModulePosition = {
 // eslint-disable-next-line @typescript-eslint/naming-convention
 const KgDraggableModuleEventName = {
     DragStart: 'kg-drag-start',
-    DragMove: 'kg-dragging',
+    DragMove: 'kg-drag-move',
     DragEnd: 'kg-drag-end',
     Drop: 'kg-drop'
 } as const;
@@ -286,3 +286,15 @@ type KgDraggableModuleListeners = {
     move: (pEvent: PointerEvent) => void;
     end: (pEvent: PointerEvent) => void;
 };
+
+// Add event names as global.
+declare global {
+    /* eslint-disable @typescript-eslint/naming-convention */
+    interface ElementEventMap {
+        'kg-drag-start': KgDraggableModuleEvent;
+        'kg-drag-move': KgDraggableModuleEvent;
+        'kg-drag-end': KgDraggableModuleEvent;
+        'kg-drop': KgDraggableModuleEvent;
+    }
+    /* eslint-enable @typescript-eslint/naming-convention */
+}

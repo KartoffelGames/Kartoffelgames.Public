@@ -115,7 +115,7 @@ export class PotatnoNodeGraphComponent implements IComponentOnDeconstruct {
         // Implement a drop zone to create conjunction when releasing a port connection on empty space.
         pComponent.element.addEventListener('kg-drop', (pEvent) => {
             // Create a conjunction on the released position.
-            this.createDroppedConjunction(pEvent as KgDraggableModuleEvent);
+            this.createDroppedConjunction(pEvent);
         });
 
         this.mKeyboardHandler = (pEvent: KeyboardEvent) => {

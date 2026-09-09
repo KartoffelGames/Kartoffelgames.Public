@@ -1,4 +1,5 @@
 import { Exception, type IDeconstructable } from '@kartoffelgames/core';
+import type { KgDraggableModuleEvent, KgDraggableModulePosition } from '@kartoffelgames/web-components';
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
@@ -14,6 +15,7 @@ export class PotatnoUiManagerGrid implements IDeconstructable {
     private static readonly MAX_ZOOM: number = 5.0;
     private static readonly MIN_ZOOM: number = 0.1;
 
+    private readonly mDragListener: PotatnoUiManagerGridDragListener;
     private mDraggedPortInformation: PotatnoUiManagerGridDraggedPort;
     private mGridElement: Element | null;
     private readonly mGridPositions: WeakMap<PotatnoDocumentFunction<PotatnoProjectTypesDefinition>, PotatnoUiManagerGridTransformation>;
@@ -30,10 +32,22 @@ export class PotatnoUiManagerGrid implements IDeconstructable {
 
     /**
      * Set only grid element.
-     * Used to position by pixel space.
+     * Used to position by pixel space and to receive port drag events.
      */
     public set gridElement(pGridElement: Element) {
+        // Detach the drag listeners from a previously set element.
+        if (this.mGridElement) {
+            this.mGridElement.removeEventListener('kg-drag-start', this.mDragListener.start);
+            this.mGridElement.removeEventListener('kg-drag-move', this.mDragListener.move);
+            this.mGridElement.removeEventListener('kg-drag-end', this.mDragListener.end);
+        }
+
         this.mGridElement = pGridElement;
+
+        // Maintain the dragged port state from the drag events bubbling up from draggable ports.
+        pGridElement.addEventListener('kg-drag-start', this.mDragListener.start);
+        pGridElement.addEventListener('kg-drag-move', this.mDragListener.move);
+        pGridElement.addEventListener('kg-drag-end', this.mDragListener.end);
     }
 
     /**
@@ -84,6 +98,36 @@ export class PotatnoUiManagerGrid implements IDeconstructable {
         this.mGridPositions = new WeakMap<PotatnoDocumentFunction<PotatnoProjectTypesDefinition>, PotatnoUiManagerGridTransformation>();
         this.mSelectedNodes = new Set<PotatnoDocumentNode<PotatnoProjectTypesDefinition>>();
 
+        // Drag listeners maintaining the dragged port state from port drag events.
+        this.mDragListener = {
+            // Store the ports shared by a starting port drag.
+            start: (pEvent: KgDraggableModuleEvent): void => {
+                const lPorts: Array<PotatnoDocumentPort<PotatnoProjectTypesDefinition>> | null = pEvent.getData();
+                this.setDraggedPort(lPorts ?? []);
+            },
+
+            // Track the pointer while a port is dragged to redraw the temporary connection.
+            move: (pEvent: KgDraggableModuleEvent): void => {
+                // Only track while a port is dragged.
+                if (!this.mDraggedPortInformation.isDragging) {
+                    return;
+                }
+
+                // Skip when the pointer has not moved into a new grid cell.
+                if (!this.mDraggedPortInformation.updatePointer(pEvent.pointerPosition.x, pEvent.pointerPosition.y)) {
+                    return;
+                }
+
+                // Redraw the temporary connection with the new pointer position.
+                this.mManager.dispatch(PotatnoCodeUiManagerChangeType.SpecialTemporaryConnection, null);
+            },
+
+            // Clear the dragged ports on drag end.
+            end: (): void => {
+                this.setDraggedPort([]);
+            }
+        };
+
         // Set default position. Wont be used anyway just like anything i made.
         this.mTransformation = {
             panX: 0,
@@ -120,7 +164,12 @@ export class PotatnoUiManagerGrid implements IDeconstructable {
      * Deconstruct manager.
      */
     public deconstruct(): void {
-        // Empty for now.
+        // Detach the drag listeners from the grid element.
+        if (this.mGridElement) {
+            this.mGridElement.removeEventListener('kg-drag-start', this.mDragListener.start);
+            this.mGridElement.removeEventListener('kg-drag-move', this.mDragListener.move);
+            this.mGridElement.removeEventListener('kg-drag-end', this.mDragListener.end);
+        }
     }
 
     /**
@@ -298,18 +347,6 @@ export class PotatnoUiManagerGrid implements IDeconstructable {
     }
 
     /**
-     * Set a new dragged port or null if nothing is dragged.
-     * 
-     * @param pPort - Dragged port.
-     */
-    public setDraggingPort(pPorts: Array<PotatnoDocumentPort<PotatnoProjectTypesDefinition>>): void {
-        this.mDraggedPortInformation = new PotatnoUiManagerGridDraggedPort(this.mManager, pPorts);
-
-        // Redraw the temporary connection, as its start port(s) just changed or got cleared.
-        this.mManager.dispatch(PotatnoCodeUiManagerChangeType.SpecialTemporaryConnection, null);
-    }
-
-    /**
      * Zoom toward or away from a specific screen position.
      * The zoom is clamped between MIN_ZOOM and MAX_ZOOM.
      * The pan is adjusted so that the point under the mouse stays fixed.
@@ -341,6 +378,18 @@ export class PotatnoUiManagerGrid implements IDeconstructable {
 
         // Dispatch grid change.
         this.mManager.dispatch(PotatnoCodeUiManagerChangeType.SpecialGrid, null);
+    }
+
+    /**
+     * Set the currently dragged ports and redraw the temporary connection.
+     *
+     * @param pPorts - Dragged ports. Empty when nothing is dragged.
+     */
+    private setDraggedPort(pPorts: Array<PotatnoDocumentPort<PotatnoProjectTypesDefinition>>): void {
+        this.mDraggedPortInformation = new PotatnoUiManagerGridDraggedPort(this.mManager, pPorts);
+
+        // Redraw the temporary connection, as its start port(s) just changed or got cleared.
+        this.mManager.dispatch(PotatnoCodeUiManagerChangeType.SpecialTemporaryConnection, null);
     }
 }
 
@@ -428,6 +477,12 @@ type PotatnoUiManagerGridTransformation = {
     panX: number;
     panY: number;
     zoom: number;
+};
+
+type PotatnoUiManagerGridDragListener = {
+    start: (pEvent: KgDraggableModuleEvent) => void;
+    move: (pEvent: KgDraggableModuleEvent) => void;
+    end: (pEvent: KgDraggableModuleEvent) => void;
 };
 
 export type PotatnoUiManagerGridCoordinate = {

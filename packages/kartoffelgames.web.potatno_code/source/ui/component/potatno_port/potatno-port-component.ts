@@ -219,26 +219,20 @@ export class PotatnoPortComponent implements IComponentOnDeconstruct {
     }
 
     /**
-     * Clear drag state on drag end.
+     * Trigger a re-render on drag end to readd potential direct values.
      */
     public onDragEnd(): void {
-        this.mManager.grid.setDraggingPort([]);
-
-        // Trigger update to add potential direct values.
         this.mComponent.updater.updateAsync();
     }
 
     /**
-     * Share this port as the dragged data and set it as the global dragging port on drag start.
+     * Share this port as the dragged data on drag start.
      *
      * @param pEvent - Drag start event.
      */
     public onDragStart(pEvent: KgDraggableModuleEvent): void {
-        // Share the dragged port with drop targets.
+        // Share the dragged port with drop targets. The grid manager reads this to track the drag.
         pEvent.setData<Array<PotatnoDocumentPort<PotatnoProjectTypesDefinition>>>([this.port]);
-
-        // Keep the global dragging state for the temporary wire and value input hiding.
-        this.mManager.grid.setDraggingPort([this.port]);
 
         // Trigger update to remove potential direct values.
         this.mComponent.updater.updateAsync();

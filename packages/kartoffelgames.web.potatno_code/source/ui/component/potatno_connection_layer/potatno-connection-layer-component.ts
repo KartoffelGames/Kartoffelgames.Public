@@ -23,7 +23,6 @@ import connectionLayerTemplate from './potatno-connection-layer-component.html' 
 })
 export class PotatnoConnectionLayerComponent implements IComponentOnDeconstruct {
     private readonly mManager: PotatnoUiManager;
-    private readonly mTemporaryConnectionPointerHandler: (pEvent: PointerEvent) => void;
     private readonly mUnsubscribePersistentUpdate: () => void;
     private readonly mUnsubscribeTemporaryUpdate: () => void;
 
@@ -66,23 +65,6 @@ export class PotatnoConnectionLayerComponent implements IComponentOnDeconstruct 
         this.mUnsubscribeTemporaryUpdate = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.SpecialTemporaryConnection, () => {
             this.temporaryConnection = this.createTemporaryConnection();
         });
-
-        // Track the pointer while a port is dragged to redraw the temporary connection.
-        this.mTemporaryConnectionPointerHandler = (pEvent: PointerEvent) => {
-            // Only track while a port is dragged.
-            if (!this.mManager.grid.draggedPort.isDragging) {
-                return;
-            }
-
-            // Skip when the pointer has not moved into a new grid cell.
-            if (!this.mManager.grid.draggedPort.updatePointer(pEvent.clientX, pEvent.clientY)) {
-                return;
-            }
-
-            // Redraw only the temporary connection with the new pointer position.
-            this.mManager.dispatch(PotatnoCodeUiManagerChangeType.SpecialTemporaryConnection, null);
-        };
-        document.addEventListener('pointermove', this.mTemporaryConnectionPointerHandler);
     }
 
     /**
@@ -156,9 +138,6 @@ export class PotatnoConnectionLayerComponent implements IComponentOnDeconstruct 
     public onDeconstruct(): void {
         this.mUnsubscribePersistentUpdate();
         this.mUnsubscribeTemporaryUpdate();
-
-        // Remove the pointer handler.
-        document.removeEventListener('pointermove', this.mTemporaryConnectionPointerHandler);
     }
 
     /**

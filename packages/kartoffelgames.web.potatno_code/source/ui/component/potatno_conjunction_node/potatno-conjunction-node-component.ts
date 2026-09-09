@@ -259,23 +259,13 @@ export class PotatnoConjunctionNodeComponent implements IComponentOnDeconstruct 
     }
 
     /**
-     * Clear drag state on drag end.
-     */
-    public onDragEnd(): void {
-        this.mManager.grid.setDraggingPort([]);
-    }
-
-    /**
-     * Share both conjunction ports as the dragged data and set them as the global dragging ports on drag start.
+     * Share both conjunction ports as the dragged data on drag start.
      *
      * @param pEvent - Drag start event.
      */
     public onDragStart(pEvent: KgDraggableModuleEvent): void {
-        // Share the dragged ports with drop targets.
+        // Share the dragged ports with drop targets. The grid manager reads this to track the drag.
         pEvent.setData<Array<PotatnoDocumentPort<PotatnoProjectTypesDefinition>>>([this.nodePorts.input, this.nodePorts.output]);
-
-        // Keep the global dragging state for the temporary wire.
-        this.mManager.grid.setDraggingPort([this.nodePorts.input, this.nodePorts.output]);
     }
 
     /**

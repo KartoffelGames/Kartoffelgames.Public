@@ -5,22 +5,23 @@ import { Exception } from "@kartoffelgames/core";
 /**
  * Attribute that adds drag events to its host.
  *
- * All events dispatches a {@link DragHandlerEvent}:
- *  - "drop-start" ({@link DropHandlerStartEvent}): pointer went down. Cancelable, call preventDefault() to abort the drag before it begins.
- *  - "drop-move" ({@link DragHandlerEvent}): pointer moved while dragging.
- *  - "drop-end" ({@link DropHandlerEndEvent}): pointer was released or the drag was canceled.
+ * All events dispatches a {@link KgDraggableModuleEvent}:
+ *  - "kg-drag-start" ({@link KgDraggableModuleEvent}): pointer went down. Cancelable, call preventDefault() to abort the drag before it begins.
+ *  - "kg-drag-end" ({@link KgDraggableModuleEvent}): pointer was released or the drag was canceled.
+ *  - "kg-dragging" ({@link KgDraggableModuleEvent}): pointer moved while dragging. Also triggered on any element that are hovered.
+ *  - "kg-drop" ({@link KgDraggableModuleEvent}): on drag end triggered on a target element that is currently hovered.
  */
 @PwbAttributeModule({
     access: AccessMode.Write,
-    selector: /^drag-drop-target$/
+    selector: /^kg-draggable$/
 })
-export class DragDropTargetModule implements IAttributeOnDeconstruct {
+export class KgDraggableModule implements IAttributeOnDeconstruct {
     private static readonly ACTIVATION_DISTANCE_TRESHOLD: number = 5;
-    private static mActiveDrag: DragDropTargetModuleActiveDrag | null = null;
+    private static mActiveDrag: KgDraggableModuleActiveDrag | null = null;
 
     private readonly mPointerDownListener: (pEvent: PointerEvent) => void;
     private readonly mTarget: HTMLElement;
-    private mListeners: DragDropTargetModuleListeners | null;
+    private mListeners: KgDraggableModuleListeners | null;
 
     /**
      * Constructor.
@@ -56,12 +57,12 @@ export class DragDropTargetModule implements IAttributeOnDeconstruct {
      */
     private onDragEnd(pEvent: PointerEvent): void {
         // Skip when no drag is active.
-        if (!DragDropTargetModule.mActiveDrag) {
+        if (!KgDraggableModule.mActiveDrag) {
             return;
         }
 
         // Save active state before removing everything altogether in "stopDrag."
-        const lDragState: DragDropTargetModuleActiveDrag = DragDropTargetModule.mActiveDrag;
+        const lDragState: KgDraggableModuleActiveDrag = KgDraggableModule.mActiveDrag;
 
         // Detach listeners before dispatching, so a consumer can start a new drag synchronously.
         this.stopDrag();
@@ -71,13 +72,18 @@ export class DragDropTargetModule implements IAttributeOnDeconstruct {
             return;
         }
 
-        const lCurrentPosition: DragHandlerPosition = {
+        const lCurrentPosition: KgDraggableModulePosition = {
             x: pEvent.clientX,
             y: pEvent.clientY
         };
 
+        // Before ending the drag, dispatch a kg-drop event on the dragged element.
+        if(pEvent.target && pEvent.target instanceof Element){
+            pEvent.target.dispatchEvent(new KgDraggableModuleEvent(KgDraggableModuleEventName.Drop, lCurrentPosition, lDragState.data))
+        }
+
         // Dispatch end event with nulled move distance.
-        this.mTarget.dispatchEvent(new DragHandlerEvent(DragHandlerEventName.DragEnd, lCurrentPosition, lDragState.data));
+        this.mTarget.dispatchEvent(new KgDraggableModuleEvent(KgDraggableModuleEventName.DragEnd, lCurrentPosition, lDragState.data));
     }
 
     /**
@@ -87,7 +93,7 @@ export class DragDropTargetModule implements IAttributeOnDeconstruct {
      */
     private onDragMove(pEvent: PointerEvent): void {
         // Skip when no drag is active.
-        if (!DragDropTargetModule.mActiveDrag) {
+        if (!KgDraggableModule.mActiveDrag) {
             return;
         }
 
@@ -96,19 +102,19 @@ export class DragDropTargetModule implements IAttributeOnDeconstruct {
         pEvent.stopPropagation();
 
         // Current position.
-        const lCurrentPosition: DragHandlerPosition = { x: pEvent.clientX, y: pEvent.clientY };
+        const lCurrentPosition: KgDraggableModulePosition = { x: pEvent.clientX, y: pEvent.clientY };
 
         // When the drag is not active, check for a activation distance.
-        if (!DragDropTargetModule.mActiveDrag.active) {
+        if (!KgDraggableModule.mActiveDrag.active) {
             // Calculate distance since start.
-            const lDistanceX: number = Math.abs(DragDropTargetModule.mActiveDrag.startPosition.x - lCurrentPosition.x);
-            const lDistanceY: number = Math.abs(DragDropTargetModule.mActiveDrag.startPosition.y - lCurrentPosition.y);
+            const lDistanceX: number = Math.abs(KgDraggableModule.mActiveDrag.startPosition.x - lCurrentPosition.x);
+            const lDistanceY: number = Math.abs(KgDraggableModule.mActiveDrag.startPosition.y - lCurrentPosition.y);
             const lDistance: number = Math.sqrt(Math.pow(lDistanceX, 2) + Math.pow(lDistanceY, 2));
 
             // When the activation trashold is reached, dispatch drag start event.
-            if (lDistance > DragDropTargetModule.ACTIVATION_DISTANCE_TRESHOLD) {
+            if (lDistance > KgDraggableModule.ACTIVATION_DISTANCE_TRESHOLD) {
                 // Create a new drag event, both start and current position is set the same.
-                const lDragStartEvent: DragHandlerEvent = new DragHandlerEvent(DragHandlerEventName.DragStart, DragDropTargetModule.mActiveDrag.startPosition, DragDropTargetModule.mActiveDrag);
+                const lDragStartEvent: KgDraggableModuleEvent = new KgDraggableModuleEvent(KgDraggableModuleEventName.DragStart, KgDraggableModule.mActiveDrag.startPosition, KgDraggableModule.mActiveDrag);
 
                 // Stop dragging on default prevented.
                 if (!this.mTarget.dispatchEvent(lDragStartEvent)) {
@@ -117,17 +123,22 @@ export class DragDropTargetModule implements IAttributeOnDeconstruct {
                 }
 
                 // When the start event isnt prevented, activate the drag.
-                DragDropTargetModule.mActiveDrag.active = true;
-                DragDropTargetModule.mActiveDrag.data = lDragStartEvent.getData();
+                KgDraggableModule.mActiveDrag.active = true;
+                KgDraggableModule.mActiveDrag.data = lDragStartEvent.getData();
             }
         }
 
-        const lDragEvent: DragHandlerEvent = new DragHandlerEvent(DragHandlerEventName.DragMove, lCurrentPosition, DragDropTargetModule.mActiveDrag.data);
+        const lDragEvent: KgDraggableModuleEvent = new KgDraggableModuleEvent(KgDraggableModuleEventName.DragMove, lCurrentPosition, KgDraggableModule.mActiveDrag.data);
 
         // Stop dragging on default prevented.
         if (!this.mTarget.dispatchEvent(lDragEvent)) {
             this.stopDrag();
             return;
+        }
+
+        // Also trigger the same event on hovered items.
+        if(pEvent.target && pEvent.target instanceof Element){
+            pEvent.target.dispatchEvent(lDragEvent)
         }
     }
 
@@ -143,15 +154,15 @@ export class DragDropTargetModule implements IAttributeOnDeconstruct {
         }
 
         // Only a single drag at a time.
-        if (DragDropTargetModule.mActiveDrag) {
+        if (KgDraggableModule.mActiveDrag) {
             return;
         }
 
         // Read starting pointer position.
-        const lStartPosition: DragHandlerPosition = { x: pEvent.clientX, y: pEvent.clientY };
+        const lStartPosition: KgDraggableModulePosition = { x: pEvent.clientX, y: pEvent.clientY };
 
         // Initialize a new drag state.
-        DragDropTargetModule.mActiveDrag = {
+        KgDraggableModule.mActiveDrag = {
             active: false,
             data: null,
             startPosition: lStartPosition
@@ -178,7 +189,7 @@ export class DragDropTargetModule implements IAttributeOnDeconstruct {
      */
     private stopDrag(): void {
         // Reset drag.
-        DragDropTargetModule.mActiveDrag = null;
+        KgDraggableModule.mActiveDrag = null;
 
         // Skip when no listeners is active.
         if (!this.mListeners) {
@@ -195,14 +206,14 @@ export class DragDropTargetModule implements IAttributeOnDeconstruct {
 /**
  * General drag handler event. Used for all drag handler events.
  */
-export class DragHandlerEvent extends Event {
+export class KgDraggableModuleEvent extends Event {
     private mData: unknown | null;
-    private readonly mPointerPosition: DragHandlerPosition;
+    private readonly mPointerPosition: KgDraggableModulePosition;
 
     /**
      * Current pointer position.
      */
-    public get pointerPosition(): DragHandlerPosition {
+    public get pointerPosition(): KgDraggableModulePosition {
         return this.mPointerPosition;
     }
 
@@ -214,7 +225,7 @@ export class DragHandlerEvent extends Event {
      * @param pPointerPosition - Current pointer position.
      * @param pMovedDistance - Distance moved since the last event.
      */
-    public constructor(pEventType: DragHandlerEventName, pPointerPosition: DragHandlerPosition, pData: unknown | null) {
+    public constructor(pEventType: KgDraggableModuleEventName, pPointerPosition: KgDraggableModulePosition, pData: unknown | null) {
         super(pEventType, { bubbles: true, cancelable: true });
 
         this.mPointerPosition = pPointerPosition;
@@ -238,7 +249,7 @@ export class DragHandlerEvent extends Event {
      */
     public setData<T>(pData: T): void {
         // Restrict data access on drag start.
-        if (this.type !== DragHandlerEventName.DragStart) {
+        if (this.type !== KgDraggableModuleEventName.DragStart) {
             throw new Exception('Drag data can only be set on drag start.', this);
         }
 
@@ -246,28 +257,28 @@ export class DragHandlerEvent extends Event {
     }
 }
 
-export type DragHandlerPosition = {
+export type KgDraggableModulePosition = {
     readonly x: number;
     readonly y: number;
 };
 
 // Event name enum.
 // eslint-disable-next-line @typescript-eslint/naming-convention
-const DragHandlerEventName = {
-    DragStart: 'dragdrop-start',
-    DragMove: 'dragdrop-over',
-    DragEnd: 'dragdrop-end',
-    DropData: 'dragdrop-drop'
+const KgDraggableModuleEventName = {
+    DragStart: 'kg-drag-start',
+    DragMove: 'kg-dragging',
+    DragEnd: 'kg-drag-end',
+    Drop: 'kg-drop'
 } as const;
-type DragHandlerEventName = typeof DragHandlerEventName[keyof typeof DragHandlerEventName];
+type KgDraggableModuleEventName = typeof KgDraggableModuleEventName[keyof typeof KgDraggableModuleEventName];
 
-type DragDropTargetModuleActiveDrag = {
+type KgDraggableModuleActiveDrag = {
     active: boolean;
     data: unknown | null;
-    startPosition: DragHandlerPosition;
+    startPosition: KgDraggableModulePosition;
 };
 
-type DragDropTargetModuleListeners = {
+type KgDraggableModuleListeners = {
     move: (pEvent: PointerEvent) => void;
     end: (pEvent: PointerEvent) => void;
 };

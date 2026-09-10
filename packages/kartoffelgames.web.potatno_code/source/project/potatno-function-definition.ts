@@ -5,7 +5,7 @@ import type { PotatnoProjectTypesDefinition } from './potatno-project-types-defi
 
 /**
  * Definition of a entry point blueprint.
- * Of of these blueprints eighter the main entry point or secondary user created entry points can be instantiated in the editor.
+ * Of of these blueprints either the main entry point or secondary user created entry points can be instantiated in the editor.
  */
 export class PotatnoFunctionDefinition<TProjectTypes extends PotatnoProjectTypesDefinition> {
     private readonly mCodeGenerator: PotatnoFunctionDefinitionGenerator<TProjectTypes>;

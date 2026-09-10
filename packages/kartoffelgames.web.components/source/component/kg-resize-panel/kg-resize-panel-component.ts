@@ -138,11 +138,12 @@ export class KgResizePanelComponent {
         const lScaleY: number = this.mComponentElement.offsetHeight ? lComponentSize.height / this.mComponentElement.offsetHeight : 1;
 
         // Save starting size in event.
-        const lStartingSize: KgResizePanelComponentSize = pEvent.getData<KgResizePanelComponentSize>() ?? {
-            width: lComponentSize.width / lScaleX,
-            height: lComponentSize.height / lScaleY
-        };
-        pEvent.setData(lStartingSize);
+        const lStartingSize: KgResizePanelComponentSize = pEvent.setDataOnce(() => {
+            return {
+                width: lComponentSize.width / lScaleX,
+                height: lComponentSize.height / lScaleY
+            };
+        });
 
         // Convert string values into  flags.
         const lUsedHandles: KgResizePanelComponentResizeDirection = (() => {

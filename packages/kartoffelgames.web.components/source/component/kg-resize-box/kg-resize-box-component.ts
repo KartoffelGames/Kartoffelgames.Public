@@ -1,4 +1,5 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
+import { KgPanModule, KgPanModuleEvent } from "@kartoffelgames/web-components";
 import { Component, type ComponentEventEmitter, ComponentState, PwbComponent, PwbComponentEvent, PwbExport } from '@kartoffelgames/web-potato-web-builder';
 import styles from './kg-resize-box-component.css' with { type: 'text' };
 import template from './kg-resize-box-component.html' with { type: 'text' };
@@ -14,7 +15,6 @@ import template from './kg-resize-box-component.html' with { type: 'text' };
  * 
  * Events:
  *  - "resize"
- *  - "resize-end"
  * 
  * CSS variables:
  *  - "--resize-box-handle-color"
@@ -26,7 +26,8 @@ import template from './kg-resize-box-component.html' with { type: 'text' };
 @PwbComponent({
     selector: 'kg-resize-box',
     template: template,
-    style: styles
+    style: styles,
+    modules: [KgPanModule]
 })
 export class KgResizeBoxComponent {
     private readonly mComponentElement: HTMLElement;
@@ -42,12 +43,6 @@ export class KgResizeBoxComponent {
      */
     @PwbComponentEvent('resize')
     private accessor mResize!: ComponentEventEmitter<KgResizeBoxComponentResize>;
-
-    /**
-     * Emitted when the user ends a resize.
-     */
-    @PwbComponentEvent('resize-end')
-    private accessor mResizeEnd!: ComponentEventEmitter<KgResizeBoxComponentResize>;
 
     /**
      * If bottom resize handle is enabled.
@@ -154,27 +149,27 @@ export class KgResizeBoxComponent {
     /**
      * Handle pointer down on the resize corners handle.
      *
-     * @param pEvent - Pointer event from the resize handle.
+     * @param pEvent - Pan event from the resize handle.
      */
-    public resizeCorner(pEvent: PointerEvent): void {
+    public resizeCorner(pEvent: KgPanModuleEvent): void {
         this.handleResize(pEvent, 'both');
     }
 
     /**
      * Handle pointer down on the resize horizontal handles.
      *
-     * @param pEvent - Pointer event from the resize handle.
+     * @param pEvent - Pan event from the resize handle.
      */
-    public resizeHorizontal(pEvent: PointerEvent): void {
+    public resizeHorizontal(pEvent: KgPanModuleEvent): void {
         this.handleResize(pEvent, 'horizontal');
     }
 
     /**
      * Handle pointer down on the resize vertical handles.
      *
-     * @param pEvent - Pointer event from the resize handle.
+     * @param pEvent - Pan event from the resize handle.
      */
-    public resizeVertical(pEvent: PointerEvent): void {
+    public resizeVertical(pEvent: KgPanModuleEvent): void {
         this.handleResize(pEvent, 'vertical');
     }
 
@@ -185,7 +180,7 @@ export class KgResizeBoxComponent {
      * @param pWidth - Width in pixel.
      * @param pHeight - Height in pixel.
      */
-    private applyComponentSize(pUsedHandle: number, pWidth: number, pHeight: number) {
+    private applyComponentSize(pUsedHandle: number, pWidth: number, pHeight: number): void {
         // Resize with the respected limitations.
         const lResizedWidth: number = this.updateComponentWidth(pWidth, false);
         const lResizedHeight: number = this.updateComponentHeight(pHeight, false);
@@ -194,9 +189,6 @@ export class KgResizeBoxComponent {
         if (lResizedWidth !== this.width || lResizedHeight !== this.height) {
             this.mResize.dispatchEvent(this.createResizeEvent(pUsedHandle, lResizedWidth, lResizedHeight, this.width, this.height));
         }
-
-        // Return back the actual resized values.
-        return [lResizedWidth, lResizedHeight];
     }
 
     /**
@@ -230,81 +222,64 @@ export class KgResizeBoxComponent {
      * @param pEvent - The starting pointer down event.
      * @param pAllowedMovement - Allowed movement.
      */
-    private handleResize(pEvent: PointerEvent, pAllowedMovement: KgResizeBoxComponentMovement): void {
-        pEvent.preventDefault();
-        pEvent.stopPropagation();
+    private handleResize(pEvent: KgPanModuleEvent, pAllowedMovement: KgResizeBoxComponentMovement): void {
+        // Set starting data.
+        const lStart = pEvent.setDataOnce(() => {
+            // Save current size so the current pointer position determinates exactly this size.
+            const lComponentSize: DOMRect = this.mComponentElement.getBoundingClientRect();
 
-        // Save current size so the current pointer position determinates exactly this size.
-        const lComponentSize: DOMRect = this.mComponentElement.getBoundingClientRect();
+            // Scale of any transformed parent: ratio of rendered (rect) to layout (offset) size.
+            const lScaleX: number = this.mComponentElement.offsetWidth ? lComponentSize.width / this.mComponentElement.offsetWidth : 1;
+            const lScaleY: number = this.mComponentElement.offsetHeight ? lComponentSize.height / this.mComponentElement.offsetHeight : 1;
 
-        // Scale of any transformed parent: ratio of rendered (rect) to layout (offset) size.
-        const lScaleX: number = this.mComponentElement.offsetWidth ? lComponentSize.width / this.mComponentElement.offsetWidth : 1;
-        const lScaleY: number = this.mComponentElement.offsetHeight ? lComponentSize.height / this.mComponentElement.offsetHeight : 1;
+            // Find if movement should be inverted based on clicked handle.
+            let lVerticalInvertion: number = 1; // Right handle
+            if (Math.abs(pEvent.startPosition.x - lComponentSize.left) < Math.abs(pEvent.startPosition.x - lComponentSize.right)) {
+                lVerticalInvertion = -1; // Left handle
+            }
+            let lHorizontalInvertion: number = 1; // Bottom handle
+            if (Math.abs(pEvent.startPosition.y - lComponentSize.top) < Math.abs(pEvent.startPosition.y - lComponentSize.bottom)) {
+                lHorizontalInvertion = -1; // Top handle
+            }
 
-        // Start from the layout size, as thats what gets used as width and height.
-        const lStartingWidth: number = lComponentSize.width / lScaleX;
-        const lStartingHeight: number = lComponentSize.height / lScaleY;
+            // Determinate handles used.
+            let lUsedHandles: number = 0;
+            lUsedHandles += (lVerticalInvertion === 1) ? KgResizeBoxComponentResizeDirection.right : KgResizeBoxComponentResizeDirection.left;
+            lUsedHandles += (lHorizontalInvertion === 1) ? KgResizeBoxComponentResizeDirection.bottom : KgResizeBoxComponentResizeDirection.top;
 
-        // Save the starting pointer coordinates to only resize be the actual movement.
-        const lStartX = pEvent.clientX;
-        const lStartY = pEvent.clientY;
+            return {
+                width: lComponentSize.width / lScaleX,
+                height: lComponentSize.height / lScaleY,
+                handle: lUsedHandles,
+                inversion: {
+                    vertical: lVerticalInvertion,
+                    horizontal: lHorizontalInvertion
+                },
+                scale: {
+                    x: lScaleX,
+                    y: lScaleY
+                }
+            };
+        });
 
-        // Find if movement should be inverted based on clicked handle.
-        let lVerticalInvertion: number = 1; // Right handle
-        if (Math.abs(lStartX - lComponentSize.left) < Math.abs(lStartX - lComponentSize.right)) {
-            lVerticalInvertion = -1; // Left handle
+        // Resize from top-left corner: moving left/up increases size. Divide by scale to convert screen movement into layout pixels.
+        const lMovementChangeX: number = ((pEvent.pointerPosition.x - pEvent.startPosition.x) / lStart.scale.x) * lStart.inversion.vertical;
+        const lMovementChangeY: number = ((pEvent.pointerPosition.y - pEvent.startPosition.y) / lStart.scale.y) * lStart.inversion.horizontal;
+
+        // Change window size but clamp it down to a minimum size.
+        let lWidth: number = lStart.width + lMovementChangeX;
+        let lHeight: number = lStart.height + lMovementChangeY;
+
+        // Reset not allowed movement.
+        if (pAllowedMovement === 'horizontal') {
+            lWidth = lStart.width;
         }
-        let lHorizontalInvertion: number = 1; // Bottom handle
-        if (Math.abs(lStartY - lComponentSize.top) < Math.abs(lStartY - lComponentSize.bottom)) {
-            lHorizontalInvertion = -1; // Top handle
+        if (pAllowedMovement === 'vertical') {
+            lHeight = lStart.height;
         }
 
-        // Determinate handles used.
-        let lUsedHandles: number = 0;
-        lUsedHandles += (lVerticalInvertion === 1) ? KgResizeBoxComponentResizeDirection.right : KgResizeBoxComponentResizeDirection.left;
-        lUsedHandles += (lHorizontalInvertion === 1) ? KgResizeBoxComponentResizeDirection.bottom : KgResizeBoxComponentResizeDirection.top;
-
-        // Save the current size while resizing to check if the size has actually changed.
-        let lCurrentWidth: number = lStartingWidth;
-        let lCurrentHeight: number = lStartingHeight;
-
-        // Resize magic listener (●'◡'●)つ━☆・*。
-        const lPointerMoveListener = (pMoveEvent: PointerEvent): void => {
-            // Resize from top-left corner: moving left/up increases size. Divide by scale to convert screen movement into layout pixels.
-            const lMovementChangeX: number = ((pMoveEvent.clientX - lStartX) / lScaleX) * lVerticalInvertion;
-            const lMovementChangeY: number = ((pMoveEvent.clientY - lStartY) / lScaleY) * lHorizontalInvertion;
-
-            // Change window size but clamp it down to a minimum size.
-            let lWidth: number = lStartingWidth + lMovementChangeX;
-            let lHeight: number = lStartingHeight + lMovementChangeY;
-
-            // Reset not allowed movement.
-            if (pAllowedMovement === 'horizontal') {
-                lWidth = lStartingWidth;
-            }
-            if (pAllowedMovement === 'vertical') {
-                lHeight = lStartingHeight;
-            }
-
-            // And then update component size.
-            [lCurrentWidth, lCurrentHeight] = this.applyComponentSize(lUsedHandles, lWidth, lHeight);
-        };
-
-        // Pointer up listener, cleaning up temporary listener.
-        const lPointerUpListener = (): void => {
-            // Remove temporary mouse move listener.
-            document.removeEventListener('pointermove', lPointerMoveListener);
-            document.removeEventListener('pointerup', lPointerUpListener);
-
-            // Dispatch end event on pointer up, only if any size has actually changed.
-            if (lCurrentWidth !== lStartingWidth || lCurrentHeight !== lStartingHeight) {
-                this.mResizeEnd.dispatchEvent(this.createResizeEvent(lUsedHandles, lCurrentWidth, lCurrentHeight, lStartingWidth, lStartingHeight));
-            }
-        };
-
-        // Add temporary mouse move listener.
-        document.addEventListener('pointermove', lPointerMoveListener);
-        document.addEventListener('pointerup', lPointerUpListener);
+        // And then update component size.
+        this.applyComponentSize(lStart.handle, lWidth, lHeight);
     }
 
     /**
@@ -320,7 +295,7 @@ export class KgResizeBoxComponent {
             // When value is a string, it might be "true" or "false".
             if (typeof pValue === 'string') {
                 // Empty strings are considered as true also. Because setting a empty attribute also is "true".
-                if(pValue === ''){
+                if (pValue === '') {
                     return true;
                 }
 

@@ -76,7 +76,7 @@ export class KgPanModule implements IAttributeOnDeconstruct {
 
         // Save the current position as the last position.
         this.mActivePan.position.last = lCurrentPosition;
-        this.mActivePan.data = lPanEvent.getData();
+        this.mActivePan.data = lPanEvent.data;
     }
 
     /**
@@ -153,6 +153,13 @@ export class KgPanModuleEvent extends Event {
     private readonly mStartPosition: KgPanModulePosition;
 
     /**
+     * Get unknown data.
+     */
+    public get data(): unknown {
+        return this.mData;
+    }
+
+    /**
      * Distance moved since the last event.
      */
     public get moveDistance(): KgPanModulePosition {
@@ -191,24 +198,22 @@ export class KgPanModuleEvent extends Event {
     }
 
     /**
-     * Get the attached data.
-     *
-     * @returns the attached data.
-     */
-    public getData<T>(): T | null {
-        return this.mData as T;
-    }
-
-    /**
-     * Attach data to the current pan.
+     * Attach data to the current pan once.
      * Data can be read from the following pan events.
      *
      * @param pData - Data to attach.
      */
-    public setData<T>(pData: T): void {
-        this.mData = pData;
+    public setDataOnce<T>(pDataSetter: () => T): T {
+        // Set the data if not set.
+        if (this.mData === null) {
+            this.mData = pDataSetter();
+        }
+
+        return this.mData as T;
     }
 }
+
+export type KgPanModuleDataType<T extends object = object> = new (...pParameter: Array<any>) => T;
 
 export type KgPanModulePosition = {
     readonly x: number;

@@ -331,7 +331,7 @@ export class KgResizeBoxComponent {
 
         // Snap the resized value. Fuck float: To fixed should fix some shit.
         const lSnappedToFixed: number = parseFloat((Math.abs(pHeight) / this.mConfiguration.snap).toFixed(5));
-        let lResizedHeight: number = Math.ceil(lSnappedToFixed) * this.mConfiguration.snap * (pHeight / Math.abs(pHeight));
+        let lResizedHeight: number = Math.round(lSnappedToFixed) * this.mConfiguration.snap * (pHeight / Math.abs(pHeight));
         lResizedHeight = Math.max(0, lResizedHeight);
 
         // Resize if the resize should not be virtual.
@@ -361,7 +361,7 @@ export class KgResizeBoxComponent {
 
         // Snap the resized value. Fuck float: To fixed should fix some shit.
         const lSnappedToFixed: number = parseFloat((Math.abs(pWidth) / this.mConfiguration.snap).toFixed(5));
-        let lResizedWidth: number = Math.ceil(lSnappedToFixed) * this.mConfiguration.snap * (pWidth / Math.abs(pWidth));
+        let lResizedWidth: number = Math.round(lSnappedToFixed) * this.mConfiguration.snap * (pWidth / Math.abs(pWidth));
         lResizedWidth = Math.max(0, lResizedWidth);
 
         // Resize if the resize should not be virtual.

@@ -1,7 +1,10 @@
 export class LexerToken<TTokenType extends string> {
+    // Somehow i know that this will break, so i freeze it to trigger a error when it does.
+    private static readonly mEmptyMeta: Array<string> = Object.freeze(new Array<string>()) as Array<string>;
+
     private readonly mColumnNumber: number;
     private readonly mLineNumber: number;
-    private readonly mMetas: Set<string>;
+    private mMetas: Array<string> | null;
     private readonly mType: TTokenType;
     private readonly mValue: string;
 
@@ -22,8 +25,8 @@ export class LexerToken<TTokenType extends string> {
     /**
      * All asigned meta values of token.
      */
-    public get metas(): Array<string> {
-        return [...this.mMetas];
+    public get metas(): ReadonlyArray<string> {
+        return this.mMetas ?? LexerToken.mEmptyMeta;
     }
 
     /**
@@ -46,28 +49,39 @@ export class LexerToken<TTokenType extends string> {
         this.mLineNumber = pLineNumber;
         this.mType = pType;
 
-        this.mMetas = new Set<string>();
+        // Create a meta array only when its needed.
+        this.mMetas = null;
     }
 
     /**
-     * Add a meta value to this token.
-     * Duplicate metas are overriden.
-     * 
+     * Add a list of meta values to this token.
+     * Duplicate metas are not deduplicated
+     *
      * @param pMetaList - Meta values of token.
      */
-    public addMeta(...pMetaList: Array<string>): void {
-        for (const lType of pMetaList) {
-            this.mMetas.add(lType);
+    public addMeta(pMetaList: Array<string>): void {
+        if (pMetaList.length === 0) {
+            return;
         }
+
+        // Create storage on first actual meta.
+        this.mMetas ??= new Array<string>();
+
+        // Meta lists are tiny, so a linear scan beats a Set.
+        this.mMetas.push(...pMetaList);
     }
 
     /**
      * Validate existence of meta value.
-     * 
+     *
      * @param pMeta - meta value.
      * @returns if this token has the specified meta value.
      */
     public hasMeta(pMeta: string): boolean {
-        return this.mMetas.has(pMeta);
+        if (this.mMetas === null) {
+            return false;
+        }
+
+        return this.mMetas.indexOf(pMeta) !== -1;
     }
 }

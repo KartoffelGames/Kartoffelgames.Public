@@ -126,6 +126,15 @@ export class LexerPattern<TTokenType extends string, TPatternType extends LexerP
      * @returns easy to read token pattern.
      */
     private convertTokenPattern(pPatternType: TPatternType, pPattern: LexerPatternConstructorParameter<TTokenType, TPatternType>['pattern']): LexerPatternDefinition<TTokenType, TPatternType> {
+        // Convert regex into a line start regex with global and single flag.
+        const lConvertRegex = (pRegex: RegExp): RegExp => {
+            // Create flag set and add sticky. Set removes all duplicate flags.
+            const lFlags: Set<string> = new Set(pRegex.flags.split(''));
+
+            // Create pattern with same flags and added default group.
+            return new RegExp(`^(?<token>${pRegex.source})`, [...lFlags].join(''));
+        };
+
         // Convert pattern.
         if ('single' in pPattern) {
             // Pattern type must be single pattern.
@@ -136,9 +145,10 @@ export class LexerPattern<TTokenType extends string, TPatternType extends LexerP
             // Single pattern
             return {
                 start: {
-                    regex: pPattern.single.regex,
+                    regex: lConvertRegex(pPattern.single.regex),
                     types: pPattern.single.types,
-                    validator: pPattern.single.validator ?? null
+                    validator: pPattern.single.validator ?? null,
+                    staticCharCodes: this.staticFirstCharsOfRegex(pPattern.single.regex)
                 }
             } satisfies LexerPatternDefinitionSingle<TTokenType> as any;
         } else {
@@ -150,19 +160,82 @@ export class LexerPattern<TTokenType extends string, TPatternType extends LexerP
             // Split pattern.
             return {
                 start: {
-                    regex: pPattern.start.regex,
+                    regex: lConvertRegex(pPattern.start.regex),
                     types: pPattern.start.types,
-                    validator: pPattern.start.validator ?? null
+                    validator: pPattern.start.validator ?? null,
+                    staticCharCodes: this.staticFirstCharsOfRegex(pPattern.start.regex)
                 },
                 end: {
-                    regex: pPattern.end.regex,
+                    regex: lConvertRegex(pPattern.end.regex),
                     types: pPattern.end.types,
-                    validator: pPattern.end.validator ?? null
+                    validator: pPattern.end.validator ?? null,
+                    staticCharCodes: this.staticFirstCharsOfRegex(pPattern.end.regex)
                 },
                 // Optional inner type.
                 innerType: pPattern.innerType ?? null
             } satisfies LexerPatternDefinitionSplit<TTokenType> as any;
         }
+    }
+
+    /**
+     * The single character this regex must start with, or null when it can't be proven.
+     */
+    private staticFirstCharsOfRegex(pRegex: RegExp): Set<number> {
+        const lMetaCharacters: string = '[](){}.*+?^$|';
+        const lOptionalQuantifierCharacters: string = '?*{';
+        const lEscapeableCharacters: string = 'dDwWsSpPbBkxucnrtfv0123456789';
+
+        const lPossibleFirstChars: Set<number> = new Set<number>();
+
+        // Read regex source.
+        const lSource: string = pRegex.source;
+
+        // If the regex includes branching it cant be tested. Replace any escape sequenzes first before checking to not check for an excaped |.
+        if (lSource.replace(/\\./g, '').includes('|')) {
+            return lPossibleFirstChars;
+        }
+
+        // When the first character is a meta character it can also not be tested.
+        if (lMetaCharacters.includes(lSource[0])) {
+            return lPossibleFirstChars;
+        }
+
+        let lCurrentCharIndex: number = 0;
+
+        // When the code starts with a escape sequence, check for unnecessary escapes.  
+        if (lSource[lCurrentCharIndex] === '\\') {
+            // Jump over escape sequence.
+            lCurrentCharIndex++;
+
+            // Check if the escapable character is a special escaped character like [\d \w \s \b].
+            if (lEscapeableCharacters.includes(lSource[lCurrentCharIndex])) {
+                return lPossibleFirstChars;
+            }
+        }
+
+        // Read the current char end progress pointer.
+        const lCurrentChar: string = lSource[lCurrentCharIndex];
+        lCurrentCharIndex++;
+
+        // A quantifier would make that first character optional.
+        if (lOptionalQuantifierCharacters.includes(lSource[lCurrentCharIndex])) {
+            return lPossibleFirstChars;
+        }
+
+        // Add found char as charcode.
+        lPossibleFirstChars.add(lCurrentChar.charCodeAt(0));
+
+        // If its case insensitve, convert the found charcode into both cases.
+        if (pRegex.flags.includes('i')) {
+            // Convert all chars into a upper and lower case.
+            for (const lChar of lPossibleFirstChars) {
+                lPossibleFirstChars.add(String.fromCharCode(lChar).toLowerCase().charCodeAt(0));
+                lPossibleFirstChars.add(String.fromCharCode(lChar).toUpperCase().charCodeAt(0));
+            }
+
+        }
+
+        return lPossibleFirstChars;
     }
 }
 
@@ -203,10 +276,16 @@ export type LexerPatternConstructorParameter<TTokenType extends string, TPattern
  * Internal pattern definition.
  */
 
-type LexerPatternDefinitionMatcher<TTokenType extends string> = {
+export type LexerPatternDefinitionMatcher<TTokenType extends string> = {
     regex: RegExp;
     types: { [SubGroup: string]: TTokenType; };
     validator: LexerPatternTokenValidator<TTokenType> | null;
+
+    /**
+     * Set of static characters a pattern matcher can match at start.
+     * If its empty, the regex could no be analized.
+     */
+    staticCharCodes: Set<number>;
 };
 
 export type LexerPatternDefinitionSplit<TTokenType extends string> = {

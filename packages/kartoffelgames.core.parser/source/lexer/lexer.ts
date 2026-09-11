@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import { LexerException } from './lexer-exception.ts';
-import { LexerPattern, type LexerPatternConstructorParameter, type LexerPatternDependencyFetch, type LexerPatternTokenMatcher, type LexerPatternTokenTypes, type LexerPatternTokenValidator, type LexerPatternType } from './lexer-pattern.ts';
+import { LexerPattern, LexerPatternDefinitionMatcher, type LexerPatternConstructorParameter, type LexerPatternDependencyFetch, type LexerPatternTokenMatcher, type LexerPatternTokenTypes, type LexerPatternTokenValidator, type LexerPatternType } from './lexer-pattern.ts';
 import { LexerToken } from './lexer-token.ts';
 
 /**
@@ -134,15 +134,6 @@ export class Lexer<TTokenType extends string> {
             return pType;
         };
 
-        // Convert regex into a line start regex with global and single flag.
-        const lConvertRegex = (pRegex: RegExp): RegExp => {
-            // Create flag set and add sticky. Set removes all duplicate flags.
-            const lFlags: Set<string> = new Set(pRegex.flags.split(''));
-
-            // Create pattern with same flags and added default group.
-            return new RegExp(`^(?<token>${pRegex.source})`, [...lFlags].join(''));
-        };
-
         // Create metas.
         const lMetaList: Array<string> = new Array<string>();
         if (pPattern.meta) {
@@ -159,7 +150,7 @@ export class Lexer<TTokenType extends string> {
             // Single pattern
             lPattern = {
                 single: {
-                    regex: lConvertRegex(pPattern.pattern.regex),
+                    regex: pPattern.pattern.regex,
                     types: lConvertPatternType(pPattern.pattern.type),
                     validator: pPattern.pattern.validator ?? null
                 }
@@ -168,12 +159,12 @@ export class Lexer<TTokenType extends string> {
             // Start end pattern.
             lPattern = {
                 start: {
-                    regex: lConvertRegex(pPattern.pattern.start.regex),
+                    regex: pPattern.pattern.start.regex,
                     types: lConvertPatternType(pPattern.pattern.start.type),
                     validator: pPattern.pattern.start.validator ?? null
                 },
                 end: {
-                    regex: lConvertRegex(pPattern.pattern.end.regex),
+                    regex: pPattern.pattern.end.regex,
                     types: lConvertPatternType(pPattern.pattern.end.type),
                     validator: pPattern.pattern.end.validator ?? null
                 },
@@ -268,7 +259,16 @@ export class Lexer<TTokenType extends string> {
         // Iterate available token pattern.
         for (const lTokenPattern of pPattern) {
             // Get token start regex and use single token types or start token types for different pattern types.
-            const lTokenMatcher: LexerPatternTokenMatcher<TTokenType> = lTokenPattern.pattern.start;
+            const lTokenMatcher: LexerPatternDefinitionMatcher<TTokenType> = lTokenPattern.pattern.start;
+
+            // When the matcher has information of the possible first chars check the first matchable character.
+            if (lTokenMatcher.staticCharCodes.size > 0) {
+                // Read first charcode of current state.
+                const lFirstCharcode: number = pStateObject.data.charCodeAt(0);
+                if(!lTokenMatcher.staticCharCodes.has(lFirstCharcode)){
+                    continue;
+                }
+            }
 
             // Try to find next token.
             const lFoundToken: LexerToken<TTokenType> | null = this.matchToken(lTokenPattern, lTokenMatcher, pStateObject, pParentMetas, pForcedType);
@@ -397,7 +397,7 @@ export class Lexer<TTokenType extends string> {
      * 
      * @returns The found token based on {@link pPattern} and additionally the an error token when the lexer state has an error state. 
      */
-    private matchToken(pPattern: LexerPattern<TTokenType, LexerPatternType>, pTokenMatchDefinition: LexerPatternTokenMatcher<TTokenType>, pStateObject: LexerStateObject, pCurrentMetas: Array<string>, pForcedType: TTokenType | null): LexerToken<TTokenType> | null {
+    private matchToken(pPattern: LexerPattern<TTokenType, LexerPatternType>, pTokenMatchDefinition: LexerPatternDefinitionMatcher<TTokenType>, pStateObject: LexerStateObject, pCurrentMetas: Array<string>, pForcedType: TTokenType | null): LexerToken<TTokenType> | null {
         // Set token regex and start matching at current cursor position.
         const lTokenRegex: RegExp = pTokenMatchDefinition.regex;
         lTokenRegex.lastIndex = 0;

@@ -6,7 +6,7 @@ const gDefaultPattern: LexerPatternConstructorParameter<string, LexerPatternType
     type: 'single',
     metadata: [],
     dependencyFetch: null,
-    pattern: { single: { regex: /(?<token>const)/, types: { token: 'modifier' }, validator: null } },
+    pattern: { single: { regex: /const/, types: { token: 'modifier' }, validator: null } },
 };
 
 Deno.test('LexerPattern.dependenciesResolved', async (pContext) => {
@@ -17,8 +17,8 @@ Deno.test('LexerPattern.dependenciesResolved', async (pContext) => {
             type: 'split',
             metadata: [],
             pattern: {
-                start: { regex: /(?<token>start)/, types: { token: 'modifier' }, validator: null },
-                end: { regex: /(?<token>end)/, types: { token: 'identifier' }, validator: null },
+                start: { regex: /start/, types: { token: 'modifier' }, validator: null },
+                end: { regex: /end/, types: { token: 'identifier' }, validator: null },
                 innerType: null
             },
             dependencyFetch: () => { },
@@ -42,7 +42,7 @@ Deno.test('LexerPattern.dependenciesResolved', async (pContext) => {
             type: 'single',
             metadata: [],
             dependencyFetch: null,
-            pattern: { single: { regex: /(?<token>const)/, types: { token: 'modifier' }, validator: null } },
+            pattern: { single: { regex: /const/, types: { token: 'modifier' }, validator: null } },
         };
         const lPattern = new LexerPattern(lLexer, lPatternParam);
 
@@ -73,8 +73,8 @@ Deno.test('LexerPattern.pattern', async (pContext) => {
         // Setup
         const lLexer = new Lexer<string>();
         const lPatternDefinition = {
-            start: { regex: /(?<token>start)/, types: { token: 'modifier' }, validator: null },
-            end: { regex: /(?<token>end)/, types: { token: 'identifier' }, validator: null },
+            start: { regex: /start/, types: { token: 'modifier' }, validator: null },
+            end: { regex: /end/, types: { token: 'identifier' }, validator: null },
             innerType: 'myType'
         };
         const lPatternParam: LexerPatternConstructorParameter<string, 'split'> = {
@@ -86,10 +86,10 @@ Deno.test('LexerPattern.pattern', async (pContext) => {
         const lPattern = new LexerPattern<string, 'split'>(lLexer, lPatternParam);
 
         // Evaluation
-        expect(lPattern.pattern.start.regex).toEqual(lPatternDefinition.start.regex);
+        expect(lPattern.pattern.start.regex.source).toEqual(`^(?<token>${lPatternDefinition.start.regex.source})`);
         expect(lPattern.pattern.start.types).toEqual(lPatternDefinition.start.types);
         expect(lPattern.pattern.start.validator).toEqual(lPatternDefinition.start.validator);
-        expect(lPattern.pattern.end.regex).toEqual(lPatternDefinition.end.regex);
+        expect(lPattern.pattern.end.regex.source).toEqual(`^(?<token>${lPatternDefinition.end.regex.source})`);
         expect(lPattern.pattern.end.types).toEqual(lPatternDefinition.end.types);
         expect(lPattern.pattern.end.validator).toEqual(lPatternDefinition.end.validator);
         expect(lPattern.pattern.innerType).toEqual(lPatternDefinition.innerType);
@@ -98,7 +98,7 @@ Deno.test('LexerPattern.pattern', async (pContext) => {
     await pContext.step('Single pattern', () => {
         // Setup
         const lLexer = new Lexer<string>();
-        const lPatternDefinition = { single: { regex: /(?<token>const)/, types: { token: 'modifier' }, validator: null } };
+        const lPatternDefinition = { single: { regex: /const/, types: { token: 'modifier' }, validator: null } };
         const lPatternParam: LexerPatternConstructorParameter<string, 'single'> = {
             type: 'single',
             metadata: [],
@@ -108,7 +108,7 @@ Deno.test('LexerPattern.pattern', async (pContext) => {
         const lPattern = new LexerPattern<string, 'single'>(lLexer, lPatternParam);
 
         // Evaluation
-        expect(lPattern.pattern.start.regex).toEqual(lPatternDefinition.single.regex);
+        expect(lPattern.pattern.start.regex.source).toEqual(`^(?<token>${lPatternDefinition.single.regex.source})`);
         expect(lPattern.pattern.start.types).toEqual(lPatternDefinition.single.types);
         expect(lPattern.pattern.start.validator).toEqual(lPatternDefinition.single.validator);
     });
@@ -153,8 +153,8 @@ Deno.test('LexerPattern.dependencies', async (pContext) => {
             type: 'split',
             metadata: [],
             pattern: {
-                start: { regex: /(?<token>start)/, types: { token: 'modifier' }, validator: null },
-                end: { regex: /(?<token>end)/, types: { token: 'identifier' }, validator: null },
+                start: { regex: /start/, types: { token: 'modifier' }, validator: null },
+                end: { regex: /end/, types: { token: 'identifier' }, validator: null },
                 innerType: null
             },
             dependencyFetch: (pPattern: LexerPattern<string, LexerPatternType>) => {
@@ -182,8 +182,8 @@ Deno.test('LexerPattern.dependencies', async (pContext) => {
             type: 'split',
             metadata: [],
             pattern: {
-                start: { regex: /(?<token>start)/, types: { token: 'modifier' }, validator: null },
-                end: { regex: /(?<token>end)/, types: { token: 'identifier' }, validator: null },
+                start: { regex: /start/, types: { token: 'modifier' }, validator: null },
+                end: { regex: /end/, types: { token: 'identifier' }, validator: null },
                 innerType: null
             },
             dependencyFetch: (pPattern: LexerPattern<string, LexerPatternType>) => {
@@ -212,11 +212,11 @@ Deno.test('LexerPattern.useChildPattern()', async (pContext) => {
             type: 'split',
             metadata: [],
             pattern: {
-                start: { regex: /(?<token>start)/, types: { token: 'modifier' }, validator: null },
-                end: { regex: /(?<token>end)/, types: { token: 'identifier' }, validator: null },
+                start: { regex: /start/, types: { token: 'modifier' }, validator: null },
+                end: { regex: /end/, types: { token: 'identifier' }, validator: null },
                 innerType: null
             },
-            dependencyFetch: () => {}
+            dependencyFetch: () => { }
         });
 
         // Process.
@@ -236,7 +236,7 @@ Deno.test('LexerPattern.is()', async (pContext) => {
             type: 'single',
             metadata: [],
             dependencyFetch: null,
-            pattern: { single: { regex: /(?<token>const)/, types: { token: 'modifier' }, validator: null } }
+            pattern: { single: { regex: /const/, types: { token: 'modifier' }, validator: null } }
         };
         const lPattern = new LexerPattern(lLexer, lPatternParam);
 
@@ -256,8 +256,8 @@ Deno.test('LexerPattern.resolveDependencies()', async (pContext) => {
             type: 'split',
             metadata: [],
             pattern: {
-                start: { regex: /(?<token>start)/, types: { token: 'modifier' }, validator: null },
-                end: { regex: /(?<token>end)/, types: { token: 'identifier' }, validator: null },
+                start: { regex: /start/, types: { token: 'modifier' }, validator: null },
+                end: { regex: /end/, types: { token: 'identifier' }, validator: null },
                 innerType: null
             },
             dependencyFetch: () => {
@@ -283,8 +283,8 @@ Deno.test('LexerPattern.constructor()', async (pContext) => {
             metadata: [],
             dependencyFetch: null,
             pattern: {
-                start: { regex: /(?<token>start)/, types: { token: 'modifier' }, validator: null },
-                end: { regex: /(?<token>end)/, types: { token: 'identifier' }, validator: null },
+                start: { regex: /start/, types: { token: 'modifier' }, validator: null },
+                end: { regex: /end/, types: { token: 'identifier' }, validator: null },
                 innerType: null
             }
         };
@@ -300,7 +300,7 @@ Deno.test('LexerPattern.constructor()', async (pContext) => {
             type: 'single',
             metadata: [],
             dependencyFetch: () => { },
-            pattern: { single: { regex: /(?<token>const)/, types: { token: 'modifier' }, validator: null } }
+            pattern: { single: { regex: /const/, types: { token: 'modifier' }, validator: null } }
         };
 
         // Evaluation
@@ -314,7 +314,7 @@ Deno.test('LexerPattern.constructor()', async (pContext) => {
             type: 'split',
             metadata: [],
             dependencyFetch: () => { },
-            pattern: { single: { regex: /(?<token>const)/, types: { token: 'modifier' }, validator: null } }
+            pattern: { single: { regex: /const/, types: { token: 'modifier' }, validator: null } }
         };
 
         // Evaluation
@@ -329,8 +329,8 @@ Deno.test('LexerPattern.constructor()', async (pContext) => {
             metadata: [],
             dependencyFetch: null,
             pattern: {
-                start: { regex: /(?<token>start)/, types: { token: 'modifier' }, validator: null },
-                end: { regex: /(?<token>end)/, types: { token: 'identifier' }, validator: null },
+                start: { regex: /start/, types: { token: 'modifier' }, validator: null },
+                end: { regex: /end/, types: { token: 'identifier' }, validator: null },
                 innerType: null
             }
         };

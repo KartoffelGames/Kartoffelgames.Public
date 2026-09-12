@@ -1,4 +1,5 @@
 import { Exception } from '@kartoffelgames/core';
+import { LexerPatternIndex } from './lexer-child-pattern.ts';
 import type { LexerToken } from './lexer-token.ts';
 import type { Lexer } from './lexer.ts';
 
@@ -8,24 +9,18 @@ import type { Lexer } from './lexer.ts';
 export class LexerPattern<TTokenType extends string, TPatternType extends LexerPatternType> {
     private readonly mDependencyFetch: LexerPatternDependencyFetch<TTokenType, TPatternType> | null;
     private mDependencyFetchResolved: boolean;
+    private mChildPattern: LexerPatternIndex<TTokenType>;
     private readonly mLexer: Lexer<TTokenType>;
     private readonly mMeta: Array<string>;
     private readonly mPattern: LexerPatternDefinition<TTokenType, TPatternType>;
-    private readonly mPatternDependencies: Array<LexerPattern<TTokenType, LexerPatternType>>;
+
     private readonly mType: TPatternType;
 
     /**
-     * Dependencies for the pattern.
+     * Child pattern.
      */
-    public get dependencies(): Array<LexerPattern<TTokenType, LexerPatternType>> {
-        return this.mPatternDependencies;
-    }
-
-    /**
-     * Check if all dependencies are resolved.
-     */
-    public get dependenciesResolved(): boolean {
-        return this.mDependencyFetchResolved;
+    public get childPattern(): LexerPatternIndex<TTokenType> {
+        return this.mChildPattern;
     }
 
     /**
@@ -61,8 +56,8 @@ export class LexerPattern<TTokenType extends string, TPatternType extends LexerP
         this.mType = pParameter.type;
         this.mMeta = pParameter.metadata;
 
-        // Init unresolved dependency list.
-        this.mPatternDependencies = new Array<LexerPattern<TTokenType, LexerPatternType>>();
+        // Init child pattern list.
+        this.mChildPattern = new LexerPatternIndex<TTokenType>(pLexer);
 
         // Set inner fetch data and fetch resolved state based on parameter.
         this.mDependencyFetch = pParameter.dependencyFetch ?? null;
@@ -106,16 +101,12 @@ export class LexerPattern<TTokenType extends string, TPatternType extends LexerP
     }
 
     /**
-     * User a lexer pattern as child pattern.
+     * Use a lexer pattern as child pattern.
      * 
      * @param pPattern - Lexer token pattern.
      */
     public useChildPattern(pPattern: LexerPattern<TTokenType, LexerPatternType>): void {
-        if (this.mLexer !== pPattern.lexer) {
-            throw new Exception(`Can only add dependencies of the same lexer.`, this);
-        }
-
-        this.mPatternDependencies.push(pPattern);
+        this.mChildPattern.addChild(pPattern);
     }
 
     /**

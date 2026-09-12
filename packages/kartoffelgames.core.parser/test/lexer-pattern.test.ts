@@ -9,53 +9,21 @@ const gDefaultPattern: LexerPatternConstructorParameter<string, LexerPatternType
     pattern: { single: { regex: /const/, types: { token: 'modifier' }, validator: null } },
 };
 
-Deno.test('LexerPattern.dependenciesResolved', async (pContext) => {
-    await pContext.step('Resolve with dependency fetch', () => {
-        // Setup
-        const lLexer = new Lexer<string>();
-        const lPatternParam: LexerPatternConstructorParameter<string, LexerPatternType> = {
-            type: 'split',
-            metadata: [],
-            pattern: {
-                start: { regex: /start/, types: { token: 'modifier' }, validator: null },
-                end: { regex: /end/, types: { token: 'identifier' }, validator: null },
-                innerType: null
-            },
-            dependencyFetch: () => { },
-        };
-        const lPattern = new LexerPattern(lLexer, lPatternParam);
+const gSplitPattern = (pDependencyFetch: LexerPatternConstructorParameter<string, LexerPatternType>['dependencyFetch']): LexerPatternConstructorParameter<string, LexerPatternType> => {
+    return {
+        type: 'split',
+        metadata: [],
+        pattern: {
+            start: { regex: /start/, types: { token: 'modifier' }, validator: null },
+            end: { regex: /end/, types: { token: 'identifier' }, validator: null },
+            innerType: null
+        },
+        dependencyFetch: pDependencyFetch,
+    };
+};
 
-        // Process.
-        const lPreviousState: boolean = lPattern.dependenciesResolved;
-        lPattern.resolveDependencies();
-        const lCurrentState: boolean = lPattern.dependenciesResolved;
-
-        // Evaluation
-        expect(lPreviousState).toBe(false);
-        expect(lCurrentState).toBe(true);
-    });
-
-    await pContext.step('Auto resolve without a dependency fetch', () => {
-        // Setup
-        const lLexer = new Lexer<string>();
-        const lPatternParam: LexerPatternConstructorParameter<string, LexerPatternType> = {
-            type: 'single',
-            metadata: [],
-            dependencyFetch: null,
-            pattern: { single: { regex: /const/, types: { token: 'modifier' }, validator: null } },
-        };
-        const lPattern = new LexerPattern(lLexer, lPatternParam);
-
-        // Process.
-        const lPreviousState: boolean = lPattern.dependenciesResolved;
-        lPattern.resolveDependencies();
-        const lCurrentState: boolean = lPattern.dependenciesResolved;
-
-        // Evaluation
-        expect(lPreviousState).toBe(true);
-        expect(lCurrentState).toBe(true);
-    });
-});
+// Character code of the first character of the default pattern "const".
+const gDefaultPatternCharCode: number = 'c'.charCodeAt(0);
 
 Deno.test('LexerPattern.lexer', async (pContext) => {
     await pContext.step('Default', () => {
@@ -126,71 +94,63 @@ Deno.test('LexerPattern.meta', async (pContext) => {
     });
 });
 
-Deno.test('LexerPattern.dependencies', async (pContext) => {
-    await pContext.step('Without dependencies', () => {
+Deno.test('LexerPattern.childPattern', async (pContext) => {
+    await pContext.step('Without child pattern', () => {
         // Setup
         const lLexer = new Lexer<string>();
-        const lPatternParam: LexerPatternConstructorParameter<string, LexerPatternType> = {
-            ...gDefaultPattern,
-            dependencyFetch: null,
-        };
-        const lPattern = new LexerPattern(lLexer, lPatternParam);
+        const lPattern = new LexerPattern(lLexer, gDefaultPattern);
 
         // Process.
         lPattern.resolveDependencies();
-        const lDependecies = lPattern.dependencies;
+        const lChildPattern = lPattern.childPattern.bucketOf(gDefaultPatternCharCode);
 
         // Evaluation
-        expect(lDependecies).toEqual([]);
+        expect(lChildPattern).toEqual([]);
     });
 
-    await pContext.step('With dependencies', () => {
+    await pContext.step('With child pattern added by dependency fetch', () => {
         // Setup
         const lLexer = new Lexer<string>();
         const lPatternOne = new LexerPattern(lLexer, gDefaultPattern);
         const lPatternTwo = new LexerPattern(lLexer, gDefaultPattern);
-        const lPatternParam: LexerPatternConstructorParameter<string, LexerPatternType> = {
-            type: 'split',
-            metadata: [],
-            pattern: {
-                start: { regex: /start/, types: { token: 'modifier' }, validator: null },
-                end: { regex: /end/, types: { token: 'identifier' }, validator: null },
-                innerType: null
-            },
-            dependencyFetch: (pPattern: LexerPattern<string, LexerPatternType>) => {
-                pPattern.useChildPattern(lPatternOne);
-                pPattern.useChildPattern(lPatternTwo);
-            },
-        };
-        const lPattern = new LexerPattern(lLexer, lPatternParam);
+        const lPattern = new LexerPattern(lLexer, gSplitPattern((pPattern: LexerPattern<string, LexerPatternType>) => {
+            pPattern.useChildPattern(lPatternOne);
+            pPattern.useChildPattern(lPatternTwo);
+        }));
 
         // Process.
         lPattern.resolveDependencies();
-        const lDependecies = lPattern.dependencies;
+        const lChildPattern = lPattern.childPattern.bucketOf(gDefaultPatternCharCode);
 
         // Evaluation
-        expect(lDependecies).toEqual([lPatternOne, lPatternTwo]);
+        expect(lChildPattern).toEqual([lPatternOne, lPatternTwo]);
     });
 
-    await pContext.step('Dependency with different lexer', () => {
+    await pContext.step('Child pattern not matching a character', () => {
+        // Setup
+        const lLexer = new Lexer<string>();
+        const lPatternOne = new LexerPattern(lLexer, gDefaultPattern);
+        const lPattern = new LexerPattern(lLexer, gSplitPattern((pPattern: LexerPattern<string, LexerPatternType>) => {
+            pPattern.useChildPattern(lPatternOne);
+        }));
+
+        // Process.
+        lPattern.resolveDependencies();
+        const lChildPattern = lPattern.childPattern.bucketOf('x'.charCodeAt(0));
+
+        // Evaluation
+        expect(lChildPattern).toEqual([]);
+    });
+
+    await pContext.step('Child pattern with different lexer', () => {
         // Setup. Pattern.
         const lPatternOne = new LexerPattern(new Lexer<string>(), gDefaultPattern);
 
         // Setup
         const lLexer = new Lexer<string>();
-        const lPatternParam: LexerPatternConstructorParameter<string, LexerPatternType> = {
-            type: 'split',
-            metadata: [],
-            pattern: {
-                start: { regex: /start/, types: { token: 'modifier' }, validator: null },
-                end: { regex: /end/, types: { token: 'identifier' }, validator: null },
-                innerType: null
-            },
-            dependencyFetch: (pPattern: LexerPattern<string, LexerPatternType>) => {
-                pPattern.useChildPattern(lPatternOne);
-            },
-        };
-        const lPattern = new LexerPattern(lLexer, lPatternParam);
+        const lPattern = new LexerPattern(lLexer, gSplitPattern((pPattern: LexerPattern<string, LexerPatternType>) => {
+            pPattern.useChildPattern(lPatternOne);
+        }));
 
         // Process.
         const lFailingDependencyFetch = () => {
@@ -208,69 +168,100 @@ Deno.test('LexerPattern.useChildPattern()', async (pContext) => {
         const lLexer = new Lexer<string>();
         const lPatternOne = new LexerPattern(lLexer, gDefaultPattern);
         const lPatternTwo = new LexerPattern(lLexer, gDefaultPattern);
-        const lMainPattern = new LexerPattern(lLexer, {
-            type: 'split',
-            metadata: [],
-            pattern: {
-                start: { regex: /start/, types: { token: 'modifier' }, validator: null },
-                end: { regex: /end/, types: { token: 'identifier' }, validator: null },
-                innerType: null
-            },
-            dependencyFetch: () => { }
-        });
+        const lMainPattern = new LexerPattern(lLexer, gSplitPattern(() => { }));
 
         // Process.
         lMainPattern.useChildPattern(lPatternOne);
         lMainPattern.useChildPattern(lPatternTwo);
 
         // Evaluation
-        expect(lMainPattern.dependencies).toEqual([lPatternOne, lPatternTwo]);
+        expect(lMainPattern.childPattern.bucketOf(gDefaultPatternCharCode)).toEqual([lPatternOne, lPatternTwo]);
+    });
+
+    await pContext.step('Throws exception on pattern of a different lexer', () => {
+        // Setup
+        const lLexer = new Lexer<string>();
+        const lForeignPattern = new LexerPattern(new Lexer<string>(), gDefaultPattern);
+        const lMainPattern = new LexerPattern(lLexer, gSplitPattern(() => { }));
+
+        // Process.
+        const lFailingUseChildPattern = () => {
+            lMainPattern.useChildPattern(lForeignPattern);
+        };
+
+        // Evaluation
+        expect(lFailingUseChildPattern).toThrow(`Can only add dependencies of the same lexer.`);
     });
 });
 
-Deno.test('LexerPattern.is()', async (pContext) => {
-    await pContext.step('Default', () => {
+Deno.test('LexerPattern.isSplit()', async (pContext) => {
+    await pContext.step('Single pattern', () => {
         // Setup
         const lLexer = new Lexer<string>();
-        const lPatternParam: LexerPatternConstructorParameter<string, LexerPatternType> = {
-            type: 'single',
-            metadata: [],
-            dependencyFetch: null,
-            pattern: { single: { regex: /const/, types: { token: 'modifier' }, validator: null } }
-        };
-        const lPattern = new LexerPattern(lLexer, lPatternParam);
+        const lPattern = new LexerPattern(lLexer, gDefaultPattern);
 
         // Evaluation
         expect(lPattern.isSplit()).toBe(false);
     });
+
+    await pContext.step('Split pattern', () => {
+        // Setup
+        const lLexer = new Lexer<string>();
+        const lPattern = new LexerPattern(lLexer, gSplitPattern(() => { }));
+
+        // Evaluation
+        expect(lPattern.isSplit()).toBe(true);
+    });
 });
 
 Deno.test('LexerPattern.resolveDependencies()', async (pContext) => {
-    await pContext.step('Default', () => {
+    await pContext.step('Calls dependency fetch', () => {
         // Setup. Flags.
         let lDependencyFetchCalled: boolean = false;
 
         // Setup
         const lLexer = new Lexer<string>();
-        const lPattern = new LexerPattern(lLexer, {
-            type: 'split',
-            metadata: [],
-            pattern: {
-                start: { regex: /start/, types: { token: 'modifier' }, validator: null },
-                end: { regex: /end/, types: { token: 'identifier' }, validator: null },
-                innerType: null
-            },
-            dependencyFetch: () => {
-                lDependencyFetchCalled = true;
-            },
-        });
+        const lPattern = new LexerPattern(lLexer, gSplitPattern(() => {
+            lDependencyFetchCalled = true;
+        }));
 
         // Process
         lPattern.resolveDependencies();
 
         // Evaluation
         expect(lDependencyFetchCalled).toBeTruthy();
-        expect(lPattern.dependenciesResolved).toBe(true);
+    });
+
+    await pContext.step('Calls dependency fetch only once', () => {
+        // Setup. Flags.
+        let lDependencyFetchCallCount: number = 0;
+
+        // Setup
+        const lLexer = new Lexer<string>();
+        const lPattern = new LexerPattern(lLexer, gSplitPattern(() => {
+            lDependencyFetchCallCount++;
+        }));
+
+        // Process
+        lPattern.resolveDependencies();
+        lPattern.resolveDependencies();
+
+        // Evaluation
+        expect(lDependencyFetchCallCount).toBe(1);
+    });
+
+    await pContext.step('Auto resolve without a dependency fetch', () => {
+        // Setup
+        const lLexer = new Lexer<string>();
+        const lPattern = new LexerPattern(lLexer, gDefaultPattern);
+
+        // Process.
+        const lResolveDependencies = () => {
+            lPattern.resolveDependencies();
+        };
+
+        // Evaluation
+        expect(lResolveDependencies).not.toThrow();
     });
 });
 
@@ -278,16 +269,7 @@ Deno.test('LexerPattern.constructor()', async (pContext) => {
     await pContext.step('Throws exception split pattern without dependency fetch', () => {
         // Setup
         const lLexer = new Lexer<string>();
-        const lPatternParam: LexerPatternConstructorParameter<string, LexerPatternType> = {
-            type: 'split',
-            metadata: [],
-            dependencyFetch: null,
-            pattern: {
-                start: { regex: /start/, types: { token: 'modifier' }, validator: null },
-                end: { regex: /end/, types: { token: 'identifier' }, validator: null },
-                innerType: null
-            }
-        };
+        const lPatternParam: LexerPatternConstructorParameter<string, LexerPatternType> = gSplitPattern(null);
 
         // Evaluation
         expect(() => new LexerPattern(lLexer, lPatternParam)).toThrow('Split token with a start and end token, need inner token definitions');

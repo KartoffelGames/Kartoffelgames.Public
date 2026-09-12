@@ -248,27 +248,20 @@ export class Lexer<TTokenType extends string> {
     /**
      * Tries to match the next token with the pattern start tokem matcher returns the best match.
      *
-     * @template TTokenType - The type of the token.
      * @param pStateObject - The current state of the lexer.
-     * @param pPattern - An array of lexer patterns to match against.
+     * @param pPatternScope - Pattern owning the dependency list to match against.
      * @param pParentMetas - An array of parent metadata strings.
      * @param pForcedType - A forced token type, or null if not forced.
      * @returns The best matching token pattern start match, or null if no match is found.
      */
-    private findNextStartToken(pStateObject: LexerStateObject, pPattern: Array<LexerPattern<TTokenType, LexerPatternType>>, pParentMetas: Array<string>, pForcedType: TTokenType | null): LexerPatternStartMatch<TTokenType> | null {
+    private findNextStartToken(pStateObject: LexerStateObject, pPatternScope: LexerPattern<TTokenType, LexerPatternType>, pParentMetas: Array<string>, pForcedType: TTokenType | null): LexerPatternStartMatch<TTokenType> | null {
+        // Read patterns bucket for the correct starting char.
+        const lPatternBucket: Array<LexerPattern<TTokenType, LexerPatternType>> = pPatternScope.childPattern.bucketOf(pStateObject.data.charCodeAt(0));
+
         // Iterate available token pattern.
-        for (const lTokenPattern of pPattern) {
+        for (const lTokenPattern of lPatternBucket) {
             // Get token start regex and use single token types or start token types for different pattern types.
             const lTokenMatcher: LexerPatternDefinitionMatcher<TTokenType> = lTokenPattern.pattern.start;
-
-            // When the matcher has information of the possible first chars check the first matchable character.
-            if (lTokenMatcher.staticCharCodes.size > 0) {
-                // Read first charcode of current state.
-                const lFirstCharcode: number = pStateObject.data.charCodeAt(0);
-                if (!lTokenMatcher.staticCharCodes.has(lFirstCharcode)) {
-                    continue;
-                }
-            }
 
             // Try to find next token.
             const lFoundToken: LexerToken<TTokenType> | null = this.matchToken(lTokenMatcher, pStateObject, pParentMetas, lTokenPattern.meta, pForcedType);
@@ -569,7 +562,7 @@ export class Lexer<TTokenType extends string> {
             }
 
             // Iterate available token pattern.
-            const lFoundToken: LexerPatternStartMatch<TTokenType> | null = this.findNextStartToken(pStateObject, lScope.pattern.dependencies, lScope.metas, lScope.forcedType);
+            const lFoundToken: LexerPatternStartMatch<TTokenType> | null = this.findNextStartToken(pStateObject, lScope.pattern, lScope.metas, lScope.forcedType);
             if (!lFoundToken) {
                 // Push next character to error state when no valid token was found.
                 this.pushNextCharToErrorState(pStateObject);

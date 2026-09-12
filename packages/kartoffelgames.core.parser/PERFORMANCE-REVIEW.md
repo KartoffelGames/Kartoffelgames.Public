@@ -1,161 +1,323 @@
 # Performance & Design Review — `@kartoffelgames/core-parser`
 
-Review date: 2026-09-11 · Branch `feature/potato-engine` · Reviewed at commit `3b2b8191`
-Runtime used for all measurements: Deno 2.9.5 / V8 15.0.245.2, Windows 11, x86_64.
+Original review 2026-09-11 at commit `3b2b8191` · **Revised 2026-09-12** after the lexer work landed
+(`9c6f4ffd`, `5125ebff`, `d7fa4227`).
+Runtime for all measurements: Deno 2.9.5 / V8 15.0.245.2, Windows 11, x86_64.
 
 Scope: `source/lexer/**` and `source/parser/**` including all helper classes.
+
+> This document is revised **in place**. Where a later measurement disproved an earlier claim, the earlier
+> claim was rewritten rather than annotated. Anything still described as a finding has been re-verified
+> against the current source.
 
 ---
 
 ## 0. Executive summary
 
-| # | Finding | Impact | Confidence |
-|---|---|---|---|
-| **L1** | Lexer tries **every** pattern in a scope for **every** position. 223 patterns → 187 regex calls per token, **99.5 % of them misses**. | **7–9× lexer speedup available** | Measured end-to-end with a full working implementation; all 21 existing lexer tests pass, token streams byte-identical |
-| **P1** | Your own execution stack **is** load-bearing. A faithful recursive-descent port overflows the stack at ~1 000–2 000 list items; yours handles 100 000. | Keep it | Measured, both implementations built |
-| **P2** | But the manual stack is **not** a performance win — plain recursion is **1.4–1.8× faster**. Your memory of "lifted performance by a ton" is not what the code does today. | Corrects the design rationale | Measured |
-| **P3** | A **generator-driven** driver keeps the unbounded depth, is **performance-neutral**, and deletes the entire numbered-`state` machine. | Biggest readability win | Measured, working implementation |
-| **G1** | `GraphNode.mergeData` uses `unshift(...spread)`: **O(n²)** (900× slower than push+reverse at 64 k) and throws `RangeError: Maximum call stack size exceeded` at ~200 k elements. | Real bug | Measured |
-| **T1** | Error-message template literals are built eagerly on every failed branch (**3.3× per token** on a branching grammar) and then usually discarded. | Moderate | Measured call counts |
+| # | Finding | State |
+|---|---|---|
+| **L1** | The lexer tried **every** pattern in a scope at **every** position — 223 patterns, 187 regex calls per token, 99.5 % misses. Fixed by bucketing patterns on their possible first character. | **Done.** 4.5× on the pattern walk, 1.72 → 8.15 MB/s end to end |
+| **P1** | The parser spends **87–93 % of its graph entries re-parsing a graph it already tried at that exact token position.** One `(graph, position)` cache removes it. | **Open — the big one.** 6.75× measured, prototype passes both suites |
+| **P2** | The manual process stack is load-bearing for depth (recursion overflows at ~2 000 items) but costs 1.4–1.8× versus recursion. A generator driver keeps the depth at neutral cost and deletes four numbered state machines. | Open, readability |
+| **G1** | `GraphNode.mergeData` uses `unshift(...spread)`: **O(n²)** and throws `RangeError` at ~200 k elements. | Open, real bug |
+| **T1** | Error-message template literals built eagerly on every failed branch. Worth 9–11 % on the un-cached parser, far less once P1 lands. | Open, small |
 
-Three hypotheses I tested and **rejected** — don't spend time on these:
+Hypotheses tested and **rejected** — do not spend time on these:
 
-- **Sticky (`/y`) regex + `lastIndex` instead of `substring`** — *slower*, not faster. See §1.4.
-- **`Stack` linked list → plain array** — 1.05×, i.e. noise. See §2.5.
-- **`circularGraphs` Dictionary *copy* being O(size)** — measured **0 entries copied per push**. The *allocation* is the cost, not the copy. See §2.4.
+- **Sticky (`/y`) regex + `lastIndex` instead of `substring`** — 2.2× *slower*. See §1.4.
+- **`Stack` linked list → plain array** — 1.05×, noise. See §3.4.
+- **A per-pattern first-character guard** — *slower than no guard at all*. See §1.2. This one cost real time.
+- **Batching whitespace skipping** — the obvious implementation is slower. See §1.5.
+- **`circularGraphs` lazy allocation** — cannot fire as described. See §2.4.
 
 ---
 
-## 1. The lexer
+## 1. The lexer — done
 
-### 1.1 The dominant cost
+### 1.1 What the problem was
 
-`Lexer.findNextStartToken` ([lexer.ts:267](source/lexer/lexer.ts:267)) walks the scope's entire pattern list and calls `matchToken` on each until one matches. Instrumenting `RegExp.prototype.exec` over `sketch-shader.pgsl` (4 024 chars, 934 tokens) with the real `PgslLexer`:
+`findNextStartToken` walked the scope's entire pattern list at every position. On `sketch-shader.pgsl`
+(4 024 chars, 934 tokens) with the real `PgslLexer`:
 
 ```
-text chars        : 4024
-tokens produced   : 934
 regex exec calls  : 174437   (186.8 per token)
 regex exec hits   : 947      (miss rate 99.5%)
-chars handed to rx: 381,420,610  (= 94,786x the text size)
 ```
 
-The `PgslLexer` registers **223 patterns in every scope** (nesting depth 5, same 223 at each level) — ~150 reserved keywords plus ~60 static keywords, each its own pattern. Every one is a separate `exec` at every position.
+`PgslLexer` registers **223 patterns in every scope** — ~150 reserved keywords plus ~60 static keywords, each
+its own pattern, each a separate `exec` at every position.
 
-This is the whole ballgame. Everything else in the lexer is rounding error by comparison.
+### 1.2 The fix, and the trap inside it
 
-### 1.2 The fix: first-character dispatch
+For every pattern, derive the character it must start with; bucket patterns by that character; at each
+position look up one bucket and walk only it. Patterns whose first character can't be proven go in a fallback
+list that is always tried, so the result is sound — the winning pattern never changes.
 
-For each pattern, derive the set of characters its regex can *start* matching, then bucket patterns by first character. At each position, look up `data.charCodeAt(0)` and only try that bucket. Patterns whose first-char set can't be proven stay in a fallback list that is always tried, so the optimisation is **sound** — never changes which pattern wins.
+The derivation does **not** need a regex parser. It answers one question — *does this regex begin with a
+mandatory literal character?* — and returns "don't know" for everything else. Roughly 30 lines
+(`staticFirstCharsOfRegex`) derive **218 of 223** patterns. The five it gives up on are the comment, float,
+int, boolean and identifier patterns.
 
-On the real `PgslLexer` pattern set, a conservative derivation handles **216 of 223** patterns (the 7 undecidable ones are comment/number patterns starting with a group or alternation):
-
-```
-patterns in root scope     : 223
-first-char set derived     : 216
-undecidable (always try)   : 7
-avg patterns tried per position : 13.7  (was 223)  -> 16.3x fewer regex calls
-```
-
-Pattern priority is preserved by construction: patterns are processed in list order, and a freshly created bucket is seeded with every undecidable pattern that precedes it.
-
-### 1.3 Measured result
-
-I built this for real — a full copy of `source/lexer/` with the dispatch index plus the smaller items from §1.5, driven by the actual `PgslLexer` grammar. Not a monkey-patch (see the warning in §1.4).
+**The trap: where you put the check decides whether you win anything.** Measured on the real pattern set:
 
 ```
-file                          tokens   baseline    optimized   speedup   identical
-sketch-shader.pgsl              934     4.815ms     0.681ms    7.07x     true
-forward-entry-points.pgsl       505     2.587ms     0.310ms    8.36x     true
-default-pbr-shader.pgsl         245     0.935ms     0.105ms    8.88x     true
-sketch x20 (79 KB)            18680    68.535ms    7.826ms     8.76x     true
-
-throughput: 1.12 MB/s  ->  9.81 MB/s
+A  baseline (no first-char check)              6.68 ms
+B  per-pattern Set guard inside the loop       7.76 ms   <- SLOWER than baseline
+B2 same, charCodeAt hoisted out of the loop    5.20 ms   <- 1.28x
+C  bucket dispatch, one lookup per position    0.53 ms   <- 12.6x
 ```
 
-- **Token streams are byte-identical** (type, value, line, column, metas) on every file.
-- The package's **existing lexer test suite passes unchanged**: `21 passed (53 steps) | 0 failed`, same as baseline.
-- `forward-import.pgsl` fails to lex in both versions with the identical message (it uses `#IMPORT`, which the current grammar doesn't cover) — so that's a faithful match too.
+A per-pattern guard skips the `exec` but keeps all 223 loop iterations, and V8's `^`-anchored regex already
+has a fast "not at start of input" bail costing ~12 ns — about what a property load plus `Set.has` costs. You
+swap one first-character check for another and pay for the loop twice.
 
-**Ablation** — which change actually earned the win:
+**The win is not skipping the regex. It is not walking the list.**
+
+Priority is preserved by construction: patterns are bucketed in list order, and a freshly created bucket is
+seeded with every undecidable pattern that precedes it. Each bucket is therefore an ordered subsequence of
+the full list, so its first match is the full list's first match.
+
+### 1.3 Measured outcome
+
+Guard versus bucket, same process, token streams byte-identical:
 
 ```
-all optimisations                      : 9.75x
-everything EXCEPT the char index       : 1.13x
+file                          tokens      guard     bucket   speedup
+sketch-shader.pgsl               934    2.254ms    0.482ms    4.68x
+default-pbr-shader.pgsl          245    0.596ms    0.131ms    4.56x
+forward-entry-points.pgsl        505    1.243ms    0.279ms    4.46x
+sketch x20 (79 KB)             18680   44.528ms    9.415ms    4.73x
+
+throughput:  1.72 MB/s  ->  8.15 MB/s
 ```
 
-So the dispatch index is worth **~8.6×** and every other lexer change combined is worth **1.13×**. Do the index first; treat the rest as cleanliness work with a small bonus.
+The original review claimed **7–9× for the index alone**. That was wrong: it conflated the index with the
+§1.5 cleanups, and the supporting ablation (`everything EXCEPT the char index : 1.13x`) is a *removal*
+ablation, which does not license the inverse claim. The index is worth ~4.5× on this machine; the cleanups
+another ~1.13×.
 
-### 1.4 Two measurement traps I hit — worth knowing
+Key-type choice does not matter. `Map<number>` + `charCodeAt(0)`, `Map<string>` + `data[0]`, and a flat
+`Array(128)` indexed by code all land within ±2 % end to end, despite an isolated micro-benchmark showing
+`Map<number>` ~20 % ahead. Pick whichever reads better.
 
-**Monkey-patching `Lexer.prototype` gives garbage numbers.** My first attempt at measuring the smaller optimisations by patching prototype methods showed them getting *progressively slower* (0.69× → 0.44× → 0.43×) as I added "optimisations". That's V8 deoptimising the patched methods, not real cost. Every number in §1.3 comes from a real modified copy of the source compiled normally. If you benchmark this yourself, modify the source.
+### 1.4 Measurement traps worth knowing
 
-**Sticky regex is not the answer.** `moveCursor` does `data = data.substring(length)` ([lexer.ts:453](source/lexer/lexer.ts:453)), and the 381 M characters above look like it must be the problem. It isn't — V8 represents `substring` results as sliced strings and resolves them by offset for regex, so no copying happens. I benchmarked the obvious "fix" (sticky `/y` flag + `lastIndex = position` against the immutable full text, 180 failing patterns × 4 024 positions):
+**Monkey-patching a prototype gives garbage timings.** Patched methods get deoptimised by V8; an early
+attempt showed "optimisations" getting progressively slower (0.69× → 0.44× → 0.43×). Patching to *count*
+calls is fine. To measure time, modify a real copy of the source and compile it normally. Every timing in
+this document comes from a compiled source copy.
+
+**Sticky regex is not the answer.** `moveCursor` does `data = data.substring(length)`, and the 381 M
+characters handed to the regex engine look like the problem. They are not — V8 represents `substring` results
+as sliced strings resolved by offset, so nothing is copied:
 
 ```
 A  substring + /^.../  :  8.73 ms
 B  sticky + lastIndex  : 19.55 ms   (2.2x SLOWER)
 ```
 
-`^`-anchored patterns get a very fast "not at start of input" bailout that the sticky path doesn't match. **Keep the `substring` approach.**
+**Cross-process comparisons drift.** Two of the wrong conclusions in this project's history came from
+comparing a number measured now against a number measured in an earlier run. Always A/B in one process.
 
-One caveat worth a comment in the code: because the wrapper is `^(?<token>…)` *without* the `m` flag, a non-match bails immediately. If a user ever passes a regex with the `m` flag, `^` starts matching at every line start and a failing pattern will scan the whole remaining document. The `lTokenStartMatch.index !== 0` guard at [lexer.ts:408](source/lexer/lexer.ts:408) catches the wrong result but not the wasted scan. Worth either rejecting `m` in `createTokenPattern` or documenting it.
+One caveat worth a code comment: the wrapper is `^(?<token>…)` *without* the `m` flag, so a non-match bails
+immediately. If a user passes a regex with `m`, `^` matches at every line start and a failing pattern scans
+the remaining document. Either reject `m` in `createTokenPattern` or document it.
 
-### 1.5 Smaller lexer items (the 1.13×)
+### 1.5 Remaining lexer items
 
-Worth doing for clarity; measure before attributing speed to them.
+Items 1–5 of the original list (flat scope-stack loop, non-generator error token, cached meta lists, lazy
+meta `Set`, `findTokenTypeOfMatch` iterating the type map) are **done** and measured at **1.11–1.13×**
+combined, same-process A/B, token streams identical.
 
-1. **`tokenizeRecursionLayer` is a recursive generator** ([lexer.ts:528](source/lexer/lexer.ts:528)). Every token bubbles up through one `yield*` frame per nesting level — O(depth) per token. Replacing it with a flat loop over an explicit scope-stack array made the code *shorter* and removed the cost. Note the irony: the parser has a hand-rolled stack where recursion would be fine, and the lexer has recursion where a stack is better.
+Still open, and small:
 
-2. **`generateErrorToken` is a generator that yields 0 or 1 token** ([lexer.ts:344](source/lexer/lexer.ts:344)), consumed via `yield*` at three call sites. A plain function returning `LexerToken | null` is cheaper and clearer.
-
-3. **Two allocations per token for metas.** `matchToken` builds `[...pCurrentMetas, ...pPattern.meta]` on every *attempt* ([lexer.ts:412](source/lexer/lexer.ts:412)) — including the 99.5 % that fail validation — and `LexerToken` allocates a `Set` per token ([lexer-token.ts:49](source/lexer/lexer-token.ts:49)) even when there are no metas. Caching the resolved meta list per (pattern, parent-list) and making the `Set` lazy removes both.
-
-   **Careful here — this is where I introduced the one bug my rewrite hit.** The end-token match passes the *current* scope's metas, which already include the pattern's own metas, so appending them again duplicates. The original code has the same double-append but the per-token `Set` silently collapsed it. If you switch to arrays you must dedupe explicitly, or the `Valid token metas` test fails with `[Braket, List, Braket, List]`.
-
-4. **`metas` getter allocates on every read** ([lexer-token.ts:26](source/lexer/lexer-token.ts:26)): `[...this.mMetas]`. Fine if rarely read; it's called per token in some consumers.
-
-5. **`findTokenTypeOfMatch` uses `for…in` over `pTokenMatch.groups`** ([lexer.ts:298](source/lexer/lexer.ts:298)) — that iterates *every* named group in the user's regex. Iterating the (usually single-entry) `pTypes` object instead and indexing `groups[name]` is strictly less work.
-
-6. **Whitespace is skipped one character at a time** ([lexer.ts:500](source/lexer/lexer.ts:500)). 20 % of `sketch-shader.pgsl` is whitespace, and each character costs a `charAt` (one-char string allocation), a `Set` lookup, and a full `moveCursor` — which itself does `value.split('\n')` (array allocation) plus a progress-tracker call. Skipping the whole run in one `moveCursor` and counting newlines with `charCodeAt` instead of `split` removes all of it.
-
-7. **`pushNextCharToErrorState`** ([lexer.ts:471](source/lexer/lexer.ts:471)) also advances one character per call through the full `moveCursor` path. Same treatment applies.
+1. **Whitespace skipping** advances one character at a time. Worth **3–5 %**, and the obvious implementation
+   is *slower than doing nothing*: building the run with `+=` produces a V8 ConsString that `moveCursor`'s
+   `split('\n')` must flatten, and **70 % of whitespace runs in PGSL are one character**, so batching has
+   nothing to batch. Measure the run as numbers — length, newline count, offset after the last newline — and
+   never materialise the string, or leave the one-character version alone.
+2. **`pushNextCharToErrorState`** advances one character per call through the full `moveCursor` path. Same
+   treatment, only matters on inputs that fail to lex.
 
 ---
 
-## 2. The parser — your central question
+## 2. The parser — where all the time is now
 
-> *"maybe I was limited by my own experience back then and the own execution stack implementation is hindering and not needed whether by the stack limit nor by the performance."*
+### 2.1 The lexer is 1 % of the cost
 
-Two separate questions, two different answers.
+```
+file                          tokens    lex       parseAst   parse share
+world-group-forward.pgsl          96   0.106ms     2.636ms       96%
+default-pbr-shader.pgsl          245   0.154ms    11.615ms       99%
+forward-entry-points.pgsl        505   0.299ms    28.793ms       99%
+```
 
-### 2.1 Is it needed for the stack limit? **Yes. Unambiguously.**
+**0.6 µs/token in the lexer against 11–58 µs/token in the parser.** All of §1 optimised 1 % of end-to-end
+cost. Everything below is where the remaining work is.
 
-I wrote a faithful recursive-descent port (`RecursiveCodeParser`) — same `CodeParserProcessState`, same graph-stack handling, same error handling, same results; the only difference is JS recursion instead of the process stack. Verified to produce identical output where both work.
+### 2.2 The parser re-parses the same thing over and over
+
+Instrumenting `pushGraphStack` with the graph identity plus the token position it is entered at:
+
+```
+file                          graph pushes   distinct (graph,pos)   redundant
+world-group-forward.pgsl              2001                    260       87.0%
+default-pbr-shader.pgsl              13728                   1578       88.5%
+forward-entry-points.pgsl            38985                   2849       92.7%
+
+avg re-entries per (graph,pos):  7.7  ->  8.7  ->  13.7
+```
+
+Only 2 849 distinct `(graph, position)` pairs exist in `forward-entry-points.pgsl`; the parser performs
+38 985 entries against them.
+
+**Why.** The parser keeps no record of what it has tried; every `pushGraphStack` starts from zero.
+Backtracking then re-arrives at the same position through every enclosing alternative. Given
+`Statement → Assignment | Expression` and `Assignment → Expression "=" Expression`, parsing `foo.bar;` parses
+`Expression` once inside the failing `Assignment`, throws the result away, and parses it again for the
+`Expression` alternative. Your expression grammar is ~15 levels deep with ~10 alternatives per level.
+
+Every one of the hottest repeated pairs is in `defineExpressionGraphs`. Tracing the parent chains of a single
+pair entered 130 times in `default-pbr-shader.pgsl` shows only ~14 distinct paths — the expression chain
+re-entering itself through different intermediate rules, each re-trying the same leaves at the same token.
+
+The comment at [pgsl-parser.ts:1228](../kartoffelgames.core.pgsl/source/parser/pgsl-parser.ts:1228) —
+*"Separate expression graph without combination expressions to speed up parsing by limiting backtracking"* —
+shows this was already felt and hand-worked-around once. §2.3 is the general version of that workaround.
+
+**The re-entry factor grows with input size (7.7 → 13.7).** That, not GC pressure, is the super-linear
+scaling the original review measured but could not explain.
+
+### 2.3 The fix: one cache, two outcome kinds
+
+Key on `(graph, entry token cursor)`, per parse, junctions excluded:
+
+```
+FAILED                       -> return PARSER_ERROR immediately, skip the whole subtree
+{ nodeResult, endCursor }    -> push, set cursor to endCursor, RE-RUN Graph.convert, pop
+```
+
+The failure half is free of assumptions: a failed graph produced no data and ran no converter. The success
+half stores the *parse*, not the *converted result*, and re-runs the converter on every hit — so no converted
+object is ever aliased into two places.
+
+```
+=== world-group-forward.pgsl ===
+  baseline                              2.12ms     1.00x   output identical=true
+  failure only                          1.24ms     1.72x   output identical=true
+  failure + parse cache                 0.98ms     2.16x   output identical=true
+  failure + converted-result cache      1.00ms     2.11x   output identical=true
+
+=== default-pbr-shader.pgsl ===
+  baseline                             11.09ms     1.00x
+  failure only                          3.37ms     3.30x
+  failure + parse cache                 2.72ms     4.07x
+  failure + converted-result cache      2.79ms     3.98x
+
+=== forward-entry-points.pgsl ===
+  baseline                             28.53ms     1.00x
+  failure only                          5.71ms     5.00x
+  failure + parse cache                 4.23ms     6.75x
+  failure + converted-result cache      4.14ms     6.88x
+```
+
+**Caching the parse and re-running converters is within 2 % of caching converted results, and beats it on two
+of three files.** Reusing converted results eliminates 59 % of `Graph.convert` calls and 62 % of `mergeData`
+calls and buys 1.29× for it — so the converters are nearly free.
+
+**The expensive thing is searching for the parse, not producing the data.** The three strategies are
+performance-equivalent, which means the choice is a correctness choice, and the parse cache wins it.
+
+Per-token cost, which is the number that matters:
+
+```
+file                          tokens    baseline  us/token    cached  us/token
+object-group-forward.pgsl         67      2.10ms      31.3    1.05ms      15.7
+shared-types.pgsl                 68      0.67ms       9.9    0.71ms      10.4
+world-group-forward.pgsl          96      1.80ms      18.7    1.06ms      11.1
+default-pbr-shader.pgsl          245     11.91ms      48.6    3.56ms      14.5
+forward-entry-points.pgsl        505     29.33ms      58.1    5.71ms      11.3
+```
+
+Baseline `µs/token` climbs 9.9 → 58.1. Cached it is flat at 10–16. The scaling term is removed, not reduced.
+`shared-types.pgsl` is the honest counter-case: 107 graph pushes total, nothing to cache, bookkeeping costs
+~5 %.
+
+Correctness evidence: transpiled WGSL byte-identical on every parseable shader; with the prototype swapped
+into `source/parser/`, `core-parser` passes **43 (230 steps)** and `core-pgsl` passes **223 (1322 steps)**,
+0 failed.
+
+A stricter variant storing only the branch decisions and re-converting the whole subtree would remove the
+remaining sharing — the cached `nodeResult` still holds already-converted child objects, so children are
+shared even though the top-level object is rebuilt. It was not built. Since converters measured as nearly
+free it should land in the same range, and it is the version to reach for if a collector turns out to mutate
+its input.
+
+**Caveats, all three real.**
+
+- **Junctions are excluded.** A junction can fail on `MAX_JUNCTION_CIRCULAR_REFERENCES` in one call stack and
+  succeed in another, so `(graph, position)` is not a complete key for them. PGSL declares 58 graphs of which
+  **2 are junctions** (`lExpressionSyntaxTreeGraph`, `lSimplelExpressionSyntaxTreeGraph`, both written
+  `}, true)` on a continuation line — easy to miss when grepping). They are **~8 % of all graph pushes**, and
+  every number above excludes them, so all of this is a lower bound.
+- **`trimTokenCache` is untested against this.** The cache assumes token cursor indices are stable for the
+  whole parse. `popGraphStack` splices the token cache when trimming is on, which shifts them. PGSL leaves
+  the option at its `false` default so the prototype never exercised it. Either verify index stability or
+  disable the cache when `trimTokenCache` is set.
+- **Graph identity is the key**, and `Graph.converter()` returns a *new* `Graph` (§4.5). Graphs must be built
+  once and stored, never constructed inline in a collector — otherwise every resolution creates a fresh key
+  and the cache never hits. This is already true for circular detection; the cache makes it load-bearing.
+
+### 2.4 What is left after the cache
+
+```
+forward-entry-points.pgsl, with the failure half only
+pushGraphStack()      : 4680   ( 9.3 per token;  was 77.2)
+remaining redundancy  : 39.2%  (was 92.7%)
+trace.push()          : 3580   ( 7.1 per token;  was 94.5)
+```
+
+Two consequences for the rest of this document:
+
+**T1 / eager trace incidents is repriced.** Ablating both hot incident call sites on the *un-cached* parser
+was worth 9–11 % (28.869 ms → 26.352 ms). But `trace.push` falls from 94.5 to 7.1 per token once failures are
+cached, because the failures that generated those incidents are exactly what gets skipped. Do the cache
+first, then re-measure before investing here.
+
+**Lazy `circularGraphs` allocation cannot work as originally proposed.** `pushGraphStack` always inserts the
+graph itself into `circularGraphs`, so the dictionary is never empty at push time and "keep it `null` while
+empty" never fires. Avoiding the allocation needs a different shape — hold the self-reference in a plain
+field and only allocate a `Map` for a second entry. The original measurement that **0 entries are copied per
+push** still stands; it is the allocation, not the copy.
+
+---
+
+## 3. The execution stack — design findings
+
+Not re-measured in the 2026-09-12 pass; nothing since has contradicted them.
+
+### 3.1 The manual stack is needed. Keep it.
+
+A faithful recursive-descent port producing identical results overflows where the process stack does not:
 
 ```
 === Right recursive list:  list = item ( "," list )? ===
 items      iterative (manual stack)     recursive descent
-   500     ok                           ok
   1000     ok                           ok
   2000     ok                           STACK OVERFLOW
-  5000     ok                           STACK OVERFLOW
 100000     ok                           STACK OVERFLOW
 
 === Nested brackets:  nest = "(" nest? ")" ===
 depth      iterative (manual stack)     recursive descent
   2000     ok                           ok
   5000     ok                           STACK OVERFLOW
- 20000     ok                           STACK OVERFLOW
 ```
 
-Your process stack reaches **~10 entries per input item** and handles 100 000 items (999 998 entries) without trouble. The native limit in this runtime is only ~7 000–10 800 nested frames — and note it **varies between runs in the same process** (I measured 7 003, 8 853, 10 759 on three consecutive probes). That variability is exactly why a recursion-based parser would be an intermittent, input-dependent, unreproducible crash rather than a clean limit.
+The native limit **varies between runs in the same process** (7 003, 8 853, 10 759 on three consecutive
+probes), so a recursion-based parser would fail intermittently and unreproducibly rather than at a clean
+limit.
 
-**Your instinct was right and still is. Do not go back to plain recursion.**
-
-### 2.2 Is it a performance win? **No — it costs you 1.4–1.8×.**
-
-On inputs small enough that both implementations work:
+### 3.2 But it is a cost, not a win
 
 ```
 items    iterative      recursive     recursive is
@@ -164,17 +326,19 @@ items    iterative      recursive     recursive is
   500      1.7946ms     1.0232ms    1.75x faster
 ```
 
-The gap widens with size. So the manual stack is a **correctness mechanism that costs performance**, not a performance optimisation. Whatever gave you the big speedup back then, it wasn't this — most likely the token caching in `CodeParserProcessState` (which avoids re-lexing on backtrack) or removal of some other overhead that happened in the same rework.
+The manual stack is a **correctness mechanism that costs ~1.5×**, not a performance optimisation. Whatever
+produced the big speedup in the original rework, it was not this — most likely the token cache that avoids
+re-lexing on backtrack.
 
-This matters because it changes how you should think about the code: you're paying ~1.5× for unbounded depth. That's a fine trade. But it also means there's no reason to keep the *ugliest* version of that trade.
+### 3.3 Recommendation: keep the stack, delete the state machine
 
-### 2.3 Recommendation: keep the stack, delete the state machine
+`processGraphParseProcess`, `processNodeParseProcess`, `processNodeValueParseProcess` and
+`processChainedNodeParseProcess` each encode a continuation as an integer, push the next process and return a
+sentinel. Control flow is spread across four `switch` statements linked only by `state++`.
 
-The readability problem isn't the stack — it's the `state: number` switch machine. `processGraphParseProcess`, `processNodeParseProcess`, `processNodeValueParseProcess` and `processChainedNodeParseProcess` each manually encode a continuation as an integer, push the next process, and return a sentinel. Control flow is scattered across four `switch` statements with `state++` as the only linkage, and every function ends in an unreachable `throw` guarded by `deno-coverage-ignore`.
-
-You can get recursion-shaped code *and* heap-allocated depth with a **generator stack**: each parse routine is a generator that `yield`s a request for a sub-parse and receives the result back; a flat driver loop owns the stack of suspended generators.
-
-The critical detail: **plain `yield`, never `yield*`**. `yield*` delegation is O(depth) per step and would reintroduce the lexer's problem, quadratically. With plain `yield` the driver's cost is depth-independent:
+A **generator stack** gives recursion-shaped code with heap-allocated depth: each routine is a generator that
+`yield`s a request for a sub-parse and receives the result back; a flat driver owns the stack of suspended
+generators.
 
 ```ts
 private drive(pState: CodeParserProcessState<TTokenType>, pRoot: ParseRequest<TTokenType>): unknown {
@@ -199,7 +363,7 @@ private drive(pState: CodeParserProcessState<TTokenType>, pRoot: ParseRequest<TT
 }
 ```
 
-`processNodeParseProcess`'s three numbered states collapse to this — the whole function, no sentinels, no `state++`:
+`processNodeParseProcess`'s three numbered states collapse to this, whole:
 
 ```ts
 private * parseNode(pState: CodeParserProcessState<TTokenType>, pNode: GraphNode<TTokenType>): ParseRoutine<TTokenType> {
@@ -217,112 +381,35 @@ private * parseNode(pState: CodeParserProcessState<TTokenType>, pNode: GraphNode
 }
 ```
 
-Measured against the current implementation:
+Measured performance-neutral at depth, with identical results:
 
 ```
-=== depth limit ===
-items      iterative       recursive         generator
-  2000     ok              STACK OVERFLOW    ok
- 20000     ok              STACK OVERFLOW    ok
-100000     ok              STACK OVERFLOW    ok
-
-=== throughput (identical results at every size) ===
 items    iterative      generator     generator is
-   10       0.0327ms     0.0330ms    0.99x
   100       0.3029ms     0.4491ms    0.67x
   500       1.9394ms     1.7455ms    1.11x
  2000       7.2720ms     7.4858ms    0.97x
 20000     120.7135ms   115.2717ms    1.05x
 ```
 
-**Performance-neutral, same depth capability, results identical, and the four state machines become four linear functions.** The 0.67× at 100 items is the one outlier and is worth re-measuring on your real grammar before committing — but the trend at 500–20 000 is flat-to-slightly-better.
+**This is also where the §2.3 cache belongs.** The cache needs the entry cursor threaded from graph-entry to
+graph-exit; in the current design that is state smuggled between two `switch` cases, and in a generator
+routine it is a local variable. Do the rewrite first, add the cache into it.
 
-This is my headline recommendation for "can something be written cleaner?". A working implementation is in the scratchpad (see §5).
-
-### 2.3.1 Aren't generators slow, like promises?
-
-No — they're a different mechanism, and about 2.7× cheaper than the thing people usually mean by "slow". But they aren't free either, and there is exactly one trap. Measured over 2 000 000 operations, best of 5:
-
-```
-1. plain function call (fully inlined)               0.8 ns/op
-2. generator: new + 1 yield + resume                26.6 ns/op
-3. generator: new + 3 yields                        57.5 ns/op
-4. one generator, N yields (for..of)                26.3 ns/op
-
-5. new Promise + await                              71.5 ns/op
-6. await async function                             26.0 ns/op
-7. await a plain number                             37.5 ns/op
-```
-
-Generators are **synchronous**. There's no microtask queue, no scheduler turn, no lost stack traces — and critically, no forced API change: promises would make `parse()` async, which for a parser is a breaking change you'd never want. A generator step is just "allocate a frame object, call a function, save/restore the resume point".
-
-(Note lines 2 and 6 are near-identical. V8 implements async functions on the *same* resumable-frame machinery as generators — so "async is slow" is really "the `Promise` object plus its executor callback is slow", which is line 5.)
-
-The 0.8 ns baseline is an inlining artefact, so it's not the number that matters. The decision-relevant comparison is **one parser step under each strategy**:
-
-```
-A. process item + parameter + values + Stack + 2 switches (current)   25.0 ns/step
-B. generator + request object + next()                                30.5 ns/step
-C. plain polymorphic call + result object                              9.7 ns/step
-
-generator vs current design : 1.22x more expensive
-plain call vs current design: 0.39x  (2.6x cheaper)
-```
-
-So a generator step **is** ~22 % more expensive than your hand-rolled process item. That sounds bad until you scale it: the parser does ~10 steps per input item at 2.4–8 µs per item, i.e. **240–800 ns of real parsing work per step**. Five extra nanoseconds on a 240 ns step is under 2 % — which is exactly why the end-to-end measurement in §2.3 came out neutral. The dispatch mechanism is not where the time goes.
-
-Line C also quantifies §2.2 from the other direction: plain calls are 2.6× cheaper per step, which is where the recursive version's 1.4–1.8× end-to-end win comes from. You're paying that for unbounded depth.
-
-**The one real trap: `yield*` delegation is O(depth).** This is not a micro-effect:
+**The one trap: plain `yield`, never `yield*`.** Delegation is O(depth) per value:
 
 ```
 yield* through N nested frames, per yielded value
-depth    ns per value
-    1      58.3
-    2      79.2   (x1.36 for 2x depth)
-    8     165.2   (x1.59 for 2x depth)
-   32     661.6   (x2.26 for 2x depth)
-   64    1216.6   (x1.84 for 2x depth)      -> 21x slower than depth 1
+depth    ns per value          flat driver + plain yield
+    1      58.3                   depth   64:  68.5 ns
+    8     165.2                   depth  512:  46.3 ns
+   64    1216.6   (21x slower)    depth 4096:  48.9 ns
 ```
 
-Every value has to be re-yielded through every enclosing `yield*` frame. A flat driver with **plain `yield`** is depth-independent, as the design requires:
+Generators are synchronous and cost ~26.6 ns per new+yield+resume, against 25.0 ns for the current
+hand-rolled process item — ~22 % more per step, on steps that do 240–800 ns of real work. That is why the
+end-to-end measurement came out neutral.
 
-```
-flat driver + plain yield, same nesting
-depth    ns per generator step
-   64     68.5
-  512     46.3
- 4096     48.9      -> flat
-```
-
-46 ns at depth 512 versus 49 ns at depth 4 096. This is the whole reason the driver in §2.3 pushes generators onto an array instead of delegating — and it's also finding §1.5.1, where the lexer's recursive `tokenizeRecursionLayer` pays the `yield*` tax on every token (modest at PGSL's nesting depth of 5, fatal if depth ever tracked input size).
-
-### 2.4 `circularGraphs`: the allocation, not the copy
-
-`pushGraphStack` does `new Dictionary(lLastGraphStack.circularGraphs)` on every graph entry ([code-parser-process-state.ts:401](source/parser/code-parser-process-state.ts:401)), and `moveNextToken`/`popGraphStack` each allocate a fresh empty one ([:314](source/parser/code-parser-process-state.ts:314), [:362](source/parser/code-parser-process-state.ts:362)).
-
-I assumed the *copy* was the problem. It isn't — I measured it:
-
-```
-items    graph pushes   dict entries copied   entries per push
-  1000            2000                     0               0.00
- 10000           20000                     0               0.00
-```
-
-Zero. Because `moveNextToken` clears the dictionary whenever a token is consumed, on any grammar that makes progress it's essentially always empty. Good design, and my hypothesis was wrong.
-
-The real cost is that a `Dictionary` (a `Map` subclass) is **allocated anyway**, twice per input item. Keeping it `null` while empty:
-
-```
-new Dictionary(prev) always : 18.36 ms
-null while empty            :  0.08 ms   (236x faster, 200k allocations)
-```
-
-In context that's ~0.09 µs × 2 per item against 2.4–8 µs/item total — call it **2–7 % of parse time**. Real, cheap to fix (`circularGraphs: Map | null`, allocate on first `set`), not transformative. I'm flagging the honest size rather than the exciting isolated number.
-
-### 2.5 `Stack` is fine — don't touch it
-
-`Stack` from `@kartoffelgames/core` is a linked list, so every `push` allocates a `{previous, value}` node on top of the process item. That looked like an obvious win to convert to an array. It isn't:
+### 3.4 `Stack` is fine — do not touch it
 
 ```
 process stack: 200,000 push/pop pairs
@@ -330,198 +417,152 @@ Stack (linked list) : 4.25 ms
 Array               : 4.06 ms   (1.05x)
 ```
 
-Noise. The allocation that matters is the **process item itself** — each push creates the item object plus a `parameter` object plus a `values` object ([code-parser.ts:215](source/parser/code-parser.ts:215) and similar). If you adopt §2.3 the generator replaces all of it.
-
-### 2.6 Super-linear scaling
-
-Parse time per item is not flat:
-
-```
-items      total        us/item    scaling
-   500       1.19ms      2.38
-  1000       2.24ms      2.24      O(n^0.91)
-  4000      16.86ms      4.22      O(n^1.76)
- 16000     105.99ms      6.62      O(n^1.26)
- 32000     239.41ms      7.48      O(n^1.18)
-```
-
-Per-item cost triples from 2.24 µs to 7.48 µs over a 32× input range. With `trimTokenCache: false` (the default) the token cache and the ~10-entries-per-item process stack both grow with input, so this is most likely GC pressure rather than an algorithmic term — the exponent drifting *down* at the tail argues against a clean O(n²). Reducing per-step allocations (§2.3, §2.4) is the lever. I did not isolate this further; if it matters for your real workloads it deserves a heap profile.
+Noise. The allocation that matters is the process item itself, plus its `parameter` and `values` objects —
+which §3.3 deletes.
 
 ---
 
-## 3. Correctness bugs and latent issues
+## 4. Correctness bugs
 
-### 3.1 `mergeData`'s `unshift(...spread)` — O(n²) **and** a crash
+All five re-verified against the current source on 2026-09-12.
 
-[graph-node.ts:186](source/parser/graph/graph-node.ts:186) and [graph-node.ts:256](source/parser/graph/graph-node.ts:256):
+### 4.1 `mergeData`'s `unshift(...spread)` — O(n²) and a crash
 
-```ts
-lChainData.unshift(...lNodeData);
-(<Array<unknown>>lChainMergeValue).unshift(...lMergePickedNodeData);
-```
+[graph-node.ts:186](source/parser/graph/graph-node.ts:186) and
+[graph-node.ts:256](source/parser/graph/graph-node.ts:256).
 
-Two independent problems.
-
-**The spread is an argument list**, so it hits the call-argument limit:
+The spread is an argument list, so it hits the call-argument limit:
 
 ```
-unshift(...array of   1000) -> ok
 unshift(...array of 100000) -> ok
 unshift(...array of 200000) -> RangeError: Maximum call stack size exceeded
-unshift(...array of 500000) -> RangeError: Maximum call stack size exceeded
 ```
 
-A stack overflow — in the library whose entire architecture exists to avoid stack overflow. Any grammar producing a list of >~200 k elements (a big data file, a generated shader, a minified input) crashes here regardless of how well the process stack behaves.
-
-**`unshift` into a growing array is O(n²).** Bottom-up list construction is exactly the pattern `key[]` + `key<-key` produces:
+A stack overflow, in the library whose architecture exists to avoid stack overflow. And `unshift` into a
+growing array is O(n²) — exactly the shape `key[]` + `key<-key` produces:
 
 ```
 items     unshift(...)      push + reverse    unshift is
   1000       0.230ms          0.014ms          15.9x slower
-  4000       0.827ms          0.020ms          41.6x slower
  16000      18.600ms          0.094ms         197.9x slower
  64000     367.597ms          0.408ms         900.5x slower
 ```
 
-900× at 64 k items. And the flat-list grammar shape does scale worse than the nested one in the real parser (`O(n^1.49)` at the tail vs `O(n^1.18)`), consistent with this being a live cost.
+*Minimal fix:* `lOpenChainData[key] = b.concat(a)`. Removes the crash, still O(n²).
+*Proper fix:* accumulate with `push` and reverse once in `Graph.convert`, where lists are completed.
 
-**Fixes, in increasing order of payoff:**
+### 4.2 Trace priority collides across lines
 
-- *Immediate, minimal:* replace `a.unshift(...b)` with `lOpenChainData[key] = b.concat(a)`. Removes the crash. Still O(n²).
-- *Proper:* accumulate with `push` and reverse once when the list is complete. Lists are built bottom-up, so the natural place to flip is `Graph.convert` — this is a design change, but it's the difference between O(n) and O(n²) on every list your grammars produce.
+[code-parser-trace.ts:74](source/parser/code-parser-trace.ts:74): `lPriority = (pLineEnd * 10000) + pColumnEnd`.
 
-### 3.2 Trace priority collides across lines
+Any column past 10 000 bleeds into the next line, so on minified or generated input the reported error is the
+wrong, earlier one. Compare `(lineEnd, columnEnd)` as a tuple, or rank by token-cache index.
 
-[code-parser-trace.ts:74](source/parser/code-parser-trace.ts:74):
+### 4.3 `mRootPattern`'s declared type is a lie
 
-```ts
-lPriority = (pLineEnd * 10000) + pColumnEnd;
-```
+[lexer.ts:15](source/lexer/lexer.ts:15) declares `LexerPattern<TTokenType, 'split'>` but it is constructed
+with `type: 'single'`, laundered through `new LexerPattern<TTokenType, any>`. It works only because every
+`.pattern.end` access is guarded by `isSplit()`. Declare it `LexerPattern<TTokenType, LexerPatternType>`.
 
-Any column past 10 000 bleeds into the next line's range:
+### 4.4 Fragile "is there already an incident?" check
 
-```
-line 1, col 12000 -> 22000
-line 2, col     5 -> 20005
-=> the earlier error on the long line outranks the later one on line 2: true
-```
+[code-parser.ts:118](source/parser/code-parser.ts:118) tests for the *default* incident by comparing against
+its coordinates, so a genuine error at line 1 column 1 is indistinguishable and gets a useless
+"tokens could not be parsed" message appended on top. Use an explicit `hasIncident` flag.
 
-So on minified or generated input the reported error can be the *wrong*, earlier one. Comparing `(lineEnd, columnEnd)` as a tuple, or ranking by token-cache index, removes the magic number entirely.
+### 4.5 `Graph.converter()` returns a new identity
 
-### 3.3 Eager error messages on the hot backtracking path
+[graph.ts:105](source/parser/graph/graph.ts:105) builds a *new* `Graph` with a copied converter list.
+Constructing a graph inline inside a collector therefore creates a fresh identity per resolution, which
+breaks circular detection and re-resolves the node tree every time.
 
-[code-parser.ts:492](source/parser/code-parser.ts:492) and [code-parser.ts:506](source/parser/code-parser.ts:506) build a template literal and call `getTokenPosition()` (which allocates a 6-field object and does `value.includes('\n')`) on **every failed required match** — then `CodeParserTrace.push` usually discards it via the priority check.
-
-On a non-backtracking grammar this is free — I measured exactly **1** `trace.push()` call for a whole 10 000-item parse. But on a grammar with real alternatives, which is what PGSL is:
-
-```
-=== Branching expression grammar ===
-stmts   tokens   trace.push()   per token   pushGraphStack()   parse ms
-   50      600           2012         3.4              3965      2.72
-  200     2400           8012         3.3             15815     10.72
-  800     9600          32012         3.3             63215     51.14
-```
-
-**3.3 discarded incidents per token.** Storing the parts (`actual`, `expected`, graph, position) and formatting only if the incident is actually reported measured 1.9× cheaper in isolation. The message string is the cheap part; the `getTokenPosition()` object is the expensive one. Worth restructuring `CodeParserTrace` so the non-debug path mutates flat fields on the trace instead of allocating an incident plus a nested `range` object per push.
-
-### 3.4 `mRootPattern`'s declared type is a lie
-
-[lexer.ts:15](source/lexer/lexer.ts:15) declares `LexerPattern<TTokenType, 'split'>`, but [lexer.ts:72](source/lexer/lexer.ts:72) constructs it with `type: 'single'`, laundered through `new LexerPattern<TTokenType, any>`. It works only because `tokenizeRecursionLayer` guards every `.pattern.end` access behind `isSplit()`. Any future code that trusts the declared type reads `undefined`. Declare it as `LexerPattern<TTokenType, LexerPatternType>` and drop the `any`.
-
-### 3.5 Fragile "is there already an incident?" check
-
-[code-parser.ts:117](source/parser/code-parser.ts:117):
-
-```ts
-if (lParseProcessState.incidentTrace.top.range.lineEnd === 1 && lParseProcessState.incidentTrace.top.range.columnEnd === 1) {
-```
-
-This tests for the *default* incident by comparing against its coordinates. A genuine error at line 1, column 1 is indistinguishable, so the "tokens could not be parsed" message gets appended on top of a real diagnostic. An explicit `hasIncident` boolean on `CodeParserTrace` says what's meant.
-
-### 3.6 `Graph.converter()` returns a new identity
-
-[graph.ts:104](source/parser/graph/graph.ts:104) builds a *new* `Graph` with a copied converter list. Since `circularGraphs` keys on graph identity and `mResolvedGraphNode` is per-instance, calling `.converter()` inside a node collector would create a fresh identity per resolution — breaking circular detection and re-resolving the node tree every time. This is presumably intentional immutability, but it's an easy trap and isn't documented. Worth a `@remarks` noting that graphs must be stored in a variable, not constructed inline in a collector.
+**§2.3 raises the stakes:** the parse cache keys on graph identity, so an inline-constructed graph would also
+never produce a cache hit. Presumably intentional immutability, but it needs a `@remarks` saying graphs must
+be stored in a variable.
 
 ---
 
-## 4. Cleanliness (no behaviour change)
+## 5. Cleanliness (no behaviour change)
 
-1. **Two symbols, one description** — [code-parser.ts:20-21](source/parser/code-parser.ts:20):
-   ```ts
-   public static readonly NODE_NULL_RESULT: symbol = Symbol('FAILED_NODE_VALUE_PARSE');
-   public static readonly NODE_VALUE_LIST_END_MEET: symbol = Symbol('FAILED_NODE_VALUE_PARSE');
-   ```
-   They mean different things ("no result yet" vs "ran out of alternatives") and print identically in any debug output. Give them their own descriptions.
+All re-verified present on 2026-09-12.
 
-2. **Duplicate type** — `LexerPatternDefinitionMatcher` ([lexer-pattern.ts:206](source/lexer/lexer-pattern.ts:206)) is structurally identical to `LexerPatternTokenMatcher` ([lexer-pattern.ts:185](source/lexer/lexer-pattern.ts:185)). Delete one.
-
-3. **`convertTokenPattern` casts through `as any` twice** ([lexer-pattern.ts:143](source/lexer/lexer-pattern.ts:143), [:164](source/lexer/lexer-pattern.ts:164)) to satisfy the conditional `LexerPatternDefinition<TTokenType, TPatternType>`. A discriminated union (`{ kind: 'single', start } | { kind: 'split', start, end, innerType }`) would let `isSplit()` narrow properly and remove both casts and the conditional type.
-
-4. **Stale comments in the lexer:**
-   - [lexer.ts:88](source/lexer/lexer.ts:88): *"the first added pattern **or a longer matched token** gets priorized"* — there is no longest-match logic. `findNextStartToken` returns the first match, full stop. The doc promises behaviour the code doesn't implement.
-   - [lexer.ts:137](source/lexer/lexer.ts:137): *"Convert regex into a line start regex with global and single flag"* — no flags are added.
-   - [lexer.ts:139](source/lexer/lexer.ts:139): *"Create flag set and add sticky"* — sticky is never added. (And per §1.4, it shouldn't be.)
-
-5. **`validator` receives a fully materialised `pFollowingText`** ([lexer-pattern.ts:202](source/lexer/lexer-pattern.ts:202)) built by `substring` on every validated match. It's cheap today (sliced string) but it's a public signature that locks you out of position-based matching later. If you ever revisit the API, passing `(token, fullText, offset)` is strictly more capable.
-
-6. **`beginParseProcess`'s result threading is implicit** ([code-parser.ts:163](source/parser/code-parser.ts:163)). `lStackResult` is initialised to `NODE_NULL_RESULT` and passed through `processStack` on each turn; whether a given process reads it depends on its state number. This is the part of the design that most needs the §2.3 rewrite — with generators the result is just the value of the `yield` expression.
-
-7. **`getGraphPosition` and `getTokenPosition` are near-duplicates** ([code-parser-process-state.ts:165](source/parser/code-parser-process-state.ts:165) and [:228](source/parser/code-parser-process-state.ts:228)) — the same newline-splitting end-position block appears twice (and [:261](source/parser/code-parser-process-state.ts:261) has a stray double semicolon). Extract one `tokenEndPosition(token)` helper.
-
----
-
-## 5. Prototypes
-
-All measurements above are reproducible. Working code is at:
-
-```
-<scratchpad>/prototypes/
-  lexer/                          full optimized lexer (7-9x, tests pass)
-    first-char-index.ts             the dispatch index + regex first-char derivation
-    lexer.ts  lexer-token.ts  lexer-pattern.ts
-  parser/
-    generator-code-parser.ts      the §2.3 generator driver
-    recursive-code-parser.ts      the recursive-descent control (for the stack-limit test)
-  zz-compare-tmp.ts               lexer baseline-vs-optimized harness
-  zz-compare-parser-tmp.ts        iterative vs recursive vs generator
-  zz-scaling-tmp.ts               scaling + unshift argument limit
-  zz-micro-tmp.ts                 Stack / Dictionary / trace micro-benchmarks
-  zz-branch-tmp.ts                branching-grammar incident counts
-  gen-vs-promise.ts               §2.3.1 generator vs promise costs
-  parse-step.ts                   §2.3.1 per-step costs + yield* depth scaling
-```
-
-`<scratchpad>` = `C:\Users\HENRIK~1\AppData\Local\Temp\claude\C--Users-henrikschauer-Desktop-a-better-future-Kartoffelgames-Public\5d275ae2-5b57-486d-8458-af5e0c5156c8\scratchpad`
-
-The repo working tree was left clean — nothing was committed or modified outside this file.
+1. **Two symbols, one description** — [code-parser.ts:20-21](source/parser/code-parser.ts:20).
+   `NODE_NULL_RESULT` and `NODE_VALUE_LIST_END_MEET` both print as `FAILED_NODE_VALUE_PARSE` and mean
+   different things.
+2. **Duplicate type** — `LexerPatternDefinitionMatcher`
+   ([lexer-pattern.ts:270](source/lexer/lexer-pattern.ts:270)) is structurally identical to
+   `LexerPatternTokenMatcher` ([lexer-pattern.ts:249](source/lexer/lexer-pattern.ts:249)). Delete one.
+3. **`convertTokenPattern` casts through `as any` twice** to satisfy a conditional type. A discriminated
+   union (`{ kind: 'single', start } | { kind: 'split', start, end, innerType }`) removes both casts and lets
+   `isSplit()` narrow properly.
+4. **Stale comments:**
+   - [lexer.ts:88](source/lexer/lexer.ts:88): *"the first added pattern **or a longer matched token** gets
+     priorized"* — there is no longest-match logic; `findNextStartToken` returns the first match.
+   - [lexer-pattern.ts:120](source/lexer/lexer-pattern.ts:120): *"with global and single flag"* — no flags
+     are added.
+   - [lexer-pattern.ts:122](source/lexer/lexer-pattern.ts:122): *"add sticky"* — sticky is never added, and
+     per §1.4 it should not be.
+5. **`validator` receives a fully materialised `pFollowingText`**
+   ([lexer-pattern.ts:242](source/lexer/lexer-pattern.ts:242)), built by `substring` on every validated
+   match. Cheap today (sliced string), but it is a public signature that locks out position-based matching
+   later. `(token, fullText, offset)` is strictly more capable.
+6. **Stray double semicolon** —
+   [code-parser-process-state.ts:260](source/parser/code-parser-process-state.ts:260). `getGraphPosition` and
+   `getTokenPosition` are also near-duplicates; extract one `tokenEndPosition(token)`.
 
 ---
 
-## 6. Suggested order of work
+## 6. Order of work
 
 | Priority | Item | Why |
 |---|---|---|
-| 1 | **§1.2 first-char dispatch index** | 7–9× lexer, proven, additive, existing tests cover it |
-| 2 | **§3.1 `unshift(...spread)`** | Fixes a crash and an O(n²); the `concat` version is a two-line change |
-| 3 | **§2.3 generator driver** | The real answer to "cleaner" — deletes four state machines at neutral cost |
-| 4 | **§3.2 priority, §3.5 incident check, §3.4 root type** | Small, self-contained correctness fixes |
-| 5 | **§3.3 lazy trace incidents, §2.4 lazy `circularGraphs`** | ~5–10 % combined on branching grammars |
-| 6 | **§1.5 lexer allocation cleanups, §4 all** | Clarity; ~1.13× as a bonus |
-
-Two things **not** to do: don't replace `substring` with sticky regex (§1.4), and don't convert `Stack` to an array (§2.5). Both measured as neutral-to-worse.
+| 1 | **§3.3 generator driver** | Deletes four state machines at neutral cost, *and* is where the §2.3 cache belongs — the entry cursor becomes a local instead of smuggled state |
+| 2 | **§2.3 parse cache** | Up to 6.75×, removes the scaling term, no converter-purity assumption, both suites pass |
+| 3 | **§4.1 `unshift(...spread)`** | Fixes a crash and an O(n²); the `concat` version is two lines |
+| 4 | **§4.2 priority, §4.3 root type, §4.4 incident check, §4.5 `@remarks`** | Small, self-contained; §4.5 becomes load-bearing once the cache exists |
+| 5 | **Junction caching** | ~8 % of pushes, excluded from every number in §2.3; needs the circular call count folded into the key |
+| 6 | **§2.4 T1 lazy trace incidents** | Re-measure *after* the cache; 9–11 % before it, much less after |
+| 7 | **§1.5 whitespace, §5 all** | Clarity; ~3–5 % as a bonus, and see the warning in §1.5 |
 
 ---
 
-## 7. Questions for you
+## 7. Open questions
 
-1. **Is the `m`-flag case reachable?** (§1.4) If user regexes with `m` are legitimate, the anchored fast path breaks down and a failing pattern scans the rest of the document. Should `createTokenPattern` reject `m`?
+1. **Is `trimTokenCache` used anywhere in production?** It changes `getGraphBoundingToken` accuracy, and
+   §2.3's cache assumes stable token indices which trimming may break. If nobody enables it, the branch in
+   `popGraphStack` is dead weight worth deleting — which also removes the caveat.
+2. **Do any graph collectors mutate the values they receive?** The parse cache does not depend on the answer,
+   but it decides whether the stricter decision-only variant (§2.3) is ever needed.
+3. **Are junction graphs performance-relevant, or a correctness escape hatch?**
+   `MAX_JUNCTION_CIRCULAR_REFERENCES = 1000` throws a raw `Exception` that `parse()` converts into a generic
+   `CodeParserException`, losing the cause. The two PGSL junctions are the expression entry points, so they
+   are on the hottest path there is.
+4. **Is the `m`-flag case reachable?** (§1.4) If user regexes with `m` are legitimate, the anchored fast path
+   breaks down. Should `createTokenPattern` reject it?
+5. **Was the "longer matched token" priority in [lexer.ts:88](source/lexer/lexer.ts:88) ever implemented, or
+   aspirational?** The bucket index preserves first-match-wins, which is what the code does. If you actually
+   want longest-match, the index still helps but the inner loop must collect all candidates.
+6. **What is the realistic upper bound on list sizes in your grammars?** (§4.1) Under a few thousand, the
+   `concat` fix is enough; at 100 k the push+reverse redesign is required.
 
-2. **Was the "longer matched token" priority in [lexer.ts:88](source/lexer/lexer.ts:88) ever implemented, or aspirational?** It changes whether §1.2 is purely additive. My index preserves first-match-wins, which is what the code does — if you actually want longest-match, the index still helps but the inner loop must collect all candidates instead of returning early.
+---
 
-3. **What's the realistic upper bound on list sizes in your grammars?** (§3.1) If lists stay under a few thousand, the `concat` fix is enough and the push+reverse redesign isn't worth it. If PGSL can produce 100 k-element lists, it is.
+## 8. Prototypes
 
-4. **Do you remember what specifically made the big difference during the original rework?** (§2.2) The manual stack measures as a 1.5× *cost*, so the win came from something else — I'd guess the token cache. Knowing which would tell us what not to disturb.
+```
+<scratchpad>/
+  parser-memo-prototype/        failure-only cache
+  parser-route-prototype/       failure + parse cache  (the §2.3 recommendation)
+  parser-packrat-prototype/     failure + converted-result cache
+  zz-4way-tmp.ts                §2.3 comparison table
+  zz-conv-tmp.ts                Graph.convert / mergeData call counts
+  zz-memo-ab-tmp.ts             A/B plus transpiled-output comparison
+  zz-scale-tmp.ts               per-token scaling and push counts
+  zz-after-tmp.ts               residual profile
+  first-char.ts / minimal.ts    §1.2 regex first-character derivations
+```
 
-5. **Are junction graphs performance-relevant, or a correctness escape hatch?** `MAX_JUNCTION_CIRCULAR_REFERENCES = 1000` ([code-parser-process-state.ts:8](source/parser/code-parser-process-state.ts:8)) throws a raw `Exception`, which `parse()` converts into a generic `CodeParserException` losing the specific cause. If junctions are on hot paths I'd look at them more closely.
+`<scratchpad>` = `C:\Users\TETROD~1\AppData\Local\Temp\claude\X--Kartoffelgames-Public\15767e2b-b1bf-4940-8ed6-090cccc8a867\scratchpad`
 
-6. **Is `trimTokenCache` used anywhere in production?** (§2.6) It changes `getGraphBoundingToken` accuracy, and it interacts with the growth I measured. If nobody enables it, the branch in `popGraphStack` is dead weight worth removing.
+Prototypes were swapped into `source/parser/` only to run the test suites, then restored and verified
+identical against a backup. The repo working tree was left clean apart from this document.

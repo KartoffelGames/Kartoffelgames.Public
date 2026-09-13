@@ -17,8 +17,8 @@ Scope: `source/lexer/**` and `source/parser/**` including all helper classes.
 | # | Finding | State |
 |---|---|---|
 | **L1** | The lexer tried **every** pattern in a scope at **every** position — 223 patterns, 187 regex calls per token, 99.5 % misses. Fixed by bucketing patterns on their possible first character. | **Done.** 4.5× on the pattern walk, 1.72 → 8.15 MB/s end to end |
-| **P1** | The parser spends **87–93 % of its graph entries re-parsing a graph it already tried at that exact token position.** One `(graph, position)` cache removes it. | **Open — the big one.** 6.75× measured, prototype passes both suites |
-| **P2** | The manual process stack is load-bearing for depth (recursion overflows at ~2 000 items) but costs 1.4–1.8× versus recursion. A generator driver keeps the depth at neutral cost and deletes four numbered state machines. | Open, readability |
+| **P1** | The parser spends **87–93 % of its graph entries re-parsing a graph it already tried at that exact token position.** One `(graph, position)` cache removes it. | **Failure half done.** 3.67× total, 4.97× on the largest shader, both suites pass. Success half still open — see §2.3 |
+| **P2** | The manual process stack is load-bearing for depth (recursion overflows at ~2 000 items) but costs 1.4–1.8× versus recursion. A generator driver keeps the depth at neutral cost and deletes four numbered state machines. | **Done** (`ec89a6a1`) |
 | **G1** | `GraphNode.mergeData` uses `unshift(...spread)`: **O(n²)** and throws `RangeError` at ~200 k elements. | Open, real bug |
 | **T1** | Error-message template literals built eagerly on every failed branch. Worth 9–11 % on the un-cached parser, far less once P1 lands. | Open, small |
 
@@ -29,6 +29,9 @@ Hypotheses tested and **rejected** — do not spend time on these:
 - **A per-pattern first-character guard** — *slower than no guard at all*. See §1.2. This one cost real time.
 - **Batching whitespace skipping** — the obvious implementation is slower. See §1.5.
 - **`circularGraphs` lazy allocation** — cannot fire as described. See §2.4.
+- **Excluding junctions from the cache** — wrong mechanism, and excluding them buys nothing. The real
+  condition is circular contamination and it applies to ordinary graphs too. See §2.3.2.
+- **Disabling the cache when `trimTokenCache` is on** — unnecessary, an index offset covers both. See §2.3.1.
 
 ---
 
@@ -253,27 +256,115 @@ shared even though the top-level object is rebuilt. It was not built. Since conv
 free it should land in the same range, and it is the version to reach for if a collector turns out to mutate
 its input.
 
-**Caveats, all three real.**
+**Caveats.**
 
-- **Junctions are excluded.** A junction can fail on `MAX_JUNCTION_CIRCULAR_REFERENCES` in one call stack and
-  succeed in another, so `(graph, position)` is not a complete key for them. PGSL declares 58 graphs of which
-  **2 are junctions** (`lExpressionSyntaxTreeGraph`, `lSimplelExpressionSyntaxTreeGraph`, both written
-  `}, true)` on a continuation line — easy to miss when grepping). They are **~8 % of all graph pushes**, and
-  every number above excludes them, so all of this is a lower bound.
-- **`trimTokenCache` is untested against this.** The cache assumes token cursor indices are stable for the
-  whole parse. `popGraphStack` splices the token cache when trimming is on, which shifts them. PGSL leaves
-  the option at its `false` default so the prototype never exercised it. Either verify index stability or
-  disable the cache when `trimTokenCache` is set.
 - **Graph identity is the key**, and `Graph.converter()` returns a *new* `Graph` (§4.5). Graphs must be built
   once and stored, never constructed inline in a collector — otherwise every resolution creates a fresh key
   and the cache never hits. This is already true for circular detection; the cache makes it load-bearing.
+  Verified: nothing allocates a `Graph` during parsing; `converter()` only runs while the grammar is defined.
+- **Junctions do not need excluding** — the earlier claim here was wrong. See §2.3.2.
+- **`trimTokenCache` does not need the cache disabled** — see §2.3.1.
+
+### 2.3.1 Shipped: the failure half
+
+Recorded inside `popGraphStack(pFailed)` rather than in `code-parser.ts`. The stack entry already carries
+everything the key needs: `graph` and `token.start`, which *is* the entry cursor (`pushGraphStack` sets
+`start = parent.token.cursor`). All three `popGraphStack` call sites are in `createGraphParseProcess`, and
+both `popGraphStack(true)` sites are genuine graph failures, so `pFailed` is an exact signal.
+
+`mAbsoluteTokenIndexOffset` keeps keys valid under trimming: when `popGraphStack` splices `n` tokens off the
+front, the offset grows by `n`, so `offset + cursor` is invariant across the splice. Works in both modes
+instead of disabling one. (This does **not** audit the pre-existing behaviour where a trim resets the parent
+to 0 while grandparent entries keep their old indices — still open, `trimTokenCache` defaults to `false`.)
+
+The cache is disabled when `keepTraceIncidents` is set. A skipped subtree pushes no incidents, so a debug run
+would collect a strictly shorter list. The *reported* error is unaffected either way — the same graph failing
+at the same position yields the same `(lineEnd * 10000) + columnEnd` priority, so the first occurrence already
+recorded the top incident — but a complete incident list is the whole point of that flag.
+
+Measured on the shipped implementation, same process, rotated order, median of 15:
+
+```
+file                          tokens   baseline     cached        us/token
+forward-entry-points.pgsl        505    33.20ms     6.68ms  4.97x     13.2
+default-pbr-shader.pgsl          245    13.06ms     4.14ms  3.15x     16.9
+object-group-forward.pgsl         67     1.65ms     0.95ms  1.75x     14.2
+world-group-forward.pgsl          96     2.02ms     1.12ms  1.80x     11.7
+shared-types.pgsl                 68     1.02ms     1.01ms  1.01x     14.9
+total                                   50.96ms    13.90ms  3.67x
+```
+
+Work removed, counted separately from the timings:
+
+```
+file                          tokens   pushes/token   redundancy      trace.push/token
+forward-entry-points.pgsl        505    77.2 -> 9.2    92.7% -> 38.9%   94.5 -> 7.1
+default-pbr-shader.pgsl          245    56.0 -> 10.1   88.5% -> 36.5%   68.6 -> 8.3
+object-group-forward.pgsl         67    18.6 -> 4.0    87.5% -> 41.8%   23.5 -> 3.3
+world-group-forward.pgsl          96    17.5 -> 4.2    85.7% -> 40.0%   22.6 -> 3.6
+shared-types.pgsl                 68     1.6 -> 1.4    19.6% ->  7.5%    0.7 -> 0.6
+```
+
+Output identical to baseline on every sample, compared on bindings, parameters, the full ordered incident
+list (241 entries on the largest file) and the transpiled source. `core-parser` 43 (230 steps) and `core-pgsl`
+223 (1322 steps), 0 failed.
+
+### 2.3.2 The real soundness limit is circular contamination, not junctions
+
+The earlier claim that junctions need excluding was wrong, and it named the wrong mechanism. The dependency
+is not the junction call count — it is **the chain of graphs entered since the last token progress**, and it
+applies to ordinary graphs just as much.
+
+`circularGraphs` is inherited down the stack and cleared on progress, so it holds exactly that chain.
+`graphIsCircular` rejects any non-junction already in it. So a graph's result depends on how it was reached:
+
+```
+progress point P
+  |- A -> B -> G   : G's subtree references A -> cutoff -> G fails
+  '- C -> D -> G   : A not on the chain      -> no cutoff -> G succeeds
+```
+
+Same `(G, P)`, two answers. A failure is only unconditionally valid when **no circular cutoff happened inside
+the failing subtree**.
+
+Measured share of recorded failures that are contaminated that way:
+
+```
+file                          failures   contaminated
+forward-entry-points.pgsl         2229      392  17.6%
+default-pbr-shader.pgsl           1219      170  13.9%
+object-group-forward.pgsl           99       12  12.1%
+world-group-forward.pgsl           171       15   8.8%
+shared-types.pgsl                   38        0   0.0%
+total                             3756      589  15.7%
+```
+
+**The hazard is real but does not fire here.** Contamination makes a cached failure *conditional*; it only
+becomes *wrong* if the same graph is later entered at the same position via a chain that would not have hit
+that cutoff. Output is identical on every sample and both suites pass, so that never happens in these
+grammars. The failure mode if it ever did is a spurious parse error on a valid program — visible, not silent.
+
+Guarding it costs most of the win:
+
+```
+                                 total    forward-entry-points
+unguarded (shipped)            3.67x       4.97x
+cutoff-free subtrees only      2.07x       2.25x
++ empty entry chain allowed    2.12x       2.35x
+```
+
+The guard is a snapshot of a monotone cutoff counter in the stack entry, compared at pop. Widening it to also
+allow graphs entered with an empty circular set — provably sound, since every cutoff inside such a subtree is
+then self-contained — recovers almost nothing (2.07× → 2.12×). All three variants produce identical output.
+
+**Open decision: ship 3.67× unguarded, or 2.07× provably sound.**
 
 ### 2.4 What is left after the cache
 
 ```
-forward-entry-points.pgsl, with the failure half only
-pushGraphStack()      : 4680   ( 9.3 per token;  was 77.2)
-remaining redundancy  : 39.2%  (was 92.7%)
+forward-entry-points.pgsl, with the shipped failure half
+pushGraphStack()      : 4661   ( 9.2 per token;  was 77.2)
+remaining redundancy  : 38.9%  (was 92.7%)
 trace.push()          : 3580   ( 7.1 per token;  was 94.5)
 ```
 
@@ -516,13 +607,15 @@ All re-verified present on 2026-09-12.
 
 | Priority | Item | Why |
 |---|---|---|
-| 1 | **§3.3 generator driver** | Deletes four state machines at neutral cost, *and* is where the §2.3 cache belongs — the entry cursor becomes a local instead of smuggled state |
-| 2 | **§2.3 parse cache** | Up to 6.75×, removes the scaling term, no converter-purity assumption, both suites pass |
-| 3 | **§4.1 `unshift(...spread)`** | Fixes a crash and an O(n²); the `concat` version is two lines |
-| 4 | **§4.2 priority, §4.3 root type, §4.4 incident check, §4.5 `@remarks`** | Small, self-contained; §4.5 becomes load-bearing once the cache exists |
-| 5 | **Junction caching** | ~8 % of pushes, excluded from every number in §2.3; needs the circular call count folded into the key |
-| 6 | **§2.4 T1 lazy trace incidents** | Re-measure *after* the cache; 9–11 % before it, much less after |
-| 7 | **§1.5 whitespace, §5 all** | Clarity; ~3–5 % as a bonus, and see the warning in §1.5 |
+| ~~1~~ | ~~**§3.3 generator driver**~~ | **Done** (`ec89a6a1`) |
+| ~~2~~ | ~~**§2.3 failure cache**~~ | **Done.** 3.67× total, both suites pass — §2.3.1 |
+| 3 | **§2.3.2 contamination decision** | Blocks nothing, but decides whether the shipped 3.67× stands or drops to 2.07× for provable soundness |
+| 4 | **§2.3 success half** | The remaining 38.9 % redundancy. Store the parse, re-run converters |
+| 5 | **§4.1 `unshift(...spread)`** | Fixes a crash and an O(n²); the `concat` version is two lines |
+| 6 | **§4.2 priority, §4.3 root type, §4.4 incident check, §4.5 `@remarks`** | Small, self-contained; §4.5 is load-bearing now that the cache exists |
+| 7 | **`trimTokenCache` ancestor indices** | Pre-existing, unrelated to the cache, `false` by default — see §2.3.1 |
+| 8 | **§2.4 T1 lazy trace incidents** | Re-measure: `trace.push` already fell 94.5 → 7.1 per token, so most of the 9–11 % is gone |
+| 9 | **§1.5 whitespace, §5 all** | Clarity; ~3–5 % as a bonus, and see the warning in §1.5 |
 
 ---
 

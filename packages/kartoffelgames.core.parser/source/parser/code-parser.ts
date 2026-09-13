@@ -229,6 +229,12 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * @throws {Exception} If an invalid graph parse state is encountered.
      */
     private * createGraphParseProcess(pParsingProcessState: CodeParserProcessState<TTokenType>, pGraph: Graph<TTokenType, object, object>, pLinear: boolean): CodeParserProcess<TTokenType> {
+        // A graph that has already failed on this token fails again. Skip it including all its nodes.
+        if (pParsingProcessState.isKnownGraphFailure(pGraph)) {
+            // Exit parsing without pushing a new process.
+            return CodeParserException.PARSER_ERROR;
+        }
+        
         // Prevent circular graph calls that doesnt progressed itself.
         if (pParsingProcessState.graphIsCircular(pGraph)) {
             // Read the current graph position.

@@ -10,7 +10,6 @@ export class CodeParserProcessState<TTokenType extends string> {
     private readonly mGraphStack: Stack<CodeParserCursorGraph<TTokenType>>;
     private readonly mIncidentTrace: CodeParserTrace<TTokenType>;
     private readonly mLastTokenPosition: CodeParserCursorPosition;
-    private readonly mProcessStack: Stack<CodeParserProcessStackItem<TTokenType>>;
     private readonly mTokenCache: Array<LexerToken<TTokenType> | null>;
     private readonly mTokenGenerator: Generator<LexerToken<TTokenType>, any, any>;
     private readonly mTrimTokenCache: boolean;
@@ -48,16 +47,6 @@ export class CodeParserProcessState<TTokenType extends string> {
     }
 
     /**
-     * Gets the current process stack of the code parser.
-     * 
-     * The process stack contains items of type `CodeParserProcessStackItem<TTokenType>`,
-     * which represent the current state of the parsing process.
-     */
-    public get processStack(): Stack<CodeParserProcessStackItem<TTokenType>> {
-        return this.mProcessStack;
-    }
-
-    /**
      * Constructor.
      * 
      * @param pLexerGenerator - A generator that produces LexerToken objects of the specified token type.
@@ -72,7 +61,6 @@ export class CodeParserProcessState<TTokenType extends string> {
             line: 1
         };
         this.mTokenCache = new Array<LexerToken<TTokenType>>();
-        this.mProcessStack = new Stack<CodeParserProcessStackItem<TTokenType>>();
 
         // Set configuration.
         this.mTrimTokenCache = pTrimTokenCache;
@@ -449,46 +437,35 @@ export type CodeParserProcessCursorPosition<TTokenType extends string> = {
 export type CodeParserProcessStackMapping<TTokenType extends string> = {
     // Parse graph.
     graphParse: {
-        type: 'graph-parse',
-        state: number;
+        type: 'graphParse',
         parameter: {
             graph: Graph<TTokenType>;
             linear: boolean;
-        },
+        }
     };
 
     // Parse node.
     nodeParse: {
-        type: 'node-parse',
-        state: number;
+        type: 'nodeParse',
         parameter: {
             node: GraphNode<TTokenType>;
-        },
-        values: {
-            nodeValueResult?: unknown;
-        };
+        }
     };
 
     // Node value parse.
     nodeValueParse: {
-        type: 'node-value-parse',
-        state: number;
+        type: 'nodeValueParse',
         parameter: {
             node: GraphNode<TTokenType>;
-            valueIndex: number;
-        },
-        values: {
-            parseResult?: unknown | null;
-        };
+        }
     };
 
     // Node next parse
     nodeNextParse: {
-        type: 'node-next-parse',
-        state: number;
+        type: 'nodeNextParse',
         parameter: {
             node: GraphNode<TTokenType>;
-        },
+        }
     };
 };
 

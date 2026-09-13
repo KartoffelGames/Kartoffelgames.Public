@@ -61,6 +61,7 @@ export class BenchmarkProject {
         let lTokenCount: number = 0;
 
         // Drain the token generator.
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         for (const _ of BenchmarkProject.PARSER.lexer.tokenize(pCode)) {
             lTokenCount++;
         }

@@ -1,5 +1,5 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import { KgPanModule, KgPanModuleEvent } from "@kartoffelgames/web-components";
+import { KgPanModule, type KgPanModuleEvent } from '@kartoffelgames/web-components';
 import { Component, type ComponentEventEmitter, ComponentState, PwbComponent, PwbComponentEvent, PwbExport } from '@kartoffelgames/web-potato-web-builder';
 import styles from './kg-resize-box-component.css' with { type: 'text' };
 import template from './kg-resize-box-component.html' with { type: 'text' };

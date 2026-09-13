@@ -434,7 +434,7 @@ export type CodeParserProcessCursorPosition<TTokenType extends string> = {
 /**
  * Process stack types.
  */
-export type CodeParserProcessStackMapping<TTokenType extends string> = {
+type CodeParserProcessStackMapping<TTokenType extends string> = {
     // Parse graph.
     graphParse: {
         type: 'graphParse',

@@ -1,19 +1,17 @@
-import { Exception } from "@kartoffelgames/core";
+import { Exception } from '@kartoffelgames/core';
 import type { LexerPattern, LexerPatternType } from './lexer-pattern.ts';
-import type { Lexer } from "./lexer.ts";
+import type { Lexer } from './lexer.ts';
 
 /**
  * Creates a index for a list of child pattern.
  * It creates buckets to sort the pattern by its static char codes, so only the pattern that can actually match anything are checked.  
  */
 export class LexerPatternIndex<TTokenType extends string> {
-    private static readonly ASCII_RANGE: number = 128;
-
-    private readonly mLexer: Lexer<TTokenType>;
-    private readonly mChildPattern: Array<LexerPattern<TTokenType, LexerPatternType>>;
-    private mBucketsInitialized: boolean;
-    private mFallback: Array<LexerPattern<TTokenType, LexerPatternType>>;
     private mBuckets: Map<number, Array<LexerPattern<TTokenType, LexerPatternType>>>;
+    private mBucketsInitialized: boolean;
+    private readonly mChildPattern: Array<LexerPattern<TTokenType, LexerPatternType>>;
+    private mFallback: Array<LexerPattern<TTokenType, LexerPatternType>>;
+    private readonly mLexer: Lexer<TTokenType>;
 
     /**
      * Constructor.

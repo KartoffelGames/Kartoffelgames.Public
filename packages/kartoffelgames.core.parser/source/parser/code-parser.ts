@@ -3,7 +3,7 @@ import { LexerException } from '../lexer/lexer-exception.ts';
 import type { LexerToken } from '../lexer/lexer-token.ts';
 import type { Lexer } from '../lexer/lexer.ts';
 import { CodeParserException, type CodeParserErrorSymbol } from './code-parser-exception.ts';
-import { CodeParserProcessState, type CodeParserProcessCursorPosition, type CodeParserProcessStackItem, type CodeParserProcessStackMapping } from './code-parser-process-state.ts';
+import { CodeParserProcessState, type CodeParserProcessCursorPosition, type CodeParserProcessStackItem } from './code-parser-process-state.ts';
 import type { GraphNode, GraphNodeConnections } from './graph/graph-node.ts';
 import type { Graph } from './graph/graph.ts';
 

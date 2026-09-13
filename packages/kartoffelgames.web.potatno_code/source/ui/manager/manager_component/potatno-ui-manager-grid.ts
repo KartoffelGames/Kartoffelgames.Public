@@ -1,5 +1,5 @@
 import { Exception, type IDeconstructable } from '@kartoffelgames/core';
-import type { KgDraggableModuleEvent, KgDraggableModulePosition } from '@kartoffelgames/web-components';
+import type { KgDraggableModuleEvent } from '@kartoffelgames/web-components';
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';

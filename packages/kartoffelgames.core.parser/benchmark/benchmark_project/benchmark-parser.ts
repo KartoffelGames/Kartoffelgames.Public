@@ -32,7 +32,9 @@ export class BenchmarkParser extends CodeParser<BenchmarkToken, BenchmarkDocumen
 
         // Mimic object, so the expression graphs can be defined before the type graph exists.
         const lCoreGraphs: BenchmarkParserCoreGraphs = {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             type: null as any,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             attributeList: null as any
         };
 

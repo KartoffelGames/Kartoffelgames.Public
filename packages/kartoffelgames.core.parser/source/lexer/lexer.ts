@@ -1,6 +1,6 @@
 import { Exception, Stack } from '@kartoffelgames/core';
 import { LexerException } from './lexer-exception.ts';
-import { LexerPattern, LexerPatternDefinitionMatcher, type LexerPatternConstructorParameter, type LexerPatternDependencyFetch, type LexerPatternTokenTypes, type LexerPatternTokenValidator, type LexerPatternType } from './lexer-pattern.ts';
+import { LexerPattern, type LexerPatternDefinitionMatcher, type LexerPatternConstructorParameter, type LexerPatternDependencyFetch, type LexerPatternTokenTypes, type LexerPatternTokenValidator, type LexerPatternType } from './lexer-pattern.ts';
 import { LexerToken } from './lexer-token.ts';
 
 /**

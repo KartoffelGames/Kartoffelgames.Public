@@ -197,6 +197,22 @@ Deno.test('XmlParser.parse()', async (pContext) => {
             expect(lXmlRoot.namespacePrefix).toBe(lNamespacePrefix);
         });
 
+        await pContext.step('Node Prefix with closing tag', () => {
+            // Setup. Specify values.
+            const lNamespacePrefix: string = 't';
+
+            // Setup. Parse XML String.
+            const lXmlString: string = `<${lNamespacePrefix}:node></${lNamespacePrefix}:node>`;
+            const lParser: XmlParser = new XmlParser();
+            const lXmlResult: XmlDocument = lParser.parse(lXmlString);
+
+            // Process.
+            const lXmlRoot: XmlElement = <XmlElement>lXmlResult.body[0];
+
+            // Evaluation.
+            expect(lXmlRoot.namespacePrefix).toBe(lNamespacePrefix);
+        });
+
         await pContext.step('Attribute Prefix', () => {
             // Setup. Specify values.
             const lNamespacePrefix: string = 't';

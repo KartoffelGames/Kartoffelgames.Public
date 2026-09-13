@@ -278,8 +278,10 @@ export abstract class BaseXmlParser {
                 }
 
                 // Validate namespace prefix.
-                if (pData.ending.closingNamespace !== pData.openingNamespace) {
-                    throw new Exception(`Opening (${pData.openingNamespace}) and closing namespace prefix (${pData.ending.closingNamespace}) does not match`, this);
+                const lOpeningNamespacePrefix: string | null = pData.openingNamespace?.name ?? null;
+                const lClosingNamespacePrefix: string | null = pData.ending.closingNamespace?.name ?? null;
+                if (lClosingNamespacePrefix !== lOpeningNamespacePrefix) {
+                    throw new Exception(`Opening (${lOpeningNamespacePrefix}) and closing namespace prefix (${lClosingNamespacePrefix}) does not match`, this);
                 }
             }
 

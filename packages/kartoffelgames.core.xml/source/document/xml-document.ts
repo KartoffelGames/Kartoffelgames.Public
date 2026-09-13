@@ -44,7 +44,10 @@ export class XmlDocument extends BaseXmlNode {
      * @param pXmlNode - Xml node.
      */
     public appendChild(...pXmlNodeList: Array<BaseXmlNode>): void {
-        this.mBodyElementList.push(...pXmlNodeList);
+        // Push every node on its own. A spread would create a overflow on larger files.
+        for (const lChildNode of pXmlNodeList) {
+            this.mBodyElementList.push(lChildNode);
+        }
 
         for (const lChildNode of pXmlNodeList) {
             lChildNode.parent = this;

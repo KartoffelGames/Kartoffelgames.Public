@@ -304,7 +304,10 @@ export abstract class BaseXmlParser {
 
             // Add content values.
             if ('values' in pData.ending) {
-                lElement.appendChild(...pData.ending.values);
+                // Appended one by one. A spread would create a overflow on larger files.
+                for (const lValue of pData.ending.values) {
+                    lElement.appendChild(lValue);
+                }
             }
 
             return lElement;
@@ -340,8 +343,11 @@ export abstract class BaseXmlParser {
         }).converter((pData): XmlDocument => {
             const lDocument: XmlDocument = new XmlDocument(this.getDefaultNamespace());
 
-            // Add content values.
-            lDocument.appendChild(...pData.content);
+            // Add content values. Appended one by one, a spread would pass every node as an own
+            // argument and overflow the native argument stack on very long node lists.
+            for (const lContent of pData.content) {
+                lDocument.appendChild(lContent);
+            }
 
             return lDocument;
         });

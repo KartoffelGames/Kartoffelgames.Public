@@ -112,7 +112,10 @@ export class XmlElement extends BaseXmlNode {
             lChild.parent = this;
         }
 
-        this.mChildList.push(...pNode);
+        // Push every child on its own. A spread would create a overflow on larger files.
+        for (const lChild of pNode) {
+            this.mChildList.push(lChild);
+        }
     }
 
     /**

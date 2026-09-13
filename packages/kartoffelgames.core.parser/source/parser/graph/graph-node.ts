@@ -184,7 +184,7 @@ export class GraphNode<TTokenType extends string, TResultData extends object = o
 
                     // Small optimization for smaller lists. Unshift is faster than concat.
                     if (lNodeData.length < 1000) {
-                        lChainData.unshift(lNodeData[0]);
+                        lChainData.unshift(...lNodeData);
                         return lChainData;
                     }
 

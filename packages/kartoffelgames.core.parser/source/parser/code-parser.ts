@@ -42,7 +42,6 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         // Set configuration.
         this.mConfiguration = {
             keepTraceIncidents: false,
-            trimTokenCache: false,
             ...pConfiguration
         };
     }
@@ -71,8 +70,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         // Create a parser state for the code text.
         const lParseProcessState: CodeParserProcessState<TTokenType> = new CodeParserProcessState<TTokenType>(
             this.mLexer.tokenize(pCodeText, pProgressTracker),
-            this.mConfiguration.keepTraceIncidents,
-            this.mConfiguration.trimTokenCache
+            this.mConfiguration.keepTraceIncidents
         );
 
         // Parse root graph part.
@@ -164,7 +162,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
 
         // Create process stack and push the first graph parse process.
         const lProcessStack: Stack<CodeParserProcess<TTokenType>> = new Stack<CodeParserProcess<TTokenType>>();
-        lProcessStack.push(this.createProcess(pParsingProcessState, { type: 'graphParse', parameter: { graph: pRootGraph, linear: true } }));
+        lProcessStack.push(this.createProcess(pParsingProcessState, { type: 'graphParse', parameter: { graph: pRootGraph } }));
 
         // Process stack as long as something is stacked.
         let lStackResult: object | CodeParserErrorSymbol = CodeParserException.PARSER_ERROR;
@@ -228,7 +226,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * 
      * @throws {Exception} If an invalid graph parse state is encountered.
      */
-    private * createGraphParseProcess(pParsingProcessState: CodeParserProcessState<TTokenType>, pGraph: Graph<TTokenType, object, object>, pLinear: boolean): CodeParserProcess<TTokenType> {
+    private * createGraphParseProcess(pParsingProcessState: CodeParserProcessState<TTokenType>, pGraph: Graph<TTokenType, object, object>): CodeParserProcess<TTokenType> {
         // A graph that has already failed on this token fails again. Skip it including all its nodes.
         if (pParsingProcessState.isKnownGraphFailure(pGraph)) {
             // Exit parsing without pushing a new process.
@@ -248,7 +246,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         }
 
         // Add graph to parser state graph stack.
-        pParsingProcessState.pushGraphStack(pGraph, pLinear);
+        pParsingProcessState.pushGraphStack(pGraph);
 
         // Parse node of graph and passthrough errors.
         const lNodeParseResult: object | CodeParserErrorSymbol = yield { type: 'nodeParse', parameter: { node: pGraph.node } };
@@ -365,11 +363,8 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                 // Set token value as result.
                 return lCurrentToken.value;
             } else {
-                // Check of current node value is linear.
-                const lNodeValueIsLinear: boolean = lNodeConnections.values.length === 1 || lNodeConnections.values.length === (lValueIndex + 1);
-
                 // Push parser process for graph value.
-                const lGraphParseResult: object | typeof CodeParserException.PARSER_ERROR = yield { type: 'graphParse', parameter: { graph: lNodeValue, linear: lNodeValueIsLinear } };
+                const lGraphParseResult: object | typeof CodeParserException.PARSER_ERROR = yield { type: 'graphParse', parameter: { graph: lNodeValue } };
 
                 // When the graph has successfully parsed, use its value as result.
                 if (lGraphParseResult !== CodeParserException.PARSER_ERROR) {
@@ -407,7 +402,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         // Process current process
         switch (pCurrentProcess.type) {
             case 'graphParse': {
-                return this.createGraphParseProcess(pParsingProcessState, pCurrentProcess.parameter.graph, pCurrentProcess.parameter.linear);
+                return this.createGraphParseProcess(pParsingProcessState, pCurrentProcess.parameter.graph);
             }
             case 'nodeParse': {
                 return this.createNodeParseProcess(pCurrentProcess.parameter.node);
@@ -435,14 +430,4 @@ export type CodeParserConfiguration = {
      * Default: false
      */
     keepTraceIncidents?: boolean;
-
-    /**
-     * When true, the parser will trim the current token cache when a static branch was parsed.
-     * This is useful to reduce memory usage when parsing large texts without complex structures like xml.
-     * 
-     * Enabling will reduce the accuracy of the current token positions in graph converter and related functions,
-     * 
-     * Default: false
-     */
-    trimTokenCache?: boolean;
 };

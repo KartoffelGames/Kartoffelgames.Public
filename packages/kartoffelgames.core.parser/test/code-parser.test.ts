@@ -1873,11 +1873,9 @@ Deno.test('CodeParser.constructor()', async (pContext) => {
         expect(() => lException.incidents).toThrow('A complete incident list is only available on debug mode.');
     });
 
-    await pContext.step('Accurate token positions on trimTokenCache', () => {
+    await pContext.step('Accurate token positions on a nested graph', () => {
         // Setup.
-        const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer(), {
-            trimTokenCache: false
-        });
+        const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
         const lCodeTextList: Array<string> = ['valOne', 'valTwo', 'valThree', 'valFour'];
 
         let lReceivedMainStartToken: LexerToken<TokenType> | undefined | null = null as any;
@@ -1912,50 +1910,9 @@ Deno.test('CodeParser.constructor()', async (pContext) => {
         expect(lReceivedMainEndToken?.value).toBe(lCodeTextList[3]);
     });
 
-    await pContext.step('Inaccurate token positions on trimTokenCache', () => {
+    await pContext.step('Token positions on a graph that owns no node itself', () => {
         // Setup.
-        const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer(), {
-            trimTokenCache: true
-        });
-        const lCodeTextList: Array<string> = ['valOne', 'valTwo', 'valThree', 'valFour'];
-
-        let lReceivedMainStartToken: LexerToken<TokenType> | undefined | null = null as any;
-        let lReceivedMainEndToken: LexerToken<TokenType> | undefined | null = null as any;
-        let lReceivedInnerStartToken: LexerToken<TokenType> | undefined | null = null as any;
-        let lReceivedInnerEndToken: LexerToken<TokenType> | undefined | null = null as any;
-
-        const lInnerGraph = Graph.define(() => {
-            return GraphNode.new<TokenType>().required(TokenType.Identifier).required(TokenType.Identifier);
-        }).converter((pData, pStartToken, pEndToken) => {
-            lReceivedInnerStartToken = pStartToken;
-            lReceivedInnerEndToken = pEndToken;
-            return pData;
-        });
-
-        const lMainGraph = Graph.define(() => {
-            return GraphNode.new<TokenType>().required(TokenType.Identifier).required(lInnerGraph).required(TokenType.Identifier);
-        }).converter((pData, pStartToken, pEndToken) => {
-            lReceivedMainStartToken = pStartToken;
-            lReceivedMainEndToken = pEndToken;
-            return pData;
-        });
-        lParser.setRootGraph(lMainGraph);
-
-        // Process.
-        lParser.parse(lCodeTextList.join(' '));
-
-        // Evaluation.
-        expect(lReceivedMainStartToken?.value).toBe(lCodeTextList[3]);
-        expect(lReceivedInnerStartToken?.value).toBe(lCodeTextList[1]);
-        expect(lReceivedInnerEndToken?.value).toBe(lCodeTextList[2]);
-        expect(lReceivedMainEndToken?.value).toBe(lCodeTextList[3]);
-    });
-
-    await pContext.step('Empty token positions on trimTokenCache graph own no node itself.', () => {
-        // Setup.
-        const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer(), {
-            trimTokenCache: true
-        });
+        const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
         const lCodeTextList: Array<string> = ['valOne', 'valTwo'];
 
         let lReceivedMainStartToken: LexerToken<TokenType> | undefined | null = null as any;
@@ -1976,15 +1933,14 @@ Deno.test('CodeParser.constructor()', async (pContext) => {
         lParser.parse(lCodeTextList.join(' '));
 
         // Evaluation.
-        expect(lReceivedMainStartToken?.type).toBeUndefined();
-        expect(lReceivedMainEndToken?.type).toBeUndefined();
+        // A graph without an own node is still bound by the token its child graph has consumed.
+        expect(lReceivedMainStartToken?.value).toBe(lCodeTextList[0]);
+        expect(lReceivedMainEndToken?.value).toBe(lCodeTextList[1]);
     });
 
-    await pContext.step('Accurate token positions on trimTokenCache when not linear.', () => {
+    await pContext.step('Accurate token positions inside a branch', () => {
         // Setup.
-        const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer(), {
-            trimTokenCache: true
-        });
+        const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
         const lCodeTextList: Array<string> = ['valOne', 'valTwo', 'valThree', 'valFour'];
 
         let lReceivedMainStartToken: LexerToken<TokenType> | undefined | null = null as any;

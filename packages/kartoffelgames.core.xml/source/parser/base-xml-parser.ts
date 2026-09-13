@@ -179,10 +179,8 @@ export abstract class BaseXmlParser {
      * @param pLexer - Lexer with applied config.
      */
     private createParser(pLexer: Lexer<XmlToken>): CodeParser<XmlToken, XmlDocument> {
-        // Create new parser. Trim token cache as a precise token position is not used in this parser.
-        const lParser: CodeParser<XmlToken, XmlDocument> = new CodeParser<XmlToken, XmlDocument>(pLexer, {
-            trimTokenCache: true
-        });
+        // Create new parser.
+        const lParser: CodeParser<XmlToken, XmlDocument> = new CodeParser<XmlToken, XmlDocument>(pLexer);
 
         // Build cached regex.
         const lRegexAttributeNameCheck: RegExp = new RegExp(`^[${this.escapeRegExp(this.mConfig.allowedAttributeCharacters)}]+$`);

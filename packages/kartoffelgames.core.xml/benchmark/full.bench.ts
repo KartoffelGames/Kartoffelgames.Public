@@ -19,13 +19,19 @@ const gFileSizeByteCount: number = 50 * 1024 * 1024;
 /**
  * Iteration cap for the cases that need more than ten seconds per run.
  *
- * Sibling and attribute lists are still quadratic, because a right recursive list copies the
- * whole accumulated tail once per level, in {@link GraphNode.mergeData} and again in the content
- * list converter. At the full range that means about 67 s for one linear run and about 19 s for
- * one attribute run. Without a cap, Deno measures twelve iterations of each, which would push
- * this file past twenty minutes. The cap trades sample count for a usable total runtime.
+ * Sibling and attribute lists used to be quadratic twice over. A right recursive list copied the
+ * whole accumulated tail once per level in {@link GraphNode.mergeData}, and the content list
+ * converter rebuilt it a second time. Both copies are gone: mergeData prepends a single item in
+ * place, and the content list converter hands its list back instead of rebuilding it. That took
+ * one linear run from about 67 s to about 6 s and one attribute run from about 19 s to about 4 s.
  *
- * Drop the cap from an entry as soon as its case parses in well under a second.
+ * They are not linear yet. Prepending in place still moves the tail once per level, so the cost
+ * is a memmove per node instead of an allocation and a full copy per node. Removing the last of
+ * it needs a repetition node in the parser, so a list is built by appending into one array at one
+ * graph level instead of one level per item.
+ *
+ * The cap stays while a single run is still measured in seconds. Drop it from an entry as soon as
+ * its case parses in well under a second.
  */
 const gSlowCaseOptions = { n: 1, warmup: 0 } as const;
 

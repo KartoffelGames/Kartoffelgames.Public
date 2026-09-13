@@ -306,6 +306,11 @@ export abstract class BaseXmlParser {
             if ('values' in pData.ending) {
                 // Appended one by one. A spread would create a overflow on larger files.
                 for (const lValue of pData.ending.values) {
+                    // Skip omitted comments.
+                    if (this.mConfig.removeComments && lValue instanceof CommentNode) {
+                        continue;
+                    }
+
                     lElement.appendChild(lValue);
                 }
             }
@@ -323,18 +328,7 @@ export abstract class BaseXmlParser {
                 lCommentNodeGraph,
             ]).optional('list[]', lSelfReference);
         }).converter((pData): Array<BaseXmlNode> => {
-            const lContentList: Array<BaseXmlNode> = new Array<BaseXmlNode>();
-
-            for (const lItem of pData.list) {
-                // Skip omitted comments.
-                if (this.mConfig.removeComments && lItem instanceof CommentNode) {
-                    continue;
-                }
-
-                lContentList.push(lItem);
-            }
-
-            return lContentList;
+            return pData.list;
         });
 
         // Document.
@@ -346,6 +340,11 @@ export abstract class BaseXmlParser {
             // Add content values. Appended one by one, a spread would pass every node as an own
             // argument and overflow the native argument stack on very long node lists.
             for (const lContent of pData.content) {
+                // Skip omitted comments. See the element converter for why they are not filtered earlier.
+                if (this.mConfig.removeComments && lContent instanceof CommentNode) {
+                    continue;
+                }
+
                 lDocument.appendChild(lContent);
             }
 

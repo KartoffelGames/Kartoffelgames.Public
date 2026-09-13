@@ -637,8 +637,7 @@ items     unshift(...)      push + reverse    unshift is
  64000     367.597ms          0.408ms         900.5x slower
 ```
 
-**Crash fixed, quadratic still there.** Both spread sites now use `concat`. The second site mutated the array
-in place, so it also had to write the new array back into the chain data. Verified end to end on a
+**Crash fixed, quadratic still there.** Both spread sites lost the spread. Verified end to end on a
 `data[]` + `data<-data` loop grammar:
 
 ```
@@ -647,12 +646,58 @@ in place, so it also had to write the new array back into the chain data. Verifi
  250000 items   118378.3ms     ok      (was RangeError past ~200k)
 ```
 
-5× the items for 23× the time — the O(n²) is untouched and now clearly visible. It comes from the remaining
-single-element `unshift` at [graph-node.ts:258](source/parser/graph/graph-node.ts:258), which is the common
-path for list building and was never the crashing one.
+**Replacing `unshift` with `concat` was itself a 4–12× regression, now fixed.** The list-building idiom
+`required('key[]', item).optional('key[]', self)` prepends **one** item to the accumulated tail at every
+level. `lNodeData.concat(lChainData)` allocates a fresh array of the whole accumulated length each time;
+`lChainData.unshift(item)` moves the tail once in place, which is what the pre-`concat` code did. Measured
+with a pass-through converter, so only `mergeData` is in frame:
 
-*Remaining fix:* accumulate with `push` and reverse once in `Graph.convert`, where lists are completed. Not a
-small change — it touches `mergeData` and the convert step, and it needs to know which keys are lists.
+```
+   items   concat   unshift in place   speedup
+    5000   45.3ms             11.9ms     3.81x
+   10000  184.1ms             37.2ms     4.95x
+   20000  745.5ms            107.1ms     6.96x
+   40000 3150.3ms            268.2ms    11.75x
+```
+
+Shipped: a single-item fast path that prepends in place, with `concat` kept for longer node data, where it is
+both correct and the cheaper option — and where the spread was the thing that crashed.
+
+**The quadratic is still there and it is structural.** `mergeData` walks exactly n²/2 elements (12 497 500 at
+n = 5 000). Right recursion materialises the accumulated tail at every level, and every level's converter sees
+that tail, so no representation trick inside `mergeData` can avoid it: whatever each level observes has to be
+a correct-order list of its own length. The real fix is a **repetition node** in the parser, so a list is
+built by appending into one array across one graph level instead of n nested ones.
+
+**Where the time actually goes**, same shape, one converter that rebuilds the list per level (what the xml
+content list does) versus one that hands it straight back:
+
+```
+   items   with rebuilding converter   mergeData only   converter share
+    2500                      41.1ms           8.9ms               78%
+   10000                     477.0ms          35.2ms               93%
+   40000                    7719.5ms         284.4ms               96%
+```
+
+After the `mergeData` fix, **96 % of a long sibling list is the consumer's converter**, not the parser. A
+converter that rebuilds the accumulated list at every level is quadratic on its own, and no parser-side change
+touches it.
+
+**Confirmed on a real consumer.** `core-xml`'s content list converter did exactly that, and it also filtered
+comments on every level — redundantly, because the deeper items had already been filtered by the same
+converter one level down. Handing the list back unchanged and filtering once where it is consumed (the element
+and document converters, which each walk their list a single time) is behaviour-identical and removes the
+second quadratic. `core-xml` 37 (83 steps) passes, including both `removeComments` cases.
+
+```
+100 000 nodes        before     after
+linear (siblings)     65.8s     6.14s     10.7x
+attributes            ~19s      3.53s      5.4x
+nested (depth)         2.3s     2.70s     unchanged within run-to-run spread
+```
+
+The linear-to-nested gap, same node count, went from **28.6× to 2.3×**. Doubling the node count now costs
+roughly 2.0–2.3× instead of 4×.
 
 ### 4.2 Trace priority collides across lines — **done**
 
@@ -726,7 +771,7 @@ All re-verified present on 2026-09-12.
 | — | ~~**§2.3 success half**~~ | **Closed.** Both designs built and reverted — §2.3.1b, §2.3.1c. Do not reopen without putting the circular chain in the key |
 | ~~4~~ | ~~**§4.1 `unshift(...spread)` crash**~~ | **Done.** 250 k-item list parses instead of throwing |
 | ~~5~~ | ~~**§4.2 priority, §4.3 root type, §4.4 incident check, §4.5 `@remarks`, §5.4 comments, §5.6 `;;`**~~ | **Done**, one pass, both suites pass |
-| 6 | **§4.1 remaining O(n²)** | The single-element `unshift` in list building. 5× items costs 23× time. Needs `push` + reverse in `Graph.convert` — not a small change |
+| 6 | **A repetition node** | The only real fix for §4.1's remaining O(n²). A right recursive list builds n graph levels and materialises the tail at every one. A loop node builds it by appending into one array at one level, and removes n levels of graph recursion with it. The biggest open win, and a feature, not a tweak |
 | 7 | **§5.3 `as any` casts, §5.5 `validator` signature** | Both change a public shape, so they want their own pass rather than riding along with a cleanup |
 | 8 | **`trimTokenCache` ancestor indices** | Pre-existing, unrelated to the cache, `false` by default — see §2.3.1 |
 | 9 | **§2.4 T1 lazy trace incidents** | Re-measure first: `trace.push` already fell 94.5 → 7.1 per token, so most of the 9–11 % is gone |

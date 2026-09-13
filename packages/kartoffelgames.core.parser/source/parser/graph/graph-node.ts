@@ -182,7 +182,13 @@ export class GraphNode<TTokenType extends string, TResultData extends object = o
                         return lNodeData;
                     }
 
-                    // When chain data is a array. Merge the node data in it and resolve.
+                    // Small optimization for smaller lists. Unshift is faster than concat.
+                    if (lNodeData.length < 1000) {
+                        lChainData.unshift(lNodeData[0]);
+                        return lChainData;
+                    }
+
+                    // Longer data must be concat to prevent stack overflows.
                     return lNodeData.concat(lChainData);
                 }
 

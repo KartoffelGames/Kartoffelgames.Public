@@ -114,7 +114,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
 
             // Only add an incident for the unparsed token when there is no other incident.
             // By doing that, we prevent a useful error message from being hidden by a useless "buhu there still tokens left"-error.
-            if (lParseProcessState.incidentTrace.top.range.lineEnd === 1 && lParseProcessState.incidentTrace.top.range.columnEnd === 1) {
+            if (!lParseProcessState.incidentTrace.hasIncident) {
                 // Create a error message and add a incident.
                 const lErrorMessage: string = `Tokens could not be parsed. Graph end meet without reaching last token. Current: "${lNextToken.value}" (${lNextToken.type})`;
                 lParseProcessState.incidentTrace.push(lErrorMessage, this.mRootPart as Graph<TTokenType>, lNextToken.lineNumber, lNextToken.columnNumber, lNextToken.lineNumber, lNextToken.columnNumber);

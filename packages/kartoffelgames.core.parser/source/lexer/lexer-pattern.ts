@@ -117,9 +117,9 @@ export class LexerPattern<TTokenType extends string, TPatternType extends LexerP
      * @returns easy to read token pattern.
      */
     private convertTokenPattern(pPatternType: TPatternType, pPattern: LexerPatternConstructorParameter<TTokenType, TPatternType>['pattern']): LexerPatternDefinition<TTokenType, TPatternType> {
-        // Convert regex into a line start regex with global and single flag.
+        // Set the regex to the start of the remaining text and group its match, so a non match exits directly.
         const lConvertRegex = (pRegex: RegExp): RegExp => {
-            // Create flag set and add sticky. Set removes all duplicate flags.
+            // Keep the original flags. Set removes all duplicate flags.
             const lFlags: Set<string> = new Set(pRegex.flags.split(''));
 
             // Create pattern with same flags and added default group.

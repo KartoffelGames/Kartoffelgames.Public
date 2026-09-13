@@ -183,8 +183,7 @@ export class GraphNode<TTokenType extends string, TResultData extends object = o
                     }
 
                     // When chain data is a array. Merge the node data in it and resolve.
-                    lChainData.unshift(...lNodeData);
-                    return lChainData;
+                    return lNodeData.concat(lChainData);
                 }
 
                 return lNodeData;
@@ -253,7 +252,7 @@ export class GraphNode<TTokenType extends string, TResultData extends object = o
 
         // Merge node and chain data. must be pushed in reversed order to represent the bottom up approach.
         if (Array.isArray(lMergePickedNodeData)) {
-            (<Array<unknown>>lChainMergeValue).unshift(...lMergePickedNodeData);
+            lOpenChainData[this.mIdentifier.dataKey] = lMergePickedNodeData.concat(lChainMergeValue);
         } else {
             (<Array<unknown>>lChainMergeValue).unshift(lMergePickedNodeData);
         }

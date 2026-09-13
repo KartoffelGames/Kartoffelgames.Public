@@ -249,7 +249,7 @@ export class CodeParserProcessState<TTokenType extends string> {
             lLineEnd = lPositionToken.lineNumber + lTokenLines.length - 1;
             lColumnEnd = 1 + lTokenLines[lTokenLines.length - 1]!.length;
         } else {
-            lColumnEnd = lPositionToken.columnNumber + lPositionToken.value.length;;
+            lColumnEnd = lPositionToken.columnNumber + lPositionToken.value.length;
             lLineEnd = lPositionToken.lineNumber;
         }
 

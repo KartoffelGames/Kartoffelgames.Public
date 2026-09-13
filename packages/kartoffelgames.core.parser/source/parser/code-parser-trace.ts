@@ -6,8 +6,16 @@ import type { Graph } from './graph/graph.ts';
  * Can save a complete incident list on debug mode.
  */
 export class CodeParserTrace<TTokenType extends string> {
+    private mHasIncident: boolean;
     private readonly mIncidents: Array<CodeParserTraceIncident<TTokenType>> | null;
     private mTop: CodeParserTraceIncident<TTokenType>;
+
+    /**
+     * Get if any trace has any incident.
+     */
+    public get hasIncident(): boolean {
+        return this.mHasIncident;
+    }
 
     /**
      * Get a complete incident list of all incidents.
@@ -35,9 +43,9 @@ export class CodeParserTrace<TTokenType extends string> {
      */
     public constructor(pKeepTraceIncidents: boolean) {
         // Set a default top incident.
+        this.mHasIncident = false;
         this.mTop = {
             message: 'Unknown parser error',
-            priority: 0,
             graph: null,
             range: {
                 lineStart: 1,
@@ -65,21 +73,11 @@ export class CodeParserTrace<TTokenType extends string> {
      * @param pEndToken - End topen of error. 
      */
     public push(pError: string, pGraph: Graph<TTokenType> | null, pLineStart: number, pColumnStart: number, pLineEnd: number, pColumnEnd: number, pOverridePriority: boolean = false, pErrorCause: unknown = null): void {
-        // Calculate priority
-        let lPriority: number;
-        if (pOverridePriority) {
-            // Set new top. :)
-            lPriority = this.mTop.priority + 1;
-        } else {
-            lPriority = (pLineEnd * 10000) + pColumnEnd;
-        }
-
         // Create and push a debuging incident when debugging is enabled.
         if (this.mIncidents !== null) {
             // Create new incident. Only purpose is that not every time a incident is pushed a new item must be generated without debug mode.
             const lDebugIncident: CodeParserTraceIncident<TTokenType> = {
                 message: pError,
-                priority: lPriority,
                 graph: pGraph,
                 range: {
                     lineStart: pLineStart,
@@ -93,15 +91,20 @@ export class CodeParserTrace<TTokenType extends string> {
             this.mIncidents.push(lDebugIncident);
         }
 
-        // Skip incident creation when priority is lower than previous top incident.
-        if (this.mTop && lPriority < this.mTop.priority) {
-            return;
+        // The incident that is the furthest is the most useful one, so anything before it is skipped.
+        if (!pOverridePriority) {
+            if (pLineEnd < this.mTop.range.lineEnd) {
+                return;
+            }
+
+            if (pLineEnd === this.mTop.range.lineEnd && pColumnEnd < this.mTop.range.columnEnd) {
+                return;
+            }
         }
 
         // Create new Incident and push to top.
         this.setTop({
             message: pError,
-            priority: lPriority,
             graph: pGraph,
             range: {
                 lineStart: pLineStart,
@@ -119,13 +122,13 @@ export class CodeParserTrace<TTokenType extends string> {
      * @param pIncident - The incident to set as the top incident.
      */
     private setTop(pIncident: CodeParserTraceIncident<TTokenType>): void {
+        this.mHasIncident = true;
         this.mTop = pIncident;
     }
 }
 export type CodeParserTraceIncident<TTokenType extends string> = {
     message: string,
     cause: unknown,
-    priority: number;
     graph: Graph<TTokenType> | null;
     range: {
         lineStart: number;

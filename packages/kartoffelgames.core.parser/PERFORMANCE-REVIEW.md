@@ -17,7 +17,7 @@ Scope: `source/lexer/**` and `source/parser/**` including all helper classes.
 | # | Finding | State |
 |---|---|---|
 | **L1** | The lexer tried **every** pattern in a scope at **every** position — 223 patterns, 187 regex calls per token, 99.5 % misses. Fixed by bucketing patterns on their possible first character. | **Done.** 4.5× on the pattern walk, 1.72 → 8.15 MB/s end to end |
-| **P1** | The parser spends **87–93 % of its graph entries re-parsing a graph it already tried at that exact token position.** One `(graph, position)` cache removes it. | **Failure half done.** 3.67× total, 4.97× on the largest shader, both suites pass. Success half still open — see §2.3 |
+| **P1** | The parser spends **87–93 % of its graph entries re-parsing a graph it already tried at that exact token position.** A `(graph, position)` failure cache removes most of it. | **Failure half done.** 3.67× total, 4.97× on the largest shader, both suites pass — §2.3.1. **Success half closed**: two designs built, measured and reverted — §2.3.1b, §2.3.1c |
 | **P2** | The manual process stack is load-bearing for depth (recursion overflows at ~2 000 items) but costs 1.4–1.8× versus recursion. A generator driver keeps the depth at neutral cost and deletes four numbered state machines. | **Done** (`ec89a6a1`) |
 | **G1** | `GraphNode.mergeData` uses `unshift(...spread)`: **O(n²)** and throws `RangeError` at ~200 k elements. | Open, real bug |
 | **T1** | Error-message template literals built eagerly on every failed branch. Worth 9–11 % on the un-cached parser, far less once P1 lands. | Open, small |
@@ -32,6 +32,11 @@ Hypotheses tested and **rejected** — do not spend time on these:
 - **Excluding junctions from the cache** — wrong mechanism, and excluding them buys nothing. The real
   condition is circular contamination and it applies to ordinary graphs too. See §2.3.2.
 - **Disabling the cache when `trimTokenCache` is on** — unnecessary, an index offset covers both. See §2.3.1.
+- **Caching graph successes as `{ endTokenIndex, nodeResult }`** — fast (1.22×) but it aliases converted
+  child objects into the consumer's parse result. Built, measured, reverted. See §2.3.1b.
+- **Caching the successful route as `(GraphNode, token) -> winning value index`** — stores no objects, but
+  39 % of its hits are stale and it fails the suite; the provably sound restriction of it is worth 1.00×.
+  Built, measured, reverted. See §2.3.1c.
 
 ---
 
@@ -193,16 +198,24 @@ scaling the original review measured but could not explain.
 
 ### 2.3 The fix: one cache, two outcome kinds
 
-Key on `(graph, entry token cursor)`, per parse, junctions excluded:
+Two different keys, because the two halves have very different constraints:
 
 ```
-FAILED                       -> return PARSER_ERROR immediately, skip the whole subtree
-{ nodeResult, endCursor }    -> push, set cursor to endCursor, RE-RUN Graph.convert, pop
+FAILURE   (graph, entry token cursor)  -> PARSER_ERROR immediately, skip the whole subtree   [shipped, §2.3.1]
+SUCCESS   (graph node, token)          -> FAIL | chosen branch, re-walk and re-convert       [open,    §6.4]
 ```
 
-The failure half is free of assumptions: a failed graph produced no data and ran no converter. The success
-half stores the *parse*, not the *converted result*, and re-runs the converter on every hit — so no converted
-object is ever aliased into two places.
+**The failure half is free of assumptions**: a failed graph produced no data and ran no converter, so the
+cache stores nothing but token indices and hands out no objects.
+
+**The success half cannot store data.** Anything that stores a parse result and replays it puts the same
+object instance into a consumer's tree twice — see §2.3.1b, where exactly that was built, measured and
+reverted. A route cache stores only *which branch won*, so the path is walked and converted again on every
+hit and no object is ever reused.
+
+The prototype numbers below measured the rejected data-storing variant. They are kept because the
+*failure-only* column is still the live measurement, and because the gap between the columns is what made the
+data-storing variant look attractive in the first place.
 
 ```
 === world-group-forward.pgsl ===
@@ -228,8 +241,9 @@ object is ever aliased into two places.
 of three files.** Reusing converted results eliminates 59 % of `Graph.convert` calls and 62 % of `mergeData`
 calls and buys 1.29× for it — so the converters are nearly free.
 
-**The expensive thing is searching for the parse, not producing the data.** The three strategies are
-performance-equivalent, which means the choice is a correctness choice, and the parse cache wins it.
+**The expensive thing is searching for the parse, not producing the data.** The strategies are
+performance-equivalent, which means the choice is a correctness choice — and *both* data-storing strategies
+lose it. Converters being nearly free is the argument for re-running them wholesale, which is the route cache.
 
 Per-token cost, which is the number that matters:
 
@@ -250,11 +264,13 @@ Correctness evidence: transpiled WGSL byte-identical on every parseable shader; 
 into `source/parser/`, `core-parser` passes **43 (230 steps)** and `core-pgsl` passes **223 (1322 steps)**,
 0 failed.
 
-A stricter variant storing only the branch decisions and re-converting the whole subtree would remove the
-remaining sharing — the cached `nodeResult` still holds already-converted child objects, so children are
-shared even though the top-level object is rebuilt. It was not built. Since converters measured as nearly
-free it should land in the same range, and it is the version to reach for if a collector turns out to mutate
-its input.
+**This section originally contradicted itself, and the contradiction cost a build.** Two paragraphs after
+claiming the parse cache meant "no converted object is ever aliased into two places", it noted that the
+cached `nodeResult` still holds already-converted children which are therefore shared. Both cannot be true.
+The second statement is the correct one, and it disqualifies the parse cache rather than merely qualifying
+it — a published parser cannot hand a consumer a tree with undeclared shared instances in it. The variant
+storing only branch decisions is not a "stricter alternative if a collector turns out to mutate its input";
+it is the only correct shape.
 
 **Caveats.**
 
@@ -308,6 +324,88 @@ shared-types.pgsl                 68     1.6 -> 1.4    19.6% ->  7.5%    0.7 -> 
 Output identical to baseline on every sample, compared on bindings, parameters, the full ordered incident
 list (241 entries on the largest file) and the transpiled source. `core-parser` 43 (230 steps) and `core-pgsl`
 223 (1322 steps), 0 failed.
+
+### 2.3.1b The graph-level parse cache — built, measured, then removed
+
+A success cache keyed on `(Graph, token)` storing `{ endTokenIndex, nodeResult }` was implemented and
+reverted. It worked and it was fast — 1.22× on top of the failure half, 1.42× on the largest shader, output
+identical on every sample, both suites passing. **It is still wrong for a library, and the earlier text in
+this document recommending it was wrong.**
+
+Re-running `convert` on a hit rebuilds only the *outermost* object. The cached `nodeResult` holds the
+already-converted results of child graphs, and those are handed out verbatim to every later hit. So a
+consumer's parse result can contain the same object instance in two places, with nothing marking it. Mutating
+one field silently changes an unrelated part of their tree. `Graph.convert` also returns its input unchanged
+for a graph with no converters ([graph.ts:70](source/parser/graph/graph.ts:70)), which widens the exposure.
+
+A control measurement — reference-edge counts in the finished tree, with and without the cache — came back
+**identical** for PGSL (14 462 objects, 475 shared, max 17 refs, both ways). That is a real result and it is
+also beside the point: it says this one grammar does not surface the aliasing, not that a consumer's grammar
+won't. The parser is published as `@kartoffelgames/core-parser`; its result contract cannot depend on a
+property only ever checked against one in-repo consumer. 1.22× does not buy an unprovable safety argument.
+
+Two earlier claims in this section's history were wrong and are recorded here so they are not repeated:
+
+- *"Caching the parse and re-running converters means no converted object is ever aliased into two places."*
+  False. Only the top-level object is rebuilt; children are reused.
+- *"The sharing probe shows zero shared objects."* That probe only compared the identity of `nodeResult`
+  itself, not the objects nested inside it, which are the ones actually reused. It measured the wrong thing.
+
+The route cache was the intended replacement. It was then built and it does not work either — §2.3.1c.
+
+### 2.3.1c The route cache — built, and it does not work
+
+Key `(GraphNode, token)`, value = index of the node value that won. Integers only, no object ever stored or
+reused, so it has none of §2.3.1b's problem. `createNodeValueParseProcess` walks `connections.values` in
+order and takes the first that succeeds, so a saved index lets it go straight to the winner and skip the
+values that failed before it. The value itself is parsed in full.
+
+It was built with what looked like a safety net: **if the saved value fails on replay, fall through and walk
+every value in order**, so a stale route could only cost time. That reasoning was wrong twice over.
+
+**It fails the suite.** `core-pgsl` drops to 219 passed / 4 failed, with spurious errors on valid input
+(`Unexpected token ";". "OperatorModulo" expected`). Disabling the graph failure cache does not fix it, so the
+two caches are not interacting — the route cache breaks on its own.
+
+**The route is not a function of `(node, token)`.** Instrumenting the recorded route against the value that
+actually wins, with the shortcut disabled so behaviour is unchanged:
+
+```
+file                          route hits   wrong winner   dangerous (claimed < actual)
+forward-entry-points.pgsl            549            215                              0
+default-pbr-shader.pgsl              277             96                              0
+object-group-forward.pgsl             34              8                              0
+world-group-forward.pgsl              53              8                              0
+```
+
+**39 % of route hits are stale.** All of them in the safe direction — the saved index is lower than the real
+winner, so the saved value fails on replay and the fall-through catches it. That is why the net looked
+sufficient. It is not: taking the shortcut changes the *order* in which the grammar is explored, the
+speculative subtree records routes of its own under a context that is then abandoned, and those poison later
+walks. The cache misleads itself.
+
+**The sound restriction is worthless.** Recording only at a fresh progress point — where the current graph is
+alone on the circular chain, so nothing about the entry path can affect the outcome — makes the suite pass
+again, 223 (1322 steps). It is also worth **exactly nothing**:
+
+```
+file                          tokens   no-route     +route   speedup
+forward-entry-points.pgsl        505     7.22ms     7.13ms     1.01x
+default-pbr-shader.pgsl          245     4.06ms     4.19ms     0.97x
+object-group-forward.pgsl         67     1.03ms     0.97ms     1.06x
+world-group-forward.pgsl          96     1.14ms     1.16ms     0.98x
+shared-types.pgsl                 68     0.75ms     0.73ms     1.02x
+total                                   14.19ms    14.19ms     1.00x
+```
+
+Reverted. The parser keeps the failure half only.
+
+**The pattern across both attempts.** The data-storing cache is fast and aliases objects into the consumer's
+result. The route cache stores no objects and is either wrong or worthless. Both fail for the reason §2.3.2
+names: **a graph's or node's outcome is a function of the entry chain, not only of `(grammar element,
+token)`.** The failure half survives because its contamination measures at 15.7 % and happens not to bite on
+these grammars; the success side's contamination bites at 39 % and does. Anything further on the success side
+has to put the circular chain in the key, and §2.3.2 already measured what guarding on it costs: 3.67× → 2.07×.
 
 ### 2.3.2 The real soundness limit is circular contamination, not junctions
 
@@ -539,37 +637,57 @@ items     unshift(...)      push + reverse    unshift is
  64000     367.597ms          0.408ms         900.5x slower
 ```
 
-*Minimal fix:* `lOpenChainData[key] = b.concat(a)`. Removes the crash, still O(n²).
-*Proper fix:* accumulate with `push` and reverse once in `Graph.convert`, where lists are completed.
+**Crash fixed, quadratic still there.** Both spread sites now use `concat`. The second site mutated the array
+in place, so it also had to write the new array back into the chain data. Verified end to end on a
+`data[]` + `data<-data` loop grammar:
 
-### 4.2 Trace priority collides across lines
+```
+   1000 items       12.0ms     ok
+  50000 items     5012.2ms     ok
+ 250000 items   118378.3ms     ok      (was RangeError past ~200k)
+```
 
-[code-parser-trace.ts:74](source/parser/code-parser-trace.ts:74): `lPriority = (pLineEnd * 10000) + pColumnEnd`.
+5× the items for 23× the time — the O(n²) is untouched and now clearly visible. It comes from the remaining
+single-element `unshift` at [graph-node.ts:258](source/parser/graph/graph-node.ts:258), which is the common
+path for list building and was never the crashing one.
 
-Any column past 10 000 bleeds into the next line, so on minified or generated input the reported error is the
-wrong, earlier one. Compare `(lineEnd, columnEnd)` as a tuple, or rank by token-cache index.
+*Remaining fix:* accumulate with `push` and reverse once in `Graph.convert`, where lists are completed. Not a
+small change — it touches `mergeData` and the convert step, and it needs to know which keys are lists.
 
-### 4.3 `mRootPattern`'s declared type is a lie
+### 4.2 Trace priority collides across lines — **done**
 
-[lexer.ts:15](source/lexer/lexer.ts:15) declares `LexerPattern<TTokenType, 'split'>` but it is constructed
-with `type: 'single'`, laundered through `new LexerPattern<TTokenType, any>`. It works only because every
-`.pattern.end` access is guarded by `isSplit()`. Declare it `LexerPattern<TTokenType, LexerPatternType>`.
+`(pLineEnd * 10000) + pColumnEnd` meant any column past 10 000 bled into the next line, so on minified or
+generated input the reported error was the wrong, earlier one. The combined number is gone; `push` now
+compares `lineEnd` and `columnEnd` separately, and `priority` was dropped from `CodeParserTraceIncident`
+entirely. `pOverridePriority` no longer needs a synthetic rank — it simply skips the comparison.
 
-### 4.4 Fragile "is there already an incident?" check
+```
+push(1:20000) then push(2:5)  -> top is 2:5   (was 1:20000)
+push(3:4)     then push(2:9)  -> top is 3:4
+```
 
-[code-parser.ts:118](source/parser/code-parser.ts:118) tests for the *default* incident by comparing against
-its coordinates, so a genuine error at line 1 column 1 is indistinguishable and gets a useless
-"tokens could not be parsed" message appended on top. Use an explicit `hasIncident` flag.
+### 4.3 `mRootPattern`'s declared type is a lie — **done**
 
-### 4.5 `Graph.converter()` returns a new identity
+Declared `LexerPattern<TTokenType, 'split'>` while constructed with `type: 'single'` through
+`new LexerPattern<TTokenType, any>`. Now declared `LexerPattern<TTokenType, LexerPatternType>` and
+constructed as `LexerPattern<TTokenType, 'single'>`; the `any` is gone and the `isSplit()` guards still
+narrow.
+
+### 4.4 Fragile "is there already an incident?" check — **done**
+
+The check tested for the *default* incident by comparing against its 1:1 coordinates, so a genuine error at
+line 1 column 1 was indistinguishable and got a useless "tokens could not be parsed" appended on top.
+`CodeParserTrace` now carries an explicit `hasIncident`, set when an incident first becomes top.
+
+### 4.5 `Graph.converter()` returns a new identity — **documented**
 
 [graph.ts:105](source/parser/graph/graph.ts:105) builds a *new* `Graph` with a copied converter list.
 Constructing a graph inline inside a collector therefore creates a fresh identity per resolution, which
 breaks circular detection and re-resolves the node tree every time.
 
-**§2.3 raises the stakes:** the parse cache keys on graph identity, so an inline-constructed graph would also
-never produce a cache hit. Presumably intentional immutability, but it needs a `@remarks` saying graphs must
-be stored in a variable.
+**§2.3.1 raises the stakes:** the failure cache keys on graph identity, so an inline-constructed graph also
+never produces a cache hit. The behaviour is intentional immutability and was left alone; `converter()` now
+carries a `@remarks` stating that graphs must be built once and stored in a variable, and why.
 
 ---
 
@@ -577,29 +695,24 @@ be stored in a variable.
 
 All re-verified present on 2026-09-12.
 
-1. **Two symbols, one description** — [code-parser.ts:20-21](source/parser/code-parser.ts:20).
-   `NODE_NULL_RESULT` and `NODE_VALUE_LIST_END_MEET` both print as `FAILED_NODE_VALUE_PARSE` and mean
-   different things.
-2. **Duplicate type** — `LexerPatternDefinitionMatcher`
-   ([lexer-pattern.ts:270](source/lexer/lexer-pattern.ts:270)) is structurally identical to
-   `LexerPatternTokenMatcher` ([lexer-pattern.ts:249](source/lexer/lexer-pattern.ts:249)). Delete one.
+1. ~~**Two symbols, one description**~~ — **done.** `NODE_NULL_RESULT` is gone; only
+   `NODE_VALUE_LIST_END_MEET` remains ([code-parser.ts:20](source/parser/code-parser.ts:20)).
+2. ~~**Duplicate type**~~ — **no longer true.** `LexerPatternDefinitionMatcher`
+   ([lexer-pattern.ts:270](source/lexer/lexer-pattern.ts:270)) now carries `staticCharCodes` for the bucket
+   index, so it is no longer structurally identical to `LexerPatternTokenMatcher`. The split is correct: one
+   is the public constructor shape, the other the internal derived shape.
 3. **`convertTokenPattern` casts through `as any` twice** to satisfy a conditional type. A discriminated
    union (`{ kind: 'single', start } | { kind: 'split', start, end, innerType }`) removes both casts and lets
    `isSplit()` narrow properly.
-4. **Stale comments:**
-   - [lexer.ts:88](source/lexer/lexer.ts:88): *"the first added pattern **or a longer matched token** gets
-     priorized"* — there is no longest-match logic; `findNextStartToken` returns the first match.
-   - [lexer-pattern.ts:120](source/lexer/lexer-pattern.ts:120): *"with global and single flag"* — no flags
-     are added.
-   - [lexer-pattern.ts:122](source/lexer/lexer-pattern.ts:122): *"add sticky"* — sticky is never added, and
-     per §1.4 it should not be.
+4. ~~**Stale comments**~~ — **done.** All three corrected: the lexer no longer claims longest-match priority,
+   and `lConvertRegex` no longer claims to add global, single or sticky flags. The last one mattered most —
+   §1.4 measured sticky as 2.2× *slower*, so a comment promising it invited exactly the wrong change.
 5. **`validator` receives a fully materialised `pFollowingText`**
    ([lexer-pattern.ts:242](source/lexer/lexer-pattern.ts:242)), built by `substring` on every validated
    match. Cheap today (sliced string), but it is a public signature that locks out position-based matching
    later. `(token, fullText, offset)` is strictly more capable.
-6. **Stray double semicolon** —
-   [code-parser-process-state.ts:260](source/parser/code-parser-process-state.ts:260). `getGraphPosition` and
-   `getTokenPosition` are also near-duplicates; extract one `tokenEndPosition(token)`.
+6. ~~**Stray double semicolon**~~ — **done.** Still open: `getGraphPosition` and `getTokenPosition` are
+   near-duplicates and want one extracted `tokenEndPosition(token)`.
 
 ---
 
@@ -610,12 +723,14 @@ All re-verified present on 2026-09-12.
 | ~~1~~ | ~~**§3.3 generator driver**~~ | **Done** (`ec89a6a1`) |
 | ~~2~~ | ~~**§2.3 failure cache**~~ | **Done.** 3.67× total, both suites pass — §2.3.1 |
 | 3 | **§2.3.2 contamination decision** | Blocks nothing, but decides whether the shipped 3.67× stands or drops to 2.07× for provable soundness |
-| 4 | **§2.3 success half** | The remaining 38.9 % redundancy. Store the parse, re-run converters |
-| 5 | **§4.1 `unshift(...spread)`** | Fixes a crash and an O(n²); the `concat` version is two lines |
-| 6 | **§4.2 priority, §4.3 root type, §4.4 incident check, §4.5 `@remarks`** | Small, self-contained; §4.5 is load-bearing now that the cache exists |
-| 7 | **`trimTokenCache` ancestor indices** | Pre-existing, unrelated to the cache, `false` by default — see §2.3.1 |
-| 8 | **§2.4 T1 lazy trace incidents** | Re-measure: `trace.push` already fell 94.5 → 7.1 per token, so most of the 9–11 % is gone |
-| 9 | **§1.5 whitespace, §5 all** | Clarity; ~3–5 % as a bonus, and see the warning in §1.5 |
+| — | ~~**§2.3 success half**~~ | **Closed.** Both designs built and reverted — §2.3.1b, §2.3.1c. Do not reopen without putting the circular chain in the key |
+| ~~4~~ | ~~**§4.1 `unshift(...spread)` crash**~~ | **Done.** 250 k-item list parses instead of throwing |
+| ~~5~~ | ~~**§4.2 priority, §4.3 root type, §4.4 incident check, §4.5 `@remarks`, §5.4 comments, §5.6 `;;`**~~ | **Done**, one pass, both suites pass |
+| 6 | **§4.1 remaining O(n²)** | The single-element `unshift` in list building. 5× items costs 23× time. Needs `push` + reverse in `Graph.convert` — not a small change |
+| 7 | **§5.3 `as any` casts, §5.5 `validator` signature** | Both change a public shape, so they want their own pass rather than riding along with a cleanup |
+| 8 | **`trimTokenCache` ancestor indices** | Pre-existing, unrelated to the cache, `false` by default — see §2.3.1 |
+| 9 | **§2.4 T1 lazy trace incidents** | Re-measure first: `trace.push` already fell 94.5 → 7.1 per token, so most of the 9–11 % is gone |
+| 10 | **§1.5 whitespace, §5.6 position dedup** | Clarity; ~3–5 % as a bonus, and see the warning in §1.5 |
 
 ---
 
@@ -624,18 +739,22 @@ All re-verified present on 2026-09-12.
 1. **Is `trimTokenCache` used anywhere in production?** It changes `getGraphBoundingToken` accuracy, and
    §2.3's cache assumes stable token indices which trimming may break. If nobody enables it, the branch in
    `popGraphStack` is dead weight worth deleting — which also removes the caveat.
-2. **Do any graph collectors mutate the values they receive?** The parse cache does not depend on the answer,
-   but it decides whether the stricter decision-only variant (§2.3) is ever needed.
-3. **Are junction graphs performance-relevant, or a correctness escape hatch?**
+2. **What does the route cache cost?** Never built. It re-walks and re-converts where the rejected
+   graph-level cache skipped outright, so it lands below 1.22×; how far below is unknown. If it turns out to
+   be worth only a few percent, the failure half alone may be the right stopping point.
+3. **Is a parse result allowed to contain shared object instances at all?** Currently no, and §2.3.1b assumes
+   no. Worth stating explicitly in the public docs, because it is the constraint that rules out every
+   packrat-style result cache, not just the one that was tried.
+4. **Are junction graphs performance-relevant, or a correctness escape hatch?**
    `MAX_JUNCTION_CIRCULAR_REFERENCES = 1000` throws a raw `Exception` that `parse()` converts into a generic
    `CodeParserException`, losing the cause. The two PGSL junctions are the expression entry points, so they
    are on the hottest path there is.
-4. **Is the `m`-flag case reachable?** (§1.4) If user regexes with `m` are legitimate, the anchored fast path
+5. **Is the `m`-flag case reachable?** (§1.4) If user regexes with `m` are legitimate, the anchored fast path
    breaks down. Should `createTokenPattern` reject it?
-5. **Was the "longer matched token" priority in [lexer.ts:88](source/lexer/lexer.ts:88) ever implemented, or
+6. **Was the "longer matched token" priority in [lexer.ts:88](source/lexer/lexer.ts:88) ever implemented, or
    aspirational?** The bucket index preserves first-match-wins, which is what the code does. If you actually
    want longest-match, the index still helps but the inner loop must collect all candidates.
-6. **What is the realistic upper bound on list sizes in your grammars?** (§4.1) Under a few thousand, the
+7. **What is the realistic upper bound on list sizes in your grammars?** (§4.1) Under a few thousand, the
    `concat` fix is enough; at 100 k the push+reverse redesign is required.
 
 ---

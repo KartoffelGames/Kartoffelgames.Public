@@ -12,7 +12,7 @@ import { LexerToken } from './lexer-token.ts';
  * @public
  */
 export class Lexer<TTokenType extends string> {
-    private readonly mRootPattern: LexerPattern<TTokenType, 'split'>;
+    private readonly mRootPattern: LexerPattern<TTokenType, LexerPatternType>;
     private readonly mSettings: LexerSettings<TTokenType>;
 
     /**
@@ -69,7 +69,7 @@ export class Lexer<TTokenType extends string> {
         };
 
         // Core dependency scope
-        this.mRootPattern = new LexerPattern<TTokenType, any>(this, {
+        this.mRootPattern = new LexerPattern<TTokenType, 'single'>(this, {
             type: 'single',
             pattern: {
                 single: {
@@ -85,7 +85,7 @@ export class Lexer<TTokenType extends string> {
 
     /**
      * Add token pattern template.
-     * When a token matches multiple times within the same group the first added pattern or a longer matched token gets priorized.
+     * When a token matches multiple times within the same group the first added pattern gets priorized.
      * 
      * @param pName - Template name.
      * @param pPattern - Token pattern definintion.

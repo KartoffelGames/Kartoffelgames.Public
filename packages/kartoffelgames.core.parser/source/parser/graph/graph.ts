@@ -98,7 +98,7 @@ export class Graph<TTokenType extends string, TOriginalData extends object = obj
     /**
      * Add a data converter to the graph.
      * Data converters can mutate the current data into another form.
-     * 
+     *
      * @param pConverter - Data converter
      */
     public converter<TConvertedData>(pConverter: GraphDataCollector<TTokenType, TResultData, TConvertedData>): Graph<TTokenType, TOriginalData, TConvertedData> {

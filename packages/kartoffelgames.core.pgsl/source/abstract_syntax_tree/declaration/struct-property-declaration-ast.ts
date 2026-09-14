@@ -257,7 +257,7 @@ export class StructPropertyDeclarationAst extends AbstractSyntaxTree<StructPrope
         const lValidType: boolean = (() => {
             // Can be either float32 or int.
             for (const lNumericType of lNumericTypeList) {
-                if (pType.isImplicitCastableInto(lNumericType)) {
+                if (pType.isCastableInto(lNumericType)) {
                     return true;
                 }
             }
@@ -266,7 +266,7 @@ export class StructPropertyDeclarationAst extends AbstractSyntaxTree<StructPrope
             for (let lDimension: number = 2; lDimension <= 4; lDimension++) {
                 for (const lNumericType of lNumericTypeList) {
                     const lVectorType: IType = new PgslVectorType(lDimension, lNumericType).process(pContext);
-                    if (pType.isImplicitCastableInto(lVectorType)) {
+                    if (pType.isCastableInto(lVectorType)) {
                         return true;
                     }
                 }

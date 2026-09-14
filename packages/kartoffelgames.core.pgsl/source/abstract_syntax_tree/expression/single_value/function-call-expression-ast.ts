@@ -208,7 +208,7 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
 
                 // Non-generic parameter: check implicit cast compatibility directly.
                 if (typeof lParameterDeclaration.type !== 'string') {
-                    if (!lParameterType.isImplicitCastableInto(lParameterDeclaration.type.data.type)) {
+                    if (!lParameterType.isCastableInto(lParameterDeclaration.type.data.type)) {
                         continue FUNCTION_HEADER_LOOP;
                     }
                     continue;
@@ -218,7 +218,7 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
 
                 // Explicit generic provided: validate parameter is implicitly castable into the provided type.
                 if (lStaticGenericTypes.has(lGenericName)) {
-                    if (!lParameterType.isImplicitCastableInto(lStaticGenericTypes.get(lGenericName)!)) {
+                    if (!lParameterType.isCastableInto(lStaticGenericTypes.get(lGenericName)!)) {
                         continue FUNCTION_HEADER_LOOP;
                     }
                     
@@ -281,7 +281,7 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
         // Check all candidates against each other and return the first type that all other types can be implicitly cast into.
         for (const lCandidate of pCandidates) {
             // Check if all other candidates can be implicitly cast into the current candidate.
-            if (pCandidates.every((pOther) => { return pOther.isImplicitCastableInto(lCandidate); })) {
+            if (pCandidates.every((pOther) => { return pOther.isCastableInto(lCandidate); })) {
                 return lCandidate;
             }
         }

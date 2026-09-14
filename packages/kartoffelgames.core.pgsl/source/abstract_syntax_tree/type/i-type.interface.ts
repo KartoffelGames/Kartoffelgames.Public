@@ -1,3 +1,4 @@
+import { Vector } from "@kartoffelgames/core";
 import type { IAnyParameterConstructor } from '../../../../kartoffelgames.core/source/interface/i-constructor.ts';
 import type { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
 
@@ -26,16 +27,6 @@ export interface IType extends AbstractSyntaxTree {
     equals(pTarget: IType): boolean;
 
     /**
-     * Checks if this type is explicitly castable into the target type.
-     * Explicit casting requires an explicit cast operation in the source code.
-     * 
-     * @param pTarget - The target type to check castability to.
-     * 
-     * @returns True when this type is explicitly castable into the target type, false otherwise.
-     */
-    isExplicitCastableInto(pTarget: IType): boolean;
-
-    /**
      * Checks if this type is implicitly castable into the target type.
      * Implicit casting happens automatically without explicit cast operations.
      * 
@@ -43,7 +34,7 @@ export interface IType extends AbstractSyntaxTree {
      * 
      * @returns True when this type is implicitly castable into the target type, false otherwise.
      */
-    isImplicitCastableInto(pTarget: IType): boolean;
+    isCastableInto(pTarget: IType): boolean;
 }
 
 /**
@@ -108,6 +99,47 @@ export type TypeProperties = {
 };
 
 /**
- * Constructor type for PGSL types.
+ * Every classification a PGSL type can carry, as one bitmask.
  */
-export type TypeConstructor = IAnyParameterConstructor<IType>;
+export const BaseTypeKind = (() => {
+    // Type capabilities.
+    const Scalar = 1 << 20;
+    const Composite = 1 << 21;
+    const Indexable = 1 << 22;
+    const Plain = 1 << 23;
+
+    // Actual types.
+    const Numeric = 1 << 0 | Scalar | Plain;
+    const Boolean = 1 << 1 | Scalar | Plain;
+    const String = 1 << 2;
+    const Void = 1 << 3;
+    const Invalid = 1 << 4;
+    const Vector = 1 << 5 | Composite | Indexable | Plain;
+    const Matrix = 1 << 6 | Composite | Indexable | Plain;
+    const Array = 1 << 7 | Indexable | Plain;
+    const Pointer = 1 << 8;
+    const Struct = 1 << 9 | Composite | Plain;
+    const Enum = 1 << 10 | Composite;
+    const Texture = 1 << 11;
+    const Sampler = 1 << 12;
+
+    // Marker
+    const BuildIn = 1 << 13;
+
+    // Implicit numerics.
+    const Integer = 1 << 14 | Numeric;
+    const Float = 1 << 15 | Numeric;
+    const SignedInteger = 1 << 16 | Integer;
+    const UnsignedInteger = 1 << 17 | Integer;
+    const Float16 = 1 << 18 | Float;
+    const Abstract = 1 << 19;
+
+    return {
+        Scalar, Composite, Indexable, Plain,
+        Numeric, Boolean, String, Void, Invalid, Vector, Matrix, Array, Pointer, Struct, Enum, Texture, Sampler,
+        BuildIn,
+        Integer, Float, SignedInteger, UnsignedInteger, Float16, Abstract
+    } as const;
+})();
+
+export type BaseTypeKind = typeof BaseTypeKind[keyof typeof BaseTypeKind];

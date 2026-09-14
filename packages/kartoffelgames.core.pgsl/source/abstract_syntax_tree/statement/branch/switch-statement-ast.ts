@@ -30,7 +30,7 @@ export class SwitchStatementAst extends AbstractSyntaxTree<SwitchStatementCst, S
             const lCastableIntoInteger = (pType: IType) => {
                 const lSignedIntegerType = new PgslNumericType(PgslNumericType.typeName.signedInteger).process(pContext);
                 const lUnsignedIntegerType = new PgslNumericType( PgslNumericType.typeName.unsignedInteger).process(pContext);
-                return pType.isImplicitCastableInto(lSignedIntegerType) || pType.isImplicitCastableInto(lUnsignedIntegerType);
+                return pType.isCastableInto(lSignedIntegerType) || pType.isCastableInto(lUnsignedIntegerType);
             };
 
             // Expression resolve type must be a unsigned integer.

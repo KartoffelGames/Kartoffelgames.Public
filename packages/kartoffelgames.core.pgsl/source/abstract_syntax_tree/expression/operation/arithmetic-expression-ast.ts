@@ -127,7 +127,7 @@ export class ArithmeticExpressionAst extends AbstractSyntaxTree<ArithmeticExpres
         }
 
         // Left and right inner type must be implicit castable.
-        if (!lRightInnerType.isImplicitCastableInto(lLeftInnerType) && !lLeftInnerType.isImplicitCastableInto(lRightInnerType)) {
+        if (!lRightInnerType.isCastableInto(lLeftInnerType) && !lLeftInnerType.isCastableInto(lRightInnerType)) {
             pContext.pushIncident('Left and right side of arithmetic expression must be the same type.', this);
         }
 
@@ -172,7 +172,7 @@ export class ArithmeticExpressionAst extends AbstractSyntaxTree<ArithmeticExpres
         const lMatrixType: PgslMatrixType = (pLeftType instanceof PgslMatrixType) ? pLeftType : (pRightType as PgslMatrixType);
 
         // Left and right need to be same type or implicitly castable.
-        if (!lScalarType.isImplicitCastableInto(lMatrixType.innerType) && !lMatrixType.innerType.isImplicitCastableInto(lScalarType)) {
+        if (!lScalarType.isCastableInto(lMatrixType.innerType) && !lMatrixType.innerType.isCastableInto(lScalarType)) {
             pContext.pushIncident('Left and right side of arithmetic expression must be the same type.', this);
         }
 
@@ -195,7 +195,7 @@ export class ArithmeticExpressionAst extends AbstractSyntaxTree<ArithmeticExpres
      */
     private processScalarOperation(pLeftType: PgslNumericType, pRightType: PgslNumericType, pContext: AbstractSyntaxTreeContext): IType {
         // Left and right need to be same type or implicitly castable.
-        if (!pRightType.isImplicitCastableInto(pLeftType) && !pLeftType.isImplicitCastableInto(pRightType)) {
+        if (!pRightType.isCastableInto(pLeftType) && !pLeftType.isCastableInto(pRightType)) {
             pContext.pushIncident('Left and right side of arithmetic expression must be the same type.', this);
         }
 
@@ -222,7 +222,7 @@ export class ArithmeticExpressionAst extends AbstractSyntaxTree<ArithmeticExpres
         const lVectorType: PgslVectorType = (pLeftType instanceof PgslVectorType) ? pLeftType : (pRightType as PgslVectorType);
 
         // Left and right need to be same type or implicitly castable.
-        if (!lScalarType.isImplicitCastableInto(lVectorType.innerType) && !lVectorType.innerType.isImplicitCastableInto(lScalarType)) {
+        if (!lScalarType.isCastableInto(lVectorType.innerType) && !lVectorType.innerType.isCastableInto(lScalarType)) {
             pContext.pushIncident('Left and right side of arithmetic expression must be the same type.', this);
         }
 
@@ -287,7 +287,7 @@ export class ArithmeticExpressionAst extends AbstractSyntaxTree<ArithmeticExpres
      */
     private processVectorOperation(pLeftType: PgslVectorType, pRightType: PgslVectorType, pContext: AbstractSyntaxTreeContext): IType {
         // Left and right need to be same type or implicitly castable.
-        if (!pRightType.isImplicitCastableInto(pLeftType) && !pLeftType.isImplicitCastableInto(pRightType)) {
+        if (!pRightType.isCastableInto(pLeftType) && !pLeftType.isCastableInto(pRightType)) {
             pContext.pushIncident('Left and right side of arithmetic expression must be the same type.', this);
         }
 

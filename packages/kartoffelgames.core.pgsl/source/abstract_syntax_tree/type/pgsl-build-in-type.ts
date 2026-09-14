@@ -143,9 +143,9 @@ export class PgslBuildInType extends AbstractSyntaxTree<TypeCst, TypeProperties>
      * 
      * @returns True when the underlying type is implicitly castable to the target.
      */
-    public isImplicitCastableInto(pTarget: IType): boolean {
+    public isCastableInto(pTarget: IType): boolean {
         // Check if aliased type is implicit castable into target type.
-        return this.underlyingType.isImplicitCastableInto(pTarget);
+        return this.underlyingType.isCastableInto(pTarget);
     }
 
     /**
@@ -271,7 +271,7 @@ export class PgslBuildInType extends AbstractSyntaxTree<TypeCst, TypeProperties>
         }
 
         // Template needs to be a unsigned integer.
-        if (!this.mTemplate.data.resolveType.isImplicitCastableInto(new PgslNumericType(PgslNumericType.typeName.unsignedInteger).process(pContext))) {
+        if (!this.mTemplate.data.resolveType.isCastableInto(new PgslNumericType(PgslNumericType.typeName.unsignedInteger).process(pContext))) {
             pContext.pushIncident(`Clip distance built-in template value must be an unsigned integer.`);
         }
     }

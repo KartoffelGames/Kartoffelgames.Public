@@ -42,12 +42,12 @@ export class LogicalExpressionAst extends AbstractSyntaxTree<LogicalExpressionCs
         const lRightExpression: IExpressionAst = ExpressionAstBuilder.build(this.cst.right).process(pContext);
 
         // Validate left side type.
-        if (!lLeftExpression.data.resolveType.isImplicitCastableInto(new PgslBooleanType().process(pContext))) {
+        if (!lLeftExpression.data.resolveType.isCastableInto(new PgslBooleanType().process(pContext))) {
             pContext.pushIncident('Left side of logical expression needs to be a boolean', this);
         }
 
         // Validate right side type.
-        if (!lRightExpression.data.resolveType.isImplicitCastableInto(new PgslBooleanType().process(pContext))) {
+        if (!lRightExpression.data.resolveType.isCastableInto(new PgslBooleanType().process(pContext))) {
             pContext.pushIncident('Right side of logical expression needs to be a boolean', this);
         }
 

@@ -95,7 +95,7 @@ export class PgslEnumType extends AbstractSyntaxTree<TypeCst, TypeProperties> im
      * 
      * @returns Always false - enums cannot be cast.
      */
-    public isImplicitCastableInto(pTarget: IType): boolean {
+    public isCastableInto(pTarget: IType): boolean {
         // A enum is only castable to itself.
         return this.equals(pTarget);
     }

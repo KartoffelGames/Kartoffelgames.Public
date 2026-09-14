@@ -207,7 +207,7 @@ export class PgslMatrixType extends AbstractSyntaxTree<TypeCst, TypeProperties> 
      * 
      * @returns True when implicit casting is allowed, false otherwise.
      */
-    public isImplicitCastableInto(pTarget: IType): boolean {
+    public isCastableInto(pTarget: IType): boolean {
         // Must both be a matrix.
         if (!(pTarget instanceof PgslMatrixType)) {
             return false;
@@ -219,7 +219,7 @@ export class PgslMatrixType extends AbstractSyntaxTree<TypeCst, TypeProperties> 
         }
 
         // It is when inner types are implicit castable.
-        return this.mInnerType.isImplicitCastableInto(pTarget.innerType);
+        return this.mInnerType.isCastableInto(pTarget.innerType);
     }
 
     /**
@@ -238,7 +238,7 @@ export class PgslMatrixType extends AbstractSyntaxTree<TypeCst, TypeProperties> 
         const lFloat32Type = new PgslNumericType(PgslNumericType.typeName.float32).process(pContext);
         const lFloat16Type = new PgslNumericType(PgslNumericType.typeName.float16).process(pContext);
         const lAbstractFloatType = new PgslNumericType(PgslNumericType.typeName.abstractFloat).process(pContext);
-        if (!this.mInnerType.isImplicitCastableInto(lFloat32Type) && !this.mInnerType.isImplicitCastableInto(lFloat16Type) && !this.mInnerType.isImplicitCastableInto(lAbstractFloatType)) {
+        if (!this.mInnerType.isCastableInto(lFloat32Type) && !this.mInnerType.isCastableInto(lFloat16Type) && !this.mInnerType.isCastableInto(lAbstractFloatType)) {
             pContext.pushIncident('Matrix type must be a Float');
         }
 

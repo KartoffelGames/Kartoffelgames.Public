@@ -23,7 +23,7 @@ export class DoWhileStatementAst extends AbstractSyntaxTree<DoWhileStatementCst,
             const lExpression: IExpressionAst = ExpressionAstBuilder.build(this.cst.expression).process(pContext);
 
             // Expression must be a boolean.
-            if (!lExpression.data.resolveType.isImplicitCastableInto(new PgslBooleanType().process(pContext))) {
+            if (!lExpression.data.resolveType.isCastableInto(new PgslBooleanType().process(pContext))) {
                 pContext.pushIncident('Expression of do-while loops must resolve into a boolean.', lExpression);
             }
 

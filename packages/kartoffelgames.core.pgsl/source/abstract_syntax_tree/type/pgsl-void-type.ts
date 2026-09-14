@@ -71,7 +71,7 @@ export class PgslVoidType extends AbstractSyntaxTree<TypeCst, TypeProperties> im
      * 
      * @returns true when type is implicit castable into target type.
      */
-    public isImplicitCastableInto(pTarget: IType): boolean {
+    public isCastableInto(pTarget: IType): boolean {
         // A void is never explicit nor implicit castable.
         return this.equals(pTarget);
     }

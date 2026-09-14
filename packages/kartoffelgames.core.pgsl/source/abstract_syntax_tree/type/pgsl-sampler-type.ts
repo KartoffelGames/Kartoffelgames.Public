@@ -93,7 +93,7 @@ export class PgslSamplerType extends AbstractSyntaxTree<TypeCst, TypeProperties>
      * 
      * @returns Always false - samplers cannot be cast.
      */
-    public isImplicitCastableInto(pTarget: IType): boolean {
+    public isCastableInto(pTarget: IType): boolean {
         // A sampler is never explicit nor implicit castable.
         return this.equals(pTarget);
     }

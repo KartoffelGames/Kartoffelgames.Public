@@ -73,10 +73,10 @@ export class BinaryExpressionAst extends AbstractSyntaxTree<BinaryExpressionCst,
         const lSignedInteger: PgslNumericType = new PgslNumericType(PgslNumericType.typeName.signedInteger).process(pContext);
 
         // Left value need to be a integer numeric.
-        if (!lLeftValueType.isImplicitCastableInto(lUnsignedInteger) && !lLeftValueType.isImplicitCastableInto(lSignedInteger)) {
+        if (!lLeftValueType.isCastableInto(lUnsignedInteger) && !lLeftValueType.isCastableInto(lSignedInteger)) {
             pContext.pushIncident(`Binary operations can only be applied to integer types.`, this);
         }
-        if (!lRightValueType.isImplicitCastableInto(lUnsignedInteger) && !lRightValueType.isImplicitCastableInto(lSignedInteger)) {
+        if (!lRightValueType.isCastableInto(lUnsignedInteger) && !lRightValueType.isCastableInto(lSignedInteger)) {
             pContext.pushIncident(`Binary operations can only be applied to integer types.`, this);
         }
 
@@ -88,7 +88,7 @@ export class BinaryExpressionAst extends AbstractSyntaxTree<BinaryExpressionCst,
             }
 
             // Right must be assignable to unsigned integer.
-            if (!lRightValueType.isImplicitCastableInto(lUnsignedInteger) || typeof lRightExpression.data.constantValue === 'number' && lRightExpression.data.constantValue < 0) {
+            if (!lRightValueType.isCastableInto(lUnsignedInteger) || typeof lRightExpression.data.constantValue === 'number' && lRightExpression.data.constantValue < 0) {
                 pContext.pushIncident(`Right expression of a shift operation must be an unsigned integer type.`, this);
             }
         }

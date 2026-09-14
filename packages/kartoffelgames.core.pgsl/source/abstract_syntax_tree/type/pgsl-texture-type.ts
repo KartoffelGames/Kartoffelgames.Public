@@ -313,7 +313,7 @@ export class PgslTextureType extends AbstractSyntaxTree<TypeCst, TypeProperties>
      * 
      * @returns Always false - textures cannot be cast.
      */
-    public isImplicitCastableInto(pTarget: IType): boolean {
+    public isCastableInto(pTarget: IType): boolean {
         // A texture is never explicit nor implicit castable.
         return this.equals(pTarget);
     }

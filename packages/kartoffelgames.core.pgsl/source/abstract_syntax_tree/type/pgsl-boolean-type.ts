@@ -71,7 +71,7 @@ export class PgslBooleanType extends AbstractSyntaxTree<TypeCst, TypeProperties>
      * 
      * @returns true when type is implicit castable into target type.
      */
-    public isImplicitCastableInto(pTarget: IType): boolean {
+    public isCastableInto(pTarget: IType): boolean {
         // A boolean is never explicit nor implicit castable.
         return this.equals(pTarget);
     }

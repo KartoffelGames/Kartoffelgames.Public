@@ -133,7 +133,7 @@ export class PgslArrayType extends AbstractSyntaxTree<TypeCst, TypeProperties> i
      * 
      * @returns Always false - arrays cannot be cast.
      */
-    public isImplicitCastableInto(pTarget: IType): boolean {
+    public isCastableInto(pTarget: IType): boolean {
         // Must be an array.
         if (!(pTarget instanceof PgslArrayType)) {
             return false;
@@ -145,7 +145,7 @@ export class PgslArrayType extends AbstractSyntaxTree<TypeCst, TypeProperties> i
         }
 
         // Inner types must be implicit castable.
-        if (!this.mInnerType.isImplicitCastableInto(pTarget.innerType)) {
+        if (!this.mInnerType.isCastableInto(pTarget.innerType)) {
             return false;
         }
 
@@ -183,7 +183,7 @@ export class PgslArrayType extends AbstractSyntaxTree<TypeCst, TypeProperties> i
             }
 
             // Length expression must be an unsigned integer scalar.
-            if (!this.mLengthExpression.data.resolveType.isImplicitCastableInto(new PgslNumericType(PgslNumericType.typeName.unsignedInteger).process(pContext))) {
+            if (!this.mLengthExpression.data.resolveType.isCastableInto(new PgslNumericType(PgslNumericType.typeName.unsignedInteger).process(pContext))) {
                 pContext.pushIncident(`Array length expression must be of unsigned integer type.`, this.mLengthExpression);
             }
         }

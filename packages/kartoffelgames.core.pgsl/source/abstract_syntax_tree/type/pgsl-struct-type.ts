@@ -82,7 +82,7 @@ export class PgslStructType extends AbstractSyntaxTree<TypeCst, TypeProperties> 
      * 
      * @returns Always false - structs cannot be cast.
      */
-    public isImplicitCastableInto(pTarget: IType): boolean {
+    public isCastableInto(pTarget: IType): boolean {
         // A struct is never explicit nor implicit castable.
         return this.equals(pTarget);
     }

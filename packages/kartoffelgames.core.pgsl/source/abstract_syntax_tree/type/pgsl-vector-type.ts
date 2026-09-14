@@ -138,7 +138,7 @@ export class PgslVectorType extends AbstractSyntaxTree<TypeCst, TypeProperties> 
      * 
      * @returns True when implicit casting is allowed, false otherwise.
      */
-    public isImplicitCastableInto(pTarget: IType): boolean {
+    public isCastableInto(pTarget: IType): boolean {
         // Must both be a vector.
         if (!(pTarget instanceof PgslVectorType)) {
             return false;
@@ -150,7 +150,7 @@ export class PgslVectorType extends AbstractSyntaxTree<TypeCst, TypeProperties> 
         }
 
         // It is when inner types are implicit castable.
-        return this.mInnerType.isImplicitCastableInto(pTarget.mInnerType);
+        return this.mInnerType.isCastableInto(pTarget.mInnerType);
     }
 
     /**

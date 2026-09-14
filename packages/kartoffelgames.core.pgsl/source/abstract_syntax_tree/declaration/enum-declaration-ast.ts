@@ -82,8 +82,8 @@ export class EnumDeclarationAst extends AbstractSyntaxTree<EnumDeclarationCst, E
             lPropertyList.set(lProperty.name, lExpressionAst);
 
             // Validate property type.
-            const lIsNumeric: boolean = lExpressionAst.data.resolveType.isImplicitCastableInto(new PgslNumericType(PgslNumericType.typeName.unsignedInteger).process(pContext));
-            const lIsString: boolean = lExpressionAst.data.resolveType.isImplicitCastableInto(new PgslStringType().process(pContext));
+            const lIsNumeric: boolean = lExpressionAst.data.resolveType.isCastableInto(new PgslNumericType(PgslNumericType.typeName.unsignedInteger).process(pContext));
+            const lIsString: boolean = lExpressionAst.data.resolveType.isCastableInto(new PgslStringType().process(pContext));
 
             // All values need to be string or integer.
             if (!lIsNumeric && !lIsString) {

@@ -71,7 +71,7 @@ export class PgslStringType extends AbstractSyntaxTree<TypeCst, TypeProperties> 
      * 
      * @returns true when type is implicit castable into target type.
      */
-    public isImplicitCastableInto(pTarget: IType): boolean {
+    public isCastableInto(pTarget: IType): boolean {
         // A string is never explicit nor implicit castable.
         return this.equals(pTarget);
     }

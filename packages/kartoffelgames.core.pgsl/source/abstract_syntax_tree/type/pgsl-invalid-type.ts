@@ -62,7 +62,7 @@ export class PgslInvalidType extends AbstractSyntaxTree<TypeCst, TypeProperties>
      * 
      * @returns Always false - invalid types cannot be cast.
      */
-    public isImplicitCastableInto(_pTarget: IType): boolean {
+    public isCastableInto(_pTarget: IType): boolean {
         return false;
     }
 

@@ -99,7 +99,7 @@ export class PgslNumericType extends AbstractSyntaxTree<TypeCst, TypeProperties>
      * 
      * @returns True when implicit casting is allowed, false otherwise.
      */
-    public isImplicitCastableInto(pTarget: IType): boolean {
+    public isCastableInto(pTarget: IType): boolean {
         // Target type must be a numeric type.
         if (!(pTarget instanceof PgslNumericType)) {
             return false;

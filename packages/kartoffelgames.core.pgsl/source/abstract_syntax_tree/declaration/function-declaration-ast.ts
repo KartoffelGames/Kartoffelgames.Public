@@ -156,7 +156,7 @@ export class FunctionDeclarationAst extends AbstractSyntaxTree<FunctionDeclarati
                         const lBlockReturnType: IType = lBlock.data.returnType;
 
                         // Check for correct return type in function block.
-                        if (!lBlockReturnType.isImplicitCastableInto(lReturnType.data.type)) {
+                        if (!lBlockReturnType.isCastableInto(lReturnType.data.type)) {
                             pContext.pushIncident(`Function block return type does not match the declared return type.`, lBlock);
                         }
                     }

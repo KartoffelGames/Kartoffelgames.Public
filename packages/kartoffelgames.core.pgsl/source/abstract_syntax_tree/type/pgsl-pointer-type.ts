@@ -113,7 +113,7 @@ export class PgslPointerType extends AbstractSyntaxTree<TypeCst, TypeProperties>
      * 
      * @returns Always false - pointers cannot be cast.
      */
-    public isImplicitCastableInto(pTarget: IType): boolean {
+    public isCastableInto(pTarget: IType): boolean {
         // A pointer is never explicit nor implicit castable.
         return this.equals(pTarget);
     }

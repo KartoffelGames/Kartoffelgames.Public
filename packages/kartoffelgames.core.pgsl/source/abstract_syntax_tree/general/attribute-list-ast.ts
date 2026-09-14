@@ -327,7 +327,7 @@ export class AttributeListAst extends AbstractSyntaxTree<AttributeListCst, Attri
                 }
 
                 // Check if parameter type matches expected type.
-                if (!lActualAttributeParameterType.isImplicitCastableInto(new PgslNumericType(lExpectedTemplateType.type).process(pContext))) {
+                if (!lActualAttributeParameterType.isCastableInto(new PgslNumericType(lExpectedTemplateType.type).process(pContext))) {
                     pContext.pushIncident(`Attribute "${pAttributeName}" parameter ${lIndex} must be of type ${lExpectedTemplateType.type}.`, lAttributeParameterAst);
                 }
 

@@ -44,22 +44,22 @@ export class UnaryExpressionAst extends AbstractSyntaxTree<UnaryExpressionCst, U
 
         const lCastableIntoNumeric = (pType: IType, pIncludeUnsigned: boolean, pIncludeFloat: boolean): boolean => {
             const lFloar16Type = new PgslNumericType(PgslNumericType.typeName.float16).process(pContext);
-            if (pIncludeFloat && pType.isImplicitCastableInto(lFloar16Type)) {
+            if (pIncludeFloat && pType.isCastableInto(lFloar16Type)) {
                 return true;
             }
 
             const lFloat32Type = new PgslNumericType(PgslNumericType.typeName.float32).process(pContext);
-            if (pIncludeFloat && pType.isImplicitCastableInto(lFloat32Type)) {
+            if (pIncludeFloat && pType.isCastableInto(lFloat32Type)) {
                 return true;
             }
 
             const lUnsignedIntegerType = new PgslNumericType(PgslNumericType.typeName.unsignedInteger).process(pContext);
-            if (pType.isImplicitCastableInto(lUnsignedIntegerType)) {
+            if (pType.isCastableInto(lUnsignedIntegerType)) {
                 return true;
             }
 
             const lSignedIntegerType = new PgslNumericType(PgslNumericType.typeName.signedInteger).process(pContext);
-            if (pIncludeUnsigned && pType.isImplicitCastableInto(lSignedIntegerType)) {
+            if (pIncludeUnsigned && pType.isCastableInto(lSignedIntegerType)) {
                 return true;
             }
 

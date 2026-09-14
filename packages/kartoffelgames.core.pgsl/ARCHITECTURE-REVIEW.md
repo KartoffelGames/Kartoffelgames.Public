@@ -573,7 +573,7 @@ function match(pattern: TypePattern, actual: IType, bindings: Map<string, IType>
 Matching fills `bindings`, so `Vector<T>` against `Vector4<float>` binds `T = float`, and the inner
 type is then itself subject to the ordinary conversion rules.
 
-**And the `metaTypes` field goes away entirely — replaced by one integer field.**
+**And the `metaTypes` field goes away entirely — replaced by two integer fields.**
 
 The complete set of restriction strings that any code in this package ever *queries*:
 
@@ -591,37 +591,46 @@ cross-product into strings at construction time. One parse of `medium` builds **
 serve 114 lookups** — it is materialising a combinatorial answer to a question with twelve possible
 forms.
 
-#### The kind mask
+#### Two masks: what a type is, and what it can do
+
+They are different things with different lifetimes, so they get different fields. `kind` is static
+per type class, a closed set, and the only thing type patterns ever match against. `config` is
+computed per instance — an `Array` is constructible only when its element type is and its length is
+fixed — and only validation reads it. Splitting them means each field has one invariant and one
+reader, and neither has to make room for the other.
+
+```ts
+export abstract class BaseType {
+    /** What this type is. */
+    public abstract readonly kind: BaseTypeKind;
+
+    /** What this type can do. */
+    public abstract readonly config: BaseTypeConfig;
+}
+```
 
 ```ts
 /**
- * Every classification a PGSL type can carry, as one bitmask.
+ * What a type *is*. Static per type class, and the only thing type patterns match against.
  *
  * Layout:
- *   bits  0-12  exclusive kind   - exactly one is set per type
- *   bit     13  BuildIn marker   - combines with the wrapped type's kind
+ *   bits  0-12  exclusive kind - exactly one is set on any type
+ *   bit     13  BuildIn marker - combined with the kind of the wrapped type
  *   bits 14-19  numeric refinement
- *   bits 20-23  capability       - implied by the kind, never stored per instance
  */
 export const BaseTypeKind = (() => {
-    // Capabilities. Declared first so the kinds below can fold them in.
-    const Scalar = 1 << 20;
-    const Composite = 1 << 21;
-    const Indexable = 1 << 22;
-    const Plain = 1 << 23;
-
-    // Exclusive kinds. Exactly one of bits 0-12 is set on any type.
-    const Numeric = 1 << 0 | Scalar | Plain;
-    const Boolean = 1 << 1 | Scalar | Plain;
+    // Exclusive kinds.
+    const Numeric = 1 << 0;
+    const Boolean = 1 << 1;
     const String = 1 << 2;
     const Void = 1 << 3;
     const Invalid = 1 << 4;
-    const Vector = 1 << 5 | Composite | Indexable | Plain;
-    const Matrix = 1 << 6 | Composite | Indexable | Plain;
-    const Array = 1 << 7 | Indexable | Plain;
+    const Vector = 1 << 5;
+    const Matrix = 1 << 6;
+    const Array = 1 << 7;
     const Pointer = 1 << 8;
-    const Struct = 1 << 9 | Composite | Plain;
-    const Enum = 1 << 10 | Composite;
+    const Struct = 1 << 9;
+    const Enum = 1 << 10;
     const Texture = 1 << 11;
     const Sampler = 1 << 12;
 
@@ -634,10 +643,9 @@ export const BaseTypeKind = (() => {
     const Signed = 1 << 16 | Integer;
     const Unsigned = 1 << 17 | Integer;
     const Half = 1 << 18 | Float;
-    const Abstract = 1 << 19;
+    const Abstract = 1 << 19 | Numeric;
 
     return {
-        Scalar, Composite, Indexable, Plain,
         Numeric, Boolean, String, Void, Invalid, Vector, Matrix, Array, Pointer, Struct, Enum, Texture, Sampler,
         BuildIn,
         Integer, Float, Signed, Unsigned, Half, Abstract
@@ -647,23 +655,56 @@ export const BaseTypeKind = (() => {
 export type BaseTypeKind = number;
 
 /** Bits 0-12: the exclusive-kind region. */
-export const BASE_TYPE_KIND_MASK: number = (1 << 13) - 1;
+export const BASE_TYPE_KIND_REGION: number = (1 << 13) - 1;
 
 /**
  * Check whether a kind satisfies a wanted classification.
- * Always use this - `(pKind & pWanted) !== 0` is wrong for composite constants.
+ * Always use this - `(pKind & pWanted) !== 0` is wrong for the folded constants.
  */
 export function hasKind(pKind: BaseTypeKind, pWanted: BaseTypeKind): boolean {
     return (pKind & pWanted) === pWanted;
 }
 ```
 
+```ts
+/**
+ * What a type can *do*. Computed per instance - an array is only constructible when its element
+ * type is and its length is fixed - and never matched against by type patterns.
+ */
+export const BaseTypeConfig = (() => {
+    const Scalar = 1 << 0;
+    const Composite = 1 << 1;
+    const Indexable = 1 << 2;
+    const Plain = 1 << 3;
+    const Storable = 1 << 4;
+    const HostShareable = 1 << 5;
+    const Constructible = 1 << 6;
+    const FixedFootprint = 1 << 7;
+    const Concrete = 1 << 8;
+
+    return { Scalar, Composite, Indexable, Plain, Storable, HostShareable, Constructible, FixedFootprint, Concrete } as const;
+})();
+
+export type BaseTypeConfig = number;
+
+/**
+ * Check whether a type is configured with every wanted capability.
+ */
+export function hasConfig(pConfig: BaseTypeConfig, pWanted: BaseTypeConfig): boolean {
+    return (pConfig & pWanted) === pWanted;
+}
+```
+
+20 of the 31 usable bits in `kind` (JS bitwise operators are signed, so bit 31 is not really
+available) and 9 in `config` — room for the 17 `PgslTextureType` sub-kinds later if you want them
+classified.
+
 No `enum` — the IIFE is the idiom `PgslAccessModeEnum.CST` already uses
 ([pgsl-access-mode-enum.ts:19](source/buildin/enum/pgsl-access-mode-enum.ts:19)), and inside it
 `Signed = 1 << 16 | Integer` is ordinary scoping. A flat `{ … } as const` cannot reference its own
 keys, so it would need one object per level of the hierarchy, spread back together.
 
-Matching is then a subset test plus a dimension compare:
+Matching reads `kind` only:
 
 ```ts
 function match(pPattern: TypePattern, pType: BaseType, pBindings: Map<string, BaseType>): boolean {
@@ -674,53 +715,25 @@ function match(pPattern: TypePattern, pType: BaseType, pBindings: Map<string, Ba
 }
 ```
 
-#### Why the implications are folded in
+Validation reads `config`, and the compound rules collapse. `VariableDeclarationAst` currently calls
+`lMustBeConstructible()`, `lMustBeHostShareable()` and `lMustHaveFixedFootprint()` in sequence, each
+with its own message; that becomes one call against
+`Constructible | HostShareable | FixedFootprint`.
 
-`Integer = 1 << 14 | Numeric` rather than a bare bit, because the alternative restates the hierarchy
-at every type that declares a kind. Write `uint` as `Scalar | Plain | Integer | Unsigned`, forget
-`Numeric`, and every `numeric` restriction silently stops matching `uint` — no error, no incident,
-just an overload that never resolves. That is D2 again, in a new place. Folded, `uint` writes
-`BaseTypeKind.Unsigned` and cannot be an integer that is not numeric.
+Three notes on the layout:
 
-The cost is one rule: **composite constants make `!== 0` wrong**, because `Numeric` and `Integer`
-share a bit. Always go through `hasKind`.
+- **The numeric refinements fold their implication in** (`Integer = 1 << 14 | Numeric`), so `int`
+  writes `BaseTypeKind.Signed` and the hierarchy is stated once. The cost is that `!== 0` is wrong on
+  those constants — always go through `hasKind`.
+- **`Abstract` lives in `kind`, `Concrete` in `config`.** They look like complements but are not:
+  `Abstract` says this numeric is a literal type, `Concrete` says the whole type contains no abstract
+  part, which propagates through containers.
+- **`BuildIn` is a marker, not a kind.** `PgslBuildInType` delegates everything to its underlying
+  type, so its mask is `underlying.kind | BuildIn` and the exclusivity region still holds one bit.
 
-If you prefer each type to spell out its full mask — which does read better at the declaration
-site — that is a fair trade, but write the hierarchy down once as data and assert it in a test,
-otherwise you have swapped an impossible bug for a silent one:
-
-```ts
-const IMPLIES: Array<[label: string, when: BaseTypeKind, then: BaseTypeKind]> = [
-    ['Integer => Numeric', BaseTypeKind.Integer, BaseTypeKind.Numeric],
-    ['Signed  => Integer', BaseTypeKind.Signed, BaseTypeKind.Integer],
-    ['Vector  => Composite|Indexable', BaseTypeKind.Vector, BaseTypeKind.Composite | BaseTypeKind.Indexable]
-    // ...
-];
-```
-
-#### What goes in the mask and what stays a property
-
-`Scalar`, `Composite`, `Indexable` and `Plain` are folded into the kinds, so they are never stored
-per instance. **That is what kills D3**: today `PgslVectorType` computes
-`scalar: this.mInnerType.data.scalar` and so reports a vector of scalars as scalar. With the fold,
-`Vector` does not carry `Scalar` and cannot be made to.
-
-`storable`, `hostShareable`, `constructible`, `fixedFootprint` and `concrete` stay booleans in
-`TypeProperties`. Not because they are cheaper that way — they are not, and it would not matter —
-but because they are **not a function of the kind**: an `Array` is constructible only if its element
-type is and its length is fixed. A bit that has to be computed per instance is the same manual work
-as a boolean with none of the folding benefit, and it costs headroom you will want: 13 kinds + marker
-+ 6 refinements + 9 properties is 29 of the 31 usable bits (JS bitwise ops are signed, so bit 31 is
-not really yours), and `PgslTextureType` alone has 17 sub-kinds.
-
-Two more decisions in that block: `BuildIn` is a marker rather than a kind, because
-`PgslBuildInType` delegates everything to its underlying type — its mask is `underlying.kind |
-BuildIn`. And the six numeric types get distinct masks, so numeric `equals` becomes a mask compare
-and `numericTypeName` stops being load-bearing.
-
-`Array` currently declares `composite: false` while carrying `indexable: true`; the block above
-mirrors that rather than silently changing it, but WGSL does class arrays as composite, so it is
-worth a look.
+`Array` currently declares `composite: false` while carrying `indexable: true`; the block above keeps
+that rather than silently changing it, but WGSL does class arrays as composite, so it is worth a
+look.
 
 #### What the change actually touches
 
@@ -760,8 +773,8 @@ Five steps, in dependency order:
    conversion constructors it comes back — as one method on `BaseType`, expressed through
    `conversionRank`.
 3. **Poison absorption** in `BaseType` (D10 ①–③, §2).
-4. **One `kind` bitmask plus the pattern matcher replaces `metaTypes`** — above. D2 dies with
-   it, and the 90 `instanceof Pgsl*Type` sites go with it.
+4. **`kind` + `config` masks and the pattern matcher replace `metaTypes` and `TypeProperties`** —
+   above. D2 and D3 die with them, and the 90 `instanceof Pgsl*Type` sites go too.
 5. **`conversionRank` / `commonType` / `concretize`** on `BaseType` — below. D4 dies with it.
 
 D3 (`scalar: false` for vectors and matrices) is independent of all of this and can go in at any

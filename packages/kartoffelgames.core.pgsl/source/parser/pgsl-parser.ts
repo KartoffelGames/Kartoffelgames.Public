@@ -1022,10 +1022,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
          * Bundles the different expressions into a single graph.\
          * 
          * ```
-         * - "<EXPRESSION> <Arithmetic_Operation> <EXPRESSION>"
-         * - "<EXPRESSION> <Comparison_Operation> <EXPRESSION>"
-         * - "<EXPRESSION> <Logical_Operator> <EXPRESSION>"
-         * - "<EXPRESSION> <Binary_Operator> <EXPRESSION>"
+         * - "<EXPRESSION> <OPERATOR_EXPRESSION>
          * ```
          */
         const lExpressionSyntaxTreeGraph: Graph<PgslToken, object, ExpressionCst<ExpressionCstType>> = Graph.define(() => {

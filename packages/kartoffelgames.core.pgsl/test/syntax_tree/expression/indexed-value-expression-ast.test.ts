@@ -1,8 +1,10 @@
 import { expect } from '@kartoffelgames/core-test';
 import type { FunctionDeclarationAst, FunctionDeclarationAstDataDeclaration } from '../../../source/abstract_syntax_tree/declaration/function-declaration-ast.ts';
 import type { DocumentAst } from '../../../source/abstract_syntax_tree/document-ast.ts';
+import { FunctionCallExpressionAst } from '../../../source/abstract_syntax_tree/expression/single_value/function-call-expression-ast.ts';
 import { LiteralValueExpressionAst } from '../../../source/abstract_syntax_tree/expression/single_value/literal-value-expression-ast.ts';
 import { IndexedValueExpressionAst } from '../../../source/abstract_syntax_tree/expression/storage/indexed-value-expression-ast.ts';
+import { ValueDecompositionExpressionAst } from '../../../source/abstract_syntax_tree/expression/storage/value-decomposition-expression-ast.ts';
 import { VariableNameExpressionAst } from '../../../source/abstract_syntax_tree/expression/storage/variable-name-expression-ast.ts';
 import type { VariableDeclarationStatementAst } from '../../../source/abstract_syntax_tree/statement/execution/variable-declaration-statement-ast.ts';
 import { PgslArrayType } from '../../../source/abstract_syntax_tree/type/pgsl-array-type.ts';
@@ -172,6 +174,116 @@ Deno.test('IndexedValueExpressionAst - Parsing', async (pContext) => {
             expect(lVariableExpression.data.variableName).toBe(lVariableName);
         });
     });
+
+    await pContext.step('Indexing a chained value', async (pContext) => {
+        await pContext.step('After a property access', () => {
+            // Setup.
+            const lStructName: string = 'TestStruct';
+            const lPropertyName: string = 'propertyOne';
+            const lCodeText: string = `
+                struct ${lStructName} {
+                    ${lPropertyName}: ${PgslVectorType.typeName.vector4}<${PgslNumericType.typeName.float32}>
+                }
+                function testFunction(): void {
+                    let testStruct: ${lStructName};
+                    let testVariable: ${PgslNumericType.typeName.float32} = testStruct.${lPropertyName}[0];
+                }
+            `;
+
+            // Process.
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
+
+            // Process. Assume correct parsing.
+            const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[1] as FunctionDeclarationAst;
+            const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
+            const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.block.data.statementList[1] as VariableDeclarationStatementAst;
+
+            // Evaluation. Index wraps the property access, not the other way around.
+            const lExpressionNode: IndexedValueExpressionAst = lVariableDeclarationNode.data.expression as IndexedValueExpressionAst;
+            expect(lExpressionNode).toBeInstanceOf(IndexedValueExpressionAst);
+
+            const lDecompositionExpression: ValueDecompositionExpressionAst = lExpressionNode.data.value as ValueDecompositionExpressionAst;
+            expect(lDecompositionExpression).toBeInstanceOf(ValueDecompositionExpressionAst);
+            expect(lDecompositionExpression.data.property).toBe(lPropertyName);
+            expect(lDecompositionExpression.data.value).toBeInstanceOf(VariableNameExpressionAst);
+
+            // Evaluation. Correct result type.
+            expect(lExpressionNode.data.resolveType).toBeInstanceOf(PgslNumericType);
+        });
+
+        await pContext.step('After a nested property access', () => {
+            // Setup.
+            const lStructName: string = 'TestStruct';
+            const lNestedStructName: string = 'NestedStruct';
+            const lPropertyName: string = 'propertyOne';
+            const lNestedPropertyName: string = 'nestedProperty';
+            const lCodeText: string = `
+                struct ${lNestedStructName} {
+                    ${lNestedPropertyName}: ${PgslVectorType.typeName.vector4}<${PgslNumericType.typeName.float32}>
+                }
+                struct ${lStructName} {
+                    ${lPropertyName}: ${lNestedStructName}
+                }
+                function testFunction(): void {
+                    let testStruct: ${lStructName};
+                    let testVariable: ${PgslNumericType.typeName.float32} = testStruct.${lPropertyName}.${lNestedPropertyName}[0];
+                }
+            `;
+
+            // Process.
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
+
+            // Process. Assume correct parsing.
+            const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[2] as FunctionDeclarationAst;
+            const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
+            const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.block.data.statementList[1] as VariableDeclarationStatementAst;
+
+            // Evaluation. Suffixes nest left to right: ((testStruct.propertyOne).nestedProperty)[0].
+            const lExpressionNode: IndexedValueExpressionAst = lVariableDeclarationNode.data.expression as IndexedValueExpressionAst;
+            expect(lExpressionNode).toBeInstanceOf(IndexedValueExpressionAst);
+
+            const lNestedDecomposition: ValueDecompositionExpressionAst = lExpressionNode.data.value as ValueDecompositionExpressionAst;
+            expect(lNestedDecomposition).toBeInstanceOf(ValueDecompositionExpressionAst);
+            expect(lNestedDecomposition.data.property).toBe(lNestedPropertyName);
+
+            const lOuterDecomposition: ValueDecompositionExpressionAst = lNestedDecomposition.data.value as ValueDecompositionExpressionAst;
+            expect(lOuterDecomposition).toBeInstanceOf(ValueDecompositionExpressionAst);
+            expect(lOuterDecomposition.data.property).toBe(lPropertyName);
+            expect(lOuterDecomposition.data.value).toBeInstanceOf(VariableNameExpressionAst);
+        });
+
+        await pContext.step('After a function call', () => {
+            // Setup.
+            const lFunctionName: string = 'createVector';
+            const lCodeText: string = `
+                function ${lFunctionName}(): ${PgslVectorType.typeName.vector4}<${PgslNumericType.typeName.float32}> {
+                    return new ${PgslVectorType.typeName.vector4}<${PgslNumericType.typeName.float32}>(1, 2, 3, 4);
+                }
+                function testFunction(): void {
+                    let testVariable: ${PgslNumericType.typeName.float32} = ${lFunctionName}()[0];
+                }
+            `;
+
+            // Process.
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
+
+            // Process. Assume correct parsing.
+            const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[1] as FunctionDeclarationAst;
+            const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
+            const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.block.data.statementList[0] as VariableDeclarationStatementAst;
+
+            // Evaluation. A call result can be indexed directly.
+            const lExpressionNode: IndexedValueExpressionAst = lVariableDeclarationNode.data.expression as IndexedValueExpressionAst;
+            expect(lExpressionNode).toBeInstanceOf(IndexedValueExpressionAst);
+
+            const lCallExpression: FunctionCallExpressionAst = lExpressionNode.data.value as FunctionCallExpressionAst;
+            expect(lCallExpression).toBeInstanceOf(FunctionCallExpressionAst);
+            expect(lCallExpression.data.name).toBe(lFunctionName);
+
+            // Evaluation. Correct result type.
+            expect(lExpressionNode.data.resolveType).toBeInstanceOf(PgslNumericType);
+        });
+    });
 });
 
 Deno.test('IndexedValueExpressionAst - Transpilation', async (pContext) => {
@@ -252,6 +364,43 @@ Deno.test('IndexedValueExpressionAst - Transpilation', async (pContext) => {
             `}`
         );
     });
+
+    await pContext.step('Indexing a chained value', async () => {
+        // Setup.
+        const lStructName: string = 'TestStruct';
+        const lPropertyName: string = 'propertyOne';
+        const lFunctionName: string = 'createVector';
+        const lCodeText: string = `
+            struct ${lStructName} {
+                ${lPropertyName}: ${PgslVectorType.typeName.vector4}<${PgslNumericType.typeName.float32}>
+            }
+            function ${lFunctionName}(): ${PgslVectorType.typeName.vector4}<${PgslNumericType.typeName.float32}> {
+                return new ${PgslVectorType.typeName.vector4}<${PgslNumericType.typeName.float32}>(1, 2, 3, 4);
+            }
+            function testFunction(): void {
+                let testStruct: ${lStructName};
+                let afterProperty: ${PgslNumericType.typeName.float32} = testStruct.${lPropertyName}[0];
+                let afterCall: ${PgslNumericType.typeName.float32} = ${lFunctionName}()[0];
+            }
+        `;
+
+        // Process.
+        const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+        // Evaluation. No errors.
+        expect(lTranspilationResult.incidents).toHaveLength(0);
+
+        // Evaluation. Chains are emitted in source order.
+        expect(lTranspilationResult.source).toBe(
+            `struct ${lStructName}{${lPropertyName}:vec4<f32>}` +
+            `fn ${lFunctionName}()->vec4<f32>{return vec4<f32>(1,2,3,4);}` +
+            `fn testFunction(){` +
+            `var testStruct:${lStructName};` +
+            `var afterProperty:f32=testStruct.${lPropertyName}[0];` +
+            `var afterCall:f32=${lFunctionName}()[0];` +
+            `}`
+        );
+    });
 });
 
 Deno.test('IndexedValueExpressionAst - Error', async (pContext) => {
@@ -295,4 +444,4 @@ Deno.test('IndexedValueExpressionAst - Error', async (pContext) => {
             pIncident.message.includes(`Index needs to be a unsigned numeric value.`)
         )).toBe(true);
     });
-});
+});

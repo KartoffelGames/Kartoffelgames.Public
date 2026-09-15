@@ -34,45 +34,51 @@ All numbers below are measured on this machine (Deno 2.9.6, Windows) against the
 
 ### The parser
 
-```
-graph pushes per token                          8.7
-redundancy (attempts / distinct graph+token)    1.6x
-failed-attempt redundancy                       1.0x
-fail share of all attempts                      46.7%
-CST cost                                        7.6-8.8 us/token
-```
+|  | before §5.2 | now |
+|---|---|---|
+| graph pushes per token | 8.7 | **4.9** |
+| overall redundancy (attempts / distinct graph+token) | 1.6× | **1.03×** |
+| fail share of all attempts | 46.7 % | 44 % |
+| CST cost | 7.6–8.8 µs/token | **4.3–4.4 µs/token** |
 
-Failed-attempt redundancy of 1.0× means no failing graph is ever retried at a position it has
-already failed at — the floor for an ordered-choice grammar.
+Failed-attempt redundancy was already 1.0× *before* §5.2 — no failing graph was ever retried at a
+position it had already failed at. That number is easy to over-read, and an earlier revision of this
+document did over-read it: **the failure cache only makes *failing* alternatives cheap. It does
+nothing for alternatives that succeed and are then thrown away**, because successes are not cached.
+The expression grammar was throwing away successful sub-parses constantly; fixing that (§5.2) was
+worth 1.75× on CST.
 
-That number is easy to over-read, and an earlier revision of this document did over-read it. **The
-failure cache only makes *failing* alternatives cheap. It does nothing for alternatives that
-succeed and are then thrown away**, because successes are not cached. The expression grammar throws
-away successful sub-parses constantly — that is §5.2, and it is worth **1.75× on CST construction**.
+With redundancy now at 1.03× the grammar side is finished — see §5.2d. The cache that made those
+failures cheap has outlived its purpose and now costs ~13 % on large files (§5.1b).
 
 ### Stage split
 
-| Stage | `small` (23 tok) | `medium` (1 585 tok) | `full` (8 025 tok) | Share |
+Per `transpile()`, current tree:
+
+| Stage | `small` (23 tok) | `medium` (1 585 tok) | `full` (8 025 tok) | Share of `full` |
 |---|---|---|---|---|
 | `new PgslParser()` (once per process) | 0.32 ms | 0.32 ms | 0.32 ms | — |
-| Lexing | 0.04 ms | 1.00 ms | 4.09 ms | 5 % |
-| **CST construction (graph resolution)** | **0.19 ms** | **11.06 ms** | **66.23 ms** | **78 %** |
-| Built-in declaration CST rebuild (per `parseAst`) | 0.40 ms | 0.40 ms | 0.40 ms | 0.5 % |
-| CST → AST + type resolution + validation | 0.61 ms | 2.01 ms | 9.43 ms | 11–15 % |
-| AST → WGSL text (`Transpiler.transpile`) | <0.01 ms | 0.20 ms | 0.66 ms | 0.8 % |
-| **Total `transpile()`** | **0.68 ms** | **13.7 ms** | **85.1 ms** | |
+| Lexing | 0.01 ms | 0.86 ms | 4.60 ms | 10 % |
+| **CST construction (graph resolution)** | **0.08 ms** | **5.08 ms** | **32.18 ms** | **73 %** |
+| Built-in declaration CST rebuild (per `parseAst`) | 0.36 ms | 0.36 ms | 0.36 ms | 1 % |
+| CST → AST + type resolution + validation + WGSL | 0.01 ms | 3.01 ms | 6.79 ms | 15 % |
+| **Total `transpile()`** | **0.47 ms** | **9.32 ms** | **43.9 ms** | |
 
 This inverts the intuition the package is built around. **CST construction — the part you called the
-cleanest — is 78 % of the runtime.** The AST and type layer you called the jankiest is 11–15 %. The
-transpiler is under 1 %.
+cleanest — is still the largest stage on anything but a tiny file.** The AST and type layer you
+called the jankiest is ~15 %. The transpiler proper is under 1 %.
+
+But read the `small` column separately: there, **78 % of the call is rebuilding built-in
+declarations** and the grammar is 82 µs. That is §5.3, and it is the only thing that can move small
+inputs — no graph change ever will.
 
 Which is also the good news:
 
-- **The largest performance item is done, and it was also a correctness fix.** §5.2 left-factored
-  the expression grammar: **1.75× on CST, −38 % end-to-end**, byte-identical WGSL, and the parser
-  got **90 lines shorter**. The table above is the *pre-change* baseline; `full` now transpiles in
-  ~47 ms. What is left (§5.1 at ~10 %, §5.3 at 0.4 ms) is an afternoon. Nothing in this document
-  asks you to trade readability for speed — §5.2 improved both.
+- **The large graph items are done, and the first was also a correctness fix.** §5.2 left-factored
+  the expression grammar (1.75× on CST, fixed D11) and §5.2c collapsed seven single-token
+  alternations into two (−8 %). Together: `full` went from ~85 ms to ~44 ms, byte-identical WGSL,
+  parser 90 lines shorter. Redundancy is 1.03× — **the grammar is finished** (§5.2d). What is left
+  is `core-parser` work: §5.1b at −13 %, §5.1 at −9 %.
 - **The real work is correctness and structure**, and it is all in the layers that are cheap to
   change. D1 blocks shipping. D2/D3/D4/D10 silently emit invalid WGSL or bury the user in noise.
   §1 (debug info), §2 (validation split) and §3 (the type system) have no performance component at
@@ -971,31 +977,111 @@ inner types through `pTranspile` would remove the duplicate.
 ## 5. Performance
 Ordered by measured value ÷ effort. Nothing here trades away readability; three of them *improve* it.
 
-**The rule that decides whether a graph change is worth making:** the failure cache already makes a
-dead alternative cost one `Map` + one `Set` lookup, so merging or reordering alternatives that
-differ in their *first token* buys nothing — measured below, it is within noise. What still costs
-real time is an alternative that **parses a whole sub-expression successfully and is then
-discarded**, because successes are not cached and the next alternative parses it again from
-scratch. Every worthwhile reroute in this section is an instance of that one pattern.
+**The rule that decides whether a graph change is worth making:** a dead alternative that fails on
+its *first token* costs about **0.13 µs** — merging or reordering those buys almost nothing. What
+costs real time is an alternative that **parses a whole sub-expression successfully and is then
+discarded**, because successes are never cached and the next alternative parses it again from
+scratch. §5.2 was entirely that pattern.
 
-### 5.1 Incident trace on the failure path — **~10 %, the largest single item left**
+**The grammar side is now finished.** After §5.2 and §5.2c every alternative in the expression
+grammar is decided by one token of lookahead, redundancy is 1.03×, and the remaining candidates are
+worth fractions of a percent (§5.2d). Everything still on this list is in `core-parser` or in the
+AST layer — §5.1, §5.1b and §5.1c together are worth **~30 %** and none of them touch the grammar.
 
-`CodeParserTrace.push` is called **10 614 times** on the medium input — once per failed
-alternative — and each call computes a priority and, when it wins, allocates an incident object
-with a nested `range` object.
+### 5.1 Incident trace on the failure path — **~9 %**
+
+`CodeParserTrace.push` is called once per failed alternative, and each call computes a priority and,
+when it wins, allocates an incident object with a nested `range` object.
 
 ```
-baseline parse() [medium]              12.39 ms
-trace.push() no-op                     11.10 ms     (-10 %)
+baseline parse() [medium]               6.64 ms
+trace.push() no-op                      6.04 ms     (-9 %)
 ```
 
-Almost all of those 10 614 incidents are immediately superseded. The cheap fix is to keep only the
-*fields* of the current top incident (six primitives on the trace object) instead of allocating an
-object per candidate, and to compare priority before doing any other work. `getGraphPosition` —
-which does `String.includes('\n')` and possibly `split('\n')` on a token value — should be called
-only after the priority comparison has already passed.
+Almost all of those incidents are immediately superseded. The cheap fix is to keep only the *fields*
+of the current top incident (six primitives on the trace object) instead of allocating an object per
+candidate, and to compare priority before doing any other work. `getGraphPosition` — which does
+`String.includes('\n')` and possibly `split('\n')` on a token value — should be called only after
+the priority comparison has already passed.
 
-This is the last item in this document with a double-digit percentage behind it.
+### 5.1b The graph failure cache is now overhead — **~13 % on `full`**
+
+The cache and §5.2 **fix the same problem and therefore do not stack**: the parser asking the same
+question repeatedly. The cache made the repeat answers free; §5.2 stopped asking twice. Whichever
+lands first takes the whole win.
+
+The 2×2, measured with the pre-reroute parser restored side by side:
+
+| grammar | cache | parse `full` | graph pushes |
+|---|---|---|---|
+| before §5.2 | **on** | 69.8 ms | 80 165 |
+| before §5.2 | off | **504.6 ms** | **1 136 868** |
+| after §5.2 | on | 36.0 ms | 44 318 |
+| after §5.2 | **off** | **29.8 ms** | 45 299 |
+
+So the cache was worth **7.2×** and is now worth 0.83×. Nothing about it changed — the grammar did.
+The decisive number is the last column: turning it off now costs **981 extra pushes** (+2 %). That is
+the entire amount of work it still saves, and it is less than the `Map.get` on all 44 318 entries.
+
+Isolated runs, one variant per process, best of seven rounds:
+
+| variant | `medium` | `full` |
+|---|---|---|
+| cache as written (`has` + `set` + `get` per failure) | 5.6 ms | 33.8 ms |
+| cache, single `Map` lookup per failure | 5.7 ms | 34.4 ms |
+| failure set stored on the `Graph` object, generation-stamped | 5.5–6.1 ms | 32.3 ms |
+| no cache | 5.4 ms | **29.4 ms** |
+
+Two things fall out. The three-lookups-per-failure in `popGraphStack` is **not** the cost — fixing it
+changes nothing; the cost is the `Map.get` on every *entry*. And no cheaper design rescues the
+feature: storing the set on the graph recovers only about a third of the gap. Measure on `full`;
+`medium` is inside run-to-run noise (±5 %).
+
+Not PGSL-specific — across every `core-parser` consumer in the repo:
+
+| grammar | attempts | cache hits | work saved |
+|---|---|---|---|
+| pgsl, medium shader | 8 078 | 244 | 3.0 % |
+| `core.xml`, 2 000 char document | 1 265 | **0** | 0.0 % |
+| pwb template, 2 000 char | 1 511 | 30 | 2.0 % |
+
+Dropping it is safe by construction: it is pure memoisation of *failures*, so removing it can only
+re-attempt things that would fail anyway. Verified on the error path (broken statement mid shader,
+unclosed parentheses 8/12/16 deep, garbage tail): no blowup, pushes +6 %, wall time still down.
+
+#### Make it a flag rather than a deletion
+
+`CodeParserConfiguration` already exists ([code-parser.ts:424](../kartoffelgames.core.parser/source/parser/code-parser.ts:424))
+and is the right home. Default **`true`** — existing consumers keep today's behaviour and nobody has
+to think about it. Two conditions, though:
+
+- **Test both branches.** This package already shipped exactly this pattern: `trimTokenCache` was a
+  `CodeParserConfiguration` flag, and when the first revision of this document tested it, it threw
+  `Circular graph detected.` The untested path had rotted silently. Run a slice of the parser suite
+  with the flag both ways, or the `false` branch is dead code that merely still compiles.
+- **Ship the number with the flag.** Nobody can eyeball whether their grammar is redundant, so
+  without a way to measure it the flag is a coin flip with a 13 % stake. Expose redundancy —
+  attempts ÷ distinct `(graph, token)` pairs — so a user can check their own grammar. PGSL is at
+  **1.03×**; anything near 1.0 does not want the cache, anything above ~2 does.
+
+That metric is worth more than the flag: it turns "is my grammar redundant" from a guess into a
+number, and a redundancy assertion in the benchmark suite would catch a grammar regression that the
+cache would otherwise hide.
+
+The soundness note in §5.6 stays relevant as long as the cache can be switched on.
+
+### 5.1c `graphIsCircular` — ~7 %
+
+```
+baseline parse() [medium]               6.64 ms
+graphIsCircular() -> false              6.20 ms     (-7 %)
+```
+
+Called on every graph entry; walks up the parent chain while `token.cursor === token.start`. With
+both expression junctions retired (§5.2) the cycles it guards against are much rarer than the check
+is. Not a delete — it is what keeps a malformed self-referencing grammar from hanging — but it
+could be skipped for graphs that are known to consume a token before recursing. Lower confidence
+than §5.1 and §5.1b; measure before building anything.
 
 ### 5.2 Left-factor the expression grammar — ✅ **done, 1.75× on CST**
 
@@ -1083,16 +1169,43 @@ chain removes the asymmetry by construction: one suffix list, walked left to rig
 
 #### What does *not* pay — measured, so you do not have to try it
 
-Both of these looked obviously good and are not:
-
 | change | CST `medium` | verdict |
 |---|---|---|
-| merge `&` / `*` / `~ - !` into one prefix graph, merge literal + string | 7.84 → 7.70 ms | noise; graph *pushes* went **up** 9 315 → 9 903 |
-| left-factor the three expression-headed statements into one | 6.86 → 6.89 ms | noise (still a readability win: 3 graphs → 1) |
+| merge literal + string into one graph | 7.84 → 7.70 ms | noise; graph *pushes* went **up** |
+| left-factor the three expression-headed statements into one | 6.86 → 6.89 ms | noise (kept anyway: 3 graphs → 1 is a readability win) |
 
 Both reduce the number of alternatives probed, and both are worthless, because the alternatives they
-remove were failing on their first token and the failure cache had already made them nearly free.
-Reordering alternations is in the same category. **Only go after discarded successes.**
+remove fail on their first token, which costs ~0.13 µs. Reordering alternations is in the same
+category. **Only go after discarded successes.**
+
+### 5.2c Collapse alternations that one token already decides — ✅ **done, −8 % on CST**
+
+Two groups of graphs differed only in which token introduced them, so each cost one graph entry to
+reject. Both collapse into a single graph plus a `Map<PgslToken, ExpressionCstType>`, reading the
+discriminating token back through the converter's `pStartToken.type`:
+
+| merge | graphs | pushes `full` | CST `full` |
+|---|---|---|---|
+| the four binary-operator branches of `combination` | 4 → 1 | 51 864 → 47 850 | 38.65 → 36.10 ms |
+| `AddressOf` / `Pointer` / `Unary` → `lPrefixedExpressionGraph` | 3 → 1 | 47 850 → 44 318 | 36.10 → 35.64 ms |
+
+**−7.8 % on CST, −14.5 % on pushes**, output byte-identical, 223 tests green — and seven
+near-duplicate graph definitions with seven near-duplicate converter bodies become two graphs and
+two maps. Note the second merge bought only −1.3 % for −7.4 % pushes: those probes really were
+almost free, and it is in the tree for the readability, not the time.
+
+The trick that makes this readable is worth remembering: **a `Graph` converter receives the graph's
+own first token**, so a merged graph can recover which alternative matched from `pStartToken.type`
+without hard-coding operator spellings. An inline `GraphNode` cannot — `Graph.define` wraps it, but
+the bounding token then belongs to the enclosing graph.
+
+#### 5.2d What is left on the graph — nothing worth taking
+
+`lExpressionSuffixGraph` and `lExpressionSuffixListGraph` are two graph entries per suffix probe
+where one would do (~330 pushes, an estimated ~0.1 %), and collapsing them costs the clean
+`PgslExpressionSuffix` type. Not worth it. Every other alternation in the grammar is now decided by
+a single token. Overall redundancy is **1.03×**. The grammar is done; §5.1/§5.1b/§5.1c are where the
+remaining time is.
 
 #### Then add the tiers on top (D1)
 
@@ -1163,17 +1276,26 @@ The reroute retires both junction flags for free: once `expression` consumes the
 `simple` consumes its suffix tokens, neither is a junction any more, and `graphIsCircular` handles
 termination on its own. Nothing to decide, no separate cleanup task.
 
-### 5.3 Stop rebuilding built-in declarations on every parse — ~0.4 ms, ~15 minutes
+### 5.3 Stop rebuilding built-in declarations on every parse — 🚩 **the entire small-file story**
 
-`parseAst` ([pgsl-parser.ts:203-217](source/parser/pgsl-parser.ts:203)) calls
-`PgslTextureBuildInFunction.texture()`, `PgslNumericBuildInFunction.numeric()` and seven siblings
-on **every invocation**, rebuilding ~2000 lines' worth of CST objects each time. Measured at
-0.40 ms per `parseAst`.
+`parseAst` ([pgsl-parser.ts:206-224](source/parser/pgsl-parser.ts:206)) calls
+`PgslTextureBuildInFunction.texture()`, `PgslNumericBuildInFunction.numeric()` and nine siblings on
+**every invocation**, rebuilding ~2 000 lines' worth of CST objects each time. Measured at
+**364 µs per `parseAst`**, identical for every input.
 
-This is a fixed cost that does not scale with input size, so it dominates small inputs: 0.4 % of the
-`full` input, but **over half** of the whole 0.68 ms `small` pipeline. For an editor or a tool that
-transpiles many small shaders it is the dominant cost. These are compile-time constants: build them
-once into a `static readonly` array.
+This is why the grammar work in §5.2/§5.2c barely moved small shaders — it cannot. Where the time
+goes per `transpile()`:
+
+| input | lexing | grammar | **rebuilding built-ins** | ast + wgsl | total | built-in share |
+|---|---|---|---|---|---|---|
+| `small` | 12 µs | 82 µs | **364 µs** | 11 µs | 469 µs | **78 %** |
+| `medium` | 864 µs | 5 082 µs | 364 µs | 3 008 µs | 9 318 µs | 4 % |
+| `full` | 4 603 µs | 32 183 µs | 364 µs | 6 787 µs | 43 938 µs | 1 % |
+
+**On a small shader the grammar is 82 µs of a 469 µs call.** Even an infinitely fast parser leaves
+~390 µs. For an editor or a tool that transpiles many small shaders this is *the* number, and no
+graph change will ever touch it. These are compile-time constants: build them once into a
+`static readonly` array.
 
 ### 5.4 Replace the linear resolver chain in `TypeDeclarationAst` — readability + a little time
 
@@ -1270,7 +1392,7 @@ until `BaseType` exists), so slicing this into independently releasable stages m
 3. D2 — add `break` to the `metaTypes` switch. *Expect fallout*: code relying on the loose matching
    will start erroring. That is the point.
 4. D3 — `scalar: false` for vectors and matrices.
-5. D4 — binary operators must compute a result type, not return the left operand's (wants item 13's
+5. D4 — binary operators must compute a result type, not return the left operand's (wants item 15's
    `commonType`; a same-type-or-reject stopgap is still better than what is there).
 
 **One-liners**
@@ -1278,55 +1400,59 @@ until `BaseType` exists), so slicing this into independently releasable stages m
 7. D9 — clear `mUserDefinedTypeNames` at the start of a root parse.
 8. Add the line-count-preservation test for `preprocessText`.
 
-**Performance**
-9. §5.1 — stop allocating an incident object per failed alternative. **−10 %**, the largest single
-   item left once item 1 has landed.
-10. §5.3 — cache built-in declaration CSTs. **Over half** of the small-shader pipeline.
-11. §5.4 — resolver map in `TypeDeclarationAst` (readability first, speed second).
-12. §5.6 — write down the failure-cache soundness rule. No runtime effect; prevents a bug that would
-    be extremely hard to find.
+**Performance** — the grammar is finished; everything here is `core-parser` or the AST layer
+9. §5.3 — cache built-in declaration CSTs. **78 % of a small-shader `transpile()`**, and the only
+   thing that can move that number. Cheapest item in this document.
+10. §5.1b — put the graph failure cache behind a `CodeParserConfiguration` flag, default `true`.
+    **−13 % on `full`** when off, and worth ≤3 % of attempts in every grammar in the repo
+    (`core.xml`: 0 %). Test both branches, and ship a redundancy metric alongside it.
+11. §5.1 — stop allocating an incident object per failed alternative. **−9 %**.
+12. §5.6 — write down the failure-cache soundness rule. Still needed while the cache can be switched
+    on.
+13. §5.1c — `graphIsCircular` on every graph entry, ~7 %. Lowest confidence here; measure first.
+14. §5.4 — resolver map in `TypeDeclarationAst` (readability first, speed second).
 
 **Type system**
-13. §3 — `conversionRank` / `commonType` / `concretize`; route arithmetic, assignment, return and
+15. §3 — `conversionRank` / `commonType` / `concretize`; route arithmetic, assignment, return and
     overload resolution through them. Completes D4 and gives real overload diagnostics. Wants
-    `BaseType` from item 16 to exist first.
-14. §3 — type interning; close the tag union.
-15. §3 — type patterns for generics; fold `new-expression-ast.ts` into the shared overload table.
+    `BaseType` from item 18 to exist first.
+16. §3 — type interning; close the tag union.
+17. §3 — type patterns for generics; fold `new-expression-ast.ts` into the shared overload table.
 
 **Separation of concerns**
-16. §2 — **fix the poison type (D10).** ~Half a day, and it turns "one typo → nine incidents" into
+18. §2 — **fix the poison type (D10).** ~Half a day, and it turns "one typo → nine incidents" into
     "one typo → one incident". Three absorption points: comparisons (via a new `BaseType`),
     property-rule guards, and a poison arm in the six expression nodes that dispatch structurally.
-    Do it before 17, or 17 will look like it changed nothing.
-17. §2 — pull the rules out of `onProcess` into `onValidate`, then into a `Validator` walker with its
+    Do it before 19, or 19 will look like it changed nothing.
+19. §2 — pull the rules out of `onProcess` into `onValidate`, then into a `Validator` walker with its
     own accumulators. **This is where most of the "jank" you feel actually goes away.**
-18. §2 — move the rules into processor classes.
-19. §2 — explicit declaration-ordering pass; delete `mProcessingStack` and the four duplicated
+20. §2 — move the rules into processor classes.
+21. §2 — explicit declaration-ordering pass; delete `mProcessingStack` and the four duplicated
     `getX()` bodies.
 
 **Debug information**
-20. §1 — a source id in `CstRange`; stop splitting on `#IMPORT`; ranges on types; `source` on
+22. §1 — a source id in `CstRange`; stop splitting on `#IMPORT`; ranges on types; `source` on
     `PgslParserResultIncident`. Fixes D6/D7/D8. The CST change itself is mechanical (§2).
 
 **Transpiler**
-21. §4a — `CodeFragment` tree and a real source map (needs 20 for the input side).
-22. §4c — monomorphise generic functions; make the backend total over validated ASTs.
-23. §4d — optional pretty-printing, free once 21 lands.
+23. §4a — `CodeFragment` tree and a real source map (needs 22 for the input side).
+24. §4c — monomorphise generic functions; make the backend total over validated ASTs.
+25. §4d — optional pretty-printing, free once 23 lands.
 
 ---
 
 ## 8. Open questions for you
 
-1. **Is `metaTypes` intended as the general tag mechanism, or a stopgap for built-in function
+26. **Is `metaTypes` intended as the general tag mechanism, or a stopgap for built-in function
    signatures?** My recommendation in §3 assumes the former — that the tag idea you described is the
    one already in the code, and that the work is to finish it (fix D2, close the union, add
    structural patterns for generics) rather than to design a new one. If it was only ever meant to
    match built-in overloads, §3 should be read as "grow it" rather than "fix it".
-2. **Are user-defined generic functions meant to reach WGSL output?** The transpiler throws on them
+27. **Are user-defined generic functions meant to reach WGSL output?** The transpiler throws on them
    today. Monomorphisation (§4c) is the answer if yes; a validator rejection with a clear message is
    the answer if not. This is the one place where the right design depends entirely on a product
    decision I cannot make for you.
-3. **Is there a target parse budget?** `full` is 8 025 token in 85 ms today. §5.2 alone takes that
+28. **Is there a target parse budget?** `full` is 8 025 token in 85 ms today. §5.2 alone takes that
    to ~47 ms, and §5.1 + §5.3 on top land it near 42 ms. After that the grammar has stopped
    backtracking (596 cache hits on 8 000 tokens) and the remaining cost is the per-push constant;
    the only lever left would be first-token dispatch *inside* `core-parser`, which is a much larger

@@ -43,18 +43,6 @@ export class PgslInvalidType extends AbstractSyntaxTree<TypeCst, TypeProperties>
     }
 
     /**
-     * Check if this invalid type is explicitly castable into the target type.
-     * Invalid types are never castable to any type.
-     * 
-     * @param _pTarget - Target type to check castability to.
-     * 
-     * @returns Always false - invalid types cannot be cast.
-     */
-    public isExplicitCastableInto(_pTarget: IType): boolean {
-        return false;
-    }
-
-    /**
      * Check if this invalid type is implicitly castable into the target type.
      * Invalid types are never castable to any type.
      * 

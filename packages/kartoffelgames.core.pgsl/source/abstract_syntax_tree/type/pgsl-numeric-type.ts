@@ -78,19 +78,6 @@ export class PgslNumericType extends AbstractSyntaxTree<TypeCst, TypeProperties>
     }
 
     /**
-     * Check if this numeric type is explicitly castable into the target type.
-     * All numeric types can be explicitly cast to any other numeric type.
-     * 
-     * @param pTarget - Target type to check castability to.
-     * 
-     * @returns True if target is a numeric type, false otherwise.
-     */
-    public isExplicitCastableInto(pTarget: IType): boolean {
-        // All numeric values are explicit castable into another numeric type.
-        return pTarget instanceof PgslNumericType;
-    }
-
-    /**
      * Check if this numeric type is implicitly castable into the target type.
      * Implements PGSL's implicit casting rules for numeric types.
      * Abstract types have special casting rules.

@@ -92,18 +92,6 @@ export class PgslPointerType extends AbstractSyntaxTree<TypeCst, TypeProperties>
         return this.referencedType.equals(pTarget.referencedType);
     }
 
-    /**
-     * Check if this pointer type is explicitly castable into the target type.
-     * Pointer types are never castable to other types.
-     * 
-     * @param _pTarget - Target type to check castability to.
-     * 
-     * @returns Always false - pointers cannot be cast.
-     */
-    public isExplicitCastableInto(_pTarget: IType): boolean {
-        // A pointer is never explicit nor implicit castable.
-        return false;
-    }
 
     /**
      * Check if this pointer type is implicitly castable into the target type.

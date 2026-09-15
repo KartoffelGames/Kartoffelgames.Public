@@ -62,19 +62,6 @@ export class PgslStructType extends AbstractSyntaxTree<TypeCst, TypeProperties> 
     }
 
     /**
-     * Check if this struct type is explicitly castable into the target type.
-     * Struct types are never castable to other types.
-     * 
-     * @param _pTarget - Target type to check castability to.
-     * 
-     * @returns Always false - structs cannot be cast.
-     */
-    public isExplicitCastableInto(_pTarget: IType): boolean {
-        // A struct is never explicit nor implicit castable.
-        return false;
-    }
-
-    /**
      * Check if this struct type is implicitly castable into the target type.
      * Struct types are never castable to other types.
      * 

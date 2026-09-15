@@ -177,29 +177,6 @@ export class PgslMatrixType extends AbstractSyntaxTree<TypeCst, TypeProperties> 
     }
 
     /**
-     * Check if this matrix type is explicitly castable into the target type.
-     * Matrix types can be explicitly cast if they have the same dimensions and compatible inner types.
-     * 
-     * @param pTarget - Target type to check castability to.
-     * 
-     * @returns True when explicit casting is allowed, false otherwise.
-     */
-    public isExplicitCastableInto(pTarget: IType): boolean {
-        // Must both be a matrix.
-        if (!(pTarget instanceof PgslMatrixType)) {
-            return false;
-        }
-
-        // If matrix dimensions are not equal, it is not castable.
-        if (this.mRowCount !== pTarget.rowCount || this.mColumnCount !== pTarget.columnCount) {
-            return false;
-        }
-
-        // It is when inner types are explicit castable.
-        return this.mInnerType.isExplicitCastableInto(pTarget.innerType);
-    }
-
-    /**
      * Check if this matrix type is implicitly castable into the target type.
      * Matrix types can be implicitly cast if they have the same dimensions and compatible inner types.
      * 

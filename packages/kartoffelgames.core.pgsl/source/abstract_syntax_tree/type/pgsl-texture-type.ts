@@ -293,19 +293,6 @@ export class PgslTextureType extends AbstractSyntaxTree<TypeCst, TypeProperties>
     }
 
     /**
-     * Check if this texture type is explicitly castable into the target type.
-     * Texture types are never castable to other types.
-     * 
-     * @param _pTarget - Target type to check castability to.
-     * 
-     * @returns Always false - textures cannot be cast.
-     */
-    public isExplicitCastableInto(_pTarget: IType): boolean {
-        // A texture is never explicit nor implicit castable.
-        return false;
-    }
-
-    /**
      * Check if this texture type is implicitly castable into the target type.
      * Texture types are never castable to other types.
      * 

@@ -108,29 +108,6 @@ export class PgslVectorType extends AbstractSyntaxTree<TypeCst, TypeProperties> 
     }
 
     /**
-     * Check if this vector type is explicitly castable into the target type.
-     * Vector types can be explicitly cast if they have the same dimension and compatible inner types.
-     * 
-     * @param pTarget - Target type to check castability to.
-     * 
-     * @returns True when explicit casting is allowed, false otherwise.
-     */
-    public isExplicitCastableInto(pTarget: IType): boolean {
-        // Must both be a vector.
-        if (!(pTarget instanceof PgslVectorType)) {
-            return false;
-        }
-
-        // If vector dimensions are not equal, it is not castable.
-        if (this.mVectorDimension !== pTarget.mVectorDimension) {
-            return false;
-        }
-
-        // It is when inner types are explicit castable.
-        return this.mInnerType.isExplicitCastableInto(pTarget.mInnerType);
-    }
-
-    /**
      * Check if this vector type is implicitly castable into the target type.
      * Vector types can be implicitly cast if they have the same dimension and compatible inner types.
      * 

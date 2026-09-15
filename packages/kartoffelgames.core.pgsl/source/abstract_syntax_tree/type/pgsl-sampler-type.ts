@@ -73,19 +73,6 @@ export class PgslSamplerType extends AbstractSyntaxTree<TypeCst, TypeProperties>
     }
 
     /**
-     * Check if this sampler type is explicitly castable into the target type.
-     * Sampler types are never castable to other types.
-     * 
-     * @param _pTarget - Target type to check castability to.
-     * 
-     * @returns Always false - samplers cannot be cast.
-     */
-    public isExplicitCastableInto(_pTarget: IType): boolean {
-        // A sampler is never explicit nor implicit castable.
-        return false;
-    }
-
-    /**
      * Check if this sampler type is implicitly castable into the target type.
      * Sampler types are never castable to other types.
      * 

@@ -753,128 +753,6 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
      * @returns Expression graphs.
      */
     private defineExpressionGraphs(pCoreGraphs: PgslParserCoreGraphs): PgslParserExpressionGraphs {
-        // lExpressionSyntaxTreeGraph
-
-        /**
-         * Logical expression. Logical connection between two expressions.
-         * ```
-         * - "<EXPRESSION> && <EXPRESSION>"
-         * - "<EXPRESSION> || <EXPRESSION>"
-         * ```
-         */
-        const lLogicalExpressionGraph: Graph<PgslToken, object, LogicalExpressionCst> = Graph.define(() => {
-            return GraphNode.new<PgslToken>()
-                .required('leftExpression', lSimplelExpressionSyntaxTreeGraph)
-                .required('operation', [
-                    PgslToken.OperatorShortCircuitOr,
-                    PgslToken.OperatorShortCircuitAnd
-                ])
-                .required('rightExpression', lExpressionSyntaxTreeGraph);
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): LogicalExpressionCst => {
-            return {
-                type: 'LogicalExpression',
-                range: this.createTokenBoundParameter(pStartToken, pEndToken),
-                left: pData.leftExpression,
-                operator: pData.operation,
-                right: pData.rightExpression
-            } satisfies LogicalExpressionCst;
-        });
-
-        /**
-         * Arithmetic expression. Arithmetic connection between two expressions.
-         * ```
-         * - "<EXPRESSION> + <EXPRESSION>"
-         * - "<EXPRESSION> - <EXPRESSION>"
-         * - "<EXPRESSION> * <EXPRESSION>"
-         * - "<EXPRESSION> / <EXPRESSION>"
-         * - "<EXPRESSION> % <EXPRESSION>"
-         * ```
-         */
-        const lArithmeticExpressionGraph: Graph<PgslToken, object, ArithmeticExpressionCst> = Graph.define(() => {
-            return GraphNode.new<PgslToken>()
-                .required('leftExpression', lSimplelExpressionSyntaxTreeGraph)
-                .required('operation', [
-                    PgslToken.OperatorPlus,
-                    PgslToken.OperatorMinus,
-                    PgslToken.OperatorMultiply,
-                    PgslToken.OperatorDivide,
-                    PgslToken.OperatorModulo
-                ])
-                .required('rightExpression', lExpressionSyntaxTreeGraph);
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): ArithmeticExpressionCst => {
-            return {
-                type: 'ArithmeticExpression',
-                range: this.createTokenBoundParameter(pStartToken, pEndToken),
-                left: pData.leftExpression,
-                operator: pData.operation,
-                right: pData.rightExpression
-            } satisfies ArithmeticExpressionCst;
-        });
-
-        /**
-         * Comparison expression. Comparison connection between two expressions.
-         * ```
-         * - "<EXPRESSION> == <EXPRESSION>"
-         * - "<EXPRESSION> != <EXPRESSION>"
-         * - "<EXPRESSION> < <EXPRESSION>"
-         * - "<EXPRESSION> <= <EXPRESSION>"
-         * - "<EXPRESSION> > <EXPRESSION>"
-         * - "<EXPRESSION> >= <EXPRESSION>"
-         * ```
-         */
-        const lComparisonExpressionGraph: Graph<PgslToken, object, ComparisonExpressionCst> = Graph.define(() => {
-            return GraphNode.new<PgslToken>()
-                .required('leftExpression', lSimplelExpressionSyntaxTreeGraph)
-                .required('comparison', [
-                    PgslToken.OperatorEqual,
-                    PgslToken.OperatorNotEqual,
-                    PgslToken.OperatorLowerThan,
-                    PgslToken.OperatorLowerThanEqual,
-                    PgslToken.OperatorGreaterThan,
-                    PgslToken.OperatorGreaterThanEqual
-                ])
-                .required('rightExpression', lExpressionSyntaxTreeGraph);
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): ComparisonExpressionCst => {
-            return {
-                type: 'ComparisonExpression',
-                range: this.createTokenBoundParameter(pStartToken, pEndToken),
-                left: pData.leftExpression,
-                operator: pData.comparison,
-                right: pData.rightExpression
-            } satisfies ComparisonExpressionCst;
-        });
-
-        /**
-         * BitOperation expression. BitOperation connection between two expressions.
-         * ```
-         * - "<EXPRESSION> | <EXPRESSION>"
-         * - "<EXPRESSION> & <EXPRESSION>"
-         * - "<EXPRESSION> ^ <EXPRESSION>"
-         * - "<EXPRESSION> << <EXPRESSION>"
-         * - "<EXPRESSION> >> <EXPRESSION>"
-         * ```
-         */
-        const lBitOperationExpressionGraph: Graph<PgslToken, object, BinaryExpressionCst> = Graph.define(() => {
-            return GraphNode.new<PgslToken>()
-                .required('leftExpression', lSimplelExpressionSyntaxTreeGraph)
-                .required('operation', [
-                    PgslToken.OperatorBinaryOr,
-                    PgslToken.OperatorBinaryAnd,
-                    PgslToken.OperatorBinaryXor,
-                    PgslToken.OperatorShiftLeft,
-                    PgslToken.OperatorShiftRight
-                ])
-                .required('rightExpression', lExpressionSyntaxTreeGraph);
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): BinaryExpressionCst => {
-            return {
-                type: 'BinaryExpression',
-                range: this.createTokenBoundParameter(pStartToken, pEndToken),
-                left: pData.leftExpression,
-                operator: pData.operation,
-                right: pData.rightExpression
-            } satisfies BinaryExpressionCst;
-        });
-
         /**
          * Unary expression. Prefixed modifier for a single expression.
          * ```
@@ -890,7 +768,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
                     PgslToken.OperatorMinus,
                     PgslToken.OperatorNot
                 ])
-                .required('expression', lSimplelExpressionSyntaxTreeGraph);
+                .required('expression', lSimpleExpressionSyntaxTreeGraph);
         }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): UnaryExpressionCst => {
             return {
                 type: 'UnaryExpression',
@@ -915,98 +793,6 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
                 range: this.createTokenBoundParameter(pStartToken, pEndToken),
                 variableName: pData.name
             } satisfies VariableNameExpressionCst;
-        });
-
-        /**
-         * Recursive list of indexed value indices.
-         * ```
-         * - "[<EXPRESSION>]"
-         * - "[<EXPRESSION>][<EXPRESSION>]"
-         * - "[<EXPRESSION>][<EXPRESSION>][<EXPRESSION>]"
-         * ```
-         */
-        const lIndexedValueIndexListGraph: Graph<PgslToken, object, { indices: Array<ExpressionCst<ExpressionCstType>>; }> = Graph.define(() => {
-            return GraphNode.new<PgslToken>()
-                .required(PgslToken.ListStart)
-                .required('indices[]', lExpressionSyntaxTreeGraph)
-                .required(PgslToken.ListEnd)
-                .optional('indices<-indices', lIndexedValueIndexListGraph);
-        });
-
-        /**
-         * Indexed value expression. An expressions value accessed through another expression.
-         * ```
-         * - "<EXPRESSION>[<EXPRESSION>]"
-         * - "<EXPRESSION>[<EXPRESSION>][<EXPRESSION>]"
-         * - "<EXPRESSION>[<EXPRESSION>][<EXPRESSION>][<EXPRESSION>]"
-         * ```
-         */
-        const lIndexedValueExpressionGraph: Graph<PgslToken, object, IndexedValueExpressionCst> = Graph.define(() => {
-            return GraphNode.new<PgslToken>()
-                .required('value', lSimplelExpressionSyntaxTreeGraph)
-                .required('indices<-indices', lIndexedValueIndexListGraph);
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): IndexedValueExpressionCst => {
-            // Create a nested index value expression.
-            let lNextedExpression: IndexedValueExpressionCst = pData.value as IndexedValueExpressionCst;
-            for (const lIndexExpression of pData.indices) {
-                // Buffer last created inner expression to be insered into new decomposition expression cst.
-                const lInnerExpression: ExpressionCst<ExpressionCstType> = lNextedExpression;
-
-                lNextedExpression = {
-                    type: 'IndexedValueExpression',
-                    range: this.createTokenBoundParameter(pStartToken, pEndToken),
-                    value: lInnerExpression,
-                    index: lIndexExpression
-                } satisfies IndexedValueExpressionCst;
-            }
-
-            return lNextedExpression;
-        });
-
-        /**
-         * List of names for value decomposition seperated by member delimiter.
-         * ```
-         * - ".<IDENTIFIER>"
-         * - ".<IDENTIFIER>.<IDENTIFIER>"
-         * - ".<IDENTIFIER>.<IDENTIFIER>.<IDENTIFIER>"
-         * ```
-         */
-        const lValueDecompositionNameListGraph: Graph<PgslToken, object, { names: Array<string>; }> = Graph.define(() => {
-            return GraphNode.new<PgslToken>()
-                .required(PgslToken.MemberDelimiter)
-                .required('names[]', PgslToken.Identifier)
-                .optional('names<-names', lValueDecompositionNameListGraph); // Self reference
-        });
-
-        /**
-         * Value decomposition expression. An expressions value accessed through an identifier.
-         * Can be eighter a value decomposition or a enum decomposition.
-         * ```
-         * - "<EXPRESSION>.<IDENTIFIER>"
-         * - "<EXPRESSION>.<IDENTIFIER>.<IDENTIFIER>"
-         * - "<EXPRESSION>.<IDENTIFIER>.<IDENTIFIER>.<IDENTIFIER>"
-         * ```
-         */
-        const lValueDecompositionExpressionGraph: Graph<PgslToken, object, ValueDecompositionExpressionCst> = Graph.define(() => {
-            return GraphNode.new<PgslToken>()
-                .required('leftExpression', lSimplelExpressionSyntaxTreeGraph)
-                .required('names<-names', lValueDecompositionNameListGraph);
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): ValueDecompositionExpressionCst => {
-            // Create a nested Value decomposition Expression.
-            let lNextedExpression: ValueDecompositionExpressionCst = pData.leftExpression as ValueDecompositionExpressionCst;
-            for (const lName of pData.names) {
-                // Buffer last created inner expression to be insered into new decomposition expression cst.
-                const lInnerExpression: ExpressionCst<ExpressionCstType> = lNextedExpression;
-
-                lNextedExpression = {
-                    type: 'ValueDecompositionExpression',
-                    range: this.createTokenBoundParameter(pStartToken, pEndToken),
-                    value: lInnerExpression,
-                    property: lName
-                } satisfies ValueDecompositionExpressionCst;
-            }
-
-            return lNextedExpression;
         });
 
         /**
@@ -1076,7 +862,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
         const lAddressOfExpressionGraph: Graph<PgslToken, object, AddressOfExpressionCst> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required(PgslToken.OperatorBinaryAnd)
-                .required('variable', lSimplelExpressionSyntaxTreeGraph);
+                .required('variable', lSimpleExpressionSyntaxTreeGraph);
         }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): AddressOfExpressionCst => {
             return {
                 type: 'AddressOfExpression',
@@ -1094,7 +880,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
         const lPointerExpressionGraph: Graph<PgslToken, object, PointerExpressionCst> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required(PgslToken.OperatorMultiply)
-                .required('variable', lSimplelExpressionSyntaxTreeGraph);
+                .required('variable', lSimpleExpressionSyntaxTreeGraph);
         }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PointerExpressionCst => {
             return {
                 type: 'PointerExpression',
@@ -1191,42 +977,134 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
         });
 
         /**
+         * Logical expression. Logical connection between two expressions.
+         */
+        const lLogicalOperatorList = [
+            PgslToken.OperatorShortCircuitOr,
+            PgslToken.OperatorShortCircuitAnd
+        ] as const;
+
+        /**
+         * Arithmetic expression. Arithmetic connection between two expressions.
+         */
+        const lArithmeticOperatorList = [
+            PgslToken.OperatorPlus,
+            PgslToken.OperatorMinus,
+            PgslToken.OperatorMultiply,
+            PgslToken.OperatorDivide,
+            PgslToken.OperatorModulo
+        ] as const;
+
+        /**
+         * Comparison expression. Comparison connection between two expressions.
+         */
+        const lComparisonOperatorList = [
+            PgslToken.OperatorEqual,
+            PgslToken.OperatorNotEqual,
+            PgslToken.OperatorLowerThan,
+            PgslToken.OperatorLowerThanEqual,
+            PgslToken.OperatorGreaterThan,
+            PgslToken.OperatorGreaterThanEqual
+        ] as const;
+
+        /**
+         * BitOperation expression. BitOperation connection between two expressions.
+         */
+        const lBitOperatorList = [
+            PgslToken.OperatorBinaryOr,
+            PgslToken.OperatorBinaryAnd,
+            PgslToken.OperatorBinaryXor,
+            PgslToken.OperatorShiftLeft,
+            PgslToken.OperatorShiftRight
+        ] as const;
+
+        /**
          * Expression graph. 
-         * Bundles the different expressions into a single graph.
+         * Bundles the different expressions into a single graph.\
+         * 
+         * ```
+         * - "<EXPRESSION> <Arithmetic_Operation> <EXPRESSION>"
+         * - "<EXPRESSION> <Comparison_Operation> <EXPRESSION>"
+         * - "<EXPRESSION> <Logical_Operator> <EXPRESSION>"
+         * - "<EXPRESSION> <Binary_Operator> <EXPRESSION>"
+         * ```
          */
         const lExpressionSyntaxTreeGraph: Graph<PgslToken, object, ExpressionCst<ExpressionCstType>> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
-                .required('expression', [
-                    // Combination expressions, combining two expressions.
-                    lComparisonExpressionGraph,
-                    lArithmeticExpressionGraph,
-                    lLogicalExpressionGraph,
-                    lBitOperationExpressionGraph,
-
-                    // Expression additives. Add something before after.
-                    lAddressOfExpressionGraph,
-                    lPointerExpressionGraph,
-                    lUnaryExpressionGraph,
-                    lParenthesizedExpressionGraph,
-                    lNewExpressionGraph,
-
-                    lFunctionCallExpressionGraph,
-                    lLiteralValueExpressionGraph,
-                    lStringValueExpressionGraph,
-
-                    // Extending expressions. Extending a expression another expression.
-                    lValueDecompositionExpressionGraph,
-                    lIndexedValueExpressionGraph,
-
-                    // Just a name.
-                    lVariableNameExpressionGraph,
+                .required('leftExpression', lSimpleExpressionSyntaxTreeGraph)
+                .optional('combination', [
+                    GraphNode.new<PgslToken>().required('comparison', [...lComparisonOperatorList]).required('rightExpression', lExpressionSyntaxTreeGraph),
+                    GraphNode.new<PgslToken>().required('arithmetic', [...lArithmeticOperatorList]).required('rightExpression', lExpressionSyntaxTreeGraph),
+                    GraphNode.new<PgslToken>().required('logical', [...lLogicalOperatorList]).required('rightExpression', lExpressionSyntaxTreeGraph),
+                    GraphNode.new<PgslToken>().required('bitOperation', [...lBitOperatorList]).required('rightExpression', lExpressionSyntaxTreeGraph)
                 ]);
-        }, true).converter((pData): ExpressionCst<ExpressionCstType> => {
-            return pData.expression;
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): ExpressionCst<ExpressionCstType> => {
+            // Without a trailing operator the expression is only its left side.
+            if (!pData.combination) {
+                return pData.leftExpression;
+            }
+
+            const lRange: CstRange = this.createTokenBoundParameter(pStartToken, pEndToken);
+            const lLeft: ExpressionCst<ExpressionCstType> = pData.leftExpression;
+            const lRight: ExpressionCst<ExpressionCstType> = pData.combination.rightExpression;
+
+            if ('comparison' in pData.combination) {
+                const lComparison: ComparisonExpressionCst = { type: 'ComparisonExpression', range: lRange, left: lLeft, operator: pData.combination.comparison, right: lRight };
+                return lComparison;
+            }
+            if ('arithmetic' in pData.combination) {
+                const lArithmetic: ArithmeticExpressionCst = { type: 'ArithmeticExpression', range: lRange, left: lLeft, operator: pData.combination.arithmetic, right: lRight };
+                return lArithmetic;
+            }
+            if ('logical' in pData.combination) {
+                const lLogical: LogicalExpressionCst = { type: 'LogicalExpression', range: lRange, left: lLeft, operator: pData.combination.logical, right: lRight };
+                return lLogical;
+            }
+
+            const lBinary: BinaryExpressionCst = { type: 'BinaryExpression', range: lRange, left: lLeft, right: lRight, operator: pData.combination.bitOperation };
+            return lBinary;
         });
 
-        // Separate expression graph without combination expressions to speed up parsing by limiting backtracking.
-        const lSimplelExpressionSyntaxTreeGraph: Graph<PgslToken, object, ExpressionCst<ExpressionCstType>> = Graph.define(() => {
+        /**
+         * Everything that can be appended to a value expression.
+         * ```
+         * - ".<IDENTIFIER>"
+         * - "[<EXPRESSION>]"
+         * ```
+         */
+        const lExpressionSuffixGraph: Graph<PgslToken, object, PgslExpressionSuffix> = Graph.define(() => {
+            return GraphNode.new<PgslToken>()
+                .required('suffix', [
+                    GraphNode.new<PgslToken>()
+                        .required(PgslToken.MemberDelimiter)
+                        .required('property', PgslToken.Identifier),
+                    GraphNode.new<PgslToken>()
+                        .required(PgslToken.ListStart)
+                        .required('index', lExpressionSyntaxTreeGraph)
+                        .required(PgslToken.ListEnd)
+                ]);
+        }).converter((pData): PgslExpressionSuffix => {
+            if ('property' in pData.suffix) {
+                return { property: pData.suffix.property };
+            }
+
+            return { index: pData.suffix.index };
+        });
+
+        /**
+         * Recursive list of suffixes appended to a value expression.
+         */
+        const lExpressionSuffixListGraph: Graph<PgslToken, object, { suffix: Array<PgslExpressionSuffix>; }> = Graph.define(() => {
+            return GraphNode.new<PgslToken>()
+                .required('suffix[]', lExpressionSuffixGraph)
+                .optional('suffix<-suffix', lExpressionSuffixListGraph); // Self reference
+        });
+
+        /**
+         * Separate expression graph without combination expressions to speed up parsing by limiting backtracking.
+         * Also handles the property or index wrapping of a expression.
+         */
+        const lSimpleExpressionSyntaxTreeGraph: Graph<PgslToken, object, ExpressionCst<ExpressionCstType>> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required('expression', [
                     // Expression additives. Add something before after.
@@ -1240,15 +1118,35 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
                     lLiteralValueExpressionGraph,
                     lStringValueExpressionGraph,
 
-                    // Extending expressions. Extending a expression another expression.
-                    lValueDecompositionExpressionGraph,
-                    lIndexedValueExpressionGraph,
-
                     // Just a name.
                     lVariableNameExpressionGraph,
-                ]);
-        }, true).converter((pData): ExpressionCst<ExpressionCstType> => {
-            return pData.expression;
+                ])
+                .optional('suffix<-suffix', lExpressionSuffixListGraph);
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): ExpressionCst<ExpressionCstType> => {
+            // Wrap the value into one decomposition or index expression per suffix.
+            let lNestedExpression: ExpressionCst<ExpressionCstType> = pData.expression;
+            for (const lSuffix of pData.suffix ?? new Array<PgslExpressionSuffix>()) {
+                // Wrapp expression into 
+                if (lSuffix.property) {
+                    lNestedExpression = {
+                        type: 'ValueDecompositionExpression',
+                        range: this.createTokenBoundParameter(pStartToken, pEndToken),
+                        value: lNestedExpression,
+                        property: lSuffix.property
+                    } as ValueDecompositionExpressionCst;
+                    continue;
+                }
+
+                // Or wrap it into a index expression.
+                lNestedExpression = {
+                    type: 'IndexedValueExpression',
+                    range: this.createTokenBoundParameter(pStartToken, pEndToken),
+                    value: lNestedExpression,
+                    index: lSuffix.index!
+                } as IndexedValueExpressionCst;
+            }
+
+            return lNestedExpression;
         });
 
         return {
@@ -1612,11 +1510,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
                 .required(PgslToken.Semicolon)
                 .optional('expression', pExpressionGraphs.expression)
                 .required(PgslToken.Semicolon)
-                .optional('update', [
-                    lAssignmentStatementGraph,
-                    lIncrementDecrementStatementGraph,
-                    lFunctionCallStatementGraph
-                ])
+                .optional('update', lAssignmentStatementGraph)
                 .required(PgslToken.ParenthesesEnd)
                 .required('block', lBlockStatementGraph);
         }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): ForStatementCst => {
@@ -1631,81 +1525,85 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
         });
 
         /**
-         * Assignment statement graph. Assignment of a value to a variable.
+         * Assignment statement or a increment or decrement graph. Assignment of a value to a variable.
          * ```
          * - "<EXPRESSION> = <EXPRESSION>"
          * - "<EXPRESSION> += <EXPRESSION>"
          * - "<EXPRESSION> -= <EXPRESSION>"
-         * ```
-         */
-        const lAssignmentStatementGraph: Graph<PgslToken, object, AssignmentStatementCst> = Graph.define(() => {
-            return GraphNode.new<PgslToken>()
-                .required('variable', pExpressionGraphs.expression)
-                .required('assignment', [
-                    PgslToken.Assignment,
-                    PgslToken.AssignmentPlus,
-                    PgslToken.AssignmentMinus,
-                    PgslToken.AssignmentMultiply,
-                    PgslToken.AssignmentDivide,
-                    PgslToken.AssignmentModulo,
-                    PgslToken.AssignmentBinaryAnd,
-                    PgslToken.AssignmentBinaryOr,
-                    PgslToken.AssignmentBinaryXor,
-                    PgslToken.AssignmentShiftRight,
-                    PgslToken.AssignmentShiftLeft,
-                ])
-                .required('expression', pExpressionGraphs.expression);
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): AssignmentStatementCst => {
-            return {
-                type: 'AssignmentStatement',
-                range: this.createTokenBoundParameter(pStartToken, pEndToken),
-                variable: pData.variable,
-                assignment: pData.assignment,
-                expression: pData.expression
-            } satisfies AssignmentStatementCst;
-        });
-
-        /**
-         * Increment/Decrement statement graph. Post-increment or post-decrement operation.
-         * ```
          * - "<EXPRESSION>++"
          * - "<EXPRESSION>--"
          * ```
          */
-        const lIncrementDecrementStatementGraph: Graph<PgslToken, object, IncrementDecrementStatementCst> = Graph.define(() => {
+        const lAssignmentStatementGraph: Graph<PgslToken, object, StatementCst<StatementCstType>> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required('expression', pExpressionGraphs.expression)
-                .required('operator', [
-                    PgslToken.OperatorIncrement,
-                    PgslToken.OperatorDecrement
+                .optional('tail', [
+                    GraphNode.new<PgslToken>()
+                        .required('assignment', [
+                            PgslToken.Assignment,
+                            PgslToken.AssignmentPlus,
+                            PgslToken.AssignmentMinus,
+                            PgslToken.AssignmentMultiply,
+                            PgslToken.AssignmentDivide,
+                            PgslToken.AssignmentModulo,
+                            PgslToken.AssignmentBinaryAnd,
+                            PgslToken.AssignmentBinaryOr,
+                            PgslToken.AssignmentBinaryXor,
+                            PgslToken.AssignmentShiftRight,
+                            PgslToken.AssignmentShiftLeft,
+                        ])
+                        .required('value', pExpressionGraphs.expression),
+                    GraphNode.new<PgslToken>()
+                        .required('operator', [
+                            PgslToken.OperatorIncrement,
+                            PgslToken.OperatorDecrement
+                        ])
                 ]);
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): IncrementDecrementStatementCst => {
-            return {
-                type: 'IncrementDecrementStatement',
-                range: this.createTokenBoundParameter(pStartToken, pEndToken),
-                operator: pData.operator,
-                expression: pData.expression
-            } satisfies IncrementDecrementStatementCst;
-        });
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): StatementCst<StatementCstType> | symbol => {
+            const lRange = this.createTokenBoundParameter(pStartToken, pEndToken);
 
-        /**
-         * Function call statement graph. Function call as a statement.
-         * ```
-         * - "<IDENTIFIER>()"
-         * - "<IDENTIFIER>(<EXPRESSION_LIST>)"
-         * ```
-         */
-        const lFunctionCallStatementGraph: Graph<PgslToken, object, FunctionCallStatementCst> = Graph.define(() => {
-            return GraphNode.new<PgslToken>()
-                .required('statement', pExpressionGraphs.functionCallExpression);
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): FunctionCallStatementCst => {
-            return {
+            // Wrap expression when it has a operator.
+            if (pData.tail) {
+                // Operator assignment.
+                if ('assignment' in pData.tail) {
+                    const lAssignment: AssignmentStatementCst = {
+                        type: 'AssignmentStatement',
+                        range: lRange,
+                        variable: pData.expression,
+                        assignment: pData.tail.assignment,
+                        expression: pData.tail.value
+                    };
+                    return lAssignment;
+                }
+
+                // Increment/Decrement
+                if ('operator' in pData.tail) {
+                    const lIncrementDecrement: IncrementDecrementStatementCst = {
+                        type: 'IncrementDecrementStatement',
+                        range: lRange,
+                        operator: pData.tail.operator,
+                        expression: pData.expression
+                    };
+                    return lIncrementDecrement;
+                }
+            }
+
+            // Without a trailing operator only a function call is a statement on its own.
+            if (pData.expression.type !== 'FunctionCallExpression') {
+                return Symbol('Expression is not a statement.');
+            }
+
+            // Type is secured. It is offically now a function call :)
+            const lExpression = pData.expression as FunctionCallExpressionCst;
+
+            const lFunctionCall: FunctionCallStatementCst = {
                 type: 'FunctionCallStatement',
-                range: this.createTokenBoundParameter(pStartToken, pEndToken),
-                functionName: pData.statement.functionName,
-                parameterList: pData.statement.parameterList,
-                genericList: pData.statement.genericList
-            } satisfies FunctionCallStatementCst;
+                range: lRange,
+                functionName: lExpression.functionName,
+                parameterList: lExpression.parameterList,
+                genericList: lExpression.genericList
+            };
+            return lFunctionCall;
         });
 
         /**
@@ -1726,8 +1624,6 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
                     GraphNode.new<PgslToken>().required('statement', lReturnStatementGraph).required(PgslToken.Semicolon),
                     GraphNode.new<PgslToken>().required('statement', lVariableDeclarationStatementGraph).required(PgslToken.Semicolon),
                     GraphNode.new<PgslToken>().required('statement', lAssignmentStatementGraph).required(PgslToken.Semicolon),
-                    GraphNode.new<PgslToken>().required('statement', lIncrementDecrementStatementGraph).required(PgslToken.Semicolon),
-                    GraphNode.new<PgslToken>().required('statement', lFunctionCallStatementGraph).required(PgslToken.Semicolon),
                     GraphNode.new<PgslToken>().required('statement', lBlockStatementGraph)
                 ]);
         }).converter((pData): StatementCst<StatementCstType> => {
@@ -1994,4 +1890,11 @@ type PgslParserDeclarationGraphs = {
     enumDeclaration: Graph<PgslToken, object, EnumDeclarationCst>;
     structDeclaration: Graph<PgslToken, object, StructDeclarationCst>;
     functionDeclaration: Graph<PgslToken, object, FunctionDeclarationCst>;
+};
+/**
+ * One suffix appended to a value expression.
+ */
+type PgslExpressionSuffix = {
+    property?: string;
+    index?: ExpressionCst<ExpressionCstType>;
 };

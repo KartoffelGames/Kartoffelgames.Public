@@ -75,19 +75,6 @@ export class PgslEnumType extends AbstractSyntaxTree<TypeCst, TypeProperties> im
     }
 
     /**
-     * Check if this enum type is explicitly castable into the target type.
-     * Enum types are never castable to other types.
-     * 
-     * @param _pTarget - Target type to check castability to.
-     * 
-     * @returns Always false - enums cannot be cast.
-     */
-    public isExplicitCastableInto(_pTarget: IType): boolean {
-        // A enum is never explicit nor implicit castable.
-        return false;
-    }
-
-    /**
      * Check if this enum type is implicitly castable into the target type.
      * Enum types are never castable to other types.
      * 

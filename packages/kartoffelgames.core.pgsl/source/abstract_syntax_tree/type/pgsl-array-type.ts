@@ -113,19 +113,6 @@ export class PgslArrayType extends AbstractSyntaxTree<TypeCst, TypeProperties> i
     }
 
     /**
-     * Check if this array type is explicitly castable into the target type.
-     * Array types are never castable to other types.
-     * 
-     * @param _pTarget - Target type to check castability to.
-     * 
-     * @returns Always false - arrays cannot be cast.
-     */
-    public isExplicitCastableInto(_pTarget: IType): boolean {
-        // An array is never explicit castable.
-        return false;
-    }
-
-    /**
      * Check if this array type is implicitly castable into the target type.
      * Array types are never castable to other types.
      * 

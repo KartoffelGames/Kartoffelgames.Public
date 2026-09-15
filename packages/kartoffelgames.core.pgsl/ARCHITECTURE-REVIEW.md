@@ -15,10 +15,12 @@ information, CST→AST/validation separation, the type system, AST→text conver
 > constant folding on the wrong tree. Every shader written against the current parser either
 > carries redundant parentheses or is being type-checked against a tree its author did not write.
 >
-> Fix: **§5.2**, precedence tiers. It should land before anything else in §7.
+> Fix: **§5.2**, precedence tiers — on top of the left-factoring in the same section, which is
+> behaviour-preserving, measured at **1.75× on CST / −38 % end-to-end**, and makes the tier ladder a
+> small edit rather than a rewrite. Both should land before anything else in §7.
 
 All numbers below are measured on this machine (Deno 2.9.6, Windows) against the
-`benchmark/` inputs. Suite: **223 tests passing, 0 failing**.
+`benchmark/` inputs. Suite: **223 tests passing, 1 331 steps, 0 failing**.
 
 | input | lines | chars | tokens |
 |---|---|---|---|
@@ -41,8 +43,12 @@ CST cost                                        7.6-8.8 us/token
 ```
 
 Failed-attempt redundancy of 1.0× means no failing graph is ever retried at a position it has
-already failed at — the floor for an ordered-choice grammar. The parser is close to the minimum
-*number* of attempts it can make; what costs is the constant work inside each one.
+already failed at — the floor for an ordered-choice grammar.
+
+That number is easy to over-read, and an earlier revision of this document did over-read it. **The
+failure cache only makes *failing* alternatives cheap. It does nothing for alternatives that
+succeed and are then thrown away**, because successes are not cached. The expression grammar throws
+away successful sub-parses constantly — that is §5.2, and it is worth **1.75× on CST construction**.
 
 ### Stage split
 
@@ -62,9 +68,11 @@ transpiler is under 1 %.
 
 Which is also the good news:
 
-- **Performance is not the interesting problem.** What is left (§5.1 at ~10 %, §5.3 at 0.4 ms) is
-  worth taking, but they are afternoons, not projects. Nothing in this document asks you to trade
-  readability for speed.
+- **The largest performance item is done, and it was also a correctness fix.** §5.2 left-factored
+  the expression grammar: **1.75× on CST, −38 % end-to-end**, byte-identical WGSL, and the parser
+  got **90 lines shorter**. The table above is the *pre-change* baseline; `full` now transpiles in
+  ~47 ms. What is left (§5.1 at ~10 %, §5.3 at 0.4 ms) is an afternoon. Nothing in this document
+  asks you to trade readability for speed — §5.2 improved both.
 - **The real work is correctness and structure**, and it is all in the layers that are cheap to
   change. D1 blocks shipping. D2/D3/D4/D10 silently emit invalid WGSL or bury the user in noise.
   §1 (debug info), §2 (validation split) and §3 (the type system) have no performance component at
@@ -961,11 +969,14 @@ inner types through `pTranspile` would remove the duplicate.
 ---
 
 ## 5. Performance
-Ordered by measured value ÷ effort. Nothing here trades away readability; two of them *improve* it.
+Ordered by measured value ÷ effort. Nothing here trades away readability; three of them *improve* it.
 
-The parser is already close to the minimum *number* of attempts an ordered-choice grammar can make —
-8.7 graph pushes per token, 1.6× overall redundancy, 1.0× on failures. What is left is the constant
-cost of each attempt, so the remaining items are small and there are not many of them.
+**The rule that decides whether a graph change is worth making:** the failure cache already makes a
+dead alternative cost one `Map` + one `Set` lookup, so merging or reordering alternatives that
+differ in their *first token* buys nothing — measured below, it is within noise. What still costs
+real time is an alternative that **parses a whole sub-expression successfully and is then
+discarded**, because successes are not cached and the next alternative parses it again from
+scratch. Every worthwhile reroute in this section is an instance of that one pattern.
 
 ### 5.1 Incident trace on the failure path — **~10 %, the largest single item left**
 
@@ -986,31 +997,108 @@ only after the priority comparison has already passed.
 
 This is the last item in this document with a double-digit percentage behind it.
 
-### 5.2 Give the expression grammar precedence tiers — 🚩 **the ship blocker (D1)**
+### 5.2 Left-factor the expression grammar — ✅ **done, 1.75× on CST**
 
-This is not a performance item. The parser already tries each dead alternative exactly once per
-position:
+**Landed.** The D11 coverage was written first, as new steps on the node that ends up on top of the
+chain — `Indexing a chained value` in `indexed-value-expression-ast.test.ts` and
+`Decomposing a chained value` in `value-decomposition-expression-ast.test.ts`. Both were confirmed
+red against the old parser (every step failing on a parse error except `vectorArray[0].x`, which
+passes either way and is kept as the control), then the change was applied. Suite is now
+**223 passed, 1 331 steps, 0 failed**. The remaining half of this section — precedence tiers for
+D1 — is still open.
 
-```
-fail share          46.7%
-fail redundancy     1.0x      <- the floor for an ordered-choice grammar
-overall redundancy  1.6x
-```
-
-Tiering the grammar would cut the 46.7 % of attempts that fail, but with redundancy already at the
-floor it cannot deliver a multiple. **Judge this change on D1 alone and treat any speedup as a
-rounding error.** It is, on the other hand, the one defect in this document that makes the
-*language* wrong rather than merely leaky, and that is why this section blocks shipping.
-
-At 1.0× failure redundancy each dead alternative is tried exactly once per position, which is the
-floor for an ordered-choice grammar. **Judge this change on D1 alone and treat any speedup as a
-rounding error.** It is, on the other hand, the one defect in this document that makes the
-*language* wrong rather than merely leaky, and it is the reason this section is marked as blocking.
+*This section replaces an earlier version that called the speedup "a rounding error". That was
+wrong, and the reason it was wrong is the rule at the top of §5: failure redundancy was already at
+1.0×, but the expensive alternatives here are the ones that **succeed** and get discarded.*
 
 `lExpressionSyntaxTreeGraph` ([pgsl-parser.ts:1197](source/parser/pgsl-parser.ts:1197)) is a single
-ordered 14-way alternation, and each binary operator graph is written as
-`simple OP expression` — right-recursive, one flat level, no precedence. There is **no precedence
-and no associativity**:
+ordered 14-way alternation whose first four entries are the binary operator graphs, each written as
+`simple OP expression`. So for every expression in the file the parser does this:
+
+```
+try lComparisonExpressionGraph  -> parses the whole left operand, sees no '<', throws it away
+try lArithmeticExpressionGraph  -> parses the whole left operand again, sees no '+', throws it away
+try lLogicalExpressionGraph     -> parses the whole left operand again, sees no '&&', ...
+try lBitOperationExpressionGraph-> parses the whole left operand again, sees no '|', ...
+then fall through to the 10 non-binary alternatives and parse it a fifth time
+```
+
+None of that is cacheable: the left operand *succeeds* each time. On the medium input,
+`lLogicalExpressionGraph` and `lBitOperationExpressionGraph` are entered 247 times each and succeed
+**zero** times — 494 complete sub-expression parses built and discarded.
+
+`lSimplelExpressionSyntaxTreeGraph` has the same shape one level down:
+`lValueDecompositionExpressionGraph` and `lIndexedValueExpressionGraph` are both
+`simple ...`, so the value gets parsed once per suffix kind.
+
+#### The reroute
+
+Two changes, neither of which touches the accepted language:
+
+```
+expression := simple ( binaryOperator expression )?      -- was: 4 graphs each re-parsing `simple`
+simple     := primary ( '.' name | '[' expression ']' )* -- was: two left-recursive graphs
+```
+
+The right-hand side stays right-recursive and un-tiered, so precedence and associativity are
+**bit-for-bit unchanged** — `1 * 2 + 3` still parses as `1 * (2 + 3)`. The four operator token
+lists survive as named constants and the converter picks the CST type from which one matched, so
+`ComparisonExpression` / `ArithmeticExpression` / `LogicalExpression` / `BinaryExpression` all still
+come out of the parser exactly as before.
+
+I implemented both, measured, and reverted. Numbers from this machine:
+
+| | CST `medium` | CST `full` | `transpile()` `full` | cache hits `full` |
+|---|---|---|---|---|
+| today | 12.15 ms | 69.23 ms | 75.43 ms | 116 120 |
+| `expression` left-factored | 7.84 ms | 44.44 ms | 54.16 ms | 20 896 |
+| **+ postfix chain** | **6.96 ms** | **38.10 ms** | **46.98 ms** | **596** |
+
+**CST 1.75×, whole pipeline −38 %.** The WGSL is byte-identical (same length, same hash, zero
+incidents), all **223 tests pass**, and `pgsl-parser.ts` goes from 1 996 to 1 907 lines — four
+binary graphs, two left-recursive graphs and two recursive list graphs are replaced by one optional
+tail and one suffix list. 596 cache hits on an 8 000-token file means the grammar has essentially
+stopped backtracking.
+
+The applied change also left-factors the three expression-headed statements into one
+`lExpressionStatementGraph`. That part is readability only — see below.
+
+#### It also fixes code that is currently rejected
+
+Differential test of 47 sources, old parser vs rerouted. 43 produce an identical CST. The other
+four are cases **today's grammar rejects and the rerouted one accepts**:
+
+| source | today | rerouted |
+|---|---|---|
+| `value.member[0]` | **REJECT** | accept |
+| `value.member[0].other` | **REJECT** | accept |
+| `call().member` | **REJECT** | accept |
+| `call()[0]` | **REJECT** | accept |
+| `list[0].member` | accept | accept |
+| `value.a.b`, `list[0][1]` | accept | accept |
+
+Indexing after a property access, and anything at all after a call, do not parse. This is **D11**,
+and nothing in the test suite or the benchmark shaders happens to use those forms. The postfix
+chain removes the asymmetry by construction: one suffix list, walked left to right.
+
+#### What does *not* pay — measured, so you do not have to try it
+
+Both of these looked obviously good and are not:
+
+| change | CST `medium` | verdict |
+|---|---|---|
+| merge `&` / `*` / `~ - !` into one prefix graph, merge literal + string | 7.84 → 7.70 ms | noise; graph *pushes* went **up** 9 315 → 9 903 |
+| left-factor the three expression-headed statements into one | 6.86 → 6.89 ms | noise (still a readability win: 3 graphs → 1) |
+
+Both reduce the number of alternatives probed, and both are worthless, because the alternatives they
+remove were failing on their first token and the failure cache had already made them nearly free.
+Reordering alternations is in the same category. **Only go after discarded successes.**
+
+#### Then add the tiers on top (D1)
+
+The left-factored `expression := simple (op expression)?` is exactly the shape a precedence ladder
+grows out of: one flat operator list becomes one level per precedence class. Until that happens
+there is still **no precedence and no associativity**:
 
 | source | parsed as |
 |---|---|
@@ -1027,9 +1115,9 @@ if (a + 1 < 10) { }      REJECTED: Arithmetic operation not supported for used t
 if ((a + 1) < 10) { }    OK
 ```
 
-An ordinary shader condition is rejected, and the user is forced to parenthesise everything.
-
-The standard fix is one graph per precedence level, each left-recursive via iteration:
+An ordinary shader condition is rejected, and the user is forced to parenthesise everything. The
+reroute above does not change any of this — it is behaviour-preserving by design, and I verified
+all four rows still parse the same way afterwards. The tiers are the separate, second step:
 
 ```
 expression      := logicalOr
@@ -1069,8 +1157,11 @@ expression shapes                 identical (still wrong)
 So it no longer prevents anything — termination is handled by the circular-graph check now — but it
 is still paying for itself, slightly. **Do not remove it as a standalone cleanup: it would cost 5 %
 and change nothing.** Its real problem is that `binary := simple OP expression` is exactly what
-makes the grammar right-recursive with no precedence. The tier ladder above deletes both junctions
-as a byproduct *and* fixes D1. One change, not two.
+makes the grammar right-recursive with no precedence.
+
+The reroute retires both junction flags for free: once `expression` consumes the operator token and
+`simple` consumes its suffix tokens, neither is a junction any more, and `graphIsCircular` handles
+termination on its own. Nothing to decide, no separate cleanup task.
 
 ### 5.3 Stop rebuilding built-in declarations on every parse — ~0.4 ms, ~15 minutes
 
@@ -1147,6 +1238,7 @@ Every one of these was reproduced by execution against the current tree, not fou
 | **D2** | `metaTypes` switch falls through (no `break`) — [pgsl-numeric-type.ts:150](source/abstract_syntax_tree/type/pgsl-numeric-type.ts:150) | `normalize(v)` where `v: Vector4<int>` | Accepted with no incident; emits `normalize(vec4<i32>)`, invalid WGSL |
 | **D3** | Vectors report `scalar: true` — [pgsl-vector-type.ts:195](source/abstract_syntax_tree/type/pgsl-vector-type.ts:195) copies the inner type's `scalar` | `param p: Vector4<float> = ...;` | Passes `lMustBeScalar()`, then **uncaught** `Exception: Unsupported parameter type` |
 | **D4** | Binary ops return the left operand's type — [arithmetic-expression-ast.ts:143/207/305](source/abstract_syntax_tree/expression/operation/arithmetic-expression-ast.ts:207) | `let x: int = 1 + 2.0;` | Accepted, emits `var x:i32 = 1 + 2.0;` (invalid). `2.0 + 1` is rejected — asymmetric |
+| **D11** ✅ | Postfix chains do not compose — `lValueDecompositionExpressionGraph` / `lIndexedValueExpressionGraph` are separate left-recursive alternatives ([pgsl-parser.ts:944](source/parser/pgsl-parser.ts:944), [990](source/parser/pgsl-parser.ts:990)) | `let a: float = value.member[0];` | **Rejected**: `Unexpected token "[". "Semicolon" expected`. Same for `call().x` and `call()[0]`. `list[0].member` works, so the failure is asymmetric and looks arbitrary. §5.2. **Fixed** — covered by `indexed-value-expression-ast.test.ts` and `value-decomposition-expression-ast.test.ts`. |
 | **D5** | `#META` replacement inserts a newline — [pgsl-parser.ts:1938](source/parser/pgsl-parser.ts:1938) | decl on source line 2 | Reported at line 3; drift accumulates per directive |
 | **D6** | `#IMPORT` split restarts line numbering — [pgsl-parser.ts:1935](source/parser/pgsl-parser.ts:1935) | decl on source line 3 after one import | Reported at line 2 |
 | **D7** | No source identity in `CstRange` | two decls named `dup`, one imported | Both report a bare line number; the file is unknowable |
@@ -1169,55 +1261,57 @@ validation split is unremarkable until the poison type absorbs; `commonType` has
 until `BaseType` exists), so slicing this into independently releasable stages mostly buys ceremony.
 
 **🚩 Blocks shipping the language**
-1. §5.2 — precedence tiers for expressions. Fixes **D1**. This is a language defect: until it lands,
+1. ✅ **Done.** §5.2a — left-factor the expression grammar (`expression := simple (op expression)?`,
+   postfix suffix chain). Behaviour-preserving, fixed **D11**, **1.75× on CST / −38 % end-to-end**,
+   90 lines shorter, both expression junctions retired.
+2. §5.2b — precedence tiers on top. Fixes **D1**. This is a language defect: until it lands,
    every shader is either over-parenthesised or type-checked against a tree its author did not
-   write. The two expression junctions disappear with it.
-2. D2 — add `break` to the `metaTypes` switch. *Expect fallout*: code relying on the loose matching
+   write.
+3. D2 — add `break` to the `metaTypes` switch. *Expect fallout*: code relying on the loose matching
    will start erroring. That is the point.
-3. D3 — `scalar: false` for vectors and matrices.
-4. D4 — binary operators must compute a result type, not return the left operand's (wants item 11's
+4. D3 — `scalar: false` for vectors and matrices.
+5. D4 — binary operators must compute a result type, not return the left operand's (wants item 13's
    `commonType`; a same-type-or-reject stopgap is still better than what is there).
 
 **One-liners**
-5. D5 — `#META` replacement `''` + `^[ \t]*` anchors; same for the `#IMPORT` regex.
-6. D9 — clear `mUserDefinedTypeNames` at the start of a root parse.
-7. Add the line-count-preservation test for `preprocessText`.
+6. D5 — `#META` replacement `''` + `^[ \t]*` anchors; same for the `#IMPORT` regex.
+7. D9 — clear `mUserDefinedTypeNames` at the start of a root parse.
+8. Add the line-count-preservation test for `preprocessText`.
 
 **Performance**
-8. §5.1 — stop allocating an incident object per failed alternative. **−10 %**, the largest single
-   item left anywhere in the pipeline.
-9. §5.3 — cache built-in declaration CSTs. **Over half** of the small-shader pipeline.
-10. §5.4 — resolver map in `TypeDeclarationAst` (readability first, speed second).
-11. §5.6 — write down the failure-cache soundness rule. No runtime effect; prevents a bug that would
+9. §5.1 — stop allocating an incident object per failed alternative. **−10 %**, the largest single
+   item left once item 1 has landed.
+10. §5.3 — cache built-in declaration CSTs. **Over half** of the small-shader pipeline.
+11. §5.4 — resolver map in `TypeDeclarationAst` (readability first, speed second).
+12. §5.6 — write down the failure-cache soundness rule. No runtime effect; prevents a bug that would
     be extremely hard to find.
 
 **Type system**
-12. §3 — `conversionRank` / `commonType` / `concretize`; route arithmetic, assignment, return and
+13. §3 — `conversionRank` / `commonType` / `concretize`; route arithmetic, assignment, return and
     overload resolution through them. Completes D4 and gives real overload diagnostics. Wants
-    `BaseType` from item 15 to exist first.
-13. §3 — type interning; close the tag union.
-14. §3 — type patterns for generics; fold `new-expression-ast.ts` into the shared overload table.
+    `BaseType` from item 16 to exist first.
+14. §3 — type interning; close the tag union.
+15. §3 — type patterns for generics; fold `new-expression-ast.ts` into the shared overload table.
 
 **Separation of concerns**
-15. §2 — **fix the poison type (D10).** ~Half a day, and it turns "one typo → nine incidents" into
+16. §2 — **fix the poison type (D10).** ~Half a day, and it turns "one typo → nine incidents" into
     "one typo → one incident". Three absorption points: comparisons (via a new `BaseType`),
     property-rule guards, and a poison arm in the six expression nodes that dispatch structurally.
-    Do it before 16, or 16 will look like it changed nothing.
-16. §2 — pull the rules out of `onProcess` into `onValidate`, then into a `Validator` walker with its
+    Do it before 17, or 17 will look like it changed nothing.
+17. §2 — pull the rules out of `onProcess` into `onValidate`, then into a `Validator` walker with its
     own accumulators. **This is where most of the "jank" you feel actually goes away.**
-17. §2 — move the rules into processor classes.
-18. §2 — explicit declaration-ordering pass; delete `mProcessingStack` and the four duplicated
+18. §2 — move the rules into processor classes.
+19. §2 — explicit declaration-ordering pass; delete `mProcessingStack` and the four duplicated
     `getX()` bodies.
 
 **Debug information**
-19. §1 — a source id in `CstRange`; stop splitting on `#IMPORT`; ranges on types; `source` on
+20. §1 — a source id in `CstRange`; stop splitting on `#IMPORT`; ranges on types; `source` on
     `PgslParserResultIncident`. Fixes D6/D7/D8. The CST change itself is mechanical (§2).
 
 **Transpiler**
-20. §4a — `CodeFragment` tree and a real source map (needs 19 for the input side).
-21. §4c — monomorphise generic functions; make the backend total over validated ASTs.
-22. §4d — optional pretty-printing, free once 20 lands.
-21. §4d — optional pretty-printing, free once 19 lands.
+21. §4a — `CodeFragment` tree and a real source map (needs 20 for the input side).
+22. §4c — monomorphise generic functions; make the backend total over validated ASTs.
+23. §4d — optional pretty-printing, free once 21 lands.
 
 ---
 
@@ -1232,17 +1326,17 @@ until `BaseType` exists), so slicing this into independently releasable stages m
    today. Monomorphisation (§4c) is the answer if yes; a validator rejection with a clear message is
    the answer if not. This is the one place where the right design depends entirely on a product
    decision I cannot make for you.
-3. **Is there a target parse budget?** `full` is 8 025 token in 85 ms, `medium` 1 585 token in
-   13.7 ms. §5.1 + §5.3 together take medium to roughly 12 ms. Below that, the remaining cost is the
-   per-push constant (~1.1 µs × 8.7 pushes per token), and the next lever would be *reducing pushes
-   per token* — which is where a tiered grammar (§5.2) would come back as a performance item after
-   all. If 85 ms for a 1 400-line shader is fine, then §5 is finished after those two and everything
-   else is correctness and readability work.
+3. **Is there a target parse budget?** `full` is 8 025 token in 85 ms today. §5.2 alone takes that
+   to ~47 ms, and §5.1 + §5.3 on top land it near 42 ms. After that the grammar has stopped
+   backtracking (596 cache hits on 8 000 tokens) and the remaining cost is the per-push constant;
+   the only lever left would be first-token dispatch *inside* `core-parser`, which is a much larger
+   change than anything in this document. If ~42 ms for a 1 400-line shader is fine, §5 is finished
+   and everything else here is correctness and readability work.
    after all. If 85 ms for a 1 400-line shader is fine, then §5 is finished after items 8–10 and
    everything else in §7 is correctness and readability work.
 
 ---
 
 *Measurements: Deno 2.9.6, Windows, `benchmark/` inputs (`small` 23 tok, `medium` 1 585 tok,
-`full` 8 025 tok). Suite: 223 passed, 0 failed. Every defect in §6 and every number in §0 and §5 was
+`full` 8 025 tok). Suite: 223 passed, 1 331 steps, 0 failed. Every defect in §6 and every number in §0 and §5 was
 produced by execution against the current tree, not by reading.*

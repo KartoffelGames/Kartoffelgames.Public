@@ -123,19 +123,6 @@ export class PgslBuildInType extends AbstractSyntaxTree<TypeCst, TypeProperties>
     }
 
     /**
-     * Check if this built-in type is explicitly castable into the target type.
-     * Delegates to the underlying type's castability.
-     * 
-     * @param pTarget - Target type to check castability to.
-     * 
-     * @returns True when the underlying type is explicitly castable to the target.
-     */
-    public isExplicitCastableInto(pTarget: IType): boolean {
-        // Check if aliased type is explicit castable into target type.
-        return this.underlyingType.isExplicitCastableInto(pTarget);
-    }
-
-    /**
      * Check if this built-in type is implicitly castable into the target type.
      * Delegates to the underlying type's castability.
      * 

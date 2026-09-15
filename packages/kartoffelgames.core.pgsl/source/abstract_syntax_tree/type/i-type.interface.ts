@@ -1,5 +1,3 @@
-import { Vector } from "@kartoffelgames/core";
-import type { IAnyParameterConstructor } from '../../../../kartoffelgames.core/source/interface/i-constructor.ts';
 import type { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
 
 /**

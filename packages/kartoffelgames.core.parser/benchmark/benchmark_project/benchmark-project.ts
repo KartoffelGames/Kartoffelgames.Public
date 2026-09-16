@@ -21,7 +21,7 @@ export class BenchmarkProject {
      * @returns Document node of the parsed code.
      */
     public static parse(pCode: string): BenchmarkDocumentNode {
-        return BenchmarkProject.PARSER.parse(pCode);
+        return BenchmarkProject.PARSER.parse(pCode).result;
     }
 
     /**

@@ -1,5 +1,6 @@
 import { Exception, Stack } from '@kartoffelgames/core';
 import { CodeParser, Graph, GraphNode, type LexerToken } from '@kartoffelgames/core-parser';
+import { CodeParserResult } from "../../../kartoffelgames.core.parser/source/parser/code-parser.ts";
 import { AbstractSyntaxTreeContext } from '../abstract_syntax_tree/abstract-syntax-tree-context.ts';
 import { DocumentAst } from '../abstract_syntax_tree/document-ast.ts';
 import { PgslArrayType } from '../abstract_syntax_tree/type/pgsl-array-type.ts';
@@ -177,7 +178,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
      * @throws {@link ParserException} 
      * When the graph could not be resolved with the set code text. Or Exception when no tokenizeable text should be parsed.
      */
-    public override parse(pCodeText: string): DocumentCst {
+    public override parse(pCodeText: string): CodeParserResult<PgslToken, DocumentCst> {
         return this.internalParse(pCodeText, this.mEnvironmentValues, new Set<string>());
     }
 
@@ -193,7 +194,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
      */
     public parseAst(pCodeText: string): DocumentAst {
         // Parse document structure into a concrete syntax tree.
-        const lDocumentCst: DocumentCst = this.parse(pCodeText);
+        const lDocumentCst: DocumentCst = this.parse(pCodeText).result;
 
         // Define buildin enums.
         const lBuildInEnumList: Array<DeclarationCst<DeclarationCstType>> = [
@@ -1623,7 +1624,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
      * @throws {@link ParserException} 
      * When the graph could not be resolved with the set code text. Or Exception when no tokenizeable text should be parsed.
      */
-    private internalParse(pCodeText: string, pEnvironmentData: Map<string, string>, pUsedImports: Set<string>): DocumentCst {
+    private internalParse(pCodeText: string, pEnvironmentData: Map<string, string>, pUsedImports: Set<string>): CodeParserResult<PgslToken, DocumentCst> {
         const lProcessedCode: PgslParserPreprocessResult = this.preprocessText(pCodeText, pEnvironmentData);
 
         // Create empty document that is filled while code parts and imports are parsed.
@@ -1651,7 +1652,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
             // Parse code part when not empty.
             if (lCodePart.code.trim() !== '') {
                 // Parse code part.
-                const lCodePartParse: DocumentCst = super.parse(lCodePart.code);
+                const lCodePartParse: DocumentCst = super.parse(lCodePart.code).result;
 
                 // Fill in declarations.
                 lParsedDocument.declarations.push(...lCodePartParse.declarations);

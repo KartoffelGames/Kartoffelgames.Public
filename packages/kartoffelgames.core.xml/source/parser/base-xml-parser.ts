@@ -106,7 +106,7 @@ export abstract class BaseXmlParser {
             };
         }
 
-        return this.mParser.parse(pText, lCodeParserProgressTracker);
+        return this.mParser.parse(pText, lCodeParserProgressTracker).result;
     }
 
     /**

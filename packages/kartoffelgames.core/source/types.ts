@@ -18,6 +18,13 @@ export type Writeable<T> = { -readonly [P in keyof T]: T[P] };
  */
 export type Readonly<T> = { +readonly [P in keyof T]: T[P] };
 
+/**
+ * Deep partial object, applies a partial to all object layers.
+ */
+export type DeepPartial<T> = T extends object ? {
+    [P in keyof T]?: DeepPartial<T[P]>;
+} : T;
+
 // Decorator types.
 export type ClassDecorator<TClass extends Function, TResult extends TClass | void> = (pOriginalClass: TClass, pContext: ClassDecoratorContext) => TResult;
 export type ClassAccessorDecorator<TThis extends Function, TValue> = (pTarget: ClassAccessorDecoratorTarget<TThis, TValue>, pContext: ClassAccessorDecoratorContext) => ClassAccessorDecoratorResult<TThis, TValue>;

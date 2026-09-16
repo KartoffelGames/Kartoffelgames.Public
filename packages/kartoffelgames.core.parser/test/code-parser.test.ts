@@ -470,7 +470,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
             lParser.setRootGraph(lMainGraph);
 
             // Process. Convert code.
-            const lResult = lParser.parse(lCodeText);
+            const lResult = lParser.parse(lCodeText).result;
 
             // Evaluation. Loop chain twice as long as actual loop.
             expect(lResult).toHaveProperty('part');
@@ -494,7 +494,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
             lParser.setRootGraph(lMainGraph);
 
             // Process. Convert code.
-            const lResult = lParser.parse(lCodeText);
+            const lResult = lParser.parse(lCodeText).result;
 
             // Evaluation. Loop chain twice as long as actual loop.
             expect(lResult).toHaveProperty('part');
@@ -700,7 +700,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
             lParser.setRootGraph(lMainGraph);
 
             // Process. Convert code.
-            const lResult = lParser.parse(lCodeText);
+            const lResult = lParser.parse(lCodeText).result;
 
             // Evaluation. Loop chain twice as long as actual loop.
             expect(lResult).toHaveProperty('part');
@@ -726,7 +726,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
             lParser.setRootGraph(lMainGraph);
 
             // Process. Convert code.
-            const lResult = lParser.parse(lCodeText);
+            const lResult = lParser.parse(lCodeText).result;
 
             // Evaluation. Loop chain twice as long as actual loop.
             expect(lResult.part).toBeUndefined();
@@ -1830,7 +1830,7 @@ Deno.test('CodeParser.constructor()', async (pContext) => {
     await pContext.step('Include a complete trace in the exception when debugMode is true', () => {
         // Setup
         const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer(), {
-            keepTraceIncidents: true
+            debug: { analitics: true }
         });
 
         // Define a graph that will fail
@@ -1854,7 +1854,7 @@ Deno.test('CodeParser.constructor()', async (pContext) => {
     await pContext.step('Omit trace list in the exception when debugMode is false', () => {
         // Setup
         const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer(), {
-            keepTraceIncidents: false
+            debug: { analitics: false }
         });
 
         // Define a graph that will fail

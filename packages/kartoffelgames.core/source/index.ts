@@ -27,7 +27,7 @@ export { type IBoundable } from './interface/i-boundable.ts';
 
 // Support types.
 export {
-    type Readonly, type Writeable,
+    type Readonly, type Writeable, type DeepPartial,
 
     // Decorator types.
     type ClassDecorator,

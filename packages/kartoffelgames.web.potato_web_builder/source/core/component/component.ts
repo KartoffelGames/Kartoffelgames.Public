@@ -52,7 +52,7 @@ export class Component extends CoreEntityUpdateable<ComponentProcessor> {
 
         // Load cached or parse new template.
         if (!Component.mTemplateCache.has(pParameter.processorConstructor)) {
-            Component.mTemplateCache.set(pParameter.processorConstructor, Component.mXmlParser.parse(pParameter.templateString ?? ''));
+            Component.mTemplateCache.set(pParameter.processorConstructor, Component.mXmlParser.parse(pParameter.templateString ?? '').result);
         }
 
         const lTemplate: PwbTemplate = Component.mTemplateCache.get(pParameter.processorConstructor)!.clone();

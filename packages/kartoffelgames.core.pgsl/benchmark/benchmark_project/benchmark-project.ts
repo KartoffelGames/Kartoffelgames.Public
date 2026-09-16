@@ -35,7 +35,7 @@ export class BenchmarkProject {
      * @returns Concrete syntax tree of the code.
      */
     public static parse(pCode: string): DocumentCst {
-        return BenchmarkProject.PARSER.parse(pCode);
+        return BenchmarkProject.PARSER.parse(pCode).result;
     }
 
     /**

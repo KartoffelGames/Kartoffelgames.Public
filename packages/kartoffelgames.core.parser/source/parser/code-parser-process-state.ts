@@ -1,4 +1,4 @@
-import { Exception } from '@kartoffelgames/core';
+import { DeepPartial, Exception } from '@kartoffelgames/core';
 import type { LexerToken } from '../lexer/lexer-token.ts';
 import { CodeParserTrace } from './code-parser-trace.ts';
 import type { GraphNode } from './graph/graph-node.ts';
@@ -7,10 +7,11 @@ import type { Graph } from './graph/graph.ts';
 export class CodeParserProcessState<TTokenType extends string> {
     private static readonly MAX_JUNCTION_CIRCULAR_REFERENCES: number = 1000;
 
-    private mCurrentGraph: CodeParserCursorGraph<TTokenType>;
+    private readonly mConfiguration: CodeParserProcessStateConfiguration;
+    private mCurrentGraph: CodeParserProcessStateCursorGraph<TTokenType>;
     private readonly mGraphFailureCache: Map<Graph<TTokenType>, Set<number>>;
     private readonly mIncidentTrace: CodeParserTrace<TTokenType>;
-    private readonly mLastTokenPosition: CodeParserCursorPosition;
+    private readonly mLastTokenPosition: CodeParserProcessStateCursorPosition;
     private readonly mTokenCache: Array<LexerToken<TTokenType> | null>;
     private readonly mTokenGenerator: Generator<LexerToken<TTokenType>, any, any>;
 
@@ -44,9 +45,9 @@ export class CodeParserProcessState<TTokenType extends string> {
      * Constructor.
      * 
      * @param pLexerGenerator - A generator that produces LexerToken objects of the specified token type.
-     * @param pKeepTraceIncidents - Keep a complete trace of incidents.
+     * @param pConfiguration - Process state configuration.
      */
-    public constructor(pLexerGenerator: Generator<LexerToken<TTokenType>, any, any>, pKeepTraceIncidents: boolean) {
+    public constructor(pLexerGenerator: Generator<LexerToken<TTokenType>, any, any>, pConfiguration: CodeParserProcessStateConfiguration) {
         this.mTokenGenerator = pLexerGenerator;
         this.mLastTokenPosition = {
             column: 1,
@@ -54,8 +55,18 @@ export class CodeParserProcessState<TTokenType extends string> {
         };
         this.mTokenCache = new Array<LexerToken<TTokenType>>();
 
+        // Store configuration.
+        this.mConfiguration = {
+            debug: {
+                analitics: pConfiguration.debug.analitics
+            },
+            caching: {
+                failureCache: pConfiguration.caching.failureCache
+            }
+        };
+
         // Create trace objects.
-        this.mIncidentTrace = new CodeParserTrace<TTokenType>(pKeepTraceIncidents);
+        this.mIncidentTrace = new CodeParserTrace<TTokenType>(this.mConfiguration.debug.analitics);
         this.mGraphFailureCache = new Map<Graph<TTokenType>, Set<number>>();
 
         // Start with a placeholder root graph.
@@ -105,7 +116,7 @@ export class CodeParserProcessState<TTokenType extends string> {
      */
     public getGraphBoundingToken(): [LexerToken<TTokenType> | null, LexerToken<TTokenType> | null] {
         // Get top graph.
-        const lCurrentGraphStack: CodeParserCursorGraph<TTokenType> = this.mCurrentGraph;
+        const lCurrentGraphStack: CodeParserProcessStateCursorGraph<TTokenType> = this.mCurrentGraph;
 
         // Get start and end token from current graph stack.
         let lStartToken: LexerToken<TTokenType> | null = this.mTokenCache[lCurrentGraphStack.token.start];
@@ -140,7 +151,7 @@ export class CodeParserProcessState<TTokenType extends string> {
      */
     public getGraphPosition(): CodeParserProcessCursorPosition<TTokenType> {
         // Get top graph.
-        const lCurrentGraphStack: CodeParserCursorGraph<TTokenType> = this.mCurrentGraph;
+        const lCurrentGraphStack: CodeParserProcessStateCursorGraph<TTokenType> = this.mCurrentGraph;
 
         // Define start and end token.
         let lStartToken: LexerToken<TTokenType> | null;
@@ -252,7 +263,7 @@ export class CodeParserProcessState<TTokenType extends string> {
         let lGraphCallCount: number = 0;
 
         // Count the same graph in the stack iteratively. But only when they share the same start token. 
-        let lCurrentGraphStack: CodeParserCursorGraph<TTokenType> | null = this.mCurrentGraph;
+        let lCurrentGraphStack: CodeParserProcessStateCursorGraph<TTokenType> | null = this.mCurrentGraph;
         while (lCurrentGraphStack !== null && lCurrentGraphStack.token.cursor === lCurrentGraphStack.token.start) {
             if (lCurrentGraphStack.graph === pGraph) {
                 lGraphCallCount++;
@@ -303,7 +314,7 @@ export class CodeParserProcessState<TTokenType extends string> {
      */
     public moveNextToken(): void {
         // Get top graph.
-        const lCurrentGraphStack: CodeParserCursorGraph<TTokenType> = this.mCurrentGraph;
+        const lCurrentGraphStack: CodeParserProcessStateCursorGraph<TTokenType> = this.mCurrentGraph;
 
         // Restrict junction graphs from processing own tokens.
         // Otherwise these graphs are not junctions.
@@ -340,8 +351,8 @@ export class CodeParserProcessState<TTokenType extends string> {
      */
     public popGraphStack(pFailed: boolean): void {
         // Set parent graph as current. (pop stack).
-        const lCurrentTokenStack: CodeParserCursorGraph<TTokenType> = this.mCurrentGraph;
-        this.mCurrentGraph =  lCurrentTokenStack.parent!;
+        const lCurrentTokenStack: CodeParserProcessStateCursorGraph<TTokenType> = this.mCurrentGraph;
+        this.mCurrentGraph = lCurrentTokenStack.parent!;
 
         // Revert current stack index when the graph failed with an error.
         if (pFailed) {
@@ -369,7 +380,7 @@ export class CodeParserProcessState<TTokenType extends string> {
      */
     public pushGraphStack<TGraph extends Graph<TTokenType>>(pGraph: TGraph): void {
         // Read the current stack state.
-        const lLastGraphStack: CodeParserCursorGraph<TTokenType> = this.mCurrentGraph;
+        const lLastGraphStack: CodeParserProcessStateCursorGraph<TTokenType> = this.mCurrentGraph;
 
         // Create new empty graph stack by linking its parent.
         this.mCurrentGraph = {
@@ -383,12 +394,24 @@ export class CodeParserProcessState<TTokenType extends string> {
     }
 }
 
+/**
+ * Code parser configuration object.
+ */
+type CodeParserProcessStateConfiguration = {
+    debug: {
+        analitics: boolean;
+    };
+    caching: {
+        failureCache: boolean;
+    };
+};
+
 /*
  * Graph stack types.
  */
-type CodeParserCursorGraph<TTokenType extends string> = {
+type CodeParserProcessStateCursorGraph<TTokenType extends string> = {
     graph: Graph<TTokenType> | null;
-    parent: CodeParserCursorGraph<TTokenType> | null;
+    parent: CodeParserProcessStateCursorGraph<TTokenType> | null;
     token: {
         start: number;
         cursor: number;
@@ -398,7 +421,7 @@ type CodeParserCursorGraph<TTokenType extends string> = {
 /*
  * Cursor types.
  */
-type CodeParserCursorPosition = {
+type CodeParserProcessStateCursorPosition = {
     column: number;
     line: number;
 };
@@ -414,7 +437,7 @@ export type CodeParserProcessCursorPosition<TTokenType extends string> = {
 /**
  * Process stack types.
  */
-type CodeParserProcessStackMapping<TTokenType extends string> = {
+type CodeParserProcessStateStackMapping<TTokenType extends string> = {
     // Parse graph.
     graphParse: {
         type: 'graphParse',
@@ -448,4 +471,4 @@ type CodeParserProcessStackMapping<TTokenType extends string> = {
     };
 };
 
-export type CodeParserProcessStackItem<TTokenType extends string> = CodeParserProcessStackMapping<TTokenType>[keyof CodeParserProcessStackMapping<TTokenType>];
+export type CodeParserProcessStateStackItem<TTokenType extends string> = CodeParserProcessStateStackMapping<TTokenType>[keyof CodeParserProcessStateStackMapping<TTokenType>];

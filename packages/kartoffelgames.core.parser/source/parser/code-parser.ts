@@ -1,11 +1,12 @@
-import { Exception, Stack } from '@kartoffelgames/core';
+import { DeepPartial, Exception, Stack } from '@kartoffelgames/core';
 import { LexerException } from '../lexer/lexer-exception.ts';
 import type { LexerToken } from '../lexer/lexer-token.ts';
 import type { Lexer } from '../lexer/lexer.ts';
 import { CodeParserException, type CodeParserErrorSymbol } from './code-parser-exception.ts';
-import { CodeParserProcessState, type CodeParserProcessCursorPosition, type CodeParserProcessStackItem } from './code-parser-process-state.ts';
+import { CodeParserProcessState, type CodeParserProcessCursorPosition, type CodeParserProcessStateStackItem } from './code-parser-process-state.ts';
 import type { GraphNode, GraphNodeConnections } from './graph/graph-node.ts';
 import type { Graph } from './graph/graph.ts';
+import { CodeParserTrace, CodeParserTraceIncident } from "./code-parser-trace.ts";
 
 /**
  * Code parser turns a text with the help of a setup lexer into a syntax tree.
@@ -34,15 +35,20 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * Constructor.
      * 
      * @param pLexer - Token lexer.
+     * @param pConfiguration - Code parser configuration object.
      */
-    public constructor(pLexer: Lexer<TTokenType>, pConfiguration?: CodeParserConfiguration) {
+    public constructor(pLexer: Lexer<TTokenType>, pConfiguration?: DeepPartial<CodeParserConfiguration>) {
         this.mLexer = pLexer;
         this.mRootPart = null;
 
         // Set configuration.
         this.mConfiguration = {
-            keepTraceIncidents: false,
-            ...pConfiguration
+            debug: {
+                analitics: pConfiguration?.debug?.analitics ?? false
+            },
+            caching: {
+                failureCache: pConfiguration?.caching?.failureCache ?? true
+            }
         };
     }
 
@@ -61,17 +67,21 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * 
      * @internal
      */
-    public parse(pCodeText: string, pProgressTracker?: CodeParserProgressTracker): TParseResult {
+    public parse(pCodeText: string, pProgressTracker?: CodeParserProgressTracker): CodeParserResult<TTokenType, TParseResult> {
         // Validate lazy parameters.
         if (this.mRootPart === null) {
             throw new Exception('Parser has not root part set.', this);
         }
 
         // Create a parser state for the code text.
-        const lParseProcessState: CodeParserProcessState<TTokenType> = new CodeParserProcessState<TTokenType>(
-            this.mLexer.tokenize(pCodeText, pProgressTracker),
-            this.mConfiguration.keepTraceIncidents
-        );
+        const lParseProcessState: CodeParserProcessState<TTokenType> = new CodeParserProcessState<TTokenType>(this.mLexer.tokenize(pCodeText, pProgressTracker), {
+            debug: {
+                analitics: this.mConfiguration.debug?.analitics
+            },
+            caching: {
+                failureCache: this.mConfiguration.caching?.failureCache
+            }
+        });
 
         // Parse root graph part.
         const lRootParseData: unknown | CodeParserErrorSymbol = (() => {
@@ -122,7 +132,20 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             throw new CodeParserException(lParseProcessState.incidentTrace);
         }
 
-        return lRootParseData as TParseResult;
+        // Create result object.
+        const lResult: CodeParserResult<TTokenType, TParseResult> = {
+            result: lRootParseData as TParseResult,
+        }
+
+        // Insert analitics object on analitics enabled.
+        if(this.mConfiguration.debug.analitics) {
+            lResult.analitics = {
+                incidents: lParseProcessState.incidentTrace.incidents,
+                graphs: {}
+            }
+        }
+
+        return lResult;
     }
 
     /**
@@ -168,7 +191,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         let lStackResult: object | CodeParserErrorSymbol = CodeParserException.PARSER_ERROR;
         while (lProcessStack.top) {
             // Process current stack process.
-            const lProcessResult: IteratorResult<CodeParserProcessStackItem<TTokenType>, unknown | CodeParserErrorSymbol> = lProcessStack.top.next(lStackResult);
+            const lProcessResult: IteratorResult<CodeParserProcessStateStackItem<TTokenType>, unknown | CodeParserErrorSymbol> = lProcessStack.top.next(lStackResult);
 
             // When its done, it can only be an error state ot the actual value.
             if (lProcessResult.done) {
@@ -232,7 +255,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             // Exit parsing without pushing a new process.
             return CodeParserException.PARSER_ERROR;
         }
-        
+
         // Prevent circular graph calls that doesnt progressed itself.
         if (pParsingProcessState.graphIsCircular(pGraph)) {
             // Read the current graph position.
@@ -398,7 +421,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * 
      * @returns The created process.
      */
-    private createProcess(pParsingProcessState: CodeParserProcessState<TTokenType>, pCurrentProcess: CodeParserProcessStackItem<TTokenType>): CodeParserProcess<TTokenType> {
+    private createProcess(pParsingProcessState: CodeParserProcessState<TTokenType>, pCurrentProcess: CodeParserProcessStateStackItem<TTokenType>): CodeParserProcess<TTokenType> {
         // Process current process
         switch (pCurrentProcess.type) {
             case 'graphParse': {
@@ -417,17 +440,37 @@ export class CodeParser<TTokenType extends string, TParseResult> {
     }
 }
 
-type CodeParserProcess<TTokenType extends string> = Generator<CodeParserProcessStackItem<TTokenType>, unknown | CodeParserErrorSymbol, object | CodeParserErrorSymbol>;
+type CodeParserProcess<TTokenType extends string> = Generator<CodeParserProcessStateStackItem<TTokenType>, unknown | CodeParserErrorSymbol, object | CodeParserErrorSymbol>;
 
 export type CodeParserProgressTracker = (pPosition: number, pLine: number, pColumn: number) => void;
 
+/**
+ * Code parser configuration object.
+ */
 export type CodeParserConfiguration = {
-    /**
-     * Keep a list of parsing incidents of every parsing branch.
-     * Uses more memory, but allows to keep track of parsing errors.
-     * More of a debugging feature.
-     * 
-     * Default: false
-     */
-    keepTraceIncidents?: boolean;
+    debug: {
+        /**
+         * Keeps a list of all parsing incidents.
+         * Outputs a analitic map of hit, missed, cached and thrown an graphs. 
+         */
+        analitics: boolean;
+    };
+    caching: {
+        /**
+         * Enablle failure caching to limits backtracking of redundant graphs.
+         */
+        failureCache: boolean;
+    };
 };
+
+export type CodeParserResult<TTokenType extends string, TParseResult> = {
+    result: TParseResult,
+    analitics?: CodeParserAnalitics<TTokenType>;
+};
+
+export type CodeParserAnalitics<TTokenType extends string> = {
+    incidents: Array<CodeParserTraceIncident<TTokenType>>;
+    // TODO: graph analitics
+    graphs: any;
+}
+

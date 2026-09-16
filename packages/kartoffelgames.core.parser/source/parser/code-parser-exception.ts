@@ -1,4 +1,5 @@
 import type { CodeParserTrace, CodeParserTraceIncident } from './code-parser-trace.ts';
+import type { CodeParserAnalitics } from './code-parser.ts';
 import type { Graph } from './graph/graph.ts';
 
 /**
@@ -8,7 +9,16 @@ import type { Graph } from './graph/graph.ts';
 export class CodeParserException<TTokenType extends string> extends Error {
     public static readonly PARSER_ERROR: unique symbol = Symbol('PARSER_ERROR');
 
+    private readonly mAnalitics: CodeParserAnalitics<TTokenType> | null;
     private readonly mTop: CodeParserTraceIncident<TTokenType>;
+
+    /**
+     * Analitic data of the failed parse process.
+     * Only set when analitics are enabled.
+     */
+    public get analitics(): CodeParserAnalitics<TTokenType> | null {
+        return this.mAnalitics;
+    }
 
     /**
      * Error column end.
@@ -47,13 +57,15 @@ export class CodeParserException<TTokenType extends string> extends Error {
 
     /**
      * Constructor.
-     * 
-     * @param pDebug - Keeps a complete list of all incidents.
+     *
+     * @param pTrace - Trace holding every incident of the failed parse process.
+     * @param pAnalitics - Analitic data of the parse process.
      */
-    public constructor(pTrace: CodeParserTrace<TTokenType>) {
+    public constructor(pTrace: CodeParserTrace<TTokenType>, pAnalitics: CodeParserAnalitics<TTokenType> | null = null) {
         super(pTrace.top.message, { cause: pTrace.top.cause });
 
         this.mTop = pTrace.top;
+        this.mAnalitics = pAnalitics;
     }
 }
 

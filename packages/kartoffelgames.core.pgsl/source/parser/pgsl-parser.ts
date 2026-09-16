@@ -104,7 +104,12 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
      * Constructor.
      */
     public constructor() {
-        super(new PgslLexer());
+        // Disable failure cache as it "shouldn't" have redundant graphs.
+        super(new PgslLexer(), {
+            caching: {
+                failureCache: false
+            }
+        });
 
         // Initialize user defined type name set.
         this.mUserDefinedTypeNames = new Set<string>();
@@ -1677,7 +1682,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
                 pUsedImports.add(lImportName);
 
                 // Parse import code.
-                const lImportDocumentCst: DocumentCst = this.internalParse(lImportCode, pEnvironmentData, pUsedImports);
+                const lImportDocumentCst: DocumentCst = this.internalParse(lImportCode, pEnvironmentData, pUsedImports).result;
 
                 // Push each declaration from imported document to current document.
                 lParsedDocument.declarations.push(...lImportDocumentCst.declarations);
@@ -1697,7 +1702,9 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
         // Clear user defined type names.
         this.mUserDefinedTypeNames = lUserDefinedNames;
 
-        return lParsedDocument;
+        return {
+            result: lParsedDocument
+        };
     }
 
     /**

@@ -62,7 +62,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
             lParser.setRootGraph(lMainGraph);
 
             // Process. Convert code.
-            const lParsedData: any = lParser.parse(lCodeText);
+            const lParsedData: any = lParser.parse(lCodeText).result;
 
             // Evaluation.
             expect(lParsedData).toHaveProperty('modifier', 'const');
@@ -82,7 +82,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
             lParser.setRootGraph(lMainGraph);
 
             // Process. Convert code.
-            const lParsedData: any = lParser.parse(lCodeText);
+            const lParsedData: any = lParser.parse(lCodeText).result;
 
             // Evaluation.
             expect(lParsedData).toHaveProperty('modifier', 'const');
@@ -102,7 +102,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
             lParser.setRootGraph(lMainGraph);
 
             // Process. Convert code.
-            const lParsedData: any = lParser.parse(lCodeText);
+            const lParsedData: any = lParser.parse(lCodeText).result;
 
             // Evaluation.
             expect(lParsedData).toHaveProperty('modifier', 'const');
@@ -125,7 +125,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
             lParser.setRootGraph(lMainGraph);
 
             // Process. Convert code.
-            const lParsedData: any = lParser.parse(lCodeText);
+            const lParsedData: any = lParser.parse(lCodeText).result;
 
             // Evaluation.
             expect(lParsedData).toHaveProperty('modifier', 'const');
@@ -171,8 +171,8 @@ Deno.test('CodeParser.parse()', async (pContext) => {
             lParser.setRootGraph(lMainGraph);
 
             // Process. Convert code.
-            const lParsedIdentifierData: any = lParser.parse(lCodeTextIdentifier);
-            const lParsedModifierData: any = lParser.parse(lCodeTextModifier);
+            const lParsedIdentifierData: any = lParser.parse(lCodeTextIdentifier).result;
+            const lParsedModifierData: any = lParser.parse(lCodeTextModifier).result;
 
             // Evaluation.
             expect(lParsedIdentifierData).toHaveProperty('data', 'notconst');
@@ -195,8 +195,8 @@ Deno.test('CodeParser.parse()', async (pContext) => {
             lParser.setRootGraph(lMainGraph);
 
             // Process. Convert code.
-            const lParsedIdentifierData: any = lParser.parse(lCodeTextIdentifier);
-            const lParsedNumberData: any = lParser.parse(lCodeTextNumber);
+            const lParsedIdentifierData: any = lParser.parse(lCodeTextIdentifier).result;
+            const lParsedNumberData: any = lParser.parse(lCodeTextNumber).result;
 
             // Evaluation.
             expect(lParsedNumberData).toHaveProperty('data');
@@ -219,7 +219,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
             lParser.setRootGraph(lMainGraph);
 
             // Process. Convert code.
-            const lParsedData: any = lParser.parse(lCodeText);
+            const lParsedData: any = lParser.parse(lCodeText).result;
 
             // Evaluation.
             expect(lParsedData).toHaveProperty('data');
@@ -240,7 +240,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
             lParser.setRootGraph(lMainGraph);
 
             // Process. Convert code.
-            const lParsedData: any = lParser.parse(lCodeText);
+            const lParsedData: any = lParser.parse(lCodeText).result;
 
             // Evaluation.
             expect(lParsedData).toHaveProperty('data');
@@ -261,7 +261,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
             lParser.setRootGraph(lMainGraph);
 
             // Process. Convert code.
-            const lParsedData: any = lParser.parse(lCodeText);
+            const lParsedData: any = lParser.parse(lCodeText).result;
 
             // Evaluation.
             expect(lParsedData).toBeDeepEqual({});
@@ -282,7 +282,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
             lParser.setRootGraph(lMainGraph);
 
             // Process. Convert code.
-            const lParsedData: any = lParser.parse(lCodeText);
+            const lParsedData: any = lParser.parse(lCodeText).result;
 
             // Evaluation.
             expect(lParsedData).toHaveProperty('data');
@@ -305,7 +305,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
             lParser.setRootGraph(lMainGraph);
 
             // Process. Convert code.
-            const lParsedData: any = lParser.parse(lCodeText);
+            const lParsedData: any = lParser.parse(lCodeText).result;
 
             // Evaluation.
             expect(lParsedData).toHaveProperty('data');
@@ -328,7 +328,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
             lParser.setRootGraph(lMainGraph);
 
             // Process. Convert code.
-            const lParsedData: any = lParser.parse(lCodeText);
+            const lParsedData: any = lParser.parse(lCodeText).result;
 
             // Evaluation.
             expect(lParsedData).toHaveProperty('first', 'one');
@@ -353,7 +353,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
             lParser.setRootGraph(lMainGraph);
 
             // Process. Convert code.
-            const lParsedData: any = lParser.parse(lCodeText);
+            const lParsedData: any = lParser.parse(lCodeText).result;
 
             // Evaluation.
             expect(lParsedData).not.toHaveProperty('loop');
@@ -375,7 +375,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
             lParser.setRootGraph(lMainGraph);
 
             // Process. Convert code.
-            const lParsedData: any = lParser.parse(lCodeTextList.join(' '));
+            const lParsedData: any = lParser.parse(lCodeTextList.join(' ')).result;
 
             // Evaluation.
             expect(lParsedData).toHaveProperty('loop');
@@ -395,7 +395,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
             lParser.setRootGraph(lMainGraph);
 
             // Process. Convert code.
-            const lParsedData: any = lParser.parse(lCodeText);
+            const lParsedData: any = lParser.parse(lCodeText).result;
 
             // Evaluation.
             expect(lParsedData).toBeDeepEqual({
@@ -416,7 +416,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
             lParser.setRootGraph(lMainGraph);
 
             // Process. Convert code.
-            const lParsedData: any = lParser.parse(lCodeText);
+            const lParsedData: any = lParser.parse(lCodeText).result;
 
             // Evaluation.
             expect(lParsedData).toBeDeepEqual({
@@ -447,7 +447,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
             lParser.setRootGraph(lMainGraph);
 
             // Process. Convert code.
-            const lResult = lParser.parse(lCodeText);
+            const lResult = lParser.parse(lCodeText).result;
 
             // Evaluation. Loop chain twice as long as actual loop.
             expect(lResult).toHaveProperty('part', lCodeText);
@@ -518,7 +518,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
             lParser.setRootGraph(lMainGraph);
 
             // Process. Convert code.
-            const lResult = lParser.parse(lCodeText);
+            const lResult = lParser.parse(lCodeText).result;
 
             // Evaluation. Loop chain twice as long as actual loop.
             expect(lResult).toHaveProperty('modifier');
@@ -580,7 +580,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
             lParser.setRootGraph(lMainGraph);
 
             // Process. Convert code.
-            const lResult = lParser.parse(lCodeText);
+            const lResult = lParser.parse(lCodeText).result;
 
             // Evaluation. Loop chain twice as long as actual loop.
             expect(lResult).toBeDeepEqual({
@@ -842,7 +842,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
             lParser.setRootGraph(lMainGraph);
 
             // Process.
-            const lResult = lParser.parse(lCodeText);
+            const lResult = lParser.parse(lCodeText).result;
 
             // Evaluation.
             expect(lResult).toBeDeepEqual({
@@ -952,7 +952,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
             lParser.setRootGraph(lMainGraph);
 
             // Process
-            const lResult: any = lParser.parse('const');
+            const lResult: any = lParser.parse('const').result;
 
             // Evaluation.
             expect(lResult).toBeDeepEqual({ type: 'const', list: { innerList: [] } });
@@ -986,7 +986,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
             lParser.setRootGraph(lExpressionGraph);
 
             // Process
-            const lResult: any = lParser.parse('a + b - c');
+            const lResult: any = lParser.parse('a + b - c').result;
 
             // Evaluation.
             expect(lResult).toBeDeepEqual({
@@ -1042,7 +1042,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
             lParser.setRootGraph(lExpressionGraph);
 
             // Process
-            const lResult: any = lParser.parse('a + b - c');
+            const lResult: any = lParser.parse('a + b - c').result;
 
             // Evaluation.
             expect(lResult).toBeDeepEqual({
@@ -1106,7 +1106,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
             lParser.setRootGraph(lExpressionGraph);
 
             // Process
-            const lResult: any = lParser.parse('a + b - c');
+            const lResult: any = lParser.parse('a + b - c').result;
 
             // Evaluation.
             expect(lResult).toEqual({
@@ -1848,7 +1848,8 @@ Deno.test('CodeParser.constructor()', async (pContext) => {
 
         const lException = (() => { try { lErrorFunction(); } catch (e) { return e; } return null; })() as CodeParserException<string>;
         expect(lException).toBeInstanceOf(CodeParserException);
-        expect(lException.incidents).toHaveLength(2);
+        expect(lException.analitics).not.toBeNull();
+        expect(lException.analitics!.incidents).toHaveLength(2);
     });
 
     await pContext.step('Omit trace list in the exception when debugMode is false', () => {
@@ -1870,7 +1871,7 @@ Deno.test('CodeParser.constructor()', async (pContext) => {
 
         const lException = (() => { try { lErrorFunction(); } catch (e) { return e; } return null; })() as CodeParserException<string>;
         expect(lException).toBeInstanceOf(CodeParserException);
-        expect(() => lException.incidents).toThrow('A complete incident list is only available on debug mode.');
+        expect(lException.analitics).toBeNull();
     });
 
     await pContext.step('Accurate token positions on a nested graph', () => {
@@ -1994,7 +1995,7 @@ Deno.test('CodeParser--Functionality: Type checking', async (pContext) => {
         lParser.setRootGraph(lGraph);
 
         // Process
-        const lData = lParser.parse(lCodeText.join(' '));
+        const lData = lParser.parse(lCodeText.join(' ')).result;
 
         // Evaluation
         ({} as ExtractGraphResultType<typeof lGraph>) satisfies { node: string; };
@@ -2013,7 +2014,7 @@ Deno.test('CodeParser--Functionality: Type checking', async (pContext) => {
         lParser.setRootGraph(lGraph);
 
         // Process
-        const lData = lParser.parse(lCodeText.join(' '));
+        const lData = lParser.parse(lCodeText.join(' ')).result;
 
         // Evaluation
         ({} as ExtractGraphResultType<typeof lGraph>) satisfies { node: Array<string>; };
@@ -2034,7 +2035,7 @@ Deno.test('CodeParser--Functionality: Type checking', async (pContext) => {
         lParser.setRootGraph(lGraph);
 
         // Process
-        const lData = lParser.parse(lCodeText.join(' '));
+        const lData = lParser.parse(lCodeText.join(' ')).result;
 
         // Evaluation
         ({} as ExtractGraphResultType<typeof lGraph>) satisfies { node: string; };
@@ -2055,7 +2056,7 @@ Deno.test('CodeParser--Functionality: Type checking', async (pContext) => {
         lParser.setRootGraph(lGraph);
 
         // Process
-        const lData = lParser.parse(lCodeText.join(' '));
+        const lData = lParser.parse(lCodeText.join(' ')).result;
 
         // Evaluation
         ({} as ExtractGraphResultType<typeof lGraph>) satisfies { node: Array<string>; };
@@ -2076,7 +2077,7 @@ Deno.test('CodeParser--Functionality: Type checking', async (pContext) => {
         lParser.setRootGraph(lGraph);
 
         // Process
-        const lData = lParser.parse(lCodeText.join(' '));
+        const lData = lParser.parse(lCodeText.join(' ')).result;
 
         // Evaluation
         ({} as ExtractGraphResultType<typeof lGraph>) satisfies { node: Array<string>; };
@@ -2095,7 +2096,7 @@ Deno.test('CodeParser--Functionality: Type checking', async (pContext) => {
         lParser.setRootGraph(lGraph);
 
         // Process
-        const lData = lParser.parse(lCodeText.join(' '));
+        const lData = lParser.parse(lCodeText.join(' ')).result;
 
         // Evaluation
         ({} as ExtractGraphResultType<typeof lGraph>) satisfies { node?: string; };
@@ -2114,7 +2115,7 @@ Deno.test('CodeParser--Functionality: Type checking', async (pContext) => {
         lParser.setRootGraph(lGraph);
 
         // Process
-        const lData = lParser.parse(lCodeText.join(' '));
+        const lData = lParser.parse(lCodeText.join(' ')).result;
 
         // Evaluation
         ({} as ExtractGraphResultType<typeof lGraph>) satisfies { node?: string; };
@@ -2133,7 +2134,7 @@ Deno.test('CodeParser--Functionality: Type checking', async (pContext) => {
         lParser.setRootGraph(lGraph);
 
         // Process
-        const lData = lParser.parse(lCodeText.join(' '));
+        const lData = lParser.parse(lCodeText.join(' ')).result;
 
         // Evaluation
         ({} as ExtractGraphResultType<typeof lGraph>) satisfies { node: Array<string>; };
@@ -2152,7 +2153,7 @@ Deno.test('CodeParser--Functionality: Type checking', async (pContext) => {
         lParser.setRootGraph(lGraph);
 
         // Process
-        const lData = lParser.parse(lCodeText.join(' '));
+        const lData = lParser.parse(lCodeText.join(' ')).result;
 
         // Evaluation
         ({} as ExtractGraphResultType<typeof lGraph>) satisfies { node: Array<string>; };
@@ -2173,7 +2174,7 @@ Deno.test('CodeParser--Functionality: Type checking', async (pContext) => {
         lParser.setRootGraph(lGraph);
 
         // Process
-        const lData = lParser.parse(lCodeText.join(' '));
+        const lData = lParser.parse(lCodeText.join(' ')).result;
 
         // Evaluation
         ({} as ExtractGraphResultType<typeof lGraph>) satisfies { node?: string; };
@@ -2194,7 +2195,7 @@ Deno.test('CodeParser--Functionality: Type checking', async (pContext) => {
         lParser.setRootGraph(lGraph);
 
         // Process
-        const lData = lParser.parse(lCodeText.join(' '));
+        const lData = lParser.parse(lCodeText.join(' ')).result;
 
         // Evaluation
         ({} as ExtractGraphResultType<typeof lGraph>) satisfies { node?: string; };
@@ -2215,7 +2216,7 @@ Deno.test('CodeParser--Functionality: Type checking', async (pContext) => {
         lParser.setRootGraph(lGraph);
 
         // Process
-        const lData = lParser.parse(lCodeText.join(' '));
+        const lData = lParser.parse(lCodeText.join(' ')).result;
 
         // Evaluation
         ({} as ExtractGraphResultType<typeof lGraph>) satisfies { node?: Array<string>; };
@@ -2236,7 +2237,7 @@ Deno.test('CodeParser--Functionality: Type checking', async (pContext) => {
         lParser.setRootGraph(lGraph);
 
         // Process
-        const lData = lParser.parse(lCodeText.join(' '));
+        const lData = lParser.parse(lCodeText.join(' ')).result;
 
         // Evaluation
         ({} as ExtractGraphResultType<typeof lGraph>) satisfies { node?: Array<string>; };
@@ -2257,7 +2258,7 @@ Deno.test('CodeParser--Functionality: Type checking', async (pContext) => {
         lParser.setRootGraph(lGraph);
 
         // Process
-        const lData = lParser.parse(lCodeText.join(' '));
+        const lData = lParser.parse(lCodeText.join(' ')).result;
 
         // Evaluation
         ({} as ExtractGraphResultType<typeof lGraph>) satisfies { node: Array<string>; };
@@ -2278,10 +2279,256 @@ Deno.test('CodeParser--Functionality: Type checking', async (pContext) => {
         lParser.setRootGraph(lGraph);
 
         // Process
-        const lData = lParser.parse(lCodeText.join(' '));
+        const lData = lParser.parse(lCodeText.join(' ')).result;
 
         // Evaluation
         ({} as ExtractGraphResultType<typeof lGraph>) satisfies { node: Array<string>; };
         expect(lData).toEqual({ node: [lCodeText[0]] });
+    });
+});
+
+Deno.test('CodeParserConfiguration.debug.analitics', async (pContext) => {
+    await pContext.step('Absent when disabled', () => {
+        // Setup.
+        const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
+        const lGraph = Graph.define(() => {
+            return GraphNode.new<TokenType>().required('name', TokenType.Identifier);
+        });
+        lParser.setRootGraph(lGraph);
+
+        // Process.
+        const lResult = lParser.parse('identifier');
+
+        // Evaluation.
+        expect(lResult.analitics).toBeUndefined();
+    });
+
+    await pContext.step('Counts a hit and a miss of every graph', () => {
+        // Setup. A branch that fails, followed by one that succeeds.
+        const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer(), {
+            debug: { analitics: true }
+        });
+        const lNameGraph = Graph.define(() => {
+            return GraphNode.new<TokenType>().required('name', TokenType.Identifier);
+        });
+        const lRootGraph = Graph.define(() => {
+            return GraphNode.new<TokenType>().required('branch', [
+                GraphNode.new<TokenType>().required('value', lNameGraph).required(TokenType.Assignment),
+                GraphNode.new<TokenType>().required('value', lNameGraph).required(TokenType.Semicolon)
+            ]);
+        });
+        lParser.setRootGraph(lRootGraph);
+
+        // Process.
+        const lAnalitics = lParser.parse('identifier;').analitics!;
+
+        // Evaluation. The name graph was parsed once per branch, and both times successfully.
+        const lNameAnalitics = lAnalitics.graphs.get(lNameGraph as Graph<TokenType>)!;
+        expect(lNameAnalitics.hit).toBe(2);
+        expect(lNameAnalitics.missed).toBe(0);
+
+        // Evaluation. Both parses happened on the same token, so one of them was discarded.
+        expect(lNameAnalitics.usedToken.size).toBe(1);
+        expect(lNameAnalitics.succeededToken.size).toBe(1);
+        expect(lNameAnalitics.consumedTokenCount).toBe(2);
+        expect(lNameAnalitics.maxStackDepth).toBe(3);
+
+        // Evaluation. The root graph itself was parsed once, at the bottom of the stack.
+        const lRootAnalitics = lAnalitics.graphs.get(lRootGraph as Graph<TokenType>)!;
+        expect(lRootAnalitics.hit).toBe(1);
+        expect(lRootAnalitics.missed).toBe(0);
+        expect(lRootAnalitics.maxStackDepth).toBe(1);
+    });
+
+    await pContext.step('Collects the token a graph was entered on', () => {
+        // Setup. A trailing optional graph is attempted after the last token was read.
+        const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer(), {
+            debug: { analitics: true }
+        });
+        const lTrailingGraph = Graph.define(() => {
+            return GraphNode.new<TokenType>().required('tail', TokenType.Semicolon);
+        });
+        const lRootGraph = Graph.define(() => {
+            return GraphNode.new<TokenType>().required('name', TokenType.Identifier).optional('tail', lTrailingGraph);
+        });
+        lParser.setRootGraph(lRootGraph);
+
+        // Process.
+        const lAnalitics = lParser.parse('identifier').analitics!;
+
+        // Evaluation. The root graph was entered on the only token.
+        const lRootToken = [...lAnalitics.graphs.get(lRootGraph as Graph<TokenType>)!.usedToken][0];
+        expect(lRootToken).not.toBeNull();
+        expect(lRootToken!.value).toBe('identifier');
+        expect(lRootToken!.lineNumber).toBe(1);
+        expect(lRootToken!.columnNumber).toBe(1);
+
+        // Evaluation. The trailing graph was entered after the last token, so it has no token.
+        const lTrailingToken = [...lAnalitics.graphs.get(lTrailingGraph as Graph<TokenType>)!.usedToken][0];
+        expect(lTrailingToken).toBeNull();
+    });
+
+    await pContext.step('Counts a cached failure', () => {
+        // Setup. A graph that fails, retried by a second branch on the same token.
+        const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer(), {
+            debug: { analitics: true },
+            caching: { failureCache: true }
+        });
+        const lFailingGraph = Graph.define(() => {
+            return GraphNode.new<TokenType>().required(TokenType.Identifier).required(TokenType.Assignment);
+        });
+        const lRootGraph = Graph.define(() => {
+            return GraphNode.new<TokenType>().required('branch', [
+                GraphNode.new<TokenType>().required('value', lFailingGraph).required(TokenType.Semicolon),
+                GraphNode.new<TokenType>().required('value', lFailingGraph).required(TokenType.TypeDelimiter),
+                GraphNode.new<TokenType>().required(TokenType.Identifier).required(TokenType.Semicolon)
+            ]);
+        });
+        lParser.setRootGraph(lRootGraph);
+
+        // Process.
+        const lAnalitics = lParser.parse('identifier;').analitics!;
+
+        // Evaluation. Entered once, and the second branch was spared by the cache.
+        const lFailingAnalitics = lAnalitics.graphs.get(lFailingGraph as Graph<TokenType>)!;
+        expect(lFailingAnalitics.missed).toBe(1);
+        expect(lFailingAnalitics.cached).toBe(1);
+    });
+
+    await pContext.step('Counts a rejected data converter', () => {
+        // Setup. A data converter that rejects its data by returning a symbol.
+        const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer(), {
+            debug: { analitics: true }
+        });
+        const lGraph = Graph.define(() => {
+            return GraphNode.new<TokenType>().required('name', TokenType.Identifier);
+        }).converter((): { name: string; } | symbol => {
+            return Symbol('Converter rejects.');
+        });
+        lParser.setRootGraph(lGraph);
+
+        // Process.
+        const lException = (() => { try { lParser.parse('identifier'); } catch (e) { return e; } return null; })() as CodeParserException<TokenType>;
+
+        // Evaluation. A rejected converter is a miss of its own kind.
+        expect(lException).toBeInstanceOf(CodeParserException);
+
+        const lGraphAnalitics = lException.analitics!.graphs.get(lGraph as Graph<TokenType>)!;
+        expect(lGraphAnalitics.thrown).toBe(1);
+        expect(lGraphAnalitics.missed).toBe(1);
+        expect(lGraphAnalitics.hit).toBe(0);
+    });
+
+    await pContext.step('Does not count a thrown error as a rejected data converter', () => {
+        // Setup. An error thrown by the graph definition, not by a data converter.
+        const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer(), {
+            debug: { analitics: true }
+        });
+        const lGraph = Graph.define(() => {
+            return GraphNode.new<TokenType>().required('name', TokenType.Identifier).required('name', TokenType.Identifier);
+        });
+        lParser.setRootGraph(lGraph);
+
+        // Process.
+        const lException = (() => { try { lParser.parse('one two'); } catch (e) { return e; } return null; })() as CodeParserException<TokenType>;
+
+        // Evaluation. The error aborts the parse, so it is reported as an incident and counted nowhere.
+        expect(lException).toBeInstanceOf(CodeParserException);
+        expect(lException.message).toContain('duplicate value identifier');
+
+        let lThrown: number = 0;
+        for (const lGraphAnalitics of lException.analitics!.graphs.values()) {
+            lThrown += lGraphAnalitics.thrown;
+        }
+        expect(lThrown).toBe(0);
+    });
+
+    await pContext.step('Counts a circular graph rejection', () => {
+        // Setup. Two graphs referencing each other without consuming a token.
+        const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer(), {
+            debug: { analitics: true }
+        });
+        const lLevel1Graph = Graph.define(() => {
+            const lLevel2GraphReference: Graph<TokenType, any> = lLevel2Graph;
+            return GraphNode.new<TokenType>().optional(TokenType.Modifier).required(lLevel2GraphReference);
+        });
+        const lLevel2Graph = Graph.define(() => {
+            return GraphNode.new<TokenType>().optional(TokenType.Modifier).required(lLevel1Graph);
+        });
+        lParser.setRootGraph(lLevel1Graph);
+
+        // Process.
+        const lException = (() => { try { lParser.parse('identifier'); } catch (e) { return e; } return null; })() as CodeParserException<TokenType>;
+
+        // Evaluation. A circular rejection is counted on its own, not as a miss.
+        expect(lException).toBeInstanceOf(CodeParserException);
+        expect(lException.analitics!.graphs.get(lLevel1Graph as Graph<TokenType>)!.circular).toBeGreaterThan(0);
+    });
+});
+
+Deno.test('CodeParserConfiguration.caching.failureCache', async (pContext) => {
+    /**
+     * Build a parser over a grammar that retries a failing graph on the same token.
+     *
+     * @param pFailureCache - Enables the failure cache.
+     * @param pDefaultConfiguration - Omits the caching configuration completely.
+     *
+     * @returns Parser and the graph that always fails.
+     */
+    const lCreateParser = (pFailureCache: boolean, pDefaultConfiguration: boolean = false) => {
+        const lFailingGraph = Graph.define(() => {
+            return GraphNode.new<TokenType>().required(TokenType.Identifier).required(TokenType.Assignment);
+        });
+        const lRootGraph = Graph.define(() => {
+            return GraphNode.new<TokenType>().required('branch', [
+                GraphNode.new<TokenType>().required('value', lFailingGraph).required(TokenType.Semicolon),
+                GraphNode.new<TokenType>().required('value', lFailingGraph).required(TokenType.TypeDelimiter),
+                GraphNode.new<TokenType>().required('name', TokenType.Identifier).required(TokenType.Semicolon)
+            ]);
+        });
+
+        const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer(), pDefaultConfiguration
+            ? { debug: { analitics: true } }
+            : { debug: { analitics: true }, caching: { failureCache: pFailureCache } });
+        lParser.setRootGraph(lRootGraph);
+
+        return { parser: lParser, failingGraph: lFailingGraph };
+    };
+
+    await pContext.step('Enabled by default', () => {
+        // Setup.
+        const lSetup = lCreateParser(false, true);
+
+        // Process.
+        const lAnalitics = lSetup.parser.parse('identifier;').analitics!;
+
+        // Evaluation.
+        expect(lAnalitics.graphs.get(lSetup.failingGraph as Graph<TokenType>)!.cached).toBe(1);
+    });
+
+    await pContext.step('Retries the failed graph when disabled', () => {
+        // Setup.
+        const lSetup = lCreateParser(false);
+
+        // Process.
+        const lAnalitics = lSetup.parser.parse('identifier;').analitics!;
+
+        // Evaluation. Nothing is spared, so the graph is entered a second time.
+        const lFailingAnalitics = lAnalitics.graphs.get(lSetup.failingGraph as Graph<TokenType>)!;
+        expect(lFailingAnalitics.missed).toBe(2);
+        expect(lFailingAnalitics.cached).toBe(0);
+    });
+
+    await pContext.step('Parses the same result either way', () => {
+        // Setup.
+        const lEnabled = lCreateParser(true);
+        const lDisabled = lCreateParser(false);
+
+        // Process.
+        const lEnabledResult = lEnabled.parser.parse('identifier;').result;
+        const lDisabledResult = lDisabled.parser.parse('identifier;').result;
+
+        // Evaluation.
+        expect(lDisabledResult).toBeDeepEqual(lEnabledResult);
     });
 });

@@ -9,11 +9,20 @@ export class CodeParserProcessState<TTokenType extends string> {
 
     private readonly mConfiguration: CodeParserProcessStateConfiguration;
     private mCurrentGraph: CodeParserProcessStateCursorGraph<TTokenType>;
+    private readonly mGraphAnalitics: Map<Graph<TTokenType>, CodeParserProcessStateGraphAnalitics<TTokenType>>;
     private readonly mGraphFailureCache: Map<Graph<TTokenType>, Set<number>>;
     private readonly mIncidentTrace: CodeParserTrace<TTokenType>;
     private readonly mLastTokenPosition: CodeParserProcessStateCursorPosition;
     private readonly mTokenCache: Array<LexerToken<TTokenType> | null>;
     private readonly mTokenGenerator: Generator<LexerToken<TTokenType>, any, any>;
+
+    /**
+     * get the analitics data for each graph used in the parsing process.
+     * Is empty when analitics are disabled.
+     */
+    public get graphAnalitics(): Map<Graph<TTokenType>, CodeParserProcessStateGraphAnalitics<TTokenType>> {
+        return this.mGraphAnalitics;
+    }
 
     /**
      * Get the current graph the cursor is in.
@@ -68,6 +77,7 @@ export class CodeParserProcessState<TTokenType extends string> {
         // Create trace objects.
         this.mIncidentTrace = new CodeParserTrace<TTokenType>(this.mConfiguration.debug.analitics);
         this.mGraphFailureCache = new Map<Graph<TTokenType>, Set<number>>();
+        this.mGraphAnalitics = new Map<Graph<TTokenType>, CodeParserProcessStateGraphAnalitics<TTokenType>>();
 
         // Start with a placeholder root graph.
         this.mCurrentGraph = {
@@ -287,18 +297,28 @@ export class CodeParserProcessState<TTokenType extends string> {
             return false;
         }
 
-        // Graph is circular.
+        // On enabled analitics, count as circular.
+        if (!this.mConfiguration.debug.analitics) {
+            this.graphAnaliticsOf(pGraph).circular++
+        }
+
         return true;
     }
 
     /**
      * Checks if the graph has ever failed on the same token.
+     * Always false when the failure cache is disabled.
      *
      * @param pGraph - The graph node to check for the current token.
      *
      * @returns `true` when the graph has already failed on the current token, otherwise `false`.
      */
     public isKnownGraphFailure(pGraph: Graph<TTokenType>): boolean {
+        // Without the failure cache a graph fail is never cached.
+        if (!this.mConfiguration.caching.failureCache) {
+            return false;
+        }
+
         // Read every token the graph has failed on.
         const lFailedTokenIndices: Set<number> | undefined = this.mGraphFailureCache.get(pGraph);
         if (!lFailedTokenIndices) {
@@ -306,7 +326,16 @@ export class CodeParserProcessState<TTokenType extends string> {
         }
 
         // A graph is always entered on the cursor of its parent graph.
-        return lFailedTokenIndices.has(this.mCurrentGraph.token.cursor);
+        if (!lFailedTokenIndices.has(this.mCurrentGraph.token.cursor)) {
+            return false;
+        }
+
+        // On enabled analitics, count as cached.
+        if (!this.mConfiguration.debug.analitics) {
+            this.graphAnaliticsOf(pGraph).cached++
+        }
+
+        return true;
     }
 
     /**
@@ -346,25 +375,48 @@ export class CodeParserProcessState<TTokenType extends string> {
 
     /**
      * Pops the current graph from the graph stack and updates the parent graph stack accordingly.
-     * 
-     * @param pFailed - A boolean indicating whether the current graph failed with an error.
+     *
+     * @param pReason - Why the graph is popped from the stack.
      */
-    public popGraphStack(pFailed: boolean): void {
+    public popGraphStack(pReason: CodeParserProcessStateGraphStackPopReason): void {
         // Set parent graph as current. (pop stack).
         const lCurrentTokenStack: CodeParserProcessStateCursorGraph<TTokenType> = this.mCurrentGraph;
         this.mCurrentGraph = lCurrentTokenStack.parent!;
 
+        const lFailed: boolean = pReason !== 'success';
+
         // Revert current stack index when the graph failed with an error.
-        if (pFailed) {
+        if (lFailed) {
             lCurrentTokenStack.token.cursor = lCurrentTokenStack.token.start;
 
-            // Create a new token index list for any graph that has not failed yet.
-            if (!this.mGraphFailureCache!.has(lCurrentTokenStack.graph!)) {
-                this.mGraphFailureCache!.set(lCurrentTokenStack.graph!, new Set<number>());
-            }
+            // Remember the failed token so the graph is not retried on it.
+            if (this.mConfiguration.caching.failureCache) {
+                // Create a new token index list for any graph that has not failed yet.
+                if (!this.mGraphFailureCache!.has(lCurrentTokenStack.graph!)) {
+                    this.mGraphFailureCache!.set(lCurrentTokenStack.graph!, new Set<number>());
+                }
 
-            // Save index of the failed token.
-            this.mGraphFailureCache!.get(lCurrentTokenStack.graph!)!.add(lCurrentTokenStack.token.start);
+                // Save index of the failed token.
+                this.mGraphFailureCache!.get(lCurrentTokenStack.graph!)!.add(lCurrentTokenStack.token.start);
+            }
+        }
+
+        // Add the graph result to analitics when enabled.
+        if (this.mConfiguration.debug.analitics) {
+            const lAnalitics: CodeParserProcessStateGraphAnalitics<TTokenType> = this.graphAnaliticsOf(lCurrentTokenStack.graph!);
+
+            if (lFailed) {
+                lAnalitics.missed++;
+
+                // A graph with a rejected data converter did match, but still thrown.
+                if (pReason === 'converterFailure') {
+                    lAnalitics.thrown++;
+                }
+            } else {
+                lAnalitics.hit++;
+                lAnalitics.consumedTokenCount += lCurrentTokenStack.token.cursor - lCurrentTokenStack.token.start;
+                lAnalitics.succeededToken.add(this.mTokenCache[lCurrentTokenStack.token.start] ?? null);
+            }
         }
 
         // Move parent stack index to the last graphs stack index.
@@ -373,7 +425,7 @@ export class CodeParserProcessState<TTokenType extends string> {
 
     /**
      * Pushes a new graph onto the graph stack and manages the token stack.
-     * 
+     *
      * @param pGraph - The graph to be pushed onto the stack.
      *
      * @template TGraph - The type of the graph.
@@ -391,8 +443,110 @@ export class CodeParserProcessState<TTokenType extends string> {
                 cursor: lLastGraphStack.token.cursor
             }
         };
+
+        // Collect where and how deep the graph was entered.
+        if (this.mConfiguration.debug.analitics) {
+            const lAnalitics: CodeParserProcessStateGraphAnalitics<TTokenType> = this.graphAnaliticsOf(pGraph);
+
+            lAnalitics.usedToken.add(this.mTokenCache[lLastGraphStack.token.cursor] ?? null);
+
+            // Count current stack depth.
+            const lStackDepth: number = (() => {
+                let lStackDepth: number = 0;
+
+                // The root of the stack is a placeholder, so it doesnt need to be counted.
+                let lGraphStack: CodeParserProcessStateCursorGraph<TTokenType> = this.mCurrentGraph;
+                while (lGraphStack.parent !== null) {
+                    lStackDepth++;
+                    lGraphStack = lGraphStack.parent;
+                }
+
+                return lStackDepth;
+            })();
+
+            // Update the depth analitic when its a new max.
+            if (lStackDepth > lAnalitics.maxStackDepth) {
+                lAnalitics.maxStackDepth = lStackDepth;
+            }
+        }
+    }
+
+    /**
+     * Reads the analitic data of a graph and creates an empty one when the graph analitics data was not initialized.
+     *
+     * @param pGraph - Graph.
+     *
+     * @returns The analitic data of the graph.
+     */
+    private graphAnaliticsOf(pGraph: Graph<TTokenType>): CodeParserProcessStateGraphAnalitics<TTokenType> {
+        // Initialize new analitics.
+        if (!this.mGraphAnalitics.has(pGraph)) {
+            this.mGraphAnalitics.set(pGraph, {
+                hit: 0, missed: 0, cached: 0, thrown: 0, circular: 0, consumedTokenCount: 0, maxStackDepth: 0,
+                usedToken: new Set<LexerToken<TTokenType> | null>(),
+                succeededToken: new Set<LexerToken<TTokenType> | null>()
+            });
+        }
+
+        return this.mGraphAnalitics.get(pGraph)!;
     }
 }
+
+/**
+ * Analitic data collected for a graph for a single parsing process.
+ */
+export type CodeParserProcessStateGraphAnalitics<TTokenType extends string> = {
+    /**
+     * How many times the graph was parsed successfully.
+     */
+    hit: number;
+
+    /**
+     * How many times the graph failed to parse.
+     */
+    missed: number;
+
+    /**
+     * How many times the graph was skipped because it was cached.
+     * Always zero when the failure cache is disabled.
+     */
+    cached: number;
+
+    /**
+     * How many times a graph parsed successfully but the data converter rejected it.
+     */
+    thrown: number;
+
+    /**
+     * Counter of how many times the graph was rejected as a circular.
+     */
+    circular: number;
+
+    /**
+     * Token count the graph consumed over all successful parses.
+     */
+    consumedTokenCount: number;
+
+    /**
+     * Deepest graph stack depth the graph was entered on.
+     */
+    maxStackDepth: number;
+
+    /**
+     * Every token the graph was entered or Null when the graph entered after the last token.
+     */
+    usedToken: Set<LexerToken<TTokenType> | null>;
+
+    /**
+     * Every token the graph was parsed successfully or when the graph entered after the last token.
+     */
+    succeededToken: Set<LexerToken<TTokenType> | null>;
+};
+
+/**
+ * Type of why a graph was poped from stack.
+ */
+export type CodeParserProcessStateGraphStackPopReason = 'success' | 'failure' | 'converterFailure';
 
 /**
  * Code parser configuration object.

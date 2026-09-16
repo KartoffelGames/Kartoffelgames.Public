@@ -3,10 +3,10 @@ import { LexerException } from '../lexer/lexer-exception.ts';
 import type { LexerToken } from '../lexer/lexer-token.ts';
 import type { Lexer } from '../lexer/lexer.ts';
 import { CodeParserException, type CodeParserErrorSymbol } from './code-parser-exception.ts';
-import { CodeParserProcessState, type CodeParserProcessCursorPosition, type CodeParserProcessStateStackItem } from './code-parser-process-state.ts';
+import { CodeParserProcessState, type CodeParserProcessCursorPosition, type CodeParserProcessStateGraphAnalitics, type CodeParserProcessStateStackItem } from './code-parser-process-state.ts';
+import { CodeParserTraceIncident } from "./code-parser-trace.ts";
 import type { GraphNode, GraphNodeConnections } from './graph/graph-node.ts';
 import type { Graph } from './graph/graph.ts';
-import { CodeParserTrace, CodeParserTraceIncident } from "./code-parser-trace.ts";
 
 /**
  * Code parser turns a text with the help of a setup lexer into a syntax tree.
@@ -99,7 +99,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                 // Read error message from error object. Default to toString.
                 const lErrorMessage: string = pError instanceof Error ? pError.message : (<any>pError).toString();
 
-                // Read current graph position, as errors can only be thrown in the data converter functions.
+                // Read the position the error was thrown on.
                 const lCursorPosition: CodeParserProcessCursorPosition<TTokenType> = lParseProcessState.getGraphPosition();
 
                 // Add error as trace incident and return an error.
@@ -110,7 +110,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
 
         // Or throw a normal parser exception when it was handled.
         if (lRootParseData === CodeParserException.PARSER_ERROR) {
-            throw new CodeParserException(lParseProcessState.incidentTrace);
+            throw new CodeParserException(lParseProcessState.incidentTrace, this.createAnalitics(lParseProcessState));
         }
 
         // Convert parse data of null into index 0 token index. Null means no token was processed.
@@ -129,20 +129,18 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             }
 
             // Throw error with pushed incident.
-            throw new CodeParserException(lParseProcessState.incidentTrace);
+            throw new CodeParserException(lParseProcessState.incidentTrace, this.createAnalitics(lParseProcessState));
         }
 
         // Create result object.
         const lResult: CodeParserResult<TTokenType, TParseResult> = {
             result: lRootParseData as TParseResult,
-        }
+        };
 
         // Insert analitics object on analitics enabled.
-        if(this.mConfiguration.debug.analitics) {
-            lResult.analitics = {
-                incidents: lParseProcessState.incidentTrace.incidents,
-                graphs: {}
-            }
+        const lAnalitics: CodeParserAnalitics<TTokenType> | null = this.createAnalitics(lParseProcessState);
+        if (lAnalitics) {
+            lResult.analitics = lAnalitics;
         }
 
         return lResult;
@@ -160,6 +158,24 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      */
     public setRootGraph(pGraph: Graph<TTokenType, any, TParseResult>): void {
         this.mRootPart = pGraph;
+    }
+
+    /**
+     * Creates analitic data when analitics are enabled.
+     *
+     * @param pParsingProcessState - Parse process state.
+     *
+     * @returns The analitic data or null when analitics are disabled.
+     */
+    private createAnalitics(pParsingProcessState: CodeParserProcessState<TTokenType>): CodeParserAnalitics<TTokenType> | null {
+        if (!this.mConfiguration.debug.analitics) {
+            return null;
+        }
+
+        return {
+            incidents: pParsingProcessState.incidentTrace.incidents,
+            graphs: pParsingProcessState.graphAnalitics
+        };
     }
 
     /**
@@ -275,7 +291,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         const lNodeParseResult: object | CodeParserErrorSymbol = yield { type: 'nodeParse', parameter: { node: pGraph.node } };
         if (lNodeParseResult === CodeParserException.PARSER_ERROR) {
             // Pop graph with an error.
-            pParsingProcessState.popGraphStack(true);
+            pParsingProcessState.popGraphStack('failure');
 
             // Exit parsing without pushing a new process.
             return CodeParserException.PARSER_ERROR;
@@ -291,14 +307,14 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             pParsingProcessState.incidentTrace.push(lConvertedData.description ?? 'Unknown data convert error', lGraphPosition.graph, lGraphPosition.lineStart, lGraphPosition.columnStart, lGraphPosition.lineEnd, lGraphPosition.columnEnd);
 
             // Pop graph with an error.
-            pParsingProcessState.popGraphStack(true);
+            pParsingProcessState.popGraphStack('converterFailure');
 
             // Exit parsing without pushing a new process.
             return CodeParserException.PARSER_ERROR;
         }
 
         // Pop graph with success.
-        pParsingProcessState.popGraphStack(false);
+        pParsingProcessState.popGraphStack('success');
 
         // Set return value to converted data.
         return lConvertedData;
@@ -469,8 +485,14 @@ export type CodeParserResult<TTokenType extends string, TParseResult> = {
 };
 
 export type CodeParserAnalitics<TTokenType extends string> = {
+    /**
+     * Every incident of every parsing branch, not only the one the exception reports.
+     */
     incidents: Array<CodeParserTraceIncident<TTokenType>>;
-    // TODO: graph analitics
-    graphs: any;
-}
+
+    /**
+     * Analitic data of every graph that took part in the parse process.
+     */
+    graphs: Map<Graph<TTokenType>, CodeParserProcessStateGraphAnalitics<TTokenType>>;
+};
 

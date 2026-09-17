@@ -433,17 +433,32 @@ export class Lexer<TTokenType extends string> {
      * @param pToken - Token.
      */
     private moveCursor(pStateObject: LexerStateObject, pTokenValue: string): void {
-        // Move cursor.
-        const lLines: Array<string> = pTokenValue.split('\n');
+        const lNewLineCharCode: number = '\n'.charCodeAt(0);
+        
+        // Iterate value to find a newline.
+        let lNewLineCount: number = 0;
+        let lColumnCount: number = 0;
+        for(let lCharIndex: number = 0; lCharIndex < pTokenValue.length; lCharIndex++){
+            const lCharCode: number = pTokenValue.charCodeAt(lCharIndex);
+
+            // Increase column.
+            lColumnCount++;
+
+            // On newline, count it and reset the column.
+            if(lCharCode === lNewLineCharCode) {
+                lNewLineCount++;
+                lColumnCount = 0;
+            }
+        }
 
         // Reset column number when any newline was tokenized.
-        if (lLines.length > 1) {
+        if (lNewLineCount > 0) {
             pStateObject.cursor.column = 1;
         }
 
         // Step line and column number.
-        pStateObject.cursor.line += lLines.length - 1;
-        pStateObject.cursor.column += lLines.at(-1)!.length;
+        pStateObject.cursor.line += lNewLineCount;
+        pStateObject.cursor.column += lColumnCount;
 
         // Update untokenised text.
         pStateObject.cursor.position += pTokenValue.length;

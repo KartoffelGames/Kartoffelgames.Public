@@ -6,7 +6,7 @@ import { PgslArrayType } from './pgsl-array-type.ts';
 import { PgslBooleanType } from './pgsl-boolean-type.ts';
 import { PgslInvalidType } from './pgsl-invalid-type.ts';
 import { PgslNumericType } from './pgsl-numeric-type.ts';
-import type { IType, TypeProperties } from './i-type.interface.ts';
+import type { BaseType, TypeProperties } from './i-type.interface.ts';
 import { PgslVectorType } from './pgsl-vector-type.ts';
 import type { TypeCst } from '../../concrete_syntax_tree/general.type.ts';
 import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
@@ -16,7 +16,7 @@ import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
  * These are predefined types that map to specific underlying types and are used
  * for shader built-in values like vertex indices, positions, workgroup IDs, etc.
  */
-export class PgslBuildInType extends AbstractSyntaxTree<TypeCst, TypeProperties> implements IType {
+export class PgslBuildInType extends AbstractSyntaxTree<TypeCst, TypeProperties> implements BaseType {
     /**
      * Type names for all available built-in types.
      * Maps built-in type names to their string representations.
@@ -42,9 +42,9 @@ export class PgslBuildInType extends AbstractSyntaxTree<TypeCst, TypeProperties>
     }
 
     private readonly mBuildInType: PgslBuildInTypeName;
-    private readonly mShadowedType: IType | null;
+    private readonly mShadowedType: BaseType | null;
     private readonly mTemplate: IExpressionAst | null;
-    private mUnderlyingType: IType | null;
+    private mUnderlyingType: BaseType | null;
 
     /**
      * Gets the built-in type variant name.
@@ -59,7 +59,7 @@ export class PgslBuildInType extends AbstractSyntaxTree<TypeCst, TypeProperties>
      * The type that is being shadowed.
      * If it does not shadow another type, it is itself.
      */
-    public get shadowedType(): IType {
+    public get shadowedType(): BaseType {
         return this.mShadowedType ?? this;
     }
 
@@ -77,7 +77,7 @@ export class PgslBuildInType extends AbstractSyntaxTree<TypeCst, TypeProperties>
      * 
      * @returns The underlying PGSL type.
      */
-    public get underlyingType(): IType {
+    public get underlyingType(): BaseType {
         if (!this.mUnderlyingType) {
             throw new Exception('Underlying type has not been initialized.', this);
         }
@@ -92,7 +92,7 @@ export class PgslBuildInType extends AbstractSyntaxTree<TypeCst, TypeProperties>
      * @param pTemplate - Optional template expression for parameterized types.
      * @param pShadowedType - Type that is the actual type of this.
      */
-    public constructor(pType: PgslBuildInTypeName, pTemplate: IExpressionAst | null, pShadowedType?: IType) {
+    public constructor(pType: PgslBuildInTypeName, pTemplate: IExpressionAst | null, pShadowedType?: BaseType) {
         super({ type: 'Type', range: [0, 0, 0, 0] });
 
         // Set data.
@@ -112,7 +112,7 @@ export class PgslBuildInType extends AbstractSyntaxTree<TypeCst, TypeProperties>
      * 
      * @returns True when both types have the same underlying type.
      */
-    public equals(pTarget: IType): boolean {
+    public equals(pTarget: BaseType): boolean {
         // Check if target is also a built-in type with the same variant.
         if (pTarget instanceof PgslBuildInType) {
             return this.mBuildInType === pTarget.mBuildInType && this.underlyingType.equals(pTarget.underlyingType);
@@ -130,7 +130,7 @@ export class PgslBuildInType extends AbstractSyntaxTree<TypeCst, TypeProperties>
      * 
      * @returns True when the underlying type is implicitly castable to the target.
      */
-    public isCastableInto(pTarget: IType): boolean {
+    public isCastableInto(pTarget: BaseType): boolean {
         // Check if aliased type is implicit castable into target type.
         return this.underlyingType.isCastableInto(pTarget);
     }
@@ -177,7 +177,7 @@ export class PgslBuildInType extends AbstractSyntaxTree<TypeCst, TypeProperties>
      * 
      * @returns The underlying PGSL type that represents this built-in type.
      */
-    private determinateAliasedType(pContext: AbstractSyntaxTreeContext, pBuildInType: PgslBuildInTypeName, pTemplate: IExpressionAst | null): IType {
+    private determinateAliasedType(pContext: AbstractSyntaxTreeContext, pBuildInType: PgslBuildInTypeName, pTemplate: IExpressionAst | null): BaseType {
         // Big ass switch case.
         switch (pBuildInType) {
             case PgslBuildInType.typeName.position: {

@@ -2,17 +2,17 @@ import type { TypeCst } from '../../concrete_syntax_tree/general.type.ts';
 import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
 import type { EnumDeclarationAst } from '../declaration/enum-declaration-ast.ts';
-import type { IType, TypeProperties } from './i-type.interface.ts';
+import type { BaseType, TypeProperties } from './i-type.interface.ts';
 
 /**
  * Enum type.
  * Represents a user-defined enum type that contains multiple named values.
  * Enum types are composite types that can be used to group related data.
  */
-export class PgslEnumType extends AbstractSyntaxTree<TypeCst, TypeProperties> implements IType {
+export class PgslEnumType extends AbstractSyntaxTree<TypeCst, TypeProperties> implements BaseType {
     private mEnumDeclaration: EnumDeclarationAst | null;
     private readonly mEnumName: string;
-    private readonly mShadowedType: IType;
+    private readonly mShadowedType: BaseType;
 
     /**
      * Gets the enum declaration AST node associated with this enum type.
@@ -36,7 +36,7 @@ export class PgslEnumType extends AbstractSyntaxTree<TypeCst, TypeProperties> im
      * The type that is being shadowed.
      * If it does not shadow another type, it is itself.
      */
-    public get shadowedType(): IType {
+    public get shadowedType(): BaseType {
         return this.mShadowedType;
     }
 
@@ -46,7 +46,7 @@ export class PgslEnumType extends AbstractSyntaxTree<TypeCst, TypeProperties> im
      * @param pEnumName - The name of the enum type.
      * @param pShadowedType - Type that is the actual type of this.
      */
-    public constructor(pEnumName: string, pShadowedType?: IType) {
+    public constructor(pEnumName: string, pShadowedType?: BaseType) {
         super({ type: 'Type', range: [0, 0, 0, 0] });
 
         // Set data.
@@ -65,7 +65,7 @@ export class PgslEnumType extends AbstractSyntaxTree<TypeCst, TypeProperties> im
      * 
      * @returns True when both types have the same struct name.
      */
-    public equals(pTarget: IType): boolean {
+    public equals(pTarget: BaseType): boolean {
         // Must both be a enum.
         if (!(pTarget instanceof PgslEnumType)) {
             return false;
@@ -82,7 +82,7 @@ export class PgslEnumType extends AbstractSyntaxTree<TypeCst, TypeProperties> im
      * 
      * @returns Always false - enums cannot be cast.
      */
-    public isCastableInto(pTarget: IType): boolean {
+    public isCastableInto(pTarget: BaseType): boolean {
         // A enum is only castable to itself.
         return this.equals(pTarget);
     }

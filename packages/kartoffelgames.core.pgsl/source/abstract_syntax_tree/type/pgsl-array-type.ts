@@ -2,7 +2,7 @@ import { PgslValueFixedState } from '../../enum/pgsl-value-fixed-state.ts';
 import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
 import type { IExpressionAst } from '../expression/i-expression-ast.interface.ts';
 import { PgslNumericType } from './pgsl-numeric-type.ts';
-import type { IType, TypeProperties } from './i-type.interface.ts';
+import type { BaseType, TypeProperties } from './i-type.interface.ts';
 import type { TypeCst } from '../../concrete_syntax_tree/general.type.ts';
 import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
 
@@ -11,7 +11,7 @@ import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
  * Represents both fixed-size and runtime-sized arrays of a specific element type.
  * Arrays are indexable composite types that can contain multiple elements of the same type.
  */
-export class PgslArrayType extends AbstractSyntaxTree<TypeCst, TypeProperties> implements IType {
+export class PgslArrayType extends AbstractSyntaxTree<TypeCst, TypeProperties> implements BaseType {
     /**
      * Type names for array types.
      */
@@ -22,17 +22,17 @@ export class PgslArrayType extends AbstractSyntaxTree<TypeCst, TypeProperties> i
         } as const;
     }
 
-    private readonly mInnerType: IType;
+    private readonly mInnerType: BaseType;
     private readonly mLength: number | null;
     private readonly mLengthExpression: IExpressionAst | null;
-    private readonly mShadowedType: IType;
+    private readonly mShadowedType: BaseType;
 
     /**
      * Gets the inner element type of the array.
      * 
      * @returns The type of elements stored in the array.
      */
-    public get innerType(): IType {
+    public get innerType(): BaseType {
         return this.mInnerType;
     }
 
@@ -58,7 +58,7 @@ export class PgslArrayType extends AbstractSyntaxTree<TypeCst, TypeProperties> i
      * The type that is being shadowed.
      * If it does not shadow another type, it is itself.
      */
-    public get shadowedType(): IType {
+    public get shadowedType(): BaseType {
         return this.mShadowedType;
     }
 
@@ -69,7 +69,7 @@ export class PgslArrayType extends AbstractSyntaxTree<TypeCst, TypeProperties> i
      * @param pLengthExpression - Optional length expression for fixed-size arrays.
      * @param pShadowedType - Type that is the actual type of this.
      */
-    public constructor(pType: IType, pLengthExpression: IExpressionAst | null, pShadowedType?: IType) {
+    public constructor(pType: BaseType, pLengthExpression: IExpressionAst | null, pShadowedType?: BaseType) {
         super({ type: 'Type', range: [0, 0, 0, 0] });
 
         this.mShadowedType = pShadowedType ?? this;
@@ -92,7 +92,7 @@ export class PgslArrayType extends AbstractSyntaxTree<TypeCst, TypeProperties> i
      * 
      * @returns True when both types have the same inner type and length.
      */
-    public equals(pTarget: IType): boolean {
+    public equals(pTarget: BaseType): boolean {
         // Must both be arrays.
         if (!(pTarget instanceof PgslArrayType)) {
             return false;
@@ -120,7 +120,7 @@ export class PgslArrayType extends AbstractSyntaxTree<TypeCst, TypeProperties> i
      * 
      * @returns Always false - arrays cannot be cast.
      */
-    public isCastableInto(pTarget: IType): boolean {
+    public isCastableInto(pTarget: BaseType): boolean {
         // Must be an array.
         if (!(pTarget instanceof PgslArrayType)) {
             return false;

@@ -1,19 +1,55 @@
-import type { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
+import { Cst } from "../../concrete_syntax_tree/general.type.ts";
+import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
 
 /**
  * Provides common functionality for type comparison, casting, and property management.
  */
-export interface IType extends AbstractSyntaxTree {
+export abstract class BaseType {
+    private mShadowedType: BaseType;
+    private mTypeKind: BaseTypeKind;
+    private mTypeMeta: BaseTypeMeta;
+
     /**
      * The type that is being shadowed.
      * If it does not shadow another type, it is itself.
+     * Mostlty used for buildin types with special side functionality.
      */
-    readonly shadowedType: IType;
+    public get shadowedType(): BaseType {
+        return this.mShadowedType;
+    }
 
     /**
-     * Declaration data.
+     * Fast compareable type compatibility.
      */
-    readonly data: TypeProperties;
+    public get kind(): BaseTypeKind {
+        return this.mTypeKind;
+    }
+
+    /**
+     * Inner meta data of type, specified generic handling and fast compare type names.
+     */
+    public get meta(): BaseTypeMeta {
+        return this.mTypeMeta;
+    }
+
+    /**
+     * Constructor.
+     * Create a new distinct type.
+     * 
+     * @param pTypeKind - Type functionality specification used for a fast compare.
+     * @param pTypeMeta 
+     * @param pShadowedType 
+     */
+    public constructor(pTypeKind: BaseTypeKind, pTypeMeta: BaseTypeMeta, pShadowedType?: BaseType) {
+        this.mTypeKind = pTypeKind;
+        this.mTypeMeta = pTypeMeta;
+
+        // Either set shadowed type to this instance, or if its set to the specified one.
+        this.mShadowedType = this;
+        if(pShadowedType) {
+            this.mShadowedType = pShadowedType;
+        }
+    }
 
     /**
      * Checks if this type is equal to the target type.
@@ -22,7 +58,7 @@ export interface IType extends AbstractSyntaxTree {
      * 
      * @returns True when both types describe the same type, false otherwise.
      */
-    equals(pTarget: IType): boolean;
+    public abstract equals(pTarget: BaseType): boolean;
 
     /**
      * Checks if this type is implicitly castable into the target type.
@@ -32,112 +68,59 @@ export interface IType extends AbstractSyntaxTree {
      * 
      * @returns True when this type is implicitly castable into the target type, false otherwise.
      */
-    isCastableInto(pTarget: IType): boolean;
+    public abstract isCastableInto(pTarget: BaseType): boolean;
 }
 
 /**
- * Properties that define the characteristics and capabilities of a PGSL type.
- * These properties determine how the type can be used within the PGSL language.
+ * Inner types characterisitcs including an exact type name and possible strict or loose generic requirements. 
  */
-export type TypeProperties = {
-    /**
-     * List of type names associated with this type.
-     * On float32 that would be ['float32', 'float', 'number'].
-     * On vector3<float32> that would be ['vector3-float32', 'vector3-float', 'vector3-number', 'vector3', 'vector'].
-     */
-    metaTypes: Array<string>;
-
-    /**
-     * Value is storable in a variable.
-     */
-    storable: boolean;
-
-    /**
-     * Sharable with the host
-     */
-    hostShareable: boolean;
-
-    /**
-     * Declaration is a composite type.
-     */
-    composite: boolean;
-
-    /**
-     * Type is a constructable.
-     * Meaning can be created, loaded, stored, passed into functions, and returned from functions.
-     */
-    constructible: boolean;
-
-    /**
-     * Type has a fixed byte length.
-     */
-    fixedFootprint: boolean;
-
-    /**
-     * composite value with properties that can be access by index
-     */
-    indexable: boolean;
-
-    /**
-     * Type is concrete, meaning it is not abstract or does not contain an abstract type.
-     */
-    concrete: boolean;
-
-    /**
-     * Type is scalar.
-     * A scalar type is a type that has a single value.
-     */
-    scalar: boolean;
-
-    /**
-     * Type is plain.
-     * A plain type is either a scalar type, an atomic type, or a composite type.
-     */
-    plain: boolean;
+export type BaseTypeMeta = {
+    typeName: string;
+    generics: Array<{
+        restriction: {
+            kind: BaseTypeKind,
+            concreteType: Array<BaseType>;
+        };
+    }>;
 };
 
 /**
  * Every classification a PGSL type can carry, as one bitmask.
  */
-export const BaseTypeKind = (() => {
-    // Type capabilities.
-    const Scalar = 1 << 20;
-    const Composite = 1 << 21;
-    const Indexable = 1 << 22;
-    const Plain = 1 << 23;
-
+export const BaseTypeKind = {
     // Actual types.
-    const Numeric = 1 << 0 | Scalar | Plain;
-    const Boolean = 1 << 1 | Scalar | Plain;
-    const String = 1 << 2;
-    const Void = 1 << 3;
-    const Invalid = 1 << 4;
-    const Vector = 1 << 5 | Composite | Indexable | Plain;
-    const Matrix = 1 << 6 | Composite | Indexable | Plain;
-    const Array = 1 << 7 | Indexable | Plain;
-    const Pointer = 1 << 8;
-    const Struct = 1 << 9 | Composite | Plain;
-    const Enum = 1 << 10 | Composite;
-    const Texture = 1 << 11;
-    const Sampler = 1 << 12;
-
-    // Marker
-    const BuildIn = 1 << 13;
+    Numeric: 1 << 0,
+    Boolean: 1 << 1,
+    String: 1 << 2,
+    Void: 1 << 3,
+    Invalid: 1 << 4,
+    Vector: 1 << 5,
+    Matrix: 1 << 6,
+    Array: 1 << 7,
+    Pointer: 1 << 8,
+    Struct: 1 << 9,
+    Enum: 1 << 10,
+    Texture: 1 << 11,
+    Sampler: 1 << 12,
 
     // Implicit numerics.
-    const Integer = 1 << 14 | Numeric;
-    const Float = 1 << 15 | Numeric;
-    const SignedInteger = 1 << 16 | Integer;
-    const UnsignedInteger = 1 << 17 | Integer;
-    const Float16 = 1 << 18 | Float;
-    const Abstract = 1 << 19;
+    Integer: 1 << 14,
+    Float: 1 << 15,
+    SignedInteger: 1 << 16,
+    UnsignedInteger: 1 << 17,
+    Float16: 1 << 18,
+    Abstract: 1 << 19,
 
-    return {
-        Scalar, Composite, Indexable, Plain,
-        Numeric, Boolean, String, Void, Invalid, Vector, Matrix, Array, Pointer, Struct, Enum, Texture, Sampler,
-        BuildIn,
-        Integer, Float, SignedInteger, UnsignedInteger, Float16, Abstract
-    } as const;
-})();
+    // Type capabilities.
+    Scalar: 1 << 20,
+    Composite: 1 << 21,
+    Indexable: 1 << 22,
+    Plain: 1 << 23,
+    Concrete: 1 << 24,
+    FixedFootprint: 1 << 25,
+    Constructible: 1 << 26,
+    HostShareable: 1 << 27,
+    Storable: 1 << 28,
+};
 
 export type BaseTypeKind = typeof BaseTypeKind[keyof typeof BaseTypeKind];

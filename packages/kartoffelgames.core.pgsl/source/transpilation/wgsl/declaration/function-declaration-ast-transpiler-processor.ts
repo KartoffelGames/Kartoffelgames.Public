@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import { FunctionDeclarationAst, type FunctionDeclarationAstDataDeclaration } from '../../../abstract_syntax_tree/declaration/function-declaration-ast.ts';
-import type { IType } from '../../../abstract_syntax_tree/type/i-type.interface.ts';
+import type { BaseType } from '../../../abstract_syntax_tree/type/i-type.interface.ts';
 import { PgslVoidType } from '../../../abstract_syntax_tree/type/pgsl-void-type.ts';
 import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../i-transpiler-processor.interface.ts';
 
@@ -36,7 +36,7 @@ export class FunctionDeclarationAstTranspilerProcessor implements ITranspilerPro
         }
 
         // Transpile return type. use empty string for void type.
-        const lReturnType: IType = lSoleHeader.returnType.data.type;
+        const lReturnType: BaseType = lSoleHeader.returnType.data.type;
         const lReturnTypeName: string | null = lReturnType instanceof PgslVoidType ? null : pTranspile(lSoleHeader.returnType);
 
         // Transpile function parameter list.

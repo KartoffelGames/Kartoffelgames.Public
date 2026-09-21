@@ -4,7 +4,7 @@ import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
 import { ExpressionAstBuilder } from '../expression/expression-ast-builder.ts';
 import type { IExpressionAst } from '../expression/i-expression-ast.interface.ts';
 import { AttributeListAst } from '../general/attribute-list-ast.ts';
-import type { IType } from '../type/i-type.interface.ts';
+import type { BaseType } from '../type/i-type.interface.ts';
 import { PgslInvalidType } from '../type/pgsl-invalid-type.ts';
 import { PgslNumericType } from '../type/pgsl-numeric-type.ts';
 import { PgslStringType } from '../type/pgsl-string-type.ts';
@@ -40,7 +40,7 @@ export class EnumDeclarationAst extends AbstractSyntaxTree<EnumDeclarationCst, E
 
         const lProperties: ReadonlyMap<string, IExpressionAst> = this.processProperties(pContext);
 
-        let lFirstPropertyType: IType;
+        let lFirstPropertyType: BaseType;
 
         // Fallback to invalid type.
         if (lProperties.size === 0) {
@@ -68,7 +68,7 @@ export class EnumDeclarationAst extends AbstractSyntaxTree<EnumDeclarationCst, E
         // Validate that the enum has no dublicate names.
         const lPropertyList: Map<string, IExpressionAst> = new Map<string, IExpressionAst>();
 
-        let lFirstPropertyType: IType | null = null;
+        let lFirstPropertyType: BaseType | null = null;
         for (const lProperty of this.cst.values) {
             // Create expression ast.
             const lExpressionAst: IExpressionAst = ExpressionAstBuilder.build(lProperty.value).process(pContext);
@@ -107,6 +107,6 @@ export class EnumDeclarationAst extends AbstractSyntaxTree<EnumDeclarationCst, E
 
 export type EnumDeclarationAstData = {
     name: string;
-    underlyingType: IType;
+    underlyingType: BaseType;
     values: ReadonlyMap<string, IExpressionAst>;
 } & DeclarationAstData;

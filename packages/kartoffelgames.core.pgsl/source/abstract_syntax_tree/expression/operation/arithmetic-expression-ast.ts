@@ -7,7 +7,7 @@ import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
 import { PgslInvalidType } from '../../type/pgsl-invalid-type.ts';
 import { PgslMatrixType } from '../../type/pgsl-matrix-type.ts';
 import { PgslNumericType } from '../../type/pgsl-numeric-type.ts';
-import type { IType } from '../../type/i-type.interface.ts';
+import type { BaseType } from '../../type/i-type.interface.ts';
 import { PgslVectorType } from '../../type/pgsl-vector-type.ts';
 import { ExpressionAstBuilder } from '../expression-ast-builder.ts';
 import type { ExpressionAstData, IExpressionAst } from '../i-expression-ast.interface.ts';
@@ -41,14 +41,14 @@ export class ArithmeticExpressionAst extends AbstractSyntaxTree<ArithmeticExpres
         const lRightExpression: IExpressionAst = ExpressionAstBuilder.build(this.cst.right).process(pContext);
 
         // Determine result type based on left and right expression types.
-        const lResultType: IType = (() => {
+        const lResultType: BaseType = (() => {
             // Get left and right type.
-            const lLeftType: IType = lLeftExpression.data.resolveType;
-            const lRightType: IType = lRightExpression.data.resolveType;
+            const lLeftType: BaseType = lLeftExpression.data.resolveType;
+            const lRightType: BaseType = lRightExpression.data.resolveType;
 
             // Define a more fast and abstract for type comparison.
             type ExpressionType = 'scalar' | 'vector' | 'matrix' | 'unknown';
-            const lFindExpressionType = (pType: IType): ExpressionType => {
+            const lFindExpressionType = (pType: BaseType): ExpressionType => {
                 if (pType instanceof PgslNumericType) {
                     return 'scalar';
                 }
@@ -116,10 +116,10 @@ export class ArithmeticExpressionAst extends AbstractSyntaxTree<ArithmeticExpres
      * 
      * @returns the result type of the operation. 
      */
-    private processMatrixOperation(pLeftType: PgslMatrixType, pRightType: PgslMatrixType, pOperator: PgslOperator, pContext: AbstractSyntaxTreeContext): IType {
+    private processMatrixOperation(pLeftType: PgslMatrixType, pRightType: PgslMatrixType, pOperator: PgslOperator, pContext: AbstractSyntaxTreeContext): BaseType {
         // Get left and right inner types.
-        const lLeftInnerType: IType = pLeftType.innerType;
-        const lRightInnerType: IType = pRightType.innerType;
+        const lLeftInnerType: BaseType = pLeftType.innerType;
+        const lRightInnerType: BaseType = pRightType.innerType;
 
         // Validate left side type is numeric. Right ist the same type.
         if (!(lLeftInnerType instanceof PgslNumericType) || !(lRightInnerType instanceof PgslNumericType)) {
@@ -166,7 +166,7 @@ export class ArithmeticExpressionAst extends AbstractSyntaxTree<ArithmeticExpres
      * 
      * @returns the result type of the operation.
      */
-    private processScalarMatrixOperation(pLeftType: PgslNumericType | PgslMatrixType, pRightType: PgslNumericType | PgslMatrixType, pOperator: PgslOperator, pContext: AbstractSyntaxTreeContext): IType {
+    private processScalarMatrixOperation(pLeftType: PgslNumericType | PgslMatrixType, pRightType: PgslNumericType | PgslMatrixType, pOperator: PgslOperator, pContext: AbstractSyntaxTreeContext): BaseType {
         // Get both inner types.
         const lScalarType: PgslNumericType = (pLeftType instanceof PgslNumericType) ? pLeftType : (pRightType as PgslNumericType);
         const lMatrixType: PgslMatrixType = (pLeftType instanceof PgslMatrixType) ? pLeftType : (pRightType as PgslMatrixType);
@@ -193,7 +193,7 @@ export class ArithmeticExpressionAst extends AbstractSyntaxTree<ArithmeticExpres
      * 
      * @returns the result type of the operation. 
      */
-    private processScalarOperation(pLeftType: PgslNumericType, pRightType: PgslNumericType, pContext: AbstractSyntaxTreeContext): IType {
+    private processScalarOperation(pLeftType: PgslNumericType, pRightType: PgslNumericType, pContext: AbstractSyntaxTreeContext): BaseType {
         // Left and right need to be same type or implicitly castable.
         if (!pRightType.isCastableInto(pLeftType) && !pLeftType.isCastableInto(pRightType)) {
             pContext.pushIncident('Left and right side of arithmetic expression must be the same type.', this);
@@ -216,7 +216,7 @@ export class ArithmeticExpressionAst extends AbstractSyntaxTree<ArithmeticExpres
      * 
      * @returns the result type of the operation.
      */
-    private processScalarVectorOperation(pLeftType: PgslNumericType | PgslVectorType, pRightType: PgslNumericType | PgslVectorType, pContext: AbstractSyntaxTreeContext): IType {
+    private processScalarVectorOperation(pLeftType: PgslNumericType | PgslVectorType, pRightType: PgslNumericType | PgslVectorType, pContext: AbstractSyntaxTreeContext): BaseType {
         // Get both inner types.
         const lScalarType: PgslNumericType = (pLeftType instanceof PgslNumericType) ? pLeftType : (pRightType as PgslNumericType);
         const lVectorType: PgslVectorType = (pLeftType instanceof PgslVectorType) ? pLeftType : (pRightType as PgslVectorType);
@@ -239,10 +239,10 @@ export class ArithmeticExpressionAst extends AbstractSyntaxTree<ArithmeticExpres
      * 
      * @returns the result type of the operation. 
      */
-    private processVectorMatrixOperation(pLeftType: PgslVectorType | PgslMatrixType, pRightType: PgslVectorType | PgslMatrixType, pOperator: PgslOperator, pContext: AbstractSyntaxTreeContext): IType {
+    private processVectorMatrixOperation(pLeftType: PgslVectorType | PgslMatrixType, pRightType: PgslVectorType | PgslMatrixType, pOperator: PgslOperator, pContext: AbstractSyntaxTreeContext): BaseType {
         // Get left and right inner types.
-        const lLeftInnerType: IType = pLeftType.innerType;
-        const lRightInnerType: IType = pRightType.innerType;
+        const lLeftInnerType: BaseType = pLeftType.innerType;
+        const lRightInnerType: BaseType = pRightType.innerType;
 
         // Validate left side type is numeric. Right ist the same type.
         if (!(lLeftInnerType instanceof PgslNumericType) || !(lRightInnerType instanceof PgslNumericType)) {
@@ -285,14 +285,14 @@ export class ArithmeticExpressionAst extends AbstractSyntaxTree<ArithmeticExpres
      * 
      * @returns the result type of the operation.
      */
-    private processVectorOperation(pLeftType: PgslVectorType, pRightType: PgslVectorType, pContext: AbstractSyntaxTreeContext): IType {
+    private processVectorOperation(pLeftType: PgslVectorType, pRightType: PgslVectorType, pContext: AbstractSyntaxTreeContext): BaseType {
         // Left and right need to be same type or implicitly castable.
         if (!pRightType.isCastableInto(pLeftType) && !pLeftType.isCastableInto(pRightType)) {
             pContext.pushIncident('Left and right side of arithmetic expression must be the same type.', this);
         }
 
         // Validate left side type is numeric. Right ist the same type.
-        const lInnerType: IType = pLeftType.innerType;
+        const lInnerType: BaseType = pLeftType.innerType;
         if (!(lInnerType instanceof PgslNumericType)) {
             pContext.pushIncident('Left and right side of arithmetic expression must be a numeric vector value', this);
         }

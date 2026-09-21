@@ -1,13 +1,13 @@
 import type { TypeCst } from '../../concrete_syntax_tree/general.type.ts';
 import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
-import type { IType, TypeProperties } from './i-type.interface.ts';
+import type { BaseType, TypeProperties } from './i-type.interface.ts';
 
 /**
  * Sampler type definition.
  * Represents a sampler resource used for texture sampling operations.
  */
-export class PgslSamplerType extends AbstractSyntaxTree<TypeCst, TypeProperties> implements IType {
+export class PgslSamplerType extends AbstractSyntaxTree<TypeCst, TypeProperties> implements BaseType {
     /**
      * Type names for sampler types.
      * Maps sampler type names to their string representations.
@@ -21,7 +21,7 @@ export class PgslSamplerType extends AbstractSyntaxTree<TypeCst, TypeProperties>
     }
 
     private readonly mComparision: boolean;
-    private readonly mShadowedType: IType;
+    private readonly mShadowedType: BaseType;
 
     /**
      * If sampler is a comparison sampler.
@@ -37,7 +37,7 @@ export class PgslSamplerType extends AbstractSyntaxTree<TypeCst, TypeProperties>
      * The type that is being shadowed.
      * If it does not shadow another type, it is itself.
      */
-    public get shadowedType(): IType {
+    public get shadowedType(): BaseType {
         return this.mShadowedType;
     }
 
@@ -47,7 +47,7 @@ export class PgslSamplerType extends AbstractSyntaxTree<TypeCst, TypeProperties>
      * @param pComparison - Whether this is a comparison sampler.
      * @param pShadowedType - Type that is the actual type of this.
      */
-    public constructor(pComparison: boolean, pShadowedType?: IType) {
+    public constructor(pComparison: boolean, pShadowedType?: BaseType) {
         super({ type: 'Type', range: [0, 0, 0, 0] });
 
         // Set data.
@@ -63,7 +63,7 @@ export class PgslSamplerType extends AbstractSyntaxTree<TypeCst, TypeProperties>
      * 
      * @returns True when both samplers have the same comparison mode.
      */
-    public equals(pTarget: IType): boolean {
+    public equals(pTarget: BaseType): boolean {
         // Must both be a sampler.
         if (!(pTarget instanceof PgslSamplerType)) {
             return false;
@@ -80,7 +80,7 @@ export class PgslSamplerType extends AbstractSyntaxTree<TypeCst, TypeProperties>
      * 
      * @returns Always false - samplers cannot be cast.
      */
-    public isCastableInto(pTarget: IType): boolean {
+    public isCastableInto(pTarget: BaseType): boolean {
         // A sampler is never explicit nor implicit castable.
         return this.equals(pTarget);
     }

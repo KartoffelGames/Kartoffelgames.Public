@@ -3,7 +3,7 @@ import { PgslValueAddressSpace } from '../../../enum/pgsl-value-address-space.en
 import { PgslValueFixedState } from '../../../enum/pgsl-value-fixed-state.ts';
 import { PgslInvalidType } from '../../type/pgsl-invalid-type.ts';
 import { PgslPointerType } from '../../type/pgsl-pointer-type.ts';
-import type { IType } from '../../type/i-type.interface.ts';
+import type { BaseType } from '../../type/i-type.interface.ts';
 import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
 import type { FunctionDeclarationAst, FunctionDeclarationAstDataDeclaration, FunctionDeclarationAstDataParameter } from '../../declaration/function-declaration-ast.ts';
@@ -32,7 +32,7 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
                 // Expression data.
                 name: this.cst.functionName,
                 parameters: new Array<IExpressionAst>(),
-                generics: new Array<IType>(),
+                generics: new Array<BaseType>(),
                 functionDeclaration: null as unknown as FunctionDeclarationAst,
 
                 // Expression meta data.
@@ -70,7 +70,7 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
         })();
 
         // Convert function call generic parameters.
-        const lGenericParameterList: Array<IType> = this.cst.genericList.map((pGenericTypeDeclarationCst) => {
+        const lGenericParameterList: Array<BaseType> = this.cst.genericList.map((pGenericTypeDeclarationCst) => {
             return new TypeDeclarationAst(pGenericTypeDeclarationCst).process(pContext).data.type;
         });
 
@@ -81,7 +81,7 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
         }
 
         // Get the return type from the matched function header.
-        const lReturnType: IType = (() => {
+        const lReturnType: BaseType = (() => {
             if (!lMatchedFunctionHeader) {
                 return new PgslInvalidType().process(pContext);
             }
@@ -94,7 +94,7 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
             const lGenericIndex: string = lMatchedFunctionHeader.header.returnType;
 
             // When return type is generic, return the infered type.
-            const lInferedReturnType: IType | null = lMatchedFunctionHeader.genericTypes.get(lGenericIndex) ?? null;
+            const lInferedReturnType: BaseType | null = lMatchedFunctionHeader.genericTypes.get(lGenericIndex) ?? null;
             if (!lInferedReturnType) {
                 pContext.pushIncident(`Function return type ${lGenericIndex} of function '${this.cst.functionName}' can not be inferred.`, this);
                 return new PgslInvalidType().process(pContext);
@@ -106,7 +106,7 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
         // For any used pointer type, try to assign its expression address space is correct.
         if (lMatchedFunctionHeader) {
             for (let lParameterIndex = 0; lParameterIndex < lMatchedFunctionHeader.header.parameter.length; lParameterIndex++) {
-                const lParameterType: IType = (() => {
+                const lParameterType: BaseType = (() => {
                     // When parameter type is not generic return its type declaration.
                     const lParameterTypeDeclaration: string | TypeDeclarationAst = lMatchedFunctionHeader.header.parameter[lParameterIndex].type;
                     if (typeof lParameterTypeDeclaration !== 'string') {
@@ -127,7 +127,7 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
         }
 
         // Build ordered generic type list.
-        const lGenericList: Array<IType> = new Array<IType>();
+        const lGenericList: Array<BaseType> = new Array<BaseType>();
         if (lMatchedFunctionHeader) {
             for (const lGeneric of lMatchedFunctionHeader.header.generics) {
                 // When generic type is not infered, assign invalid type.
@@ -166,7 +166,7 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
      *
      * @returns Matched function header and infered generics or null when no match is found.
      */
-    private matchFunctionHeader(pContext: AbstractSyntaxTreeContext, pFunctionDeclaration: FunctionDeclarationAst, pGenericList: Array<IType>, pParameterList: Array<IExpressionAst>): FunctionHeaderMatchResult | null {
+    private matchFunctionHeader(pContext: AbstractSyntaxTreeContext, pFunctionDeclaration: FunctionDeclarationAst, pGenericList: Array<BaseType>, pParameterList: Array<IExpressionAst>): FunctionHeaderMatchResult | null {
         // Check each function header for a match.
         FUNCTION_HEADER_LOOP: for (const lFunctionHeader of pFunctionDeclaration.data.declarations) {
             // Parameter count needs to match.
@@ -186,19 +186,19 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
             }
 
             // Map static provided generic types.
-            const lStaticGenericTypes: Map<string, IType> = new Map<string, IType>();
+            const lStaticGenericTypes: Map<string, BaseType> = new Map<string, BaseType>();
             for (let lGenericIndex = 0; lGenericIndex < pGenericList.length; lGenericIndex++) {
                 lStaticGenericTypes.set(lFunctionHeader.generics[lGenericIndex].name, pGenericList[lGenericIndex]);
             }
 
             // Collect candidate types for each generic that needs inference.
-            const lGenericCandidates: Map<string, Array<IType>> = new Map<string, Array<IType>>();
+            const lGenericCandidates: Map<string, Array<BaseType>> = new Map<string, Array<BaseType>>();
 
             // Validate each parameter against the function header.
             for (let lParameterIndex = 0; lParameterIndex < pParameterList.length; lParameterIndex++) {
                 const lParameterExpression: IExpressionAst = pParameterList[lParameterIndex];
                 const lParameterDeclaration: FunctionDeclarationAstDataParameter | undefined = lFunctionHeader.parameter[lParameterIndex];
-                const lParameterType: IType = lParameterExpression.data.resolveType;
+                const lParameterType: BaseType = lParameterExpression.data.resolveType;
 
                 // Validate parameter declaration exists.
                 if (!lParameterDeclaration) {
@@ -252,7 +252,7 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
 
             // Resolve inferred generic types from collected candidates.
             for (const [lGenericName, lCandidates] of lGenericCandidates) {
-                const lResolvedType: IType | null = this.resolveStrictestType(lCandidates);
+                const lResolvedType: BaseType | null = this.resolveStrictestType(lCandidates);
                 if (!lResolvedType) {
                     continue FUNCTION_HEADER_LOOP;
                 }
@@ -277,7 +277,7 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
      *
      * @returns The strictest type or null if no single type satisfies all candidates.
      */
-    private resolveStrictestType(pCandidates: Array<IType>): IType | null {
+    private resolveStrictestType(pCandidates: Array<BaseType>): BaseType | null {
         // Check all candidates against each other and return the first type that all other types can be implicitly cast into.
         for (const lCandidate of pCandidates) {
             // Check if all other candidates can be implicitly cast into the current candidate.
@@ -292,12 +292,12 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
 
 type FunctionHeaderMatchResult = {
     header: FunctionDeclarationAstDataDeclaration;
-    genericTypes: Map<string, IType>;
+    genericTypes: Map<string, BaseType>;
 };
 
 export type FunctionCallExpressionAstData = {
     name: string;
     parameters: Array<IExpressionAst>;
-    generics: Array<IType>;
+    generics: Array<BaseType>;
     functionDeclaration: FunctionDeclarationAst;
 } & ExpressionAstData;

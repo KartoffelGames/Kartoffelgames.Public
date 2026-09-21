@@ -1,13 +1,13 @@
 import type { TypeCst } from '../../concrete_syntax_tree/general.type.ts';
 import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
-import type { IType, TypeProperties } from './i-type.interface.ts';
+import type { BaseType, TypeProperties } from './i-type.interface.ts';
 
 /**
  * String type definition.
  * Represents a string value used for text data.
  */
-export class PgslStringType extends AbstractSyntaxTree<TypeCst, TypeProperties> implements IType {
+export class PgslStringType extends AbstractSyntaxTree<TypeCst, TypeProperties> implements BaseType {
     /**
      * Type names for string types.
      * Maps string type names to their string representations.
@@ -19,13 +19,13 @@ export class PgslStringType extends AbstractSyntaxTree<TypeCst, TypeProperties> 
         } as const;
     }
 
-    private readonly mShadowedType: IType;
+    private readonly mShadowedType: BaseType;
 
     /**
      * The type that is being shadowed.
      * If it does not shadow another type, it is itself.
      */
-    public get shadowedType(): IType {
+    public get shadowedType(): BaseType {
         return this.mShadowedType;
     }
 
@@ -34,7 +34,7 @@ export class PgslStringType extends AbstractSyntaxTree<TypeCst, TypeProperties> 
      * 
      * @param pShadowedType - Type that is the actual type of this.
      */
-    public constructor(pShadowedType?: IType) {
+    public constructor(pShadowedType?: BaseType) {
         super({ type: 'Type', range: [0, 0, 0, 0] });
 
         this.mShadowedType = pShadowedType ?? this;
@@ -47,7 +47,7 @@ export class PgslStringType extends AbstractSyntaxTree<TypeCst, TypeProperties> 
      * 
      * @returns true when both types describes the same type.
      */
-    public equals(pTarget: IType): boolean {
+    public equals(pTarget: BaseType): boolean {
         // String type is only equal to other string types.
         return pTarget instanceof PgslStringType;
     }
@@ -59,7 +59,7 @@ export class PgslStringType extends AbstractSyntaxTree<TypeCst, TypeProperties> 
      * 
      * @returns true when type is implicit castable into target type.
      */
-    public isCastableInto(pTarget: IType): boolean {
+    public isCastableInto(pTarget: BaseType): boolean {
         // A string is never explicit nor implicit castable.
         return this.equals(pTarget);
     }

@@ -10,7 +10,7 @@ import { PgslSamplerType } from '../type/pgsl-sampler-type.ts';
 import { PgslStringType } from '../type/pgsl-string-type.ts';
 import { PgslStructType } from '../type/pgsl-struct-type.ts';
 import { PgslTextureType } from '../type/pgsl-texture-type.ts';
-import type { IType } from '../type/i-type.interface.ts';
+import type { BaseType } from '../type/i-type.interface.ts';
 import { PgslVectorType } from '../type/pgsl-vector-type.ts';
 import { PgslVoidType } from '../type/pgsl-void-type.ts';
 import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
@@ -47,7 +47,7 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
      * @param pRawTemplate - Type template.
      * @param pMeta - Type definition meta data.
      */
-    private resolveAlias(pContext: AbstractSyntaxTreeContext, pRawName: string, pRawTemplate: Array<Cst<string>>): IType | null {
+    private resolveAlias(pContext: AbstractSyntaxTreeContext, pRawName: string, pRawTemplate: Array<Cst<string>>): BaseType | null {
         // Resolve alias
         const lAlias: AliasDeclarationAst | undefined = pContext.getAlias(pRawName);
         if (!lAlias) {
@@ -69,7 +69,7 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
      * @param pRawTemplate - Type template.
      * @param pMeta - Type definition meta data.
      */
-    private resolveArray(pContext: AbstractSyntaxTreeContext, pRawName: string, pRawTemplate: TypeDeclarationAstTemplateList): IType | null {
+    private resolveArray(pContext: AbstractSyntaxTreeContext, pRawName: string, pRawTemplate: TypeDeclarationAstTemplateList): BaseType | null {
         // Resolve array type.
         if (pRawName !== PgslArrayType.typeName.array) {
             return null;
@@ -128,7 +128,7 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
      * @param pRawTemplate - Type template.
      * @param pMeta - Type definition meta data.
      */
-    private resolveBoolean(pContext: AbstractSyntaxTreeContext, pRawName: string, pRawTemplate: TypeDeclarationAstTemplateList): IType | null {
+    private resolveBoolean(pContext: AbstractSyntaxTreeContext, pRawName: string, pRawTemplate: TypeDeclarationAstTemplateList): BaseType | null {
         // Resolve boolean type.
         if (pRawName !== PgslBooleanType.typeName.boolean) {
             return null;
@@ -149,7 +149,7 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
      * @param pRawTemplate - Type template.
      * @param pMeta - Type definition meta data.
      */
-    private resolveBuildIn(pContext: AbstractSyntaxTreeContext, pRawName: string, pRawTemplate: TypeDeclarationAstTemplateList): IType | null {
+    private resolveBuildIn(pContext: AbstractSyntaxTreeContext, pRawName: string, pRawTemplate: TypeDeclarationAstTemplateList): BaseType | null {
         // Try to resolve type name.
         if (!Object.values(PgslBuildInType.typeName).includes(pRawName as any)) {
             return null;
@@ -191,7 +191,7 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
      * @param pRawTemplate - Type template.
      * @param pMeta - Type definition meta data.
      */
-    private resolveEnum(pContext: AbstractSyntaxTreeContext, pRawName: string, pRawTemplate: TypeDeclarationAstTemplateList): IType | null {
+    private resolveEnum(pContext: AbstractSyntaxTreeContext, pRawName: string, pRawTemplate: TypeDeclarationAstTemplateList): BaseType | null {
         // Resolve enum.
         const lEnum = pContext.getEnum(pRawName);
         if (!lEnum) {
@@ -213,7 +213,7 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
      * @param pRawTemplate - Type template.
      * @param pMeta - Type definition meta data.
      */
-    private resolveMatrix(pContext: AbstractSyntaxTreeContext, pRawName: string, pRawTemplate: TypeDeclarationAstTemplateList): IType | null {
+    private resolveMatrix(pContext: AbstractSyntaxTreeContext, pRawName: string, pRawTemplate: TypeDeclarationAstTemplateList): BaseType | null {
         // Try to resolve type name.
         if (!Object.values(PgslMatrixType.typeName).includes(pRawName as any)) {
             return null;
@@ -247,7 +247,7 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
      * @param pRawTemplate - Type template.
      * @param pMeta - Type definition meta data.
      */
-    private resolveNumeric(pContext: AbstractSyntaxTreeContext, pRawName: string, pRawTemplate: TypeDeclarationAstTemplateList): IType | null {
+    private resolveNumeric(pContext: AbstractSyntaxTreeContext, pRawName: string, pRawTemplate: TypeDeclarationAstTemplateList): BaseType | null {
         // Try to resolve type name.
         if (!Object.values(PgslNumericType.typeName).includes(pRawName as any)) {
             return null;
@@ -269,7 +269,7 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
      * @param pRawTemplate - Type template.
      * @param pMeta - Type definition meta data.
      */
-    private resolvePointer(pContext: AbstractSyntaxTreeContext, pRawName: string, pRawTemplate: TypeDeclarationAstTemplateList): IType {
+    private resolvePointer(pContext: AbstractSyntaxTreeContext, pRawName: string, pRawTemplate: TypeDeclarationAstTemplateList): BaseType {
         // Create none pointer type definition.
         const lConcreteTypeDeclaration: TypeDeclarationCst = {
             type: 'TypeDeclaration',
@@ -281,7 +281,7 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
 
         // Create a new type declaration without pointer.
         const lInnerTypeDeclaration: TypeDeclarationAst = new TypeDeclarationAst(lConcreteTypeDeclaration).process(pContext);
-        const lInnerType: IType = lInnerTypeDeclaration.data.type;
+        const lInnerType: BaseType = lInnerTypeDeclaration.data.type;
 
         // Build pointer type definition.
         return new PgslPointerType(lInnerType).process(pContext);
@@ -294,7 +294,7 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
      * @param pRawTemplate - Type template.
      * @param pMeta - Type definition meta data.
      */
-    private resolveSampler(pContext: AbstractSyntaxTreeContext, pRawName: string, pRawTemplate: TypeDeclarationAstTemplateList): IType | null {
+    private resolveSampler(pContext: AbstractSyntaxTreeContext, pRawName: string, pRawTemplate: TypeDeclarationAstTemplateList): BaseType | null {
         // Try to resolve type name.
         if (pRawName !== PgslSamplerType.typeName.sampler && pRawName !== PgslSamplerType.typeName.samplerComparison) {
             return null;
@@ -316,7 +316,7 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
      * @param pRawTemplate - Type template.
      * @param pMeta - Type definition meta data.
      */
-    private resolveString(pContext: AbstractSyntaxTreeContext, pRawName: string, pRawTemplate: TypeDeclarationAstTemplateList): IType | null {
+    private resolveString(pContext: AbstractSyntaxTreeContext, pRawName: string, pRawTemplate: TypeDeclarationAstTemplateList): BaseType | null {
         // Resolve string type.
         if (pRawName !== PgslStringType.typeName.string) {
             return null;
@@ -340,7 +340,7 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
      * @param pRawTemplate - Type template.
      * @param pMeta - Type definition meta data.
      */
-    private resolveStruct(pContext: AbstractSyntaxTreeContext, pRawName: string, pRawTemplate: TypeDeclarationAstTemplateList): IType | null {
+    private resolveStruct(pContext: AbstractSyntaxTreeContext, pRawName: string, pRawTemplate: TypeDeclarationAstTemplateList): BaseType | null {
         // Resolve struct
         if (!pContext.getStruct(pRawName)) {
             return null;
@@ -362,7 +362,7 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
      * @param pRawTemplate - Type template.
      * @param pMeta - Type definition meta data.
      */
-    private resolveTexture(pContext: AbstractSyntaxTreeContext, pRawName: string, pRawTemplate: TypeDeclarationAstTemplateList): IType | null {
+    private resolveTexture(pContext: AbstractSyntaxTreeContext, pRawName: string, pRawTemplate: TypeDeclarationAstTemplateList): BaseType | null {
         // Try to resolve type name.
         if (!Object.values(PgslTextureType.typeName).includes(pRawName as any)) {
             return null;
@@ -393,13 +393,13 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
      * 
      * @returns Resolved type.
      */
-    private resolveType(pContext: AbstractSyntaxTreeContext): IType {
+    private resolveType(pContext: AbstractSyntaxTreeContext): BaseType {
         // Type to pointer.
         if (this.cst.isPointer) {
             return this.resolvePointer(pContext, this.cst.typeName, this.cst.template);
         }
 
-        let lType: IType | null = null;
+        let lType: BaseType | null = null;
 
         // Try to parse to void type.
         if ((lType = this.resolveVoid(pContext, this.cst.typeName, this.cst.template)) !== null) {
@@ -478,7 +478,7 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
      * @param pRawTemplate - Type template.
      * @param pMeta - Type definition meta data.
      */
-    private resolveVector(pContext: AbstractSyntaxTreeContext, pRawName: string, pRawTemplate: TypeDeclarationAstTemplateList): IType | null {
+    private resolveVector(pContext: AbstractSyntaxTreeContext, pRawName: string, pRawTemplate: TypeDeclarationAstTemplateList): BaseType | null {
         // Try to resolve type name.
         if (!Object.values(PgslVectorType.typeName).includes(pRawName as any)) {
             return null;
@@ -519,7 +519,7 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
      * @param pRawTemplate - Type template.
      * @param pMeta - Type definition meta data.
      */
-    private resolveVoid(pContext: AbstractSyntaxTreeContext, pRawName: string, pRawTemplate: TypeDeclarationAstTemplateList): IType | null {
+    private resolveVoid(pContext: AbstractSyntaxTreeContext, pRawName: string, pRawTemplate: TypeDeclarationAstTemplateList): BaseType | null {
         // Resolve void type.
         if (pRawName !== PgslVoidType.typeName.void) {
             return null;
@@ -538,5 +538,5 @@ type TypeDeclarationAstTemplate = ExpressionCst | TypeDeclarationCst;
 type TypeDeclarationAstTemplateList = Array<TypeDeclarationAstTemplate>;
 
 export type TypeDeclarationAstData = {
-    type: IType;
+    type: BaseType;
 };

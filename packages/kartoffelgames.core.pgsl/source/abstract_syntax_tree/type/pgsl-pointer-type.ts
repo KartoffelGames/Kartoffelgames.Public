@@ -2,17 +2,17 @@ import type { TypeCst } from '../../concrete_syntax_tree/general.type.ts';
 import { PgslValueAddressSpace } from '../../enum/pgsl-value-address-space.enum.ts';
 import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
-import type { IType, TypeProperties } from './i-type.interface.ts';
+import type { BaseType, TypeProperties } from './i-type.interface.ts';
 
 /**
  * Pointer type definition.
  * Represents a pointer type that references another type in memory.
  * Pointers allow indirect access to values and are used for referencing data.
  */
-export class PgslPointerType extends AbstractSyntaxTree<TypeCst, TypeProperties> implements IType {
+export class PgslPointerType extends AbstractSyntaxTree<TypeCst, TypeProperties> implements BaseType {
     private mAssignedAddressSpace: PgslValueAddressSpace | null;
-    private readonly mReferencedType: IType;
-    private readonly mShadowedType: IType;
+    private readonly mReferencedType: BaseType;
+    private readonly mShadowedType: BaseType;
 
     /**
      * Gets the assigned address space for this pointer.
@@ -30,7 +30,7 @@ export class PgslPointerType extends AbstractSyntaxTree<TypeCst, TypeProperties>
      * 
      * @returns The referenced type.
      */
-    public get referencedType(): IType {
+    public get referencedType(): BaseType {
         return this.mReferencedType;
     }
 
@@ -38,7 +38,7 @@ export class PgslPointerType extends AbstractSyntaxTree<TypeCst, TypeProperties>
      * The type that is being shadowed.
      * If it does not shadow another type, it is itself.
      */
-    public get shadowedType(): IType {
+    public get shadowedType(): BaseType {
         return this.mShadowedType;
     }
 
@@ -48,7 +48,7 @@ export class PgslPointerType extends AbstractSyntaxTree<TypeCst, TypeProperties>
      * @param pReferenceType - The type that this pointer references.
      * @param pShadowedType - Type that is the actual type of this.
      */
-    public constructor(pReferenceType: IType, pShadowedType?: IType) {
+    public constructor(pReferenceType: BaseType, pShadowedType?: BaseType) {
         super({ type: 'Type', range: [0, 0, 0, 0] });
 
         // Set data.
@@ -83,7 +83,7 @@ export class PgslPointerType extends AbstractSyntaxTree<TypeCst, TypeProperties>
      * 
      * @returns True when both pointers reference the same type.
      */
-    public equals(pTarget: IType): boolean {
+    public equals(pTarget: BaseType): boolean {
         // Target type must be a pointer.
         if (!(pTarget instanceof PgslPointerType)) {
             return false;
@@ -101,7 +101,7 @@ export class PgslPointerType extends AbstractSyntaxTree<TypeCst, TypeProperties>
      * 
      * @returns Always false - pointers cannot be cast.
      */
-    public isCastableInto(pTarget: IType): boolean {
+    public isCastableInto(pTarget: BaseType): boolean {
         // A pointer is never explicit nor implicit castable.
         return this.equals(pTarget);
     }

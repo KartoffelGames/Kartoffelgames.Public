@@ -2,7 +2,7 @@ import { type PgslInterpolateSampling, PgslInterpolateSamplingEnum } from '../..
 import { type PgslInterpolateType, PgslInterpolateTypeEnum } from '../../buildin/enum/pgsl-interpolate-type-enum.ts';
 import type { StructPropertyDeclarationCst } from '../../concrete_syntax_tree/declaration.type.ts';
 import { PgslNumericType } from '../type/pgsl-numeric-type.ts';
-import type { IType } from '../type/i-type.interface.ts';
+import type { BaseType } from '../type/i-type.interface.ts';
 import { PgslVectorType } from '../type/pgsl-vector-type.ts';
 import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
@@ -54,7 +54,7 @@ export class StructPropertyDeclarationAst extends AbstractSyntaxTree<StructPrope
 
         // Get property type.
         const lTypeDeclaration: TypeDeclarationAst = new TypeDeclarationAst(this.cst.typeDeclaration).process(pContext);
-        const lType: IType = lTypeDeclaration.data.type;
+        const lType: BaseType = lTypeDeclaration.data.type;
 
         // Validate property type.
         if (!lType.data.concrete && !this.cst.buildIn) {
@@ -227,7 +227,7 @@ export class StructPropertyDeclarationAst extends AbstractSyntaxTree<StructPrope
      *
      * @returns The location name or null if attribute not present or invalid.
      */
-    private getLocationName(pAttributes: AttributeListAst, pContext: AbstractSyntaxTreeContext, pType: IType): string | null {
+    private getLocationName(pAttributes: AttributeListAst, pContext: AbstractSyntaxTreeContext, pType: BaseType): string | null {
         if (!pAttributes.hasAttribute(AttributeListAst.attributeNames.location)) {
             return null;
         }
@@ -265,7 +265,7 @@ export class StructPropertyDeclarationAst extends AbstractSyntaxTree<StructPrope
             // Can be a vector2..4 of a numeric type.
             for (let lDimension: number = 2; lDimension <= 4; lDimension++) {
                 for (const lNumericType of lNumericTypeList) {
-                    const lVectorType: IType = new PgslVectorType(lDimension, lNumericType).process(pContext);
+                    const lVectorType: BaseType = new PgslVectorType(lDimension, lNumericType).process(pContext);
                     if (pType.isCastableInto(lVectorType)) {
                         return true;
                     }
@@ -292,7 +292,7 @@ export class StructPropertyDeclarationAst extends AbstractSyntaxTree<StructPrope
      * 
      * @returns Metadata for the struct property. 
      */
-    private getMeta(pAttributes: AttributeListAst, pContext: AbstractSyntaxTreeContext, pType: IType): StructPropertyDeclarationAstData['meta'] {
+    private getMeta(pAttributes: AttributeListAst, pContext: AbstractSyntaxTreeContext, pType: BaseType): StructPropertyDeclarationAstData['meta'] {
         // Set property meta based on attributes.
         const lMeta: StructPropertyDeclarationAstData['meta'] = {};
 

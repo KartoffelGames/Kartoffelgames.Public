@@ -2,7 +2,7 @@ import type { AddressOfExpressionCst } from '../../../concrete_syntax_tree/expre
 import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
 import { PgslPointerType } from '../../type/pgsl-pointer-type.ts';
-import type { IType } from '../../type/i-type.interface.ts';
+import type { BaseType } from '../../type/i-type.interface.ts';
 import { ExpressionAstBuilder } from '../expression-ast-builder.ts';
 import type { ExpressionAstData, IExpressionAst } from '../i-expression-ast.interface.ts';
 
@@ -25,7 +25,7 @@ export class AddressOfExpressionAst extends AbstractSyntaxTree<AddressOfExpressi
         }
 
         // Read type attachment of variable.
-        const lVariableResolveType: IType = lVariable.data.resolveType;
+        const lVariableResolveType: BaseType = lVariable.data.resolveType;
 
         // Type of expression needs to be storable.
         if (!lVariableResolveType.data.storable) {

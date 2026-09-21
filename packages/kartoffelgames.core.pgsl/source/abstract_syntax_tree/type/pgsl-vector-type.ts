@@ -2,13 +2,13 @@
 import type { TypeCst } from '../../concrete_syntax_tree/general.type.ts';
 import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
-import type { IType, TypeProperties } from './i-type.interface.ts';
+import type { BaseType, TypeProperties } from './i-type.interface.ts';
 
 /**
  * Vector type definition.
  * Represents a vector type with a specific dimension and inner type.
  */
-export class PgslVectorType extends AbstractSyntaxTree<TypeCst, TypeProperties> implements IType {
+export class PgslVectorType extends AbstractSyntaxTree<TypeCst, TypeProperties> implements BaseType {
     /**
      * Type names for vector types.
      * Maps vector type names to their string representations.
@@ -38,8 +38,8 @@ export class PgslVectorType extends AbstractSyntaxTree<TypeCst, TypeProperties> 
         }
     }
 
-    private readonly mInnerType: IType;
-    private readonly mShadowedType: IType;
+    private readonly mInnerType: BaseType;
+    private readonly mShadowedType: BaseType;
     private readonly mVectorDimension: number;
 
     /**
@@ -56,7 +56,7 @@ export class PgslVectorType extends AbstractSyntaxTree<TypeCst, TypeProperties> 
      * 
      * @returns The type of elements stored in the vector.
      */
-    public get innerType(): IType {
+    public get innerType(): BaseType {
         return this.mInnerType;
     }
 
@@ -64,7 +64,7 @@ export class PgslVectorType extends AbstractSyntaxTree<TypeCst, TypeProperties> 
      * The type that is being shadowed.
      * If it does not shadow another type, it is itself.
      */
-    public get shadowedType(): IType {
+    public get shadowedType(): BaseType {
         return this.mShadowedType;
     }
 
@@ -75,7 +75,7 @@ export class PgslVectorType extends AbstractSyntaxTree<TypeCst, TypeProperties> 
      * @param pInnerType - The inner element type of the vector.
      * @param pShadowedType - Type that is the actual type of this.
      */
-    public constructor(pVectorDimension: number, pInnerType: IType, pShadowedType?: IType) {
+    public constructor(pVectorDimension: number, pInnerType: BaseType, pShadowedType?: BaseType) {
         super({ type: 'Type', range: [0, 0, 0, 0] });
 
         // Set data.
@@ -92,7 +92,7 @@ export class PgslVectorType extends AbstractSyntaxTree<TypeCst, TypeProperties> 
      * 
      * @returns True when both types have the same dimension and inner type.
      */
-    public equals(pTarget: IType): boolean {
+    public equals(pTarget: BaseType): boolean {
         // Must both be a vector.
         if (!(pTarget instanceof PgslVectorType)) {
             return false;
@@ -115,7 +115,7 @@ export class PgslVectorType extends AbstractSyntaxTree<TypeCst, TypeProperties> 
      * 
      * @returns True when implicit casting is allowed, false otherwise.
      */
-    public isCastableInto(pTarget: IType): boolean {
+    public isCastableInto(pTarget: BaseType): boolean {
         // Must both be a vector.
         if (!(pTarget instanceof PgslVectorType)) {
             return false;

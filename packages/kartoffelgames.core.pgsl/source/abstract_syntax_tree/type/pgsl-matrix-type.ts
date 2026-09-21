@@ -1,6 +1,6 @@
 import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
 import { PgslNumericType } from './pgsl-numeric-type.ts';
-import type { IType, TypeProperties } from './i-type.interface.ts';
+import type { BaseType, TypeProperties } from './i-type.interface.ts';
 import { PgslVectorType } from './pgsl-vector-type.ts';
 import type { TypeCst } from '../../concrete_syntax_tree/general.type.ts';
 import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
@@ -12,7 +12,7 @@ import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
  * 
  * MATRIXES ARE ALWAYS COLUMN MAJOR ORDERED.
  */
-export class PgslMatrixType extends AbstractSyntaxTree<TypeCst, TypeProperties> implements IType {
+export class PgslMatrixType extends AbstractSyntaxTree<TypeCst, TypeProperties> implements BaseType {
     /**
      * Type names for all available matrix dimensions.
      * Maps matrix type names to their string representations.
@@ -80,9 +80,9 @@ export class PgslMatrixType extends AbstractSyntaxTree<TypeCst, TypeProperties> 
     }
 
     private readonly mColumnCount: number;
-    private readonly mInnerType: IType;
+    private readonly mInnerType: BaseType;
     private readonly mRowCount: number;
-    private readonly mShadowedType: IType;
+    private readonly mShadowedType: BaseType;
     private readonly mVectorTypeDefinition: PgslVectorType;
 
     /**
@@ -99,7 +99,7 @@ export class PgslMatrixType extends AbstractSyntaxTree<TypeCst, TypeProperties> 
      * 
      * @returns The type of elements stored in the matrix.
      */
-    public get innerType(): IType {
+    public get innerType(): BaseType {
         return this.mInnerType;
     }
 
@@ -116,7 +116,7 @@ export class PgslMatrixType extends AbstractSyntaxTree<TypeCst, TypeProperties> 
      * The type that is being shadowed.
      * If it does not shadow another type, it is itself.
      */
-    public get shadowedType(): IType {
+    public get shadowedType(): BaseType {
         return this.mShadowedType;
     }
 
@@ -137,7 +137,7 @@ export class PgslMatrixType extends AbstractSyntaxTree<TypeCst, TypeProperties> 
      * @param pInnerType - The inner element type of the matrix.
      * @param pShadowedType - Type that is the actual type of this.
      */
-    public constructor(pColumnCount: number, pRowCount: number, pInnerType: IType, pShadowedType?: IType) {
+    public constructor(pColumnCount: number, pRowCount: number, pInnerType: BaseType, pShadowedType?: BaseType) {
         super({ type: 'Type', range: [0, 0, 0, 0] });
 
         // Set data.
@@ -161,7 +161,7 @@ export class PgslMatrixType extends AbstractSyntaxTree<TypeCst, TypeProperties> 
      * 
      * @returns True when both types have the same dimensions and inner type.
      */
-    public equals(pTarget: IType): boolean {
+    public equals(pTarget: BaseType): boolean {
         // Must both be a matrix.
         if (!(pTarget instanceof PgslMatrixType)) {
             return false;
@@ -184,7 +184,7 @@ export class PgslMatrixType extends AbstractSyntaxTree<TypeCst, TypeProperties> 
      * 
      * @returns True when implicit casting is allowed, false otherwise.
      */
-    public isCastableInto(pTarget: IType): boolean {
+    public isCastableInto(pTarget: BaseType): boolean {
         // Must both be a matrix.
         if (!(pTarget instanceof PgslMatrixType)) {
             return false;

@@ -1,21 +1,21 @@
 import type { TypeCst } from '../../concrete_syntax_tree/general.type.ts';
 import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
-import type { IType, TypeProperties } from './i-type.interface.ts';
+import type { BaseType, TypeProperties } from './i-type.interface.ts';
 
 /**
  * Invalid type definition.
  * Represents an invalid or erroneous type that cannot be used in normal operations.
  * This type is used as a fallback when type resolution fails or encounters errors.
  */
-export class PgslInvalidType extends AbstractSyntaxTree<TypeCst, TypeProperties> implements IType {
-    private readonly mShadowedType: IType;
+export class PgslInvalidType extends AbstractSyntaxTree<TypeCst, TypeProperties> implements BaseType {
+    private readonly mShadowedType: BaseType;
 
     /**
      * The type that is being shadowed.
      * If it does not shadow another type, it is itself.
      */
-    public get shadowedType(): IType {
+    public get shadowedType(): BaseType {
         return this.mShadowedType;
     }
 
@@ -24,7 +24,7 @@ export class PgslInvalidType extends AbstractSyntaxTree<TypeCst, TypeProperties>
      * 
      * @param pShadowedType - Type that is the actual type of this.
      */
-    public constructor(pShadowedType?: IType) {
+    public constructor(pShadowedType?: BaseType) {
         super({ type: 'Type', range: [0, 0, 0, 0] });
 
         this.mShadowedType = pShadowedType ?? this;
@@ -38,7 +38,7 @@ export class PgslInvalidType extends AbstractSyntaxTree<TypeCst, TypeProperties>
      * 
      * @returns Always false - invalid types are never equal.
      */
-    public equals(_pTarget: IType): boolean {
+    public equals(_pTarget: BaseType): boolean {
         return false;
     }
 
@@ -50,7 +50,7 @@ export class PgslInvalidType extends AbstractSyntaxTree<TypeCst, TypeProperties>
      * 
      * @returns Always false - invalid types cannot be cast.
      */
-    public isCastableInto(_pTarget: IType): boolean {
+    public isCastableInto(_pTarget: BaseType): boolean {
         return false;
     }
 

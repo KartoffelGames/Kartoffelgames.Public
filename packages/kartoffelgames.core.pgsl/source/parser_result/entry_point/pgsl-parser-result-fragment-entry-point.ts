@@ -2,7 +2,7 @@ import { Exception } from '@kartoffelgames/core';
 import type { FunctionDeclarationAstDataDeclaration } from '../../abstract_syntax_tree/declaration/function-declaration-ast.ts';
 import { StructDeclarationAst } from '../../abstract_syntax_tree/declaration/struct-declaration-ast.ts';
 import type { DocumentAst } from '../../abstract_syntax_tree/document-ast.ts';
-import type { IType } from '../../abstract_syntax_tree/type/i-type.interface.ts';
+import type { BaseType } from '../../abstract_syntax_tree/type/i-type.interface.ts';
 import { PgslNumericType } from '../../abstract_syntax_tree/type/pgsl-numeric-type.ts';
 import type { PgslStructType } from '../../abstract_syntax_tree/type/pgsl-struct-type.ts';
 import { PgslVectorType } from '../../abstract_syntax_tree/type/pgsl-vector-type.ts';
@@ -95,7 +95,7 @@ export class PgslParserResultFragmentEntryPoint extends PgslParserResultEntryPoi
      *
      * @returns The parser result type.
      */
-    private convertType(pType: IType): PgslParserResultType {
+    private convertType(pType: BaseType): PgslParserResultType {
         // Build the parser result type based on the specific traced type.
         const lType: PgslParserResultType = (() => {
             switch (true) {

@@ -9,7 +9,7 @@ import { AttributeListAst } from '../general/attribute-list-ast.ts';
 import { TypeDeclarationAst } from '../general/type-declaration-ast.ts';
 import type { IValueStoreAst } from '../i-value-store-ast.interface.ts';
 import { BlockStatementAst } from '../statement/execution/block-statement-ast.ts';
-import type { IType } from '../type/i-type.interface.ts';
+import type { BaseType } from '../type/i-type.interface.ts';
 import { PgslInvalidType } from '../type/pgsl-invalid-type.ts';
 import { PgslStructType } from '../type/pgsl-struct-type.ts';
 import { PgslVoidType } from '../type/pgsl-void-type.ts';
@@ -110,7 +110,7 @@ export class FunctionDeclarationAst extends AbstractSyntaxTree<FunctionDeclarati
 
                     lParameterList.push(lParameterData);
 
-                    const lParameterType: IType = (() => {
+                    const lParameterType: BaseType = (() => {
                         if (typeof lParameterData.type === 'string') {
                             // Generic type, cannot be resolved yet.
                             return new PgslInvalidType().process(pContext);
@@ -153,7 +153,7 @@ export class FunctionDeclarationAst extends AbstractSyntaxTree<FunctionDeclarati
                     // If function is not built-in check for correct return type in function block.
                     if (!lDeclaration.buildIn) {
                         // Read block return type.
-                        const lBlockReturnType: IType = lBlock.data.returnType;
+                        const lBlockReturnType: BaseType = lBlock.data.returnType;
 
                         // Check for correct return type in function block.
                         if (!lBlockReturnType.isCastableInto(lReturnType.data.type)) {

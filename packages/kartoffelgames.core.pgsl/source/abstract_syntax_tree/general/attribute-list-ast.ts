@@ -14,7 +14,7 @@ import { VariableDeclarationAst } from '../declaration/variable-declaration-ast.
 import { ExpressionAstBuilder } from '../expression/expression-ast-builder.ts';
 import type { IExpressionAst } from '../expression/i-expression-ast.interface.ts';
 import { StringValueExpressionAst } from '../expression/single_value/string-value-expression-ast.ts';
-import type { IType } from '../type/i-type.interface.ts';
+import type { BaseType } from '../type/i-type.interface.ts';
 import { PgslNumericType, type PgslNumericTypeName } from '../type/pgsl-numeric-type.ts';
 import { PgslStringType } from '../type/pgsl-string-type.ts';
 
@@ -293,7 +293,7 @@ export class AttributeListAst extends AbstractSyntaxTree<AttributeListCst, Attri
             lValidatedParameters.push(lAttributeParameterAst);
 
             // Read and get the actual attribute parameter.
-            const lActualAttributeParameterType: IType = lAttributeParameterAst.data.resolveType;
+            const lActualAttributeParameterType: BaseType = lAttributeParameterAst.data.resolveType;
 
             // Validate based on expected template type.
             if ('values' in lExpectedTemplateType) { // String or enum.

@@ -1,14 +1,14 @@
 import type { TypeCst } from '../../concrete_syntax_tree/general.type.ts';
 import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
-import type { IType, TypeProperties } from './i-type.interface.ts';
+import type { BaseType, TypeProperties } from './i-type.interface.ts';
 
 /**
  * Numeric type definition.
  * Represents all numeric types in PGSL including integers, floats, and abstract numeric types.
  * Handles type casting rules between different numeric types.
  */
-export class PgslNumericType extends AbstractSyntaxTree<TypeCst, TypeProperties> implements IType {
+export class PgslNumericType extends AbstractSyntaxTree<TypeCst, TypeProperties> implements BaseType {
     /**
      * Type names for all available numeric types.
      * Maps numeric type names to their string representations.
@@ -26,7 +26,7 @@ export class PgslNumericType extends AbstractSyntaxTree<TypeCst, TypeProperties>
     }
 
     private readonly mNumericType: PgslNumericTypeName;
-    private readonly mShadowedType: IType;
+    private readonly mShadowedType: BaseType;
 
     /**
      * Gets the specific numeric type variant.
@@ -41,7 +41,7 @@ export class PgslNumericType extends AbstractSyntaxTree<TypeCst, TypeProperties>
      * The type that is being shadowed.
      * If it does not shadow another type, it is itself.
      */
-    public get shadowedType(): IType {
+    public get shadowedType(): BaseType {
         return this.mShadowedType;
     }
 
@@ -51,7 +51,7 @@ export class PgslNumericType extends AbstractSyntaxTree<TypeCst, TypeProperties>
      * @param pNumericType - The specific numeric type variant.
      * @param pShadowedType - Type that is the actual type of this.
      */
-    public constructor(pNumericType: PgslNumericTypeName, pShadowedType?: IType) {
+    public constructor(pNumericType: PgslNumericTypeName, pShadowedType?: BaseType) {
         super({ type: 'Type', range: [0, 0, 0, 0] });
 
         // Set data.
@@ -67,7 +67,7 @@ export class PgslNumericType extends AbstractSyntaxTree<TypeCst, TypeProperties>
      * 
      * @returns True when both types have the same numeric type.
      */
-    public equals(pTarget: IType): boolean {
+    public equals(pTarget: BaseType): boolean {
         // Must both be the same numeric type.
         if (!(pTarget instanceof PgslNumericType)) {
             return false;
@@ -86,7 +86,7 @@ export class PgslNumericType extends AbstractSyntaxTree<TypeCst, TypeProperties>
      * 
      * @returns True when implicit casting is allowed, false otherwise.
      */
-    public isCastableInto(pTarget: IType): boolean {
+    public isCastableInto(pTarget: BaseType): boolean {
         // Target type must be a numeric type.
         if (!(pTarget instanceof PgslNumericType)) {
             return false;

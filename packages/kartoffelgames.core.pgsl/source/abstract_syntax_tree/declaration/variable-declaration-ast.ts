@@ -6,7 +6,7 @@ import { PgslValueAddressSpace } from '../../enum/pgsl-value-address-space.enum.
 import { PgslValueFixedState } from '../../enum/pgsl-value-fixed-state.ts';
 import { PgslSamplerType } from '../type/pgsl-sampler-type.ts';
 import { PgslTextureType } from '../type/pgsl-texture-type.ts';
-import type { IType } from '../type/i-type.interface.ts';
+import type { BaseType } from '../type/i-type.interface.ts';
 import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
 import { AttributeListAst } from '../general/attribute-list-ast.ts';
@@ -56,7 +56,7 @@ export class VariableDeclarationAst extends AbstractSyntaxTree<VariableDeclarati
 
         // Read type of type declaration.
         const lTypeDeclaration: TypeDeclarationAst = new TypeDeclarationAst(this.cst.typeDeclaration).process(pContext);
-        const lType: IType = lTypeDeclaration.data.type;
+        const lType: BaseType = lTypeDeclaration.data.type;
 
         // Read optional expression attachment.
         let lExpression: IExpressionAst | null = null;
@@ -166,7 +166,7 @@ export class VariableDeclarationAst extends AbstractSyntaxTree<VariableDeclarati
      *
      * @returns The address space.
      */
-    private getAddressSpace(pContext: AbstractSyntaxTreeContext, pDeclarationType: PgslDeclarationType, pType: IType): PgslValueAddressSpace {
+    private getAddressSpace(pContext: AbstractSyntaxTreeContext, pDeclarationType: PgslDeclarationType, pType: BaseType): PgslValueAddressSpace {
         // For texture and sampler types, we always use texture address space.
         if (pType instanceof PgslSamplerType || pType instanceof PgslTextureType) {
             return PgslValueAddressSpace.Texture;
@@ -282,7 +282,7 @@ export class VariableDeclarationAst extends AbstractSyntaxTree<VariableDeclarati
      * @param pType - Declaration type.
      * @param pExpression - Initialization expression.
      */
-    private validateDeclaration(pContext: AbstractSyntaxTreeContext, pAttributes: AttributeListAst, pDeclarationType: PgslDeclarationType, pType: IType, pExpression: IExpressionAst | null): void {
+    private validateDeclaration(pContext: AbstractSyntaxTreeContext, pAttributes: AttributeListAst, pDeclarationType: PgslDeclarationType, pType: BaseType, pExpression: IExpressionAst | null): void {
         // A bunch of specific validation function to easy build a validation for each declaration type.
         const lMustBeConstructible = () => {
             if (!pType.data.constructible) {

@@ -2,22 +2,22 @@ import type { TypeCst } from '../../concrete_syntax_tree/general.type.ts';
 import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
 import type { StructDeclarationAst } from '../declaration/struct-declaration-ast.ts';
-import type { IType, TypeProperties } from './i-type.interface.ts';
+import type { BaseType, TypeProperties } from './i-type.interface.ts';
 
 /**
  * Struct type definition.
  * Represents a user-defined struct type that contains multiple named fields.
  * Struct types are composite types that can be used to group related data.
  */
-export class PgslStructType extends AbstractSyntaxTree<TypeCst, TypeProperties> implements IType {
-    private readonly mShadowedType: IType;
+export class PgslStructType extends AbstractSyntaxTree<TypeCst, TypeProperties> implements BaseType {
+    private readonly mShadowedType: BaseType;
     private readonly mStructName: string;
 
     /**
      * The type that is being shadowed.
      * If it does not shadow another type, it is itself.
      */
-    public get shadowedType(): IType {
+    public get shadowedType(): BaseType {
         return this.mShadowedType;
     }
 
@@ -36,7 +36,7 @@ export class PgslStructType extends AbstractSyntaxTree<TypeCst, TypeProperties> 
      * @param pStructName - The name of the struct type.
      * @param pShadowedType - Type that is the actual type of this.
      */
-    public constructor(pStructName: string, pShadowedType?: IType) {
+    public constructor(pStructName: string, pShadowedType?: BaseType) {
         super({ type: 'Type', range: [0, 0, 0, 0] });
 
         // Set data.
@@ -52,7 +52,7 @@ export class PgslStructType extends AbstractSyntaxTree<TypeCst, TypeProperties> 
      * 
      * @returns True when both types have the same struct name.
      */
-    public equals(pTarget: IType): boolean {
+    public equals(pTarget: BaseType): boolean {
         // Must both be a struct.
         if (!(pTarget instanceof PgslStructType)) {
             return false;
@@ -69,7 +69,7 @@ export class PgslStructType extends AbstractSyntaxTree<TypeCst, TypeProperties> 
      * 
      * @returns Always false - structs cannot be cast.
      */
-    public isCastableInto(pTarget: IType): boolean {
+    public isCastableInto(pTarget: BaseType): boolean {
         // A struct is never explicit nor implicit castable.
         return this.equals(pTarget);
     }

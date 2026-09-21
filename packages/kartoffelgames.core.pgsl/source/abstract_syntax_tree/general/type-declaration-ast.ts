@@ -10,7 +10,7 @@ import { PgslSamplerType } from '../type/pgsl-sampler-type.ts';
 import { PgslStringType } from '../type/pgsl-string-type.ts';
 import { PgslStructType } from '../type/pgsl-struct-type.ts';
 import { PgslTextureType } from '../type/pgsl-texture-type.ts';
-import type { BaseType } from '../type/i-type.interface.ts';
+import type { BaseType } from '../type/base-type.ts';
 import { PgslVectorType } from '../type/pgsl-vector-type.ts';
 import { PgslVoidType } from '../type/pgsl-void-type.ts';
 import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';

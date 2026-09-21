@@ -4,7 +4,7 @@ import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
 import { ExpressionAstBuilder } from '../expression/expression-ast-builder.ts';
 import type { IExpressionAst } from '../expression/i-expression-ast.interface.ts';
 import { AttributeListAst } from '../general/attribute-list-ast.ts';
-import type { BaseType } from '../type/i-type.interface.ts';
+import type { BaseType } from '../type/base-type.ts';
 import { PgslInvalidType } from '../type/pgsl-invalid-type.ts';
 import { PgslNumericType } from '../type/pgsl-numeric-type.ts';
 import { PgslStringType } from '../type/pgsl-string-type.ts';

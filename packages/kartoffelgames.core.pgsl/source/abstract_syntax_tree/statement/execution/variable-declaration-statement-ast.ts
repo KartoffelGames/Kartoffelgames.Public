@@ -10,7 +10,7 @@ import { ExpressionAstBuilder } from '../../expression/expression-ast-builder.ts
 import type { IExpressionAst } from '../../expression/i-expression-ast.interface.ts';
 import { TypeDeclarationAst } from '../../general/type-declaration-ast.ts';
 import type { IValueStoreAst, ValueStoreAstData } from '../../i-value-store-ast.interface.ts';
-import type { BaseType } from '../../type/i-type.interface.ts';
+import type { BaseType } from '../../type/base-type.ts';
 import { PgslPointerType } from '../../type/pgsl-pointer-type.ts';
 import type { IStatementAst, StatementAstData } from '../i-statement-ast.interface.ts';
 

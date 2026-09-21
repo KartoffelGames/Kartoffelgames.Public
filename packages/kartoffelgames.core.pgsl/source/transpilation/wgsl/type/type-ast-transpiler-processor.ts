@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import type { IAnyParameterConstructor } from '../../../../../kartoffelgames.core/source/interface/i-constructor.ts';
-import type { BaseType } from '../../../abstract_syntax_tree/type/i-type.interface.ts';
+import type { BaseType } from '../../../abstract_syntax_tree/type/base-type.ts';
 import { PgslArrayType } from '../../../abstract_syntax_tree/type/pgsl-array-type.ts';
 import { PgslBooleanType } from '../../../abstract_syntax_tree/type/pgsl-boolean-type.ts';
 import { PgslBuildInType } from '../../../abstract_syntax_tree/type/pgsl-build-in-type.ts';

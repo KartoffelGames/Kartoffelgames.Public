@@ -6,7 +6,7 @@ import { PgslArrayType } from './pgsl-array-type.ts';
 import { PgslBooleanType } from './pgsl-boolean-type.ts';
 import { PgslInvalidType } from './pgsl-invalid-type.ts';
 import { PgslNumericType } from './pgsl-numeric-type.ts';
-import type { BaseType, TypeProperties } from './i-type.interface.ts';
+import type { BaseType, TypeProperties } from './base-type.ts';
 import { PgslVectorType } from './pgsl-vector-type.ts';
 import type { TypeCst } from '../../concrete_syntax_tree/general.type.ts';
 import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';

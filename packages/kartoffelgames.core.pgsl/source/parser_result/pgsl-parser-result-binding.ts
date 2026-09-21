@@ -2,7 +2,7 @@ import { Exception } from '@kartoffelgames/core';
 import { StructDeclarationAst } from '../abstract_syntax_tree/declaration/struct-declaration-ast.ts';
 import type { VariableDeclarationAst } from '../abstract_syntax_tree/declaration/variable-declaration-ast.ts';
 import type { DocumentAst } from '../abstract_syntax_tree/document-ast.ts';
-import type { BaseType } from '../abstract_syntax_tree/type/i-type.interface.ts';
+import type { BaseType } from '../abstract_syntax_tree/type/base-type.ts';
 import { PgslArrayType } from '../abstract_syntax_tree/type/pgsl-array-type.ts';
 import { PgslMatrixType } from '../abstract_syntax_tree/type/pgsl-matrix-type.ts';
 import { PgslNumericType } from '../abstract_syntax_tree/type/pgsl-numeric-type.ts';

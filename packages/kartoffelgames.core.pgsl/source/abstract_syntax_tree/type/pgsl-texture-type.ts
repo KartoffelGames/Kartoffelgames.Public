@@ -6,7 +6,7 @@ import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.
 import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
 import type { IExpressionAst } from '../expression/i-expression-ast.interface.ts';
 import { TypeDeclarationAst } from '../general/type-declaration-ast.ts';
-import type { BaseType, TypeProperties } from './i-type.interface.ts';
+import type { BaseType, TypeProperties } from './base-type.ts';
 import { PgslNumericType } from './pgsl-numeric-type.ts';
 import { PgslStringType } from './pgsl-string-type.ts';
 

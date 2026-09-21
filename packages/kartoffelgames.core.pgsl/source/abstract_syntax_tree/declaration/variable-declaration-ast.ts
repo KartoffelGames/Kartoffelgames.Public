@@ -6,7 +6,7 @@ import { PgslValueAddressSpace } from '../../enum/pgsl-value-address-space.enum.
 import { PgslValueFixedState } from '../../enum/pgsl-value-fixed-state.ts';
 import { PgslSamplerType } from '../type/pgsl-sampler-type.ts';
 import { PgslTextureType } from '../type/pgsl-texture-type.ts';
-import type { BaseType } from '../type/i-type.interface.ts';
+import type { BaseType } from '../type/base-type.ts';
 import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
 import { AttributeListAst } from '../general/attribute-list-ast.ts';

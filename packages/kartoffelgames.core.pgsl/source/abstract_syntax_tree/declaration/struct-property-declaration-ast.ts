@@ -2,7 +2,7 @@ import { type PgslInterpolateSampling, PgslInterpolateSamplingEnum } from '../..
 import { type PgslInterpolateType, PgslInterpolateTypeEnum } from '../../buildin/enum/pgsl-interpolate-type-enum.ts';
 import type { StructPropertyDeclarationCst } from '../../concrete_syntax_tree/declaration.type.ts';
 import { PgslNumericType } from '../type/pgsl-numeric-type.ts';
-import type { BaseType } from '../type/i-type.interface.ts';
+import type { BaseType } from '../type/base-type.ts';
 import { PgslVectorType } from '../type/pgsl-vector-type.ts';
 import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';

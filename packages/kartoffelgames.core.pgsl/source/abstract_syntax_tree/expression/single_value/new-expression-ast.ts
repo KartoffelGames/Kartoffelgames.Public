@@ -4,7 +4,7 @@ import { PgslValueFixedState } from '../../../enum/pgsl-value-fixed-state.ts';
 import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
 import { TypeDeclarationAst } from '../../general/type-declaration-ast.ts';
-import type { BaseType } from '../../type/i-type.interface.ts';
+import type { BaseType } from '../../type/base-type.ts';
 import { PgslArrayType } from '../../type/pgsl-array-type.ts';
 import { PgslBooleanType } from '../../type/pgsl-boolean-type.ts';
 import { PgslInvalidType } from '../../type/pgsl-invalid-type.ts';

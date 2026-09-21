@@ -1,7 +1,7 @@
 import type { TypeCst } from '../../concrete_syntax_tree/general.type.ts';
 import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
-import type { BaseType, TypeProperties } from './i-type.interface.ts';
+import type { BaseType, TypeProperties } from './base-type.ts';
 
 /**
  * Invalid type definition.

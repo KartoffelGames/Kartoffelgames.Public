@@ -3,7 +3,7 @@ import type { ComparisonExpressionCst } from '../../../concrete_syntax_tree/expr
 import { PgslOperator } from '../../../enum/pgsl-operator.enum.ts';
 import { PgslValueAddressSpace } from '../../../enum/pgsl-value-address-space.enum.ts';
 import { PgslBooleanType } from '../../type/pgsl-boolean-type.ts';
-import type { BaseType } from '../../type/i-type.interface.ts';
+import type { BaseType } from '../../type/base-type.ts';
 import { PgslVectorType } from '../../type/pgsl-vector-type.ts';
 import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';

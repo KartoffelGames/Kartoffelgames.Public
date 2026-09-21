@@ -9,7 +9,7 @@ import { AttributeListAst } from '../general/attribute-list-ast.ts';
 import { TypeDeclarationAst } from '../general/type-declaration-ast.ts';
 import type { IValueStoreAst } from '../i-value-store-ast.interface.ts';
 import { BlockStatementAst } from '../statement/execution/block-statement-ast.ts';
-import type { BaseType } from '../type/i-type.interface.ts';
+import type { BaseType } from '../type/base-type.ts';
 import { PgslInvalidType } from '../type/pgsl-invalid-type.ts';
 import { PgslStructType } from '../type/pgsl-struct-type.ts';
 import { PgslVoidType } from '../type/pgsl-void-type.ts';

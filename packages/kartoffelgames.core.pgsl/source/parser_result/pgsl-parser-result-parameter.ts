@@ -2,7 +2,7 @@ import { Exception } from '@kartoffelgames/core';
 import type { VariableDeclarationAst } from '../abstract_syntax_tree/declaration/variable-declaration-ast.ts';
 import { PgslBooleanType } from '../abstract_syntax_tree/type/pgsl-boolean-type.ts';
 import { PgslNumericType } from '../abstract_syntax_tree/type/pgsl-numeric-type.ts';
-import type { BaseType } from '../abstract_syntax_tree/type/i-type.interface.ts';
+import type { BaseType } from '../abstract_syntax_tree/type/base-type.ts';
 import { PgslParserResultBooleanType } from './type/pgsl-parser-result-boolean-type.ts';
 import { PgslParserResultNumericType } from './type/pgsl-parser-result-numeric-type.ts';
 import type { PgslParserResultType } from './type/pgsl-parser-result-type.ts';

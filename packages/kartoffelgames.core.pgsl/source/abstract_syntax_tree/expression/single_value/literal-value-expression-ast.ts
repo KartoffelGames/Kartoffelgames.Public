@@ -6,7 +6,7 @@ import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
 import { PgslBooleanType } from '../../type/pgsl-boolean-type.ts';
 import { PgslInvalidType } from '../../type/pgsl-invalid-type.ts';
 import { PgslNumericType, type PgslNumericTypeName } from '../../type/pgsl-numeric-type.ts';
-import type { BaseType } from '../../type/i-type.interface.ts';
+import type { BaseType } from '../../type/base-type.ts';
 import type { ExpressionAstData, IExpressionAst } from '../i-expression-ast.interface.ts';
 
 /**

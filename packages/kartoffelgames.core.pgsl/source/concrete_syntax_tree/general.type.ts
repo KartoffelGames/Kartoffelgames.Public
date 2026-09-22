@@ -48,5 +48,3 @@ export type TypeDeclarationCst = {
     template: Array<ExpressionCst | TypeDeclarationCst>;
     isPointer: boolean;
 } & Cst<'TypeDeclaration'>;
-
-export type TypeCst = {} & Cst<'Type'>;

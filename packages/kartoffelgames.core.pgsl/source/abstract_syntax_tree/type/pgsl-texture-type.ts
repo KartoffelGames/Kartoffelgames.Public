@@ -6,7 +6,7 @@ import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.
 import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
 import type { IExpressionAst } from '../expression/i-expression-ast.interface.ts';
 import { TypeDeclarationAst } from '../general/type-declaration-ast.ts';
-import type { BaseType, TypeProperties } from './base-type.ts';
+import type { BasePgslType, TypeProperties } from './base-pgsl-type.ts';
 import { PgslNumericType } from './pgsl-numeric-type.ts';
 import { PgslStringType } from './pgsl-string-type.ts';
 
@@ -27,7 +27,7 @@ import { PgslStringType } from './pgsl-string-type.ts';
  * const depth = new PgslTextureType(trace, 'TextureDepth2d', []);
  * ```
  */
-export class PgslTextureType extends AbstractSyntaxTree<TypeCst, TypeProperties> implements BaseType {
+export class PgslTextureType extends AbstractSyntaxTree<TypeCst, TypeProperties> implements BasePgslType {
     /**
      * Static mapping of texture types to their expected template parameter types.
      * Used for validation during texture type construction.
@@ -177,7 +177,7 @@ export class PgslTextureType extends AbstractSyntaxTree<TypeCst, TypeProperties>
         }
     }
 
-    private readonly mShadowedType: BaseType;
+    private readonly mShadowedType: BasePgslType;
     private readonly mTemplateList: Array<IExpressionAst | TypeDeclarationAst>;
     private readonly mTextureType: PgslTextureTypeName;
     private mTextureTypeParameter: PgslTextureTypeParameter | null;
@@ -211,7 +211,7 @@ export class PgslTextureType extends AbstractSyntaxTree<TypeCst, TypeProperties>
      * 
      * @returns The sampled type.
      */
-    public get sampledType(): BaseType {
+    public get sampledType(): BasePgslType {
         if (!this.mTextureTypeParameter) {
             throw new Exception('Texture type parameter is not initialized.', this);
         }
@@ -222,7 +222,7 @@ export class PgslTextureType extends AbstractSyntaxTree<TypeCst, TypeProperties>
      * The type that is being shadowed.
      * If it does not shadow another type, it is itself.
      */
-    public get shadowedType(): BaseType {
+    public get shadowedType(): BasePgslType {
         return this.mShadowedType;
     }
 
@@ -242,7 +242,7 @@ export class PgslTextureType extends AbstractSyntaxTree<TypeCst, TypeProperties>
      * @param pTemplateList - List of template arguments (types or strings).
      * @param pShadowedType - Type that is the actual type of this.
      */
-    public constructor(pTextureType: PgslTextureTypeName, pTemplateList: Array<IExpressionAst | TypeDeclarationAst>, pShadowedType?: BaseType) {
+    public constructor(pTextureType: PgslTextureTypeName, pTemplateList: Array<IExpressionAst | TypeDeclarationAst>, pShadowedType?: BasePgslType) {
         super({ type: 'Type', range: [0, 0, 0, 0] });
 
         // Set data.
@@ -263,7 +263,7 @@ export class PgslTextureType extends AbstractSyntaxTree<TypeCst, TypeProperties>
      * 
      * @returns True when both types describe the same texture type.
      */
-    public equals(pTarget: BaseType): boolean {
+    public equals(pTarget: BasePgslType): boolean {
         // Must both be texture types.
         if (!(pTarget instanceof PgslTextureType)) {
             return false;
@@ -300,7 +300,7 @@ export class PgslTextureType extends AbstractSyntaxTree<TypeCst, TypeProperties>
      * 
      * @returns Always false - textures cannot be cast.
      */
-    public isCastableInto(pTarget: BaseType): boolean {
+    public isCastableInto(pTarget: BasePgslType): boolean {
         // A texture is never explicit nor implicit castable.
         return this.equals(pTarget);
     }
@@ -418,7 +418,7 @@ export class PgslTextureType extends AbstractSyntaxTree<TypeCst, TypeProperties>
             if (lTextureTemplates.length === 1) {
                 // Single parameter: sampled type for regular textures.
                 const lTypeDefinition: TypeDeclarationAst = lActualParameterValue as TypeDeclarationAst;
-                const lSampledType: BaseType = lTypeDefinition.data.type;
+                const lSampledType: BasePgslType = lTypeDefinition.data.type;
                 lTypeParameter.sampledType = lSampledType;
 
                 // Validate sampled type is a concrete number.
@@ -508,7 +508,7 @@ export class PgslTextureType extends AbstractSyntaxTree<TypeCst, TypeProperties>
 type PgslTextureTypeParameter = {
     access: PgslAccessMode;
     format: PgslTexelFormat;
-    sampledType: BaseType;
+    sampledType: BasePgslType;
 };
 
 /**

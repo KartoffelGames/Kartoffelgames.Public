@@ -1,13 +1,13 @@
 import type { TypeCst } from '../../concrete_syntax_tree/general.type.ts';
 import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
-import type { BaseType, TypeProperties } from './base-type.ts';
+import type { BasePgslType, TypeProperties } from './base-pgsl-type.ts';
 
 /**
  * Void type definition.
  * Represents the absence of a value, typically used as function return type.
  */
-export class PgslVoidType extends AbstractSyntaxTree<TypeCst, TypeProperties> implements BaseType {
+export class PgslVoidType extends AbstractSyntaxTree<TypeCst, TypeProperties> implements BasePgslType {
     /**
      * Type names for void types.
      * Maps void type names to their string representations.
@@ -19,13 +19,13 @@ export class PgslVoidType extends AbstractSyntaxTree<TypeCst, TypeProperties> im
         } as const;
     }
 
-    private readonly mShadowedType: BaseType;
+    private readonly mShadowedType: BasePgslType;
 
     /**
      * The type that is being shadowed.
      * If it does not shadow another type, it is itself.
      */
-    public get shadowedType(): BaseType {
+    public get shadowedType(): BasePgslType {
         return this.mShadowedType;
     } 
 
@@ -34,7 +34,7 @@ export class PgslVoidType extends AbstractSyntaxTree<TypeCst, TypeProperties> im
      * 
      * @param pShadowedType - Type that is the actual type of this.
      */
-    public constructor(pShadowedType?: BaseType) {
+    public constructor(pShadowedType?: BasePgslType) {
         super({ type: 'Type', range: [0, 0, 0, 0] });
 
         this.mShadowedType = pShadowedType ?? this;
@@ -47,7 +47,7 @@ export class PgslVoidType extends AbstractSyntaxTree<TypeCst, TypeProperties> im
      * 
      * @returns true when both types describes the same type.
      */
-    public equals(pTarget: BaseType): boolean {
+    public equals(pTarget: BasePgslType): boolean {
         // Void type is only equal to other void types.
         return pTarget instanceof PgslVoidType;
     }
@@ -59,7 +59,7 @@ export class PgslVoidType extends AbstractSyntaxTree<TypeCst, TypeProperties> im
      * 
      * @returns true when type is implicit castable into target type.
      */
-    public isCastableInto(pTarget: BaseType): boolean {
+    public isCastableInto(pTarget: BasePgslType): boolean {
         // A void is never explicit nor implicit castable.
         return this.equals(pTarget);
     }

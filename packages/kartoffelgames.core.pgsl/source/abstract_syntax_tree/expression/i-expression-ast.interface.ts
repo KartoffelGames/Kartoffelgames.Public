@@ -1,7 +1,7 @@
 import type { PgslValueAddressSpace } from '../../enum/pgsl-value-address-space.enum.ts';
 import type { PgslValueFixedState } from '../../enum/pgsl-value-fixed-state.ts';
 import type { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
-import type { BaseType } from '../type/base-type.ts';
+import type { BasePgslType } from '../type/base-pgsl-type.ts';
 
 /**
  * PGSL base expression.
@@ -16,7 +16,7 @@ export interface IExpressionAst extends AbstractSyntaxTree {
 export type ExpressionAstData = {
     fixedState: PgslValueFixedState;
     isStorage: boolean;
-    resolveType: BaseType;
+    resolveType: BasePgslType;
     constantValue: number | string | null;
     storageAddressSpace: PgslValueAddressSpace;
 };

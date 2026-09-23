@@ -20,6 +20,7 @@ import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.
 import type { AliasDeclarationAst } from '../declaration/alias-declaration-ast.ts';
 import type { ExpressionCst } from '../../concrete_syntax_tree/expression.type.ts';
 import { ExpressionAstBuilder } from '../expression/expression-ast-builder.ts';
+import { PgslValueFixedState } from "../../enum/pgsl-value-fixed-state.ts";
 
 /**
  * PGSL base type definition.
@@ -106,8 +107,20 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
                     return null;
                 }
 
+                const lLengthExpression: IExpressionAst = ExpressionAstBuilder.build(lLengthTemplate).process(pContext);
+
+                // Length expression must be an unsigned integer scalar.
+                if (lLengthExpression.data.resolveType.conversionRankTo(new PgslNumericType(PgslNumericType.typeName.unsignedInteger)) === Number.POSITIVE_INFINITY) {
+                    pContext.pushIncident(`Array length expression must be of unsigned integer type.`, lLengthExpression);
+                }
+
+                // Length expression must be constant or a pipeline parameter constant.
+                if(lLengthExpression.data.fixedState < PgslValueFixedState.PipelineCreationFixed) {
+                    pContext.pushIncident(`Array length expression must be a constant expression.`, lLengthExpression);
+                }
+
                 // Set optional length expression.
-                return ExpressionAstBuilder.build(lLengthTemplate).process(pContext);
+                return lLengthExpression;
             }
 
             return null;

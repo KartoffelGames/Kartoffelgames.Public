@@ -57,7 +57,7 @@ export class PgslArrayType extends BasePgslType {
         lKindFlags |= pType.isKind(BasePgslTypeKind.HostShareable) ? BasePgslTypeKind.HostShareable : BasePgslTypeKind.None;
 
         // Is fixed when length expression is set and inner type is fixed.
-        const lIsFixed: boolean = pLengthExpression && pLengthExpression.data.fixedState >= PgslValueFixedState.ShaderCreationFixed ? pType.isKind(BasePgslTypeKind.FixedFootprint) : false;
+        const lIsFixed: boolean = pLengthExpression && pLengthExpression.data.fixedState >= PgslValueFixedState.PipelineCreationFixed ? pType.isKind(BasePgslTypeKind.FixedFootprint) : false;
         if (lIsFixed) {
             lKindFlags |= BasePgslTypeKind.FixedFootprint;
         }

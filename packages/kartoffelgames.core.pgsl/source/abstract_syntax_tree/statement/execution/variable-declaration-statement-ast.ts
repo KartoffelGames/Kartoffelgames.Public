@@ -86,13 +86,8 @@ export class VariableDeclarationStatementAst extends AbstractSyntaxTree<Variable
         // Value validation does not apply to pointers.
         if (!(lType instanceof PgslPointerType)) {
             // Type needs to be storable.
-            if (!lType.data.storable) {
-                pContext.pushIncident(`Type is not storable or a pointer of it.`, this);
-            }
-
-            // Const declaration type needs to be constructible.
-            if (this.cst.declarationType === PgslDeclarationType.Const && !lType.data.constructible) {
-                pContext.pushIncident(`Constant variable declarations can only be of a constructible type.`, this);
+            if (!lType.data.constructible) {
+                pContext.pushIncident(`Type is not constructible type.`, this);
             }
         } else {
             // If a expression is present, read the address space and attach it to the pointer type.

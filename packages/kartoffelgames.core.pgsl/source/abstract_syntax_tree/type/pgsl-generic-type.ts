@@ -18,7 +18,7 @@ export class PgslGenericType extends BasePgslType {
         // Combining all type kinds by ANDing them.
         const lTypeKind: BasePgslTypeKind = (() => {
             // If its a wildcard restriction it naturally doesnt fit any real type unless it get gated somewhere.
-            if(pRestrictions.length === 0) {
+            if (pRestrictions.length === 0) {
                 return BasePgslTypeKind.None;
             }
 
@@ -34,6 +34,29 @@ export class PgslGenericType extends BasePgslType {
         };
 
         super(lTypeKind, lTypeMeta);
+    }
+
+    /**
+     * Wether a type is assignable to this type.
+     * 
+     * @param pType - Source type.
+     * 
+     * @returns true when this type can be assinged 
+     */
+    public override accepts(pType: BasePgslType): boolean {
+        // Fast check reference. A type allways accepts itself.
+        if (pType === this) {
+            return true;
+        }
+
+        // Check if any restriction can assign the target type.
+        for (const lRestriction of this.restrictions) {
+            if (pType.conversionRankTo(lRestriction) < Number.POSITIVE_INFINITY) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -56,12 +79,23 @@ export class PgslGenericType extends BasePgslType {
      * @returns the conversation rank from this type to the specified.
      */
     public override conversionRankTo(pTarget: BasePgslType): number {
-        let lConversionRank: number = Number.POSITIVE_INFINITY;
+        // If it has no restriction, it cant be converted into nothing because its type cant be narrowed.
+        if (this.restrictions.length === 0) {
+            return Number.POSITIVE_INFINITY;
+        }
+
+        // Find the worst conversion rank of all restrictions.
+        let lConversionRank: number = 0;
         for (const lRestriction of this.restrictions) {
-            // Get conversion rank between type restriction and use it if its the best found yet.
+            // Get conversion rank between type restriction and use it if its the worst found yet.
             const lRestrictionsConversionRank: number = lRestriction.conversionRankTo(pTarget);
-            if (lRestrictionsConversionRank < lConversionRank) {
+            if (lRestrictionsConversionRank > lConversionRank) {
                 lConversionRank = lRestrictionsConversionRank;
+            }
+
+            // Shortcut on worst possible found conversion rank, so no other restriction needs to be checked.
+            if (lConversionRank === Number.POSITIVE_INFINITY) {
+                return lConversionRank;
             }
         }
 

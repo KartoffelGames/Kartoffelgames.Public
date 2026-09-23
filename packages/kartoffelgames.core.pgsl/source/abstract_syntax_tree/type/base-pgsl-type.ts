@@ -49,6 +49,22 @@ export abstract class BasePgslType {
     }
 
     /**
+     * Wether this type accept the specifed types value.
+     * 
+     * @param pType - Source type.
+     * 
+     * @returns true when this type can be assinged 
+     */
+    public accepts(pType: BasePgslType): boolean {
+        // Fast check reference. A type allways accepts itself.
+        if (pType === this) {
+            return true;
+        }
+
+        return pType.conversionRankTo(this) !== Number.POSITIVE_INFINITY;
+    }
+
+    /**
      * Whether this type is of kind.
      * 
      * @param pKind - Kind flag.

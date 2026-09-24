@@ -1,14 +1,10 @@
-
-import type { TypeCst } from '../../concrete_syntax_tree/general.type.ts';
-import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
-import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
-import type { BaseType, TypeProperties } from './base-type.ts';
+import { BasePgslType, BasePgslTypeKind, type BasePgslTypeMeta } from './base-pgsl-type.ts';
 
 /**
  * Vector type definition.
  * Represents a vector type with a specific dimension and inner type.
  */
-export class PgslVectorType extends AbstractSyntaxTree<TypeCst, TypeProperties> implements BaseType {
+export class PgslVectorType extends BasePgslType {
     /**
      * Type names for vector types.
      * Maps vector type names to their string representations.
@@ -38,8 +34,6 @@ export class PgslVectorType extends AbstractSyntaxTree<TypeCst, TypeProperties> 
         }
     }
 
-    private readonly mInnerType: BaseType;
-    private readonly mShadowedType: BaseType;
     private readonly mVectorDimension: number;
 
     /**
@@ -56,16 +50,8 @@ export class PgslVectorType extends AbstractSyntaxTree<TypeCst, TypeProperties> 
      * 
      * @returns The type of elements stored in the vector.
      */
-    public get innerType(): BaseType {
-        return this.mInnerType;
-    }
-
-    /**
-     * The type that is being shadowed.
-     * If it does not shadow another type, it is itself.
-     */
-    public get shadowedType(): BaseType {
-        return this.mShadowedType;
+    public get innerType(): BasePgslType {
+        return this.meta.generics![0];
     }
 
     /**
@@ -75,13 +61,45 @@ export class PgslVectorType extends AbstractSyntaxTree<TypeCst, TypeProperties> 
      * @param pInnerType - The inner element type of the vector.
      * @param pShadowedType - Type that is the actual type of this.
      */
-    public constructor(pVectorDimension: number, pInnerType: BaseType, pShadowedType?: BaseType) {
-        super({ type: 'Type', range: [0, 0, 0, 0] });
+    public constructor(pVectorDimension: number, pInnerType: BasePgslType, pShadowedType?: BasePgslType) {
+        // What a vector is.
+        let lKindFlags: BasePgslTypeKind = BasePgslTypeKind.Vector | BasePgslTypeKind.Composite | BasePgslTypeKind.Indexable;
 
-        // Set data.
-        this.mShadowedType = pShadowedType ?? this;
-        this.mInnerType = pInnerType;
+        // Copy kind informations from inner types.
+        lKindFlags |= pInnerType.isKind(BasePgslTypeKind.Plain) ? BasePgslTypeKind.Plain : BasePgslTypeKind.None;
+        lKindFlags |= pInnerType.isKind(BasePgslTypeKind.Concrete) ? BasePgslTypeKind.Concrete : BasePgslTypeKind.None;
+        lKindFlags |= pInnerType.isKind(BasePgslTypeKind.Storable) ? BasePgslTypeKind.Storable : BasePgslTypeKind.None;
+        lKindFlags |= pInnerType.isKind(BasePgslTypeKind.FixedFootprint) ? BasePgslTypeKind.FixedFootprint : BasePgslTypeKind.None;
+        lKindFlags |= pInnerType.isKind(BasePgslTypeKind.Constructible) ? BasePgslTypeKind.Constructible : BasePgslTypeKind.None;
+        lKindFlags |= pInnerType.isKind(BasePgslTypeKind.HostShareable) ? BasePgslTypeKind.HostShareable : BasePgslTypeKind.None;
+
+        // Create meta.
+        const lTypeMeta: BasePgslTypeMeta = {
+            typeName: PgslVectorType.typeNameFromDimension(pVectorDimension),
+            generics: [pInnerType]
+        };
+
+        super(lKindFlags, lTypeMeta, pShadowedType);
+
         this.mVectorDimension = pVectorDimension;
+    }
+
+    /**
+     * Get this types convertion rank to another type.
+     * A vector converts into a vector of the same dimension whenever its inner type converts.
+     * 
+     * @param pTarget - Conversion target type.
+     * 
+     * @returns The conversion rank of the component type, infinity when the vectors do not match.
+     */
+    public override conversionRankTo(pTarget: BasePgslType): number {
+        // Must both be a vector of the same dimension.
+        if (!this.isSameTypeClass(pTarget) || this.mVectorDimension !== pTarget.dimension) {
+            return Number.POSITIVE_INFINITY;
+        }
+
+        // The inner types conversion rank is the vector rank.
+        return this.innerType.conversionRankTo(pTarget.innerType);
     }
 
     /**
@@ -92,90 +110,12 @@ export class PgslVectorType extends AbstractSyntaxTree<TypeCst, TypeProperties> 
      * 
      * @returns True when both types have the same dimension and inner type.
      */
-    public equals(pTarget: BaseType): boolean {
-        // Must both be a vector.
-        if (!(pTarget instanceof PgslVectorType)) {
+    public override equals(pTarget: BasePgslType): pTarget is this {
+        // Must both be a vector of the same dimension.
+        if (!this.isSameTypeClass(pTarget) || this.mVectorDimension !== pTarget.dimension) {
             return false;
         }
 
-        // Inner type must be equal.
-        if (!this.mInnerType.equals(pTarget.mInnerType)) {
-            return false;
-        }
-
-        // Vector dimensions must be equal.
-        return this.mVectorDimension === pTarget.mVectorDimension;
+        return this.innerType.equals(pTarget.innerType);
     }
-
-    /**
-     * Check if this vector type is implicitly castable into the target type.
-     * Vector types can be implicitly cast if they have the same dimension and compatible inner types.
-     * 
-     * @param pTarget - Target type to check castability to.
-     * 
-     * @returns True when implicit casting is allowed, false otherwise.
-     */
-    public isCastableInto(pTarget: BaseType): boolean {
-        // Must both be a vector.
-        if (!(pTarget instanceof PgslVectorType)) {
-            return false;
-        }
-
-        // If vector dimensions are not equal, it is not castable.
-        if (this.mVectorDimension !== pTarget.mVectorDimension) {
-            return false;
-        }
-
-        // It is when inner types are implicit castable.
-        return this.mInnerType.isCastableInto(pTarget.mInnerType);
-    }
-
-    /**
-     * Collect type properties for vector types.
-     * Validates that the inner type is scalar and copies relevant properties.
-     * 
-     * @param pContext - Context for validation and error reporting.
-     * 
-     * @returns Type properties for vector types.
-     */
-    protected override onProcess(pContext: AbstractSyntaxTreeContext): TypeProperties {
-        // Validate vector dimension.
-        if (this.mVectorDimension < 2 || this.mVectorDimension > 4) {
-            pContext.pushIncident('Invalid vector dimension. Must be 2, 3, or 4.');
-        }
-
-        // Must be scalar.
-        if (!this.mInnerType.data.scalar) {
-            pContext.pushIncident('Vector type must have a scalar inner type');
-        }
-
-        // Build meta types.
-        const lMetaTypeList: Array<string> = new Array<string>();
-        for (const lMetaType of this.mInnerType.data.metaTypes) {
-            lMetaTypeList.push(`Vector<${lMetaType}>`);
-            lMetaTypeList.push(`Vector${this.mVectorDimension}<${lMetaType}>`);
-        }
-
-        // Add meta type for all vectors.
-        lMetaTypeList.push(`Vector${this.mVectorDimension}`);
-        lMetaTypeList.push('Vector');
-
-        return {
-            // Meta information.
-            metaTypes: lMetaTypeList,
-
-            // Always accessible as composite (swizzle) or index.
-            composite: true,
-            indexable: true,
-
-            // Copy of inner type properties.
-            scalar: this.mInnerType.data.scalar,
-            plain: this.mInnerType.data.plain,
-            concrete: this.mInnerType.data.concrete,
-            storable: this.mInnerType.data.storable,
-            hostShareable: this.mInnerType.data.hostShareable,
-            constructible: this.mInnerType.data.constructible,
-            fixedFootprint: this.mInnerType.data.fixedFootprint
-        };
-    }
-};
+}

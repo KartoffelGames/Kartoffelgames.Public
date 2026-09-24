@@ -1,13 +1,10 @@
-import type { TypeCst } from '../../concrete_syntax_tree/general.type.ts';
-import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
-import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
-import type { BasePgslType, TypeProperties } from './base-pgsl-type.ts';
+import { BasePgslType, BasePgslTypeKind, type BasePgslTypeMeta } from './base-pgsl-type.ts';
 
 /**
  * Void type definition.
  * Represents the absence of a value, typically used as function return type.
  */
-export class PgslVoidType extends AbstractSyntaxTree<TypeCst, TypeProperties> implements BasePgslType {
+export class PgslVoidType extends BasePgslType {
     /**
      * Type names for void types.
      * Maps void type names to their string representations.
@@ -19,25 +16,33 @@ export class PgslVoidType extends AbstractSyntaxTree<TypeCst, TypeProperties> im
         } as const;
     }
 
-    private readonly mShadowedType: BasePgslType;
-
-    /**
-     * The type that is being shadowed.
-     * If it does not shadow another type, it is itself.
-     */
-    public get shadowedType(): BasePgslType {
-        return this.mShadowedType;
-    } 
-
     /**
      * Constructor for void type.
      * 
      * @param pShadowedType - Type that is the actual type of this.
      */
     public constructor(pShadowedType?: BasePgslType) {
-        super({ type: 'Type', range: [0, 0, 0, 0] });
+        const lTypeMeta: BasePgslTypeMeta = {
+            typeName: PgslVoidType.typeName.void
+        };
 
-        this.mShadowedType = pShadowedType ?? this;
+        super(BasePgslTypeKind.Void, lTypeMeta, pShadowedType);
+    }
+
+    /**
+     * Get this types convertion rank to another type.
+     * A void only converts into another void.
+     * 
+     * @param pTarget - Conversion target type.
+     * 
+     * @returns Zero for another void, infinity for anything else.
+     */
+    public override conversionRankTo(pTarget: BasePgslType): number {
+        if(this.equals(pTarget)){
+            return 0;
+        }
+
+        return  Number.POSITIVE_INFINITY;
     }
 
     /**
@@ -45,44 +50,9 @@ export class PgslVoidType extends AbstractSyntaxTree<TypeCst, TypeProperties> im
      * 
      * @param pTarget - Target type.
      * 
-     * @returns true when both types describes the same type.
+     * @returns True when the target is a void type.
      */
-    public equals(pTarget: BasePgslType): boolean {
-        // Void type is only equal to other void types.
-        return pTarget instanceof PgslVoidType;
-    }
-
-    /**
-     * Check if type is implicit castable into target type.
-     * 
-     * @param pTarget - Target type.
-     * 
-     * @returns true when type is implicit castable into target type.
-     */
-    public isCastableInto(pTarget: BasePgslType): boolean {
-        // A void is never explicit nor implicit castable.
-        return this.equals(pTarget);
-    }
-
-    /**
-     * Collect type properties for void type.
-     * 
-     * @param _pContext - Context.
-     * 
-     * @returns Type properties for void type.
-     */
-    protected override onProcess(_pContext: AbstractSyntaxTreeContext): TypeProperties {
-        return {
-            metaTypes: [PgslVoidType.typeName.void],
-            storable: false,
-            hostShareable: false,
-            composite: false,
-            constructible: false,
-            fixedFootprint: false,
-            indexable: false,
-            concrete: false,
-            scalar: false,
-            plain: false
-        };
+    public override equals(pTarget: BasePgslType): pTarget is this {
+        return this.isSameTypeClass(pTarget);
     }
 }

@@ -1,13 +1,10 @@
-import type { TypeCst } from '../../concrete_syntax_tree/general.type.ts';
-import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
-import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
-import type { BaseType, TypeProperties } from './base-type.ts';
+import { BasePgslType, BasePgslTypeKind, type BasePgslTypeMeta } from './base-pgsl-type.ts';
 
 /**
  * Sampler type definition.
  * Represents a sampler resource used for texture sampling operations.
  */
-export class PgslSamplerType extends AbstractSyntaxTree<TypeCst, TypeProperties> implements BaseType {
+export class PgslSamplerType extends BasePgslType {
     /**
      * Type names for sampler types.
      * Maps sampler type names to their string representations.
@@ -20,8 +17,7 @@ export class PgslSamplerType extends AbstractSyntaxTree<TypeCst, TypeProperties>
         } as const;
     }
 
-    private readonly mComparision: boolean;
-    private readonly mShadowedType: BaseType;
+    private readonly mComparison: boolean;
 
     /**
      * If sampler is a comparison sampler.
@@ -30,15 +26,7 @@ export class PgslSamplerType extends AbstractSyntaxTree<TypeCst, TypeProperties>
      * @returns True if this is a comparison sampler, false otherwise.
      */
     public get comparison(): boolean {
-        return this.mComparision;
-    }
-
-    /**
-     * The type that is being shadowed.
-     * If it does not shadow another type, it is itself.
-     */
-    public get shadowedType(): BaseType {
-        return this.mShadowedType;
+        return this.mComparison;
     }
 
     /**
@@ -47,12 +35,34 @@ export class PgslSamplerType extends AbstractSyntaxTree<TypeCst, TypeProperties>
      * @param pComparison - Whether this is a comparison sampler.
      * @param pShadowedType - Type that is the actual type of this.
      */
-    public constructor(pComparison: boolean, pShadowedType?: BaseType) {
-        super({ type: 'Type', range: [0, 0, 0, 0] });
+    public constructor(pComparison: boolean, pShadowedType?: BasePgslType) {
+        // Anything a sampler is.
+        const lTypeKind: BasePgslTypeKind = BasePgslTypeKind.Sampler | BasePgslTypeKind.Concrete | BasePgslTypeKind.Storable;
 
-        // Set data.
-        this.mShadowedType = pShadowedType ?? this;
-        this.mComparision = pComparison;
+        // Create meta, use the right type name.
+        const lTypeMeta: BasePgslTypeMeta = {
+            typeName: pComparison ? PgslSamplerType.typeName.samplerComparison : PgslSamplerType.typeName.sampler
+        };
+
+        super(lTypeKind, lTypeMeta, pShadowedType);
+
+        this.mComparison = pComparison;
+    }
+
+    /**
+     * Get this types convertion rank to another type.
+     * A sampler only converts into the same sampler variant.
+     * 
+     * @param pTarget - Conversion target type.
+     * 
+     * @returns Zero for the same sampler variant, infinity for anything else.
+     */
+    public override conversionRankTo(pTarget: BasePgslType): number {
+        if (this.equals(pTarget)) {
+            return 0;
+        }
+
+        return Number.POSITIVE_INFINITY;
     }
 
     /**
@@ -63,63 +73,17 @@ export class PgslSamplerType extends AbstractSyntaxTree<TypeCst, TypeProperties>
      * 
      * @returns True when both samplers have the same comparison mode.
      */
-    public equals(pTarget: BaseType): boolean {
+    public override equals(pTarget: BasePgslType): pTarget is this {
         // Must both be a sampler.
-        if (!(pTarget instanceof PgslSamplerType)) {
+        if (!this.isSameTypeClass(pTarget)) {
             return false;
         }
 
-        return this.mComparision === pTarget.mComparision;
-    }
-
-    /**
-     * Check if this sampler type is implicitly castable into the target type.
-     * Sampler types are never castable to other types.
-     * 
-     * @param pTarget - Target type to check castability to.
-     * 
-     * @returns Always false - samplers cannot be cast.
-     */
-    public isCastableInto(pTarget: BaseType): boolean {
-        // A sampler is never explicit nor implicit castable.
-        return this.equals(pTarget);
-    }
-
-    /**
-     * Collect type properties for sampler types.
-     * Samplers have fixed footprints and are concrete but not storable or constructible.
-     * 
-     * @param _pContext - Context (unused for sampler properties).
-     * 
-     * @returns Type properties for sampler types.
-     */
-    protected override onProcess(_pContext: AbstractSyntaxTreeContext): TypeProperties {
-        const lMetaTypeList: Array<string> = new Array<string>();
-        if (this.mComparision) {
-            lMetaTypeList.push(PgslSamplerType.typeName.samplerComparison);
-        } else {
-            lMetaTypeList.push(PgslSamplerType.typeName.sampler);
-        }
-
-        return {
-            // Meta information.
-            metaTypes: lMetaTypeList,
-
-            storable: false,
-            hostShareable: false,
-            constructible: false,
-            fixedFootprint: true,
-            composite: false,
-            indexable: false,
-            concrete: true,
-            scalar: false,
-            plain: false
-        };
+        return this.mComparison === pTarget.comparison;
     }
 }
 
 /**
  * Type representing all available sampler type names.
- * Derived from the static typeName getter for type safety.
  */
 export type PgslSamplerTypeName = (typeof PgslSamplerType.typeName)[keyof typeof PgslSamplerType.typeName];

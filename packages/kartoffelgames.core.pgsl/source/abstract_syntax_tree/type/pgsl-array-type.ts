@@ -18,7 +18,6 @@ export class PgslArrayType extends BasePgslType {
         } as const;
     }
 
-    private readonly mInnerType: BasePgslType;
     private readonly mStaticLength: number | null;
 
     /**
@@ -27,7 +26,7 @@ export class PgslArrayType extends BasePgslType {
      * @returns The type of elements stored in the array.
      */
     public get innerType(): BasePgslType {
-        return this.mInnerType;
+        return this.meta.generics![0];
     }
 
     /**
@@ -72,8 +71,6 @@ export class PgslArrayType extends BasePgslType {
 
         super(lKindFlags, lMeta, pShadowedType);
 
-        this.mInnerType = pType;
-
         // Set a static length if its length value comes from a static number expression.
         this.mStaticLength = null;
         if (pLengthExpression && typeof pLengthExpression.data.constantValue === 'number') {
@@ -97,7 +94,7 @@ export class PgslArrayType extends BasePgslType {
         }
 
         // Must have the same inner type.
-        if (!this.mInnerType.equals(pTarget.innerType)) {
+        if (!this.innerType.equals(pTarget.innerType)) {
             return false;
         }
 
@@ -124,6 +121,6 @@ export class PgslArrayType extends BasePgslType {
         }
 
         // When the type and length match, the conversion rank matches the inner type.      
-        return this.mInnerType.conversionRankTo(pTarget.innerType);
+        return this.innerType.conversionRankTo(pTarget.innerType);
     }
 }

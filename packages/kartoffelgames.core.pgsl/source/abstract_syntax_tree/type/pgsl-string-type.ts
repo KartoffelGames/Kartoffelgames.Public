@@ -1,13 +1,10 @@
-import type { TypeCst } from '../../concrete_syntax_tree/general.type.ts';
-import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
-import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
-import type { BaseType, TypeProperties } from './base-type.ts';
+import { BasePgslType, BasePgslTypeKind, type BasePgslTypeMeta } from './base-pgsl-type.ts';
 
 /**
  * String type definition.
  * Represents a string value used for text data.
  */
-export class PgslStringType extends AbstractSyntaxTree<TypeCst, TypeProperties> implements BaseType {
+export class PgslStringType extends BasePgslType {
     /**
      * Type names for string types.
      * Maps string type names to their string representations.
@@ -19,25 +16,34 @@ export class PgslStringType extends AbstractSyntaxTree<TypeCst, TypeProperties> 
         } as const;
     }
 
-    private readonly mShadowedType: BaseType;
-
-    /**
-     * The type that is being shadowed.
-     * If it does not shadow another type, it is itself.
-     */
-    public get shadowedType(): BaseType {
-        return this.mShadowedType;
-    }
-
     /**
      * Constructor for string type.
      * 
      * @param pShadowedType - Type that is the actual type of this.
      */
-    public constructor(pShadowedType?: BaseType) {
-        super({ type: 'Type', range: [0, 0, 0, 0] });
+    public constructor(pShadowedType?: BasePgslType) {
+        // Create meta.
+        const lTypeMeta: BasePgslTypeMeta = {
+            typeName: PgslStringType.typeName.string
+        };
 
-        this.mShadowedType = pShadowedType ?? this;
+        super(BasePgslTypeKind.String | BasePgslTypeKind.Concrete, lTypeMeta, pShadowedType);
+    }
+
+    /**
+     * Get this types convertion rank to another type.
+     * A string only converts into another string.
+     * 
+     * @param pTarget - Conversion target type.
+     * 
+     * @returns Zero for another string, infinity for anything else.
+     */
+    public override conversionRankTo(pTarget: BasePgslType): number {
+        if(this.equals(pTarget)){
+            return 0;
+        }
+
+        return  Number.POSITIVE_INFINITY;
     }
 
     /**
@@ -45,44 +51,9 @@ export class PgslStringType extends AbstractSyntaxTree<TypeCst, TypeProperties> 
      * 
      * @param pTarget - Target type.
      * 
-     * @returns true when both types describes the same type.
+     * @returns True when the target is a string type.
      */
-    public equals(pTarget: BaseType): boolean {
-        // String type is only equal to other string types.
-        return pTarget instanceof PgslStringType;
-    }
-
-    /**
-     * Check if type is implicit castable into target type.
-     * 
-     * @param pTarget - Target type.
-     * 
-     * @returns true when type is implicit castable into target type.
-     */
-    public isCastableInto(pTarget: BaseType): boolean {
-        // A string is never explicit nor implicit castable.
-        return this.equals(pTarget);
-    }
-
-    /**
-     * Collect type properties for string type.
-     * 
-     * @param _pContext - Context.
-     * 
-     * @returns Type properties for string type.
-     */
-    protected override onProcess(_pContext: AbstractSyntaxTreeContext): TypeProperties {
-        return {
-            metaTypes: [PgslStringType.typeName.string],
-            storable: false,
-            hostShareable: false,
-            composite: false,
-            constructible: false,
-            fixedFootprint: false,
-            indexable: false,
-            concrete: true,
-            scalar: false,
-            plain: false
-        };
+    public override equals(pTarget: BasePgslType): pTarget is this {
+        return this.isSameTypeClass(pTarget);
     }
 }

@@ -1,9 +1,6 @@
-import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
-import { PgslNumericType } from './pgsl-numeric-type.ts';
-import type { BaseType, TypeProperties } from './base-type.ts';
+import { Exception } from '@kartoffelgames/core';
+import { BasePgslType, BasePgslTypeKind, type BasePgslTypeMeta } from './base-pgsl-type.ts';
 import { PgslVectorType } from './pgsl-vector-type.ts';
-import type { TypeCst } from '../../concrete_syntax_tree/general.type.ts';
-import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
 
 /**
  * Matrix type definition.
@@ -12,7 +9,7 @@ import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
  * 
  * MATRIXES ARE ALWAYS COLUMN MAJOR ORDERED.
  */
-export class PgslMatrixType extends AbstractSyntaxTree<TypeCst, TypeProperties> implements BaseType {
+export class PgslMatrixType extends BasePgslType {
     /**
      * Type names for all available matrix dimensions.
      * Maps matrix type names to their string representations.
@@ -37,7 +34,7 @@ export class PgslMatrixType extends AbstractSyntaxTree<TypeCst, TypeProperties> 
      * 
      * @param pMatrixType - The matrix type to get dimensions for.
      * 
-     * @returns The matrix dimensions as [rows, columns].
+     * @returns The matrix dimensions as [columns, rows].
      */
     public static dimensionsOf(pMatrixType: PgslMatrixTypeName): [columns: number, rows: number] {
         switch (pMatrixType) {
@@ -50,8 +47,6 @@ export class PgslMatrixType extends AbstractSyntaxTree<TypeCst, TypeProperties> 
             case PgslMatrixType.typeName.matrix24: return [2, 4];
             case PgslMatrixType.typeName.matrix34: return [3, 4];
             case PgslMatrixType.typeName.matrix44: return [4, 4];
-            default:
-                return [2, 2]; // Default fallback
         }
     }
 
@@ -61,7 +56,7 @@ export class PgslMatrixType extends AbstractSyntaxTree<TypeCst, TypeProperties> 
      * @param pColumnCount - The number of columns in the matrix.
      * @param pRowCount - The number of rows in the matrix.
      * 
-     * @returns The corresponding matrix type name, or null if dimensions are invalid.
+     * @returns The corresponding matrix type name.
      */
     public static typenameFromDimensions(pColumnCount: number, pRowCount: number): PgslMatrixTypeName {
         switch (`${pColumnCount}x${pRowCount}`) {
@@ -75,14 +70,12 @@ export class PgslMatrixType extends AbstractSyntaxTree<TypeCst, TypeProperties> 
             case '3x4': return PgslMatrixType.typeName.matrix34;
             case '4x4': return PgslMatrixType.typeName.matrix44;
             default:
-                throw new Error(`Invalid matrix dimensions: ${pColumnCount}x${pRowCount}`);
+                throw new Exception(`Invalid matrix dimensions: ${pColumnCount}x${pRowCount}`, PgslMatrixType);
         }
     }
 
     private readonly mColumnCount: number;
-    private readonly mInnerType: BaseType;
     private readonly mRowCount: number;
-    private readonly mShadowedType: BaseType;
     private readonly mVectorTypeDefinition: PgslVectorType;
 
     /**
@@ -99,8 +92,8 @@ export class PgslMatrixType extends AbstractSyntaxTree<TypeCst, TypeProperties> 
      * 
      * @returns The type of elements stored in the matrix.
      */
-    public get innerType(): BaseType {
-        return this.mInnerType;
+    public get innerType(): BasePgslType {
+        return this.meta.generics![0];
     }
 
     /**
@@ -110,14 +103,6 @@ export class PgslMatrixType extends AbstractSyntaxTree<TypeCst, TypeProperties> 
      */
     public get rowCount(): number {
         return this.mRowCount;
-    }
-
-    /**
-     * The type that is being shadowed.
-     * If it does not shadow another type, it is itself.
-     */
-    public get shadowedType(): BaseType {
-        return this.mShadowedType;
     }
 
     /**
@@ -137,20 +122,49 @@ export class PgslMatrixType extends AbstractSyntaxTree<TypeCst, TypeProperties> 
      * @param pInnerType - The inner element type of the matrix.
      * @param pShadowedType - Type that is the actual type of this.
      */
-    public constructor(pColumnCount: number, pRowCount: number, pInnerType: BaseType, pShadowedType?: BaseType) {
-        super({ type: 'Type', range: [0, 0, 0, 0] });
+    public constructor(pColumnCount: number, pRowCount: number, pInnerType: BasePgslType, pShadowedType?: BasePgslType) {
+        // A matrix is always a composite that can be indexed. It is never a scalar itself.
+        let lKindFlags: BasePgslTypeKind = BasePgslTypeKind.Matrix | BasePgslTypeKind.Composite | BasePgslTypeKind.Indexable;
 
-        // Set data.
-        this.mShadowedType = pShadowedType ?? this;
-        this.mInnerType = pInnerType;
+        // Copy kind informations from inner types.
+        lKindFlags |= pInnerType.isKind(BasePgslTypeKind.Plain) ? BasePgslTypeKind.Plain : BasePgslTypeKind.None;
+        lKindFlags |= pInnerType.isKind(BasePgslTypeKind.Concrete) ? BasePgslTypeKind.Concrete : BasePgslTypeKind.None;
+        lKindFlags |= pInnerType.isKind(BasePgslTypeKind.Storable) ? BasePgslTypeKind.Storable : BasePgslTypeKind.None;
+        lKindFlags |= pInnerType.isKind(BasePgslTypeKind.FixedFootprint) ? BasePgslTypeKind.FixedFootprint : BasePgslTypeKind.None;
+        lKindFlags |= pInnerType.isKind(BasePgslTypeKind.Constructible) ? BasePgslTypeKind.Constructible : BasePgslTypeKind.None;
+        lKindFlags |= pInnerType.isKind(BasePgslTypeKind.HostShareable) ? BasePgslTypeKind.HostShareable : BasePgslTypeKind.None;
+
+        // Create meta.
+        const lTypeMeta: BasePgslTypeMeta = {
+            typeName: PgslMatrixType.typenameFromDimensions(pColumnCount, pRowCount),
+            generics: [pInnerType]
+        };
+
+        super(lKindFlags, lTypeMeta, pShadowedType);
+
         this.mColumnCount = pColumnCount;
         this.mRowCount = pRowCount;
 
-        // Get matrix dimensions.
-        //this.m = this.getMatrixDimensions(pColumnCount, pRowCount);
-
         // Create underlying vector type based on matrix type.
         this.mVectorTypeDefinition = new PgslVectorType(this.mColumnCount, pInnerType);
+    }
+
+    /**
+     * Get this types convertion rank to another type.
+     * A matrix converts into a matrix of the same dimensions whenever its component type converts.
+     * 
+     * @param pTarget - Conversion target type.
+     * 
+     * @returns The conversion rank of the component type, infinity when the matrices do not match.
+     */
+    public override conversionRankTo(pTarget: BasePgslType): number {
+        // Must both be a matrix of the same dimensions.
+        if (!this.isSameTypeClass(pTarget) || this.mColumnCount !== pTarget.columnCount || this.mRowCount !== pTarget.rowCount) {
+            return Number.POSITIVE_INFINITY;
+        }
+
+        // The component conversion decides the rank of the whole matrix.
+        return this.innerType.conversionRankTo(pTarget.innerType);
     }
 
     /**
@@ -161,92 +175,18 @@ export class PgslMatrixType extends AbstractSyntaxTree<TypeCst, TypeProperties> 
      * 
      * @returns True when both types have the same dimensions and inner type.
      */
-    public equals(pTarget: BaseType): boolean {
+    public override equals(pTarget: BasePgslType): pTarget is this {
         // Must both be a matrix.
-        if (!(pTarget instanceof PgslMatrixType)) {
+        if (!this.isSameTypeClass(pTarget)) {
             return false;
         }
 
-        // Inner type must be equal.
-        if (!this.mInnerType.equals(pTarget.innerType)) {
+        // And the same dimensions.
+        if (this.mColumnCount !== pTarget.columnCount || this.mRowCount !== pTarget.rowCount) {
             return false;
         }
 
-        // Matrix dimensions must be equal.
-        return this.mRowCount === pTarget.rowCount && this.mColumnCount === pTarget.columnCount;
-    }
-
-    /**
-     * Check if this matrix type is implicitly castable into the target type.
-     * Matrix types can be implicitly cast if they have the same dimensions and compatible inner types.
-     * 
-     * @param pTarget - Target type to check castability to.
-     * 
-     * @returns True when implicit casting is allowed, false otherwise.
-     */
-    public isCastableInto(pTarget: BaseType): boolean {
-        // Must both be a matrix.
-        if (!(pTarget instanceof PgslMatrixType)) {
-            return false;
-        }
-
-        // If matrix dimensions are not equal, it is not castable.
-        if (this.mRowCount !== pTarget.rowCount || this.mColumnCount !== pTarget.columnCount) {
-            return false;
-        }
-
-        // It is when inner types are implicit castable.
-        return this.mInnerType.isCastableInto(pTarget.innerType);
-    }
-
-    /**
-     * Collect type properties for matrix types.
-     * Validates that the inner type is appropriate for matrices and copies relevant properties.
-     * 
-     * @param pContext - Trace context for validation and error reporting.
-     * 
-     * @returns Type properties for matrix types.
-     */
-    protected override onProcess(pContext: AbstractSyntaxTreeContext): TypeProperties {
-        // Process vector type definition.
-        this.mVectorTypeDefinition.process(pContext);
-
-        // Must be Float.
-        const lFloat32Type = new PgslNumericType(PgslNumericType.typeName.float32).process(pContext);
-        const lFloat16Type = new PgslNumericType(PgslNumericType.typeName.float16).process(pContext);
-        const lAbstractFloatType = new PgslNumericType(PgslNumericType.typeName.abstractFloat).process(pContext);
-        if (!this.mInnerType.isCastableInto(lFloat32Type) && !this.mInnerType.isCastableInto(lFloat16Type) && !this.mInnerType.isCastableInto(lAbstractFloatType)) {
-            pContext.pushIncident('Matrix type must be a Float');
-        }
-
-         // Build meta types.
-        const lMetaTypeList: Array<string> = new Array<string>();
-        for (const lMetaType of this.mInnerType.data.metaTypes) {
-            lMetaTypeList.push(`Matrix<${lMetaType}>`);
-            lMetaTypeList.push(`Matrix${this.mColumnCount}${this.mRowCount}<${lMetaType}>`);
-        }
-
-        // Add meta type for all vectors.
-        lMetaTypeList.push(`Matrix${this.mColumnCount}${this.mRowCount}`);
-        lMetaTypeList.push('Matrix');
-
-        return {
-            // Meta information.
-            metaTypes: lMetaTypeList,
-
-            // Always accessible as composite (swizzle) or index.
-            composite: true,
-            indexable: true,
-
-            // Copy of inner type properties.
-            concrete: this.innerType.data.concrete,
-            scalar: this.innerType.data.scalar,
-            plain: this.innerType.data.plain,
-            storable: this.mInnerType.data.storable,
-            hostShareable: this.mInnerType.data.hostShareable,
-            constructible: this.mInnerType.data.constructible,
-            fixedFootprint: this.mInnerType.data.fixedFootprint
-        };
+        return this.innerType.equals(pTarget.innerType);
     }
 }
 
@@ -254,4 +194,4 @@ export class PgslMatrixType extends AbstractSyntaxTree<TypeCst, TypeProperties> 
  * Type representing all available matrix type names.
  * Derived from the static typeName getter for type safety.
  */
-type PgslMatrixTypeName = (typeof PgslMatrixType.typeName)[keyof typeof PgslMatrixType.typeName];
+export type PgslMatrixTypeName = (typeof PgslMatrixType.typeName)[keyof typeof PgslMatrixType.typeName];

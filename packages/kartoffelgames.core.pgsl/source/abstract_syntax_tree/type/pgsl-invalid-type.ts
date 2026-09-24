@@ -1,22 +1,20 @@
-import type { TypeCst } from '../../concrete_syntax_tree/general.type.ts';
-import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
-import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
-import type { BaseType, TypeProperties } from './base-type.ts';
+import { BasePgslType, BasePgslTypeKind, type BasePgslTypeMeta } from './base-pgsl-type.ts';
 
 /**
  * Invalid type definition.
  * Represents an invalid or erroneous type that cannot be used in normal operations.
  * This type is used as a fallback when type resolution fails or encounters errors.
  */
-export class PgslInvalidType extends AbstractSyntaxTree<TypeCst, TypeProperties> implements BaseType {
-    private readonly mShadowedType: BaseType;
-
+export class PgslInvalidType extends BasePgslType {
     /**
-     * The type that is being shadowed.
-     * If it does not shadow another type, it is itself.
+     * Type names for invalid types.
+     * Maps invalid type names to their string representations.
      */
-    public get shadowedType(): BaseType {
-        return this.mShadowedType;
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+    public static get typeName() {
+        return {
+            invalid: '*Invalid*' // Should never be written.
+        } as const;
     }
 
     /**
@@ -24,10 +22,25 @@ export class PgslInvalidType extends AbstractSyntaxTree<TypeCst, TypeProperties>
      * 
      * @param pShadowedType - Type that is the actual type of this.
      */
-    public constructor(pShadowedType?: BaseType) {
-        super({ type: 'Type', range: [0, 0, 0, 0] });
+    public constructor(pShadowedType?: BasePgslType) {
+        // Create meta.
+        const lTypeMeta: BasePgslTypeMeta = {
+            typeName: PgslInvalidType.typeName.invalid
+        };
 
-        this.mShadowedType = pShadowedType ?? this;
+        super(BasePgslTypeKind.Invalid, lTypeMeta, pShadowedType);
+    }
+
+    /**
+     * Get this types convertion rank to another type.
+     * An invalid type can never be converted to any type.
+     * 
+     * @param _pTarget - Conversion target type.
+     * 
+     * @returns Always infinity.
+     */
+    public override conversionRankTo(_pTarget: BasePgslType): number {
+        return Number.POSITIVE_INFINITY;
     }
 
     /**
@@ -36,44 +49,9 @@ export class PgslInvalidType extends AbstractSyntaxTree<TypeCst, TypeProperties>
      * 
      * @param _pTarget - Target type to compare against.
      * 
-     * @returns Always false - invalid types are never equal.
+     * @returns false.
      */
-    public equals(_pTarget: BaseType): boolean {
+    public override equals(_pTarget: BasePgslType): _pTarget is this {
         return false;
-    }
-
-    /**
-     * Check if this invalid type is implicitly castable into the target type.
-     * Invalid types are never castable to any type.
-     * 
-     * @param _pTarget - Target type to check castability to.
-     * 
-     * @returns Always false - invalid types cannot be cast.
-     */
-    public isCastableInto(_pTarget: BaseType): boolean {
-        return false;
-    }
-
-    /**
-     * Collect type properties for invalid types.
-     * Invalid types have no useful properties and are marked as unusable.
-     * 
-     * @param _pContext - Context (unused for invalid types).
-     * 
-     * @returns Type properties indicating the type is completely unusable.
-     */
-    protected override onProcess(_pContext: AbstractSyntaxTreeContext): TypeProperties {
-        return {
-            metaTypes: [], // Invalid types have no meta types.
-            storable: false,
-            hostShareable: false,
-            composite: false,
-            constructible: false,
-            fixedFootprint: false,
-            indexable: false,
-            concrete: false,
-            scalar: false,
-            plain: false
-        };
     }
 }

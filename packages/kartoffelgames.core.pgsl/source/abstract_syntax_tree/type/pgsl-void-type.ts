@@ -17,13 +17,22 @@ export class PgslVoidType extends BasePgslType {
     }
 
     /**
+     * Get a string identification for the type.
+     * 
+     * @returns The type identification.
+     */
+    public static identifierOf(): string {
+        return PgslVoidType.typeName.void;
+    }
+
+    /**
      * Constructor for void type.
      * 
      * @param pShadowedType - Type that is the actual type of this.
      */
     public constructor(pShadowedType?: BasePgslType) {
         const lTypeMeta: BasePgslTypeMeta = {
-            typeName: PgslVoidType.typeName.void
+            typeName: PgslVoidType.identifierOf()
         };
 
         super(BasePgslTypeKind.Void, lTypeMeta, pShadowedType);

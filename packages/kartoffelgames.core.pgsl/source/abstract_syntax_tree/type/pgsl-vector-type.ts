@@ -19,6 +19,18 @@ export class PgslVectorType extends BasePgslType {
     }
 
     /**
+     * Get a string identification for the type.
+     * 
+     * @param pDimension - The vector dimension.
+     * @param pInnerType - The inner element type of the vector.
+     * 
+     * @returns The type identification.
+     */
+    public static identifierOf(pDimension: number, pInnerType: BasePgslType): string {
+        return PgslVectorType.typeNameFromDimension(pDimension) + '`' + pInnerType.meta.typeName;
+    }
+
+    /**
      * Get the type name for a given vector dimension.
      * 
      * @param pDimension - Vector dimension.
@@ -75,7 +87,7 @@ export class PgslVectorType extends BasePgslType {
 
         // Create meta.
         const lTypeMeta: BasePgslTypeMeta = {
-            typeName: PgslVectorType.typeNameFromDimension(pVectorDimension),
+            typeName: PgslVectorType.identifierOf(pVectorDimension, pInnerType),
             generics: [pInnerType]
         };
 

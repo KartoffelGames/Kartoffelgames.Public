@@ -51,6 +51,19 @@ export class PgslMatrixType extends BasePgslType {
     }
 
     /**
+     * Get a string identification for the type.
+     * 
+     * @param pColumnCount - The number of columns in the matrix.
+     * @param pRowCount - The number of rows in the matrix.
+     * @param pInnerType - The inner element type of the matrix.
+     * 
+     * @returns The type identification.
+     */
+    public static identifierOf(pColumnCount: number, pRowCount: number, pInnerType: BasePgslType): string {
+        return PgslMatrixType.typenameFromDimensions(pColumnCount, pRowCount) + '`' + pInnerType.meta.typeName;
+    }
+
+    /**
      * Gets the matrix type name for given dimensions.
      * 
      * @param pColumnCount - The number of columns in the matrix.
@@ -136,7 +149,7 @@ export class PgslMatrixType extends BasePgslType {
 
         // Create meta.
         const lTypeMeta: BasePgslTypeMeta = {
-            typeName: PgslMatrixType.typenameFromDimensions(pColumnCount, pRowCount),
+            typeName: PgslMatrixType.identifierOf(pColumnCount, pRowCount, pInnerType),
             generics: [pInnerType]
         };
 

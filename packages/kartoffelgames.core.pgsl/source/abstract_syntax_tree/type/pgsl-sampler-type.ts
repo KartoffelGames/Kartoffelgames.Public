@@ -17,6 +17,17 @@ export class PgslSamplerType extends BasePgslType {
         } as const;
     }
 
+    /**
+     * Get a string identification for the type.
+     * 
+     * @param pComparison - Whether this is a comparison sampler.
+     * 
+     * @returns The type identification.
+     */
+    public static identifierOf(pComparison: boolean): string {
+        return pComparison ? PgslSamplerType.typeName.samplerComparison : PgslSamplerType.typeName.sampler;
+    }
+
     private readonly mComparison: boolean;
 
     /**
@@ -41,7 +52,7 @@ export class PgslSamplerType extends BasePgslType {
 
         // Create meta, use the right type name.
         const lTypeMeta: BasePgslTypeMeta = {
-            typeName: pComparison ? PgslSamplerType.typeName.samplerComparison : PgslSamplerType.typeName.sampler
+            typeName: PgslSamplerType.identifierOf(pComparison)
         };
 
         super(lTypeKind, lTypeMeta, pShadowedType);

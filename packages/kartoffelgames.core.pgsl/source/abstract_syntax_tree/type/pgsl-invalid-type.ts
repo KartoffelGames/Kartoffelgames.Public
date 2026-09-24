@@ -18,6 +18,15 @@ export class PgslInvalidType extends BasePgslType {
     }
 
     /**
+     * Get a string identification for the type.
+     * 
+     * @returns The type identification.
+     */
+    public static identifierOf(): string {
+        return PgslInvalidType.typeName.invalid;
+    }
+
+    /**
      * Constructor for invalid type.
      * 
      * @param pShadowedType - Type that is the actual type of this.
@@ -25,7 +34,7 @@ export class PgslInvalidType extends BasePgslType {
     public constructor(pShadowedType?: BasePgslType) {
         // Create meta.
         const lTypeMeta: BasePgslTypeMeta = {
-            typeName: PgslInvalidType.typeName.invalid
+            typeName: PgslInvalidType.identifierOf()
         };
 
         super(BasePgslTypeKind.Invalid, lTypeMeta, pShadowedType);

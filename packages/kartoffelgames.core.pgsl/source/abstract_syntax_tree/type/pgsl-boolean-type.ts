@@ -17,6 +17,15 @@ export class PgslBooleanType extends BasePgslType {
     }
 
     /**
+     * Get a string identification for the type.
+     * 
+     * @returns The type identification.
+     */
+    public static identifierOf(): string {
+        return PgslBooleanType.typeName.boolean;
+    }
+
+    /**
      * Constructor for boolean type.
      * 
      * @param pShadowedType - Type that is the actual type of this.
@@ -30,7 +39,7 @@ export class PgslBooleanType extends BasePgslType {
 
         // Create meta.
         const lTypeMeta: BasePgslTypeMeta = {
-            typeName: PgslBooleanType.typeName.boolean
+            typeName: PgslBooleanType.identifierOf()
         };
 
         super(lTypeKind, lTypeMeta, pShadowedType);

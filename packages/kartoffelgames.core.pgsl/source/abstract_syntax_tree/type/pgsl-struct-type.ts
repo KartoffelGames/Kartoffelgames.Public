@@ -8,6 +8,17 @@ import { BasePgslType, BasePgslTypeKind, type BasePgslTypeMeta } from './base-pg
  */
 export class PgslStructType extends BasePgslType {
     /**
+     * Get a string identification for the type.
+     * 
+     * @param pStructName - The name of the struct type.
+     * 
+     * @returns The type identification.
+     */
+    public static identifierOf(pStructName: string): string {
+        return pStructName;
+    }
+
+    /**
      * Gets the name of the struct type.
      * 
      * @returns The struct name.
@@ -47,7 +58,7 @@ export class PgslStructType extends BasePgslType {
 
         // Construct meta.
         const lTypeMeta: BasePgslTypeMeta = {
-            typeName: pStructName
+            typeName: PgslStructType.identifierOf(pStructName)
         };
 
         super(lTypeKind, lTypeMeta, pShadowedType);

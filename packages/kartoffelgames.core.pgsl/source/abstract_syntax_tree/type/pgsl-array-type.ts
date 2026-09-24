@@ -18,6 +18,24 @@ export class PgslArrayType extends BasePgslType {
         } as const;
     }
 
+    /**
+     * Get a string identification for the type.
+     * 
+     * @param pType - The inner element type of the array.
+     * @param pLengthExpression - Optional length expression for fixed-size arrays.
+     * 
+     * @returns The type identification.
+     */
+    public static identifierOf(pType: BasePgslType, pLengthExpression: IExpressionAst | null): string {
+        // Is fixed when length expression is set and inner type is fixed.
+        const lFixedLength: string = pLengthExpression && typeof pLengthExpression.data.constantValue === 'number' ? pLengthExpression.data.constantValue.toString() : '*';
+
+        // Is constructible when inner type is constructible and array is fixed.
+        const lFixedFootprint: string = pLengthExpression && pLengthExpression.data.fixedState >= PgslValueFixedState.PipelineCreationFixed ? 'fixed' : '*';
+
+        return PgslArrayType.typeName.array + '`' + pType.meta.typeName + ',' + lFixedLength + ',' + lFixedFootprint;
+    }
+
     private readonly mStaticLength: number | null;
 
     /**
@@ -65,7 +83,7 @@ export class PgslArrayType extends BasePgslType {
         lKindFlags |= lIsFixed && pType.isKind(BasePgslTypeKind.Constructible) ? BasePgslTypeKind.Constructible : BasePgslTypeKind.None;
 
         const lMeta: BasePgslTypeMeta = {
-            typeName: PgslArrayType.typeName.array,
+            typeName: PgslArrayType.identifierOf(pType, pLengthExpression),
             generics: [pType]
         };
 

@@ -137,12 +137,15 @@ dup   line 1   <- which file?
 dup   line 2   <- which file?
 ```
 
-**1d. Types carry no range at all.** Every `IType` implementation calls
-`super({ type: 'Type', range: [0, 0, 0, 0] })` in its constructor (e.g.
-[pgsl-numeric-type.ts:56](source/abstract_syntax_tree/type/pgsl-numeric-type.ts:56)). There are
-**23 `pushIncident` call sites that pass no AST node at all** — all of them in `type/*.ts` —
-so messages like `Vector type must have a scalar inner type` and
-`Texture sampled type must be a numeric type` are reported at line 0, column 0.
+**1d. Types carry no range at all.** The unmigrated type classes are still AST nodes and construct
+themselves with `super({ type: 'Type', range: [0, 0, 0, 0] })` (e.g.
+[pgsl-numeric-type.ts:56](source/abstract_syntax_tree/type/pgsl-numeric-type.ts:56)), so the
+`pushIncident` calls they make — `Texture sampled type must be a numeric type` and the rest — are
+reported at line 0, column 0.
+
+Types on `BasePgslType` no longer have this problem, because they no longer report anything: each
+rule moved to the AST node that holds a real position. Finishing the migration (§3) closes 1d
+rather than fixing it.
 
 **1e. The result type has nowhere to put a file name.** `PgslParserResultIncident` exposes only
 `message`, `line`, `column`, and `convertIncidents`
@@ -367,52 +370,25 @@ I measured each one separately by patching them in:
 Row 4 is the ideal: one incident per actual mistake. (Three for `nope` is correct — it is three
 separate uses of an undefined name.) All three are needed; any two leave noise behind.
 
-**⓪ Give poison a name that generic code can test.** Add `invalid: boolean` to `TypeProperties`.
-`instanceof PgslInvalidType` works, but a flag is what lets the guard live in code that only sees
-`IType` — including the future `Validator` driver. While you are there, make `PgslInvalidType` a
-singleton: 18 sites call `new PgslInvalidType().process(pContext)`, and the class ignores its
-context and has `range: [0,0,0,0]` anyway.
+**⓪ Poison already has a name generic code can test.** `BasePgslTypeKind.Invalid` is a bit, so the
+guard is `isKind(Invalid)` and works anywhere a `BasePgslType` is in hand — including the future
+`Validator` driver. Make `PgslInvalidType` a singleton while you are here; it takes no arguments and
+carries no state, so every `new PgslInvalidType()` produces an identical object.
 
-**① Comparisons must absorb — and the clean place for that is a base class.**
+**① Comparisons must absorb.** Today `PgslInvalidType.equals` returns `false` and its
+`conversionRankTo` returns infinity, so poison is rejected everywhere it appears and each rejection
+raises its own incident. Both should absorb instead — equal to anything, convertible into anything —
+so that one bad type produces exactly one report.
 
-`IType` is an interface with 14 independent implementations, so there is no single method to patch,
-and there are ~60 call sites (40 `isImplicitCastableInto`, 17 `equals`, 3 `isExplicitCastableInto`)
-so changing call sites is worse. Introduce a base class instead:
+The asymmetric half matters too: an *operand* that is poison must also be absorbed when the poison is
+on the other side of the comparison. `accepts` on the base already short-circuits on reference
+identity; the invalid check belongs in the same place, so no call site changes.
 
-```ts
-export abstract class BaseType<TCst extends TypeCst = TypeCst>
-    extends AbstractSyntaxTree<TCst, TypeProperties> implements IType {
-
-    public equals(pTarget: IType): boolean {
-        if (this.data.invalid || pTarget.data.invalid) { return true; }
-        return this.onEquals(pTarget);
-    }
-
-    public isImplicitCastableInto(pTarget: IType): boolean {
-        if (this.data.invalid || pTarget.data.invalid) { return true; }
-        return this.onIsImplicitCastableInto(pTarget);
-    }
-
-    // ...same for isExplicitCastableInto
-
-    protected abstract onEquals(pTarget: IType): boolean;
-    protected abstract onIsImplicitCastableInto(pTarget: IType): boolean;
-    protected abstract onIsExplicitCastableInto(pTarget: IType): boolean;
-}
-```
-
-Each of the 14 type classes renames `public equals` → `protected override onEquals` and so on.
-**No call site changes.** Note this is the same template-method idiom `AbstractSyntaxTree` already
-uses for `process()` / `onProcess()`, so it reads like the rest of the codebase rather than like a
-new concept. It is also the natural home for §3's `conversionRank` / `commonType` later — which is
-the real reason to add it now rather than sprinkling `instanceof PgslInvalidType` into 14 files.
-
-**② Property reads must be skipped, not satisfied.** Do **not** make poison's booleans `true` —
-that would make it "constructible" and "host shareable" and let it slip past rules it should never
-reach. Guard where the rules *run*, not where the properties are read. There are 71 property reads
-(`data.concrete` ×23, `data.fixedFootprint` ×10, `data.storable` ×8, `data.constructible` ×8, …)
-but they are concentrated in 9 AST files, and they cluster: a single early return at the top of
-`VariableDeclarationAst.validateDeclaration` covers eight of them at once.
+**② Capability reads must be skipped, not satisfied.** Do **not** give poison its capability bits —
+that would make it constructible and host-shareable and let it slip past rules it should never reach.
+It carries only `Invalid`. Guard where the rules *run*, not where the bits are read: a single early
+return at the top of `VariableDeclarationAst.validateDeclaration` covers that file's checks at once,
+and the reads cluster the same way in the other AST files that perform them.
 
 Once the `Validator` from §2 exists this collapses to **one** guard in the driver — skip any node
 whose `data` contains a poison type. That is the concrete payoff for doing D10 before the
@@ -505,393 +481,169 @@ declarations and for nothing else. Formalising it is the natural starting point 
 
 ## 3. The type system
 
-### Your "tag" idea is right — but the implementation should be patterns, not strings
-
-`TypeProperties.metaTypes`
-([i-type.interface.ts:53](source/abstract_syntax_tree/type/i-type.interface.ts:53)) *is* the tag
-system, and it is already compositional in exactly the way you would need for generics:
-
-```ts
-// pgsl-vector-type.ts:176
-for (const lMetaType of this.mInnerType.data.metaTypes) {
-    lMetaTypeList.push(`Vector<${lMetaType}>`);
-    lMetaTypeList.push(`Vector${this.mVectorDimension}<${lMetaType}>`);
-}
-```
-
-So `Vector4<float>` carries `Vector<numeric-float>`, `Vector4<numeric>`, `Vector`, … and builtin
-signatures already match against those tags
-(`{ 'TResult': ['numeric-float', 'Vector<numeric-float>'] }`). You do not need to invent this —
-you need to fix it and finish it.
-
-**It is broken.** `PgslNumericType.onProcess`
-([pgsl-numeric-type.ts:150](source/abstract_syntax_tree/type/pgsl-numeric-type.ts:150)) has a
-`switch` with **no `break` statements**, so every case falls through into all the following ones:
-
-```
-metaTypes(int)   = ["int","numeric-integer","numeric",
-                    "uint","numeric-integer","numeric",     <- fallthrough
-                    "numeric-integer","numeric",
-                    "float","numeric-float","numeric",      <- fallthrough
-                    "float16","numeric-float","numeric",
-                    "numeric-float","numeric"]
-```
-
-`int` claims to be `float`, `float16` and `uint`. Consequence, verified end to end:
-
-```pgsl
-function main(): Vector4<int> {
-    let v: Vector4<int> = new Vector4<int>(1, 2, 3, 4);
-    return normalize(v);            // restricted to Vector<numeric-float>
-}
-```
-```
-incidents: none
-wgsl     : fn main()->vec4<i32>{var v:vec4<i32>=vec4<i32>(1,2,3,4);return normalize(v);}
-```
-
-`normalize(vec4<i32>)` is not valid WGSL. **Adding `break` to each case is the single
-highest-value one-line fix in the package.** Note that it will likely surface latent failures in
-code that was relying on the over-permissive matching, so do it early.
-
-Two follow-ups on the tags themselves:
-
-- Make them a **closed union**, not `string`. `metaTypes: Array<string>` means
-  `'numeric-float'` vs `'numericFloat'` is a silent no-match. A
-  `type PgslTypeTag = 'numeric' | 'numeric-float' | ...` (with a small helper for the
-  parameterised ones) turns those into compile errors.
-- Store a `Set`, not an `Array`. Matching is `Array.includes` in three hot places
-  ([function-call-expression-ast.ts:238](source/abstract_syntax_tree/expression/single_value/function-call-expression-ast.ts:238),
-  [new-expression-ast.ts:574](source/abstract_syntax_tree/expression/single_value/new-expression-ast.ts:574),
-  [new-expression-ast.ts:617](source/abstract_syntax_tree/expression/single_value/new-expression-ast.ts:617)),
-  which is a linear string scan.
-
-### What tags genuinely cannot do
-
-Tags answer *"is this type in set S?"*. They cannot answer *"given the pattern `Vector<T>` and the
-actual `Vector4<float>`, what is `T`?"* — and that is your `Vector4<int>` question. For that you
-need a **structural pattern**, not a string:
-
-```ts
-type TypePattern =
-    | { kind: 'tag';     tag: PgslTypeTag }                             // numeric-float
-    | { kind: 'generic'; name: string }                                 // T
-    | { kind: 'vector';  dim: number | { generic: string }; inner: TypePattern }
-    | { kind: 'matrix';  rows: ...; columns: ...; inner: TypePattern }
-    | { kind: 'array';   inner: TypePattern }
-    | { kind: 'exact';   type: IType };
-
-function match(pattern: TypePattern, actual: IType, bindings: Map<string, IType>): boolean;
-```
-
-Matching fills `bindings`, so `Vector<T>` against `Vector4<float>` binds `T = float`, and the inner
-type is then itself subject to the ordinary conversion rules.
-
-**And the `metaTypes` field goes away entirely — replaced by two integer fields.**
-
-The complete set of restriction strings that any code in this package ever *queries*:
-
-```
-numeric   numeric-integer   numeric-float   boolean
-Vector<X>   Vector2<X>   Vector3<X>   Vector4<X>   Vector2   Vector3   Vector4
-Matrix2x2<X> ... Matrix4x4<X>
-Array   Pointer<Array>
-```
-
-One grammar production — `pattern := name ( '<' pattern '>' )?` — and every one of them is
-structural. They are **already written as patterns** in the tables
-(`'Vector<numeric-float>'`, `'Pointer<Array>'`); the current code fakes matching by pre-expanding the
-cross-product into strings at construction time. One parse of `medium` builds **6 522 strings to
-serve 114 lookups** — it is materialising a combinatorial answer to a question with twelve possible
-forms.
-
-#### Two masks: what a type is, and what it can do
-
-They are different things with different lifetimes, so they get different fields. `kind` is static
-per type class, a closed set, and the only thing type patterns ever match against. `config` is
-computed per instance — an `Array` is constructible only when its element type is and its length is
-fixed — and only validation reads it. Splitting them means each field has one invariant and one
-reader, and neither has to make room for the other.
-
-```ts
-export abstract class BaseType {
-    /** What this type is. */
-    public abstract readonly kind: BaseTypeKind;
-
-    /** What this type can do. */
-    public abstract readonly config: BaseTypeConfig;
-}
-```
-
-```ts
-/**
- * What a type *is*. Static per type class, and the only thing type patterns match against.
- *
- * Layout:
- *   bits  0-12  exclusive kind - exactly one is set on any type
- *   bit     13  BuildIn marker - combined with the kind of the wrapped type
- *   bits 14-19  numeric refinement
- */
-export const BaseTypeKind = (() => {
-    // Exclusive kinds.
-    const Numeric = 1 << 0;
-    const Boolean = 1 << 1;
-    const String = 1 << 2;
-    const Void = 1 << 3;
-    const Invalid = 1 << 4;
-    const Vector = 1 << 5;
-    const Matrix = 1 << 6;
-    const Array = 1 << 7;
-    const Pointer = 1 << 8;
-    const Struct = 1 << 9;
-    const Enum = 1 << 10;
-    const Texture = 1 << 11;
-    const Sampler = 1 << 12;
-
-    // Marker. Combined with the kind of the type it wraps.
-    const BuildIn = 1 << 13;
-
-    // Numeric refinements. Each states its implication once.
-    const Integer = 1 << 14 | Numeric;
-    const Float = 1 << 15 | Numeric;
-    const Signed = 1 << 16 | Integer;
-    const Unsigned = 1 << 17 | Integer;
-    const Half = 1 << 18 | Float;
-    const Abstract = 1 << 19 | Numeric;
-
-    return {
-        Numeric, Boolean, String, Void, Invalid, Vector, Matrix, Array, Pointer, Struct, Enum, Texture, Sampler,
-        BuildIn,
-        Integer, Float, Signed, Unsigned, Half, Abstract
-    } as const;
-})();
-
-export type BaseTypeKind = number;
-
-/** Bits 0-12: the exclusive-kind region. */
-export const BASE_TYPE_KIND_REGION: number = (1 << 13) - 1;
-
-/**
- * Check whether a kind satisfies a wanted classification.
- * Always use this - `(pKind & pWanted) !== 0` is wrong for the folded constants.
- */
-export function hasKind(pKind: BaseTypeKind, pWanted: BaseTypeKind): boolean {
-    return (pKind & pWanted) === pWanted;
-}
-```
-
-```ts
-/**
- * What a type can *do*. Computed per instance - an array is only constructible when its element
- * type is and its length is fixed - and never matched against by type patterns.
- */
-export const BaseTypeConfig = (() => {
-    const Scalar = 1 << 0;
-    const Composite = 1 << 1;
-    const Indexable = 1 << 2;
-    const Plain = 1 << 3;
-    const Storable = 1 << 4;
-    const HostShareable = 1 << 5;
-    const Constructible = 1 << 6;
-    const FixedFootprint = 1 << 7;
-    const Concrete = 1 << 8;
-
-    return { Scalar, Composite, Indexable, Plain, Storable, HostShareable, Constructible, FixedFootprint, Concrete } as const;
-})();
-
-export type BaseTypeConfig = number;
-
-/**
- * Check whether a type is configured with every wanted capability.
- */
-export function hasConfig(pConfig: BaseTypeConfig, pWanted: BaseTypeConfig): boolean {
-    return (pConfig & pWanted) === pWanted;
-}
-```
-
-20 of the 31 usable bits in `kind` (JS bitwise operators are signed, so bit 31 is not really
-available) and 9 in `config` — room for the 17 `PgslTextureType` sub-kinds later if you want them
-classified.
-
-No `enum` — the IIFE is the idiom `PgslAccessModeEnum.CST` already uses
-([pgsl-access-mode-enum.ts:19](source/buildin/enum/pgsl-access-mode-enum.ts:19)), and inside it
-`Signed = 1 << 16 | Integer` is ordinary scoping. A flat `{ … } as const` cannot reference its own
-keys, so it would need one object per level of the hierarchy, spread back together.
-
-Matching reads `kind` only:
-
-```ts
-function match(pPattern: TypePattern, pType: BaseType, pBindings: Map<string, BaseType>): boolean {
-    if (!hasKind(pType.kind, pPattern.kind)) { return false; }
-    if (pPattern.dimension !== 0 && pPattern.dimension !== pType.dimension) { return false; }
-    if (pPattern.inner) { return match(pPattern.inner, pType.inner!, pBindings); }
-    return true;
-}
-```
-
-Validation reads `config`, and the compound rules collapse. `VariableDeclarationAst` currently calls
-`lMustBeConstructible()`, `lMustBeHostShareable()` and `lMustHaveFixedFootprint()` in sequence, each
-with its own message; that becomes one call against
-`Constructible | HostShareable | FixedFootprint`.
-
-Three notes on the layout:
-
-- **The numeric refinements fold their implication in** (`Integer = 1 << 14 | Numeric`), so `int`
-  writes `BaseTypeKind.Signed` and the hierarchy is stated once. The cost is that `!== 0` is wrong on
-  those constants — always go through `hasKind`.
-- **`Abstract` lives in `kind`, `Concrete` in `config`.** They look like complements but are not:
-  `Abstract` says this numeric is a literal type, `Concrete` says the whole type contains no abstract
-  part, which propagates through containers.
-- **`BuildIn` is a marker, not a kind.** `PgslBuildInType` delegates everything to its underlying
-  type, so its mask is `underlying.kind | BuildIn` and the exclusivity region still holds one bit.
-
-`Array` currently declares `composite: false` while carrying `indexable: true`; the block above keeps
-that rather than silently changing it, but WGSL does class arrays as composite, so it is worth a
-look.
-
-#### What the change actually touches
-
-- **Removes** tag construction from 14 type files (`pgsl-texture-type.ts` 19 references,
-  `pgsl-numeric-type.ts` 18, vector and matrix 7 each, …) and deletes `metaTypes` from
-  `TypeProperties`.
-- **Changes three query sites**:
-  [function-call-expression-ast.ts:238](source/abstract_syntax_tree/expression/single_value/function-call-expression-ast.ts:238),
-  [new-expression-ast.ts:574](source/abstract_syntax_tree/expression/single_value/new-expression-ast.ts:574)
-  and `:617`. That is the entire consumer surface.
-- **Adds** a pattern parser (~40 lines), `match()` (~15 lines), and two fields per type class.
-
-Keep the strings as the notation in the built-in tables — they are the most readable form there
-is — and parse them once into a pattern tree at module load. Add a test asserting every restriction
-string in every table parses, so a typo fails loudly instead of silently never matching.
-
-This also **subsumes `PgslNewExpressionCallDefinition`**. `new-expression-ast.ts` is 674 lines,
-almost all of it a bespoke overload table for vector/matrix/array constructors with its own
-matching loop (`DEFINTION_CHECK:` label, min/max parameter counting). With patterns, vector
-constructors become ordinary entries in the same overload table as the builtins, and that file
-drops to roughly the size of `FunctionCallExpressionAst`.
-
-### Order for the type work
-
-Five steps, in dependency order:
-
-1. **`BaseType` replaces the `IType` interface.** One name, not two. `IType` has 292 occurrences
-   across 45 files, but essentially all of them are annotations, so this is a rename plus 14 classes
-   changing `implements IType` to `extends BaseType`. Everything below needs somewhere to live, and
-   an interface cannot hold behaviour — that is exactly why the poison rule currently has nowhere to
-   go.
-2. **Delete `isExplicitCastableInto`.** It is dead. PGSL has no cast syntax — no cast token, no cast
-   CST node — and `new` only constructs composites (`Array`, `Vector*`, `Matrix*`), so there are no
-   scalar conversion constructors either. The only call sites are self-recursion:
-   `PgslVectorType`, `PgslMatrixType` and `PgslBuildInType` delegating to their own inner type.
-   Fourteen implementations, zero external callers. If PGSL ever grows WGSL-style `f32(x)`
-   conversion constructors it comes back — as one method on `BaseType`, expressed through
-   `conversionRank`.
-3. **Poison absorption** in `BaseType` (D10 ①–③, §2).
-4. **`kind` + `config` masks and the pattern matcher replace `metaTypes` and `TypeProperties`** —
-   above. D2 and D3 die with them, and the 90 `instanceof Pgsl*Type` sites go too.
-5. **`conversionRank` / `commonType` / `concretize`** on `BaseType` — below. D4 dies with it.
-
-D3 (`scalar: false` for vectors and matrices) is independent of all of this and can go in at any
-point.
-
-**Do not stop after step 4.** Patterns answer *matching* — "does this type satisfy this
-constraint?". They do not answer *joining* — "what single type do these candidates agree on?" —
-which is what `resolveStrictestType`
-([function-call-expression-ast.ts:280](source/abstract_syntax_tree/expression/single_value/function-call-expression-ast.ts:280))
-does today by pairwise probing, and what D4 and the abstract-numeric handling actually need. Those
-are two independent mechanisms; doing only the first leaves the second exactly as broken as it is
-now.
-
-### The actual missing piece: no `commonType` / conversion rank
-
-This is the deeper problem, and I think it is what you are feeling as "the type clusterfuck".
-
-`ArithmeticExpressionAst.processScalarOperation`
-([arithmetic-expression-ast.ts:207](source/abstract_syntax_tree/expression/operation/arithmetic-expression-ast.ts:207)):
-
-```ts
-if (!pRightType.isImplicitCastableInto(pLeftType) && !pLeftType.isImplicitCastableInto(pRightType)) {
-    pContext.pushIncident('Left and right side of arithmetic expression must be the same type.', this);
-}
-return pLeftType;   // <- always the left one
-```
-
-Same at lines 143 and 305. The result type of a binary operation is *whichever operand was written
-first*. Verified:
-
-```
-let x: int = 1 + 2.0;   ACCEPTED -> var x:i32 = 1 + 2.0;   (invalid WGSL)
-let x: int = 2.0 + 1;   REJECTED
-```
-
-The same expression with its operands swapped gives different answers, and one of them emits
-broken output.
-
-`FunctionCallExpressionAst.resolveStrictestType`
-([function-call-expression-ast.ts:280](source/abstract_syntax_tree/expression/single_value/function-call-expression-ast.ts:280))
-*is* a correct join — but it exists only for function generic inference. Every other site
-(arithmetic, assignment, return, array elements, struct init) rolls its own ad-hoc rule.
-
-**Introduce one shared operation and use it everywhere.** WGSL already specifies exactly this; I
-would adopt its conversion-rank table rather than invent one:
-
-```ts
-/** null = not convertible. Lower rank = more preferred. 0 = identity. */
-export function conversionRank(pFrom: IType, pTo: IType): number | null;
-
-/** The unique T minimising rank(a→T) + rank(b→T). null if none or ambiguous. */
-export function commonType(pA: IType, pB: IType): IType | null;
-
-/** AbstractInteger -> int, AbstractFloat -> float. Identity for concrete types. */
-export function concretize(pType: IType): IType;
-```
-
-Then:
-
-- **Binary operators**: `commonType(left, right)`, then check the operator is defined for that type.
-  Symmetric by construction; the `1 + 2.0` bug cannot recur.
-- **Assignment / return / parameter passing**: `conversionRank(source, target) !== null`.
-- **Overload resolution** (functions, `new`, builtins): for each candidate, sum the parameter
-  ranks; pick the minimum; report *ambiguous* on a tie. This replaces "first match wins" in both
-  `matchFunctionHeader` and the `DEFINTION_CHECK` loop, and it makes real diagnostics possible:
-  `no overload of 'sin' accepts (int); candidates: sin(float), sin(float16), sin(Vector<float>)`.
-  Today the message for `sin(someInt)` is
-  `Function block return type does not match the declared return type.`
-- **Materialisation**: call `concretize()` at the defined points (variable declaration without an
-  explicit type, argument to a concrete parameter, struct member initialiser). Right now
-  abstract-to-concrete is emergent — it happens to work because literals are emitted verbatim and
-  WGSL has its own abstract types, but
-  [type-ast-transpiler-processor.ts:205](source/transpilation/wgsl/type/type-ast-transpiler-processor.ts:205)
-  hard-`throw`s if an abstract type ever reaches output. Making materialisation explicit turns that
-  landmine into a rule.
-
-### Aliases
-
-`resolveAlias` returns `lAlias.data.underlyingType`
-([type-declaration-ast.ts:61](source/abstract_syntax_tree/general/type-declaration-ast.ts:61)), so
-the alias name is gone the moment it is resolved. Transparency is the right semantics, but it means
-diagnostics say `Vector4<float>` where the user wrote `Position`.
-
-`IType.shadowedType` already exists for exactly this purpose and is currently almost unused (every
-type defaults it to `this`). Populate it in `resolveAlias`, unwrap it in `equals` /
-`conversionRank` / transpilation, and use it for display names. Zero new concepts.
+### Current shape
+
+`BasePgslType` ([base-pgsl-type.ts](source/abstract_syntax_tree/type/base-pgsl-type.ts)) is a plain
+class, not an AST node. A type has no context, no `process()` and reports no incidents — it is a
+specification and nothing else. Three pieces of state, all fixed at construction:
+
+- **`kind`** — one 32-bit mask (`BasePgslTypeKind`) carrying both what the type *is* (`Numeric`,
+  `Vector`, `Array`, `Struct`, … — the region masked by `AllType`) and what it *can do* (`Scalar`,
+  `Composite`, `Indexable`, `Plain`, `Concrete`, `FixedFootprint`, `Constructible`, `HostShareable`,
+  `Storable`). Every bit is set explicitly by each type; nothing is implied by anything else.
+- **`meta`** — `{ typeName, generics? }`. `typeName` is the full identification string of the type;
+  `generics` holds the sub-types.
+- **`shadowedType`** — the type a built-in stands in for, or itself.
+
+Concrete on the base: `isKind` (a bit test), `isSameTypeClass` (compares the `AllType` region only)
+and `accepts`. Abstract, implemented by every type: `equals` and `conversionRankTo`. Keeping those
+two abstract is deliberate — opening `pgsl-void-type.ts` shows what a void does without following a
+chain into a generic base implementation.
+
+### Types are specifications; validation lives in the AST
+
+Nothing in a type validates. Interning forces this as much as taste does: if the same type object is
+handed out twice, a rule that reports during construction stays silent the second time a bad type is
+written.
+
+The rules that used to sit inside the type classes split into two groups, and both left:
+
+- **Declaration shape** — arity, literal parsing, name resolution. These belong in
+  `TypeDeclarationAst`, where a source position exists. Vector's "component must be a scalar" and
+  matrix's "component must be a floating point type" now live in `resolveVector` and `resolveMatrix`
+  as bit tests.
+- **Well-formedness of the type itself** — deleted rather than moved. An `Array<Texture>` is a
+  perfectly good specification; whether anything may be *done* with it is a question for the use
+  site, and the capability bits already answer it.
+
+### Capability bits carry legality of use
+
+An array copies `Plain`, `Concrete`, `Storable` and `HostShareable` from its element type, and claims
+`FixedFootprint` and `Constructible` only when the length is fixed. Vector and matrix inherit the
+same set. A composite over an illegal element therefore comes out without the bits, and every
+declaration that demands them rejects it — no formation rule needed anywhere.
+
+That makes the bits load-bearing, so their values have to be right. `Array<Texture>` turns on a
+distinction that is easy to get wrong: a texture **is** storable (WGSL handle types are storable) but
+is **not** plain, and it is `Plain` that WGSL requires of an array element. Testing the wrong one
+silently admits it.
+
+The reading side is where the gap still is. Module scope
+([variable-declaration-ast.ts:288](source/abstract_syntax_tree/declaration/variable-declaration-ast.ts:288))
+checks constructible, scalar, host-shareable, fixed-footprint and plain, and special-cases textures
+and samplers out of the plain-type rules — that side is complete. Function scope
+([variable-declaration-statement-ast.ts:88](source/abstract_syntax_tree/statement/execution/variable-declaration-statement-ast.ts:88))
+demands only `storable` for everything and `constructible` for `Const`, but WGSL requires a
+constructible store type for function-scope `var` and for `private`. Until that widens, a texture or
+an array of textures passes a local declaration.
+
+The texture and sampler special-cases are written as `instanceof` and become `isKind(Texture)` /
+`isKind(Sampler)` once those two types migrate.
+
+### `conversionRankTo` and `accepts` — the two directions
+
+`conversionRankTo` replaced `isCastableInto`. Zero means the types are the same, infinity means no
+conversion exists, and everything between is WGSL's automatic-conversion rank. One method instead of
+two, and the boolean answer is `!== Number.POSITIVE_INFINITY`.
+
+Only two types in the language are conversion *sources* — `AbstractInt` and `AbstractFloat`. Every
+other pair is identity or impossible. So the rank table lives entirely on `PgslNumericType`, ordered
+as the spec orders it:
+
+- **AbstractFloat** → `Float & Concrete & !Float16` is 1, `Float16` is 2.
+- **AbstractInt** → `SignedInteger` is 3, `UnsignedInteger` is 4, `Float & Abstract` is 5,
+  `Float & Concrete & !Float16` is 6, `Float16` is 7.
+
+The ordering is load-bearing: `AbstractInt` reaches the integers before any float, which is what
+keeps `1 / 2` integer division. **This table is not written yet** — `PgslNumericType` is unmigrated,
+so nothing currently returns a nonzero rank.
+
+Composites lift it. Vector and matrix check their own dimensions and then return the component type's
+rank; the array checks its length and does the same. Nothing invents a number of its own.
+
+Two knock-on rules:
+
+- **Materialization comes out of the same table.** An abstract reaching a position that needs a
+  concrete type becomes its lowest-ranked concrete target — `i32` for `AbstractInt`, `f32` for
+  `AbstractFloat`. There is no reason for a second default-type mapping.
+- **For binary operators the pairwise rule is complete.** Try `a → b`, try `b → a`, take whichever is
+  finite. No general lattice join is needed, because the only sources are the two abstracts and they
+  form a chain. `i32` with `u32`, `f32` with `f16`, and `AbstractFloat` with `i32` all correctly
+  fail. Built-in overload sets still need the full ranking across a candidate list.
+
+`accepts` is the other direction: `pTarget.accepts(pSource)` asks whether the target can hold a value
+of the source type. The base answers it with the rank plus a reference-identity shortcut.
+`PgslGenericType` overrides it, because for a generic the two directions are genuinely different
+questions.
+
+### Generics
+
+`PgslGenericType` holds a list of permitted types. Alternatives may themselves contain generics, so
+`Vector2<T> | Vector3<T> | Vector4<T>` is three entries sharing one `T` object rather than a cross
+product. The open type's `kind` is the AND of its alternatives, which is the sound answer: the body
+type-checks against what every admissible binding guarantees.
+
+The quantifier differs by direction, and this is the thing to keep straight:
+
+- **`conversionRankTo` is universal.** A generic converts into a target only if *every* alternative
+  does — the worst rank wins. Taking the best would let a `T extends float | integer` value through a
+  float-only slot when `T` binds to `i32`.
+- **`accepts` is existential.** A concrete argument fits a generic slot when it matches *one*
+  alternative.
+
+`equals` is reference identity. Two generics with identical restrictions are different type
+parameters: `<T extends float | integer, U extends float | integer>` must not make `T` and `U`
+interchangeable, and object identity is what links the `T` inside `Vector3<T>` to the `T` in the
+return position. A generic must therefore never be interned.
+
+What is still missing is **binding**. Checking an argument against a constraint is the easy half;
+`<T>(value: T): T` also has to bind `T` to the argument's type and substitute into the return type,
+with both occurrences resolving to the same slot. That wants a `match(pattern, concrete, bindings)`
+routine and its partner `substitute(type, bindings)`, living centrally rather than on each type
+class. The binding is a per-call-site map the resolver builds and discards — it never becomes state
+on a type.
+
+Two rules to settle before user generics ship: slots are declared in dependency order (`TVector`'s
+restriction mentions `TNumber`, so `TNumber` comes first, which also rules out mutual recursion), and
+alternatives resolve first-match-wins. And because WGSL has no generic functions, every call must
+monomorphise — which is what makes binding mandatory rather than a nicety (§4c).
 
 ### Interning
 
-`PgslNumericType` is constructed and processed **336 times** on the medium input, for **6 distinct
-types**. In total, 708 of 1904 AST nodes (37 %) are type objects. Each one allocates a fresh
-`TypeProperties` object plus a `metaTypes` array of ~16 strings.
+Every type is still constructed fresh. Each converted type now exposes a static `identifierOf` that
+produces the cache key from the same arguments its constructor takes, and the constructor uses that
+same static for its own `meta.typeName` — so key and type cannot drift, and a lookup never has to
+build a type to discover whether it already exists. A backtick descends into a sub-identity, a comma
+separates sequence items: ``Vector3`float``, ``Matrix44`float``, ``Array`float,5,fixed``.
+Sub-identities are already finished strings on the cached inner type, so composing a key is a concat
+rather than a walk.
 
-```ts
-PgslNumericType.get('int')                  // interned singleton
-PgslVectorType.get(4, PgslNumericType.get('float'))   // cached by structural key
-```
+The cache belongs **on the AST context, not on a static**. Struct and enum resolve their names
+against the document, and a struct's capabilities come from its members, so two documents each
+declaring a `Light` would collide in a process-wide map. Per-document costs a handful of extra scalar
+objects and is self-cleaning.
 
-The time win is small (the whole AST stage is 2.0 ms on medium), but `equals()` becomes `===` for the common
-case, tag sets are computed once, and a whole class of "two `Vector4<float>` objects that are not
-the same object" bugs disappears.
+Two things to settle when wiring it up:
 
----
+- **The prize is `equals` becoming `===`**, but only if nothing constructs a type outside the cache.
+  That means constructors stop being called directly and a single `create` becomes the entry point —
+  far easier to commit to now than to retrofit.
+- **The array has a live collision.** Its kind depends on the length expression's `fixedState`, which
+  `mStaticLength` does not capture: a pipeline-fixed length and a runtime length both leave the
+  length unresolved while producing different `FixedFootprint`. `identifierOf` already encodes the
+  fixed state as its own field for exactly this reason — keep it there.
+
+`PgslGenericType` deliberately has no `identifierOf`.
+
+### Migration state
+
+On `BasePgslType`: base, array, generic, boolean, invalid, void, string, sampler, struct, vector,
+matrix.
+
+Still on the deleted `base-type.ts` interface: **numeric, texture, build-in, pointer, enum** — plus
+every AST node that consumes them. The package does not type-check until they land. Numeric is the
+one to do next: it carries the rank table, and until it exists the new `Scalar` test in
+`resolveVector` reports against numeric components.
 
 ## 4. AST → text
 
@@ -1304,7 +1056,7 @@ tries 14 resolvers in sequence, and several of them do
 `Object.values(PgslTextureType.typeName).includes(pRawName as any)` — a fresh array allocated per
 call, 249 times per shader.
 
-Build one `Map<string, (ctx, name, template) => IType>` at module load. Struct/alias/enum stay as
+Build one `Map<string, (ctx, name, template) => BasePgslType>` at module load. Struct/alias/enum stay as
 context lookups checked first. Besides the allocations, this removes the *implicit* rule that the
 order of those 14 `if` statements is the name-shadowing policy — right now that policy is
 undocumented and only expressible by moving lines around.
@@ -1313,11 +1065,14 @@ undocumented and only expressible by moving lines around.
 
 ### 5.5 Intern types
 
-See §3. **336 numeric-type constructions for 6 distinct types** on the medium input; 708 of 1904
-AST nodes (37 %) are type objects. Small time win, meaningful correctness and clarity win.
+See §3. The key mechanism is in place — every converted type carries a static `identifierOf` — but
+no cache consumes it yet, so the same scalar type is still rebuilt for every declaration that names
+it.
 
-At 11–15 % of the pipeline the AST stage is not far below the noise floor, but it is still the wrong
-place to start — do this for the correctness win, not the time.
+The time win is small; the AST stage sits at 11–15 % of the pipeline and this is not where to start.
+Do it for the correctness win: once nothing constructs a type outside the cache, `equals` collapses
+to `===` and a class of "two `Vector4<float>` objects that are not the same object" bugs stops
+existing.
 
 ### 5.6 Write down the failure-cache soundness rule — no runtime cost
 
@@ -1357,16 +1112,16 @@ Every one of these was reproduced by execution against the current tree, not fou
 | # | Defect | Repro | Effect |
 |---|---|---|---|
 | **D1** 🚩 | No operator precedence or associativity | `if (a + 1 < 10) { }` | **Ship blocker.** Rejected with `Arithmetic operation not supported for used types.` `1 * 2 + 3` parses as `1 * (2 + 3)`; `1 - 2 - 3` as `1 - (2 - 3)`. §5.2 |
-| **D2** | `metaTypes` switch falls through (no `break`) — [pgsl-numeric-type.ts:150](source/abstract_syntax_tree/type/pgsl-numeric-type.ts:150) | `normalize(v)` where `v: Vector4<int>` | Accepted with no incident; emits `normalize(vec4<i32>)`, invalid WGSL |
-| **D3** | Vectors report `scalar: true` — [pgsl-vector-type.ts:195](source/abstract_syntax_tree/type/pgsl-vector-type.ts:195) copies the inner type's `scalar` | `param p: Vector4<float> = ...;` | Passes `lMustBeScalar()`, then **uncaught** `Exception: Unsupported parameter type` |
+| **D2** | `metaTypes` switch falls through (no `break`) — [pgsl-numeric-type.ts:150](source/abstract_syntax_tree/type/pgsl-numeric-type.ts:150) | `normalize(v)` where `v: Vector4<int>` | Accepted with no incident; emits `normalize(vec4<i32>)`, invalid WGSL. Disappears with the numeric migration — `metaTypes` does not exist on `BasePgslType` |
+| **D3** ✅ | Vectors and matrices reported `scalar: true` by copying the component type's `scalar` | `param p: Vector4<float> = ...;` | Passed `lMustBeScalar()`, then **uncaught** `Exception: Unsupported parameter type`. **Fixed** — neither sets `Scalar` any more |
 | **D4** | Binary ops return the left operand's type — [arithmetic-expression-ast.ts:143/207/305](source/abstract_syntax_tree/expression/operation/arithmetic-expression-ast.ts:207) | `let x: int = 1 + 2.0;` | Accepted, emits `var x:i32 = 1 + 2.0;` (invalid). `2.0 + 1` is rejected — asymmetric |
 | **D11** ✅ | Postfix chains do not compose — `lValueDecompositionExpressionGraph` / `lIndexedValueExpressionGraph` are separate left-recursive alternatives ([pgsl-parser.ts:944](source/parser/pgsl-parser.ts:944), [990](source/parser/pgsl-parser.ts:990)) | `let a: float = value.member[0];` | **Rejected**: `Unexpected token "[". "Semicolon" expected`. Same for `call().x` and `call()[0]`. `list[0].member` works, so the failure is asymmetric and looks arbitrary. §5.2. **Fixed** — covered by `indexed-value-expression-ast.test.ts` and `value-decomposition-expression-ast.test.ts`. |
 | **D5** | `#META` replacement inserts a newline — [pgsl-parser.ts:1938](source/parser/pgsl-parser.ts:1938) | decl on source line 2 | Reported at line 3; drift accumulates per directive |
 | **D6** | `#IMPORT` split restarts line numbering — [pgsl-parser.ts:1935](source/parser/pgsl-parser.ts:1935) | decl on source line 3 after one import | Reported at line 2 |
 | **D7** | No source identity in `CstRange` | two decls named `dup`, one imported | Both report a bare line number; the file is unknowable |
-| **D8** | Types are constructed with `range: [0,0,0,0]` | any type-level incident | 23 `pushIncident` sites report `0:0` |
+| **D8** | Types were constructed with `range: [0,0,0,0]`, so every type-level incident reported `0:0` | any type-level incident | Types are no longer AST nodes and raise no incidents; each rule moved to the AST node that has a position. Still open for the unmigrated types — texture and build-in report from inside the type |
 | **D9** | Parser instance state leaks across `parse()` calls — `mUserDefinedTypeNames` is never cleared at entry ([pgsl-parser.ts:1823](source/parser/pgsl-parser.ts:1823) only overwrites at exit) | `p.parse('alias MyAlias = float;')` then `p.parse('private v: Vector4<MyAlias>;')` | `template[0].type` is `VariableNameExpression` on a fresh parser but `TypeDeclaration` on a reused one — **same input, different CST** |
-| **D10** | `PgslInvalidType` propagates instead of absorbing — `equals` / `isImplicitCastableInto` / `isExplicitCastableInto` all return `false` unconditionally ([pgsl-invalid-type.ts:41](source/abstract_syntax_tree/type/pgsl-invalid-type.ts:41)) | one undefined variable used three times | **9 incidents**, 6 of them noise. One unknown typename in a function body gives 7. §2 |
+| **D10** | `PgslInvalidType` propagates instead of absorbing — `equals` returns `false` and `conversionRankTo` returns infinity unconditionally ([pgsl-invalid-type.ts](source/abstract_syntax_tree/type/pgsl-invalid-type.ts)) | one undefined variable used three times | **9 incidents**, 6 of them noise. One unknown typename in a function body gives 7. Behaviour carried over unchanged through the migration. §2 |
 
 D9 is worth calling out separately: it means `parse()` is not a pure function of its input, which
 also makes any caching or incremental-parsing work unsound until it is fixed. The fix is to reset
@@ -1377,10 +1132,21 @@ to contribute into the document being parsed).
 
 ## 7. Order of work
 
+> **The package does not type-check right now.** The type layer is mid-migration: `base-type.ts` is
+> deleted, five type classes and every AST node that consumes them still reference it. Finishing that
+> (item 0) comes before everything else, because nothing below can be tested until it does.
+
 This is **one change, not a migration.** The numbering below is a dependency order — what has to
 exist before what. Several items only look worthwhile once the one before them has landed (the
-validation split is unremarkable until the poison type absorbs; `commonType` has nowhere to live
-until `BaseType` exists), so slicing this into independently releasable stages mostly buys ceremony.
+validation split is unremarkable until the poison type absorbs; the conversion ranks have nowhere to
+live until the numeric type migrates), so slicing this into independently releasable stages mostly
+buys ceremony.
+
+**🚩 Blocks everything**
+0. Finish the type migration — **numeric first** (it carries the rank table), then texture,
+   build-in, pointer, enum, then the AST nodes. Replace `isCastableInto` call sites with
+   `conversionRankTo` / `accepts`, and the `instanceof PgslTextureType` / `instanceof PgslSamplerType`
+   checks in `variable-declaration-ast.ts` with `isKind`. §3.
 
 **🚩 Blocks shipping the language**
 1. ✅ **Done.** §5.2a — left-factor the expression grammar (`expression := simple (op expression)?`,
@@ -1389,11 +1155,11 @@ until `BaseType` exists), so slicing this into independently releasable stages m
 2. §5.2b — precedence tiers on top. Fixes **D1**. This is a language defect: until it lands,
    every shader is either over-parenthesised or type-checked against a tree its author did not
    write.
-3. D2 — add `break` to the `metaTypes` switch. *Expect fallout*: code relying on the loose matching
-   will start erroring. That is the point.
-4. D3 — `scalar: false` for vectors and matrices.
-5. D4 — binary operators must compute a result type, not return the left operand's (wants item 15's
-   `commonType`; a same-type-or-reject stopgap is still better than what is there).
+3. D2 — falls out of item 0; `metaTypes` does not survive the numeric migration. *Expect fallout*:
+   code relying on the loose matching will start erroring. That is the point.
+4. ✅ **Done.** D3 — vectors and matrices no longer claim `Scalar`.
+5. D4 — binary operators must compute a result type, not return the left operand's. Wants the rank
+   table from item 0; a same-type-or-reject stopgap is still better than what is there.
 
 **One-liners**
 6. D5 — `#META` replacement `''` + `^[ \t]*` anchors; same for the `#IMPORT` regex.
@@ -1413,46 +1179,54 @@ until `BaseType` exists), so slicing this into independently releasable stages m
 14. §5.4 — resolver map in `TypeDeclarationAst` (readability first, speed second).
 
 **Type system**
-15. §3 — `conversionRank` / `commonType` / `concretize`; route arithmetic, assignment, return and
-    overload resolution through them. Completes D4 and gives real overload diagnostics. Wants
-    `BaseType` from item 18 to exist first.
-16. §3 — type interning; close the tag union.
-17. §3 — type patterns for generics; fold `new-expression-ast.ts` into the shared overload table.
+15. §3 — route arithmetic, assignment, return and overload resolution through `conversionRankTo` /
+    `accepts`, with materialization reading the same table. Completes D4 and gives real overload
+    diagnostics.
+16. §3 — widen the function-scope capability check from `storable` to `constructible`, so a texture
+    or an array of textures stops passing a local declaration.
+17. §3 — the type cache on the AST context, keyed on `identifierOf`. Then collapse `equals` to `===`
+    and make a single `create` the only construction path.
+18. §3 — generic binding: `match` / `substitute` and a per-call-site binding map. Prerequisite for
+    user-defined generics and for §4c.
+19. §3 — fold `new-expression-ast.ts` into the shared overload table.
 
 **Separation of concerns**
-18. §2 — **fix the poison type (D10).** ~Half a day, and it turns "one typo → nine incidents" into
-    "one typo → one incident". Three absorption points: comparisons (via a new `BaseType`),
-    property-rule guards, and a poison arm in the six expression nodes that dispatch structurally.
-    Do it before 19, or 19 will look like it changed nothing.
-19. §2 — pull the rules out of `onProcess` into `onValidate`, then into a `Validator` walker with its
+20. §2 — **fix the poison type (D10).** ~Half a day, and it turns "one typo → nine incidents" into
+    "one typo → one incident". Three absorption points: comparisons (`PgslInvalidType.equals` and
+    `conversionRankTo` absorb rather than reject), the property-rule guards, and a poison arm in the
+    six expression nodes that dispatch structurally. Do it before 21, or 21 will look like it changed
+    nothing.
+21. §2 — pull the rules out of `onProcess` into `onValidate`, then into a `Validator` walker with its
     own accumulators. **This is where most of the "jank" you feel actually goes away.**
-20. §2 — move the rules into processor classes.
-21. §2 — explicit declaration-ordering pass; delete `mProcessingStack` and the four duplicated
+22. §2 — move the rules into processor classes.
+23. §2 — explicit declaration-ordering pass; delete `mProcessingStack` and the four duplicated
     `getX()` bodies.
 
 **Debug information**
-22. §1 — a source id in `CstRange`; stop splitting on `#IMPORT`; ranges on types; `source` on
+24. §1 — a source id in `CstRange`; stop splitting on `#IMPORT`; ranges on types; `source` on
     `PgslParserResultIncident`. Fixes D6/D7/D8. The CST change itself is mechanical (§2).
 
 **Transpiler**
-23. §4a — `CodeFragment` tree and a real source map (needs 22 for the input side).
-24. §4c — monomorphise generic functions; make the backend total over validated ASTs.
-25. §4d — optional pretty-printing, free once 23 lands.
+25. §4a — `CodeFragment` tree and a real source map (needs 24 for the input side).
+26. §4c — monomorphise generic functions; make the backend total over validated ASTs. Needs the
+    binding work from 18.
+27. §4d — optional pretty-printing, free once 25 lands.
 
 ---
 
 ## 8. Open questions for you
 
-26. **Is `metaTypes` intended as the general tag mechanism, or a stopgap for built-in function
-   signatures?** My recommendation in §3 assumes the former — that the tag idea you described is the
-   one already in the code, and that the work is to finish it (fix D2, close the union, add
-   structural patterns for generics) rather than to design a new one. If it was only ever meant to
-   match built-in overloads, §3 should be read as "grow it" rather than "fix it".
-27. **Are user-defined generic functions meant to reach WGSL output?** The transpiler throws on them
+28. **Should an override-sized array count as fixed-footprint?** `resolveArray` accepts a length at
+   `PipelineCreationFixed` or above and `PgslArrayType` sets `FixedFootprint` at the same threshold,
+   so an override-sized array is currently treated as sized. WGSL allows override-sized arrays only
+   for workgroup variables and treats them as neither constructible nor host-shareable. If that
+   distinction is wanted, the two thresholds have to part company deliberately rather than by
+   accident.
+29. **Are user-defined generic functions meant to reach WGSL output?** The transpiler throws on them
    today. Monomorphisation (§4c) is the answer if yes; a validator rejection with a clear message is
    the answer if not. This is the one place where the right design depends entirely on a product
    decision I cannot make for you.
-28. **Is there a target parse budget?** `full` is 8 025 token in 85 ms today. §5.2 alone takes that
+30. **Is there a target parse budget?** `full` is 8 025 token in 85 ms today. §5.2 alone takes that
    to ~47 ms, and §5.1 + §5.3 on top land it near 42 ms. After that the grammar has stopped
    backtracking (596 cache hits on 8 000 tokens) and the remaining cost is the per-push constant;
    the only lever left would be first-token dispatch *inside* `core-parser`, which is a much larger

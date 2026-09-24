@@ -27,7 +27,7 @@ export class PgslVectorType extends BasePgslType {
      * @returns The type identification.
      */
     public static identifierOf(pDimension: number, pInnerType: BasePgslType): string {
-        return PgslVectorType.typeNameFromDimension(pDimension) + '`' + pInnerType.meta.typeName;
+        return PgslVectorType.typeNameFromDimension(pDimension) + '[' + pInnerType.meta.typeName + ']';
     }
 
     /**

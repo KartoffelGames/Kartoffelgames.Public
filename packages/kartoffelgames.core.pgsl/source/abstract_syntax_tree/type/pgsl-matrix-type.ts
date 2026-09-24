@@ -60,7 +60,7 @@ export class PgslMatrixType extends BasePgslType {
      * @returns The type identification.
      */
     public static identifierOf(pColumnCount: number, pRowCount: number, pInnerType: BasePgslType): string {
-        return PgslMatrixType.typenameFromDimensions(pColumnCount, pRowCount) + '`' + pInnerType.meta.typeName;
+        return PgslMatrixType.typenameFromDimensions(pColumnCount, pRowCount) + '[' + pInnerType.meta.typeName + ']';
     }
 
     /**

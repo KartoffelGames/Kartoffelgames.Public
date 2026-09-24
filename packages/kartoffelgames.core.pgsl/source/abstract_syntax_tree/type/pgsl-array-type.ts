@@ -1,6 +1,6 @@
 import { PgslValueFixedState } from '../../enum/pgsl-value-fixed-state.ts';
 import type { IExpressionAst } from '../expression/i-expression-ast.interface.ts';
-import { BasePgslType, BasePgslTypeKind, BasePgslTypeMeta } from './base-pgsl-type.ts';
+import { BasePgslType, BasePgslTypeKind, type BasePgslTypeMeta } from './base-pgsl-type.ts';
 
 /**
  * Array type definition.
@@ -33,7 +33,7 @@ export class PgslArrayType extends BasePgslType {
         // Is constructible when inner type is constructible and array is fixed.
         const lFixedFootprint: string = pLengthExpression && pLengthExpression.data.fixedState >= PgslValueFixedState.PipelineCreationFixed ? 'fixed' : '*';
 
-        return PgslArrayType.typeName.array + '`' + pType.meta.typeName + ',' + lFixedLength + ',' + lFixedFootprint;
+        return PgslArrayType.typeName.array + '[' + pType.meta.typeName + ',' + lFixedLength + ',' + lFixedFootprint + ']';
     }
 
     private readonly mStaticLength: number | null;

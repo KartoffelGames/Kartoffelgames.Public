@@ -1,14 +1,20 @@
 import type { StructDeclarationCst } from '../../concrete_syntax_tree/declaration.type.ts';
 import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
-import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
 import { AttributeListAst } from '../general/attribute-list-ast.ts';
-import type { DeclarationAstData, IDeclarationAst } from './base-declaration-ast.ts';
+import { BaseDeclarationAst, type DeclarationAstData } from './base-declaration-ast.ts';
 import { StructPropertyDeclarationAst } from './struct-property-declaration-ast.ts';
 
 /**
  * PGSL syntax tree for a struct declaration.
  */
-export class StructDeclarationAst extends AbstractSyntaxTree<StructDeclarationCst, StructDeclarationAstData> implements IDeclarationAst {
+export class StructDeclarationAst extends BaseDeclarationAst<StructDeclarationCst, StructDeclarationAstData> {
+    /**
+     * Struct name.
+     */
+    public get name(): string {
+        return this.cst.name;
+    }
+
     /**
      * Register struct without registering its content.
      * 

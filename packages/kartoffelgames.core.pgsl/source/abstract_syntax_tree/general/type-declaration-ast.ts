@@ -303,8 +303,13 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
         const lInnerTypeDeclaration: TypeDeclarationAst = new TypeDeclarationAst(lConcreteTypeDeclaration).process(pContext);
         const lInnerType: BasePgslType = lInnerTypeDeclaration.data.type;
 
+        // Only storable types can be referenced by pointers.
+        if (!lInnerType.isKind(BasePgslTypeKind.Storable)) {
+            pContext.pushIncident('Referenced types of pointers need to be storable', this);
+        }
+
         // Build pointer type definition.
-        return new PgslPointerType(lInnerType).process(pContext);
+        return new PgslPointerType(lInnerType);
     }
 
     /**
@@ -373,7 +378,7 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
         }
 
         // Create new struct type definition.
-        return new PgslStructType(pRawName, lStruct.data.properties);
+        return new PgslStructType(lStruct);
     }
 
     /**

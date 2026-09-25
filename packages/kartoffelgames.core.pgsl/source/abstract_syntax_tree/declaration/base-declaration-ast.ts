@@ -1,24 +1,23 @@
+import type { Cst } from '../../concrete_syntax_tree/general.type.ts';
 import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
-import type { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
+import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
 import type { AttributeListAst } from '../general/attribute-list-ast.ts';
 
 /**
  * PGSL base declaration. Every declaration has a optional attribute list.
  */
-export abstract class BaseDeclarationAst extends AbstractSyntaxTree {
-    public abstract name: string;
-
+export abstract class BaseDeclarationAst<TCst extends Cst<string> = Cst<string>, TData extends DeclarationAstData = DeclarationAstData> extends AbstractSyntaxTree<TCst, TData> {
     /**
-     * Declaration data.
+     * Declaration name.
      */
-    readonly data: DeclarationAstData;
+    public abstract readonly name: string;
 
     /**
      * Register declaration without registering its content.
-     * 
+     *
      * @param pContext - Processing context.
      */
-    register(pContext: AbstractSyntaxTreeContext): this;
+    public abstract register(pContext: AbstractSyntaxTreeContext): this;
 }
 
 export type DeclarationAstData = {

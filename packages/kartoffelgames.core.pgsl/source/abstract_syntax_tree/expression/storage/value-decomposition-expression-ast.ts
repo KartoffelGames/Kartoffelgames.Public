@@ -36,7 +36,7 @@ export class ValueDecompositionExpressionAst extends AbstractSyntaxTree<ValueDec
         }
 
         // Resolve property type.
-        const lPropertyInformation = ((): ({ type: BaseType, fixedState: PgslValueFixedState, constValue: null | string | number, addressSpace: PgslValueAddressSpace; isStorage: boolean; } | null) => {
+        const lPropertyInformation = ((): ({ type: BaseType, fixedState: PgslValueFixedState, constValue: null | string | number, addressSpace: PgslValueAddressSpace; isStorage: boolean; enumValue: IExpressionAst | null; } | null) => {
             switch (true) {
                 case lExpressionType instanceof PgslStructType: {
                     // Read struct definition.
@@ -58,7 +58,8 @@ export class ValueDecompositionExpressionAst extends AbstractSyntaxTree<ValueDec
                         fixedState: PgslValueFixedState.Variable,
                         constValue: null,
                         addressSpace: lValue.data.storageAddressSpace,
-                        isStorage: true
+                        isStorage: true,
+                        enumValue: null
                     };
                 }
 
@@ -81,7 +82,8 @@ export class ValueDecompositionExpressionAst extends AbstractSyntaxTree<ValueDec
                         fixedState: lEnumValue.data.fixedState,
                         constValue: lEnumValue.data.constantValue,
                         addressSpace: lEnumValue.data.storageAddressSpace,
-                        isStorage: false
+                        isStorage: false,
+                        enumValue: lEnumValue
                     };
                 }
 
@@ -98,7 +100,8 @@ export class ValueDecompositionExpressionAst extends AbstractSyntaxTree<ValueDec
                             fixedState: PgslValueFixedState.Variable,
                             constValue: null,
                             addressSpace: lValue.data.storageAddressSpace,
-                            isStorage: false
+                            isStorage: false,
+                            enumValue: null
                         };
                     }
 
@@ -110,7 +113,8 @@ export class ValueDecompositionExpressionAst extends AbstractSyntaxTree<ValueDec
                         fixedState: PgslValueFixedState.Variable,
                         constValue: null,
                         addressSpace: lValue.data.storageAddressSpace,
-                        isStorage: false
+                        isStorage: false,
+                        enumValue: null
                     };
                 }
             }
@@ -127,6 +131,7 @@ export class ValueDecompositionExpressionAst extends AbstractSyntaxTree<ValueDec
                 // Expression data.
                 value: lValue,
                 property: lPropertyName,
+                enumValue: null,
 
                 // Expression meta data.
                 fixedState: PgslValueFixedState.Variable,
@@ -141,6 +146,7 @@ export class ValueDecompositionExpressionAst extends AbstractSyntaxTree<ValueDec
             // Expression data.
             value: lValue,
             property: lPropertyName,
+            enumValue: lPropertyInformation.enumValue,
 
             // Expression meta data.
             fixedState: lPropertyInformation.fixedState,
@@ -155,4 +161,9 @@ export class ValueDecompositionExpressionAst extends AbstractSyntaxTree<ValueDec
 export type ValueDecompositionExpressionAstData = {
     property: string;
     value: IExpressionAst;
+
+    /**
+     * Resolved enum value when the decomposited value is a enum, null otherwise.
+     */
+    enumValue: IExpressionAst | null;
 } & ExpressionAstData;

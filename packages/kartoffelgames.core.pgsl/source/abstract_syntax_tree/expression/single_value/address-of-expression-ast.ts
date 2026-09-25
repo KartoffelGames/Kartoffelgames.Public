@@ -39,7 +39,7 @@ export class AddressOfExpressionAst extends AbstractSyntaxTree<AddressOfExpressi
             // Expression meta data.
             fixedState: lVariable.data.fixedState,
             isStorage: false,
-            resolveType: new PgslPointerType(lVariableResolveType).process(pContext),
+            resolveType: new PgslPointerType(lVariableResolveType),
             constantValue: null,
             storageAddressSpace: lVariable.data.storageAddressSpace
         };

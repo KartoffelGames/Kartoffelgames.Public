@@ -1,31 +1,37 @@
-import type { TypeCst } from '../../concrete_syntax_tree/general.type.ts';
-import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
-import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
 import type { EnumDeclarationAst } from '../declaration/enum-declaration-ast.ts';
-import type { BaseType, TypeProperties } from './base-type.ts';
+import { BasePgslType, BasePgslTypeKind, type BasePgslTypeMeta } from './base-pgsl-type.ts';
 
 /**
  * Enum type.
  * Represents a user-defined enum type that contains multiple named values.
- * Enum types are composite types that can be used to group related data.
  */
-export class PgslEnumType extends AbstractSyntaxTree<TypeCst, TypeProperties> implements BaseType {
-    private mEnumDeclaration: EnumDeclarationAst | null;
-    private readonly mEnumName: string;
-    private readonly mShadowedType: BaseType;
-
+export class PgslEnumType extends BasePgslType {
     /**
-     * Gets the enum declaration AST node associated with this enum type.
-     * 
-     * @returns The enum declaration AST node, or null if not found.
+     * Type names for enum types.
      */
-    public get enumDeclaration(): EnumDeclarationAst | null {
-        return this.mEnumDeclaration;
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+    public static get typeName() {
+        return {
+            enum: 'Enum'
+        } as const;
     }
 
     /**
+     * Get a string identification for the type.
+     *
+     * @param pEnumDeclaration - Declaration of the enum type.
+     *
+     * @returns The type identification.
+     */
+    public static identifierOf(pEnumDeclaration: EnumDeclarationAst): string {
+        return PgslEnumType.typeName.enum + '[' + pEnumDeclaration.name + ']';
+    }
+
+    private readonly mEnumName: string;
+
+    /**
      * Gets the name of the enum type.
-     * 
+     *
      * @returns The enum name.
      */
     public get enumName(): string {
@@ -33,91 +39,58 @@ export class PgslEnumType extends AbstractSyntaxTree<TypeCst, TypeProperties> im
     }
 
     /**
-     * The type that is being shadowed.
-     * If it does not shadow another type, it is itself.
+     * Constructor for enum type.
+     *
+     * @param pEnumDeclaration - Declaration of the enum type.
+     * @param pShadowedType - Type that is the actual type of this.
      */
-    public get shadowedType(): BaseType {
-        return this.mShadowedType;
+    public constructor(pEnumDeclaration: EnumDeclarationAst, pShadowedType?: BasePgslType) {
+        // Everything a enum is.
+        let lTypeKind: BasePgslTypeKind = BasePgslTypeKind.Enum | BasePgslTypeKind.Composite | BasePgslTypeKind.FixedFootprint;
+
+        // A enum is only concrete when its underlying type is.
+        lTypeKind |= pEnumDeclaration.data.underlyingType.isKind(BasePgslTypeKind.Concrete) ? BasePgslTypeKind.Concrete : BasePgslTypeKind.None;
+
+        // Construct meta.
+        const lTypeMeta: BasePgslTypeMeta = {
+            typeName: PgslEnumType.identifierOf(pEnumDeclaration)
+        };
+
+        super(lTypeKind, lTypeMeta, pShadowedType);
+
+        this.mEnumName = pEnumDeclaration.name;
     }
 
     /**
-     * Constructor for enum type.
-     * 
-     * @param pEnumName - The name of the enum type.
-     * @param pShadowedType - Type that is the actual type of this.
+     * Get this types convertion rank to another type.
+     * A enum only converts into the same enum.
+     *
+     * @param pTarget - Conversion target type.
+     *
+     * @returns Zero for the same enum, infinity for anything else.
      */
-    public constructor(pEnumName: string, pShadowedType?: BaseType) {
-        super({ type: 'Type', range: [0, 0, 0, 0] });
+    public override conversionRankTo(pTarget: BasePgslType): number {
+        if (this.equals(pTarget)) {
+            return 0;
+        }
 
-        // Set data.
-        this.mShadowedType = pShadowedType ?? this;
-        this.mEnumName = pEnumName;
-
-        // Read enum declaration.
-        this.mEnumDeclaration = null;
+        return Number.POSITIVE_INFINITY;
     }
 
     /**
      * Compare this enum type with a target type for equality.
      * Two enum types are equal if they have the same enum name.
-     * 
-     * @param pTarget - Target comparison type. 
-     * 
-     * @returns True when both types have the same struct name.
+     *
+     * @param pTarget - Target comparison type.
+     *
+     * @returns True when both types have the same enum name.
      */
-    public equals(pTarget: BaseType): boolean {
+    public override equals(pTarget: BasePgslType): pTarget is this {
         // Must both be a enum.
-        if (!(pTarget instanceof PgslEnumType)) {
+        if (!this.isSameTypeClass(pTarget)) {
             return false;
         }
 
         return this.enumName === pTarget.enumName;
-    }
-
-    /**
-     * Check if this enum type is implicitly castable into the target type.
-     * Enum types are never castable to other types.
-     * 
-     * @param pTarget - Target type to check castability to.
-     * 
-     * @returns Always false - enums cannot be cast.
-     */
-    public isCastableInto(pTarget: BaseType): boolean {
-        // A enum is only castable to itself.
-        return this.equals(pTarget);
-    }
-
-    /**
-     * Collect type properties for enum types.
-     * Validates that the enum exists and aggregates properties from all enum fields.
-     * 
-     * @param pContext - Context for validation and error reporting.
-     * 
-     * @returns Type properties aggregated from enum fields.
-     */
-    protected override onProcess(pContext: AbstractSyntaxTreeContext): TypeProperties {
-        // Read enum declaration.
-        this.mEnumDeclaration = pContext.getEnum(this.mEnumName) ?? null;
-
-        // Read enum trace information.
-        if (!this.mEnumDeclaration) {
-            pContext.pushIncident(`Name '${this.mEnumName}' does not resolve to a enum declaration.`);
-        }
-
-        return {
-            // Meta information.
-            metaTypes: [`Enum-${this.mEnumName}`],
-
-            // Default enum information.
-            composite: true,
-            indexable: false,
-            storable: false,
-            scalar: false,
-            concrete: this.mEnumDeclaration?.data.underlyingType.data.concrete ?? false,
-            plain: false,
-            hostShareable: false,
-            constructible: false,
-            fixedFootprint: true,
-        };
     }
 }

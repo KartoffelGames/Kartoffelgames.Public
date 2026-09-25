@@ -644,8 +644,9 @@ Two things to settle when wiring it up:
 restrictions: `Generic[Function,select,1,TResult]`, `Generic[Struct,Light,TValue]`. A structural key
 would merge `<T extends float | integer, U extends float | integer>` into one slot, which is exactly
 what reference-identity `equals` exists to prevent. A declaration-site key does not — it names one
-slot and one slot only, so it is nominal identity in the same family as `PgslStructType.identifierOf`
-returning the bare struct name.
+slot and one slot only, so it is nominal identity in the same family as `Struct[Light]` and
+`Enum[Light]` — both of which name their declaration rather than their contents, and both of which
+need the leading class token, since a document can declare a struct and an enum under one name.
 
 The owner identification is composed by the declaring node and handed in, so the generic never
 learns what an overload is: `FunctionDeclarationAst` passes `Function,select,1` (the header index is

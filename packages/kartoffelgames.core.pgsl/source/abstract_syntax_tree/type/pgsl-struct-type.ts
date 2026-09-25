@@ -1,4 +1,4 @@
-import { StructPropertyDeclarationAst } from "../declaration/struct-property-declaration-ast.ts";
+import type { StructDeclarationAst } from '../declaration/struct-declaration-ast.ts';
 import { BasePgslType, BasePgslTypeKind, type BasePgslTypeMeta } from './base-pgsl-type.ts';
 
 /**
@@ -8,33 +8,44 @@ import { BasePgslType, BasePgslTypeKind, type BasePgslTypeMeta } from './base-pg
  */
 export class PgslStructType extends BasePgslType {
     /**
-     * Get a string identification for the type.
-     * 
-     * @param pStructName - The name of the struct type.
-     * 
-     * @returns The type identification.
+     * Type names for struct types.
      */
-    public static identifierOf(pStructName: string): string {
-        return pStructName;
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+    public static get typeName() {
+        return {
+            struct: 'Struct'
+        } as const;
     }
 
     /**
+     * Get a string identification for the type.
+     *
+     * @param pStructDeclaration - Declaration of the struct type.
+     *
+     * @returns The type identification.
+     */
+    public static identifierOf(pStructDeclaration: StructDeclarationAst): string {
+        return PgslStructType.typeName.struct + '[' + pStructDeclaration.name + ']';
+    }
+
+    private readonly mStructName: string;
+
+    /**
      * Gets the name of the struct type.
-     * 
+     *
      * @returns The struct name.
      */
     public get structName(): string {
-        return this.meta.typeName;
+        return this.mStructName;
     }
 
     /**
      * Constructor for struct type.
      * 
-     * @param pStructName - The name of the struct type.
-     * @param pProperties - Structs properties.
+     * @param pStructDeclaration - Declaration of the struct type.
      * @param pShadowedType - Type that is the actual type of this.
      */
-    public constructor(pStructName: string, pProperties: ReadonlyArray<StructPropertyDeclarationAst>, pShadowedType?: BasePgslType) {
+    public constructor(pStructDeclaration: StructDeclarationAst, pShadowedType?: BasePgslType) {
         // Everything a struct is.
         let lTypeKind: BasePgslTypeKind = BasePgslTypeKind.Struct | BasePgslTypeKind.Composite | BasePgslTypeKind.Plain | BasePgslTypeKind.Concrete | BasePgslTypeKind.Storable;
 
@@ -43,7 +54,7 @@ export class PgslStructType extends BasePgslType {
         let lPropertiesHostShareable: boolean = true;
 
         // Get the least constructable, fixedFootprint, and hostShareable to inherits.
-        for (const lPropertyDeclaration of pProperties) {
+        for (const lPropertyDeclaration of pStructDeclaration.data.properties) {
             const lPropertyType: BasePgslType = lPropertyDeclaration.data.typeDeclaration.data.type;
 
             lPropertiesConstructible &&= lPropertyType.isKind(BasePgslTypeKind.Constructible);
@@ -58,10 +69,12 @@ export class PgslStructType extends BasePgslType {
 
         // Construct meta.
         const lTypeMeta: BasePgslTypeMeta = {
-            typeName: PgslStructType.identifierOf(pStructName)
+            typeName: PgslStructType.identifierOf(pStructDeclaration)
         };
 
         super(lTypeKind, lTypeMeta, pShadowedType);
+
+        this.mStructName = pStructDeclaration.name;
     }
 
     /**

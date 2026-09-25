@@ -1,6 +1,32 @@
-import { BasePgslType, BasePgslTypeKind, BasePgslTypeMeta } from "./base-pgsl-type.ts";
+import { BaseDeclarationAst } from "../declaration/base-declaration-ast.ts";
+import { BasePgslType, BasePgslTypeKind, type BasePgslTypeMeta } from './base-pgsl-type.ts';
 
+/**
+ * Generic type definition for a single generic type with optional restrictions.
+ */
 export class PgslGenericType extends BasePgslType {
+    /**
+     * Type names for generic types.
+     */
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+    public static get typeName() {
+        return {
+            generic: 'Generic'
+        } as const;
+    }
+
+    /**
+     * Get a string identification for the type.
+     *
+     * @param pOwner - Owner/initiator ot the generic type.
+     * @param pGenericName - Name of the generic.
+     *
+     * @returns The type identification.
+     */
+    public static identifierOf(pOwner: BaseDeclarationAst, pGenericName: string): string {
+        return PgslGenericType.typeName.generic + '[' + pOwner.name + ',' + pGenericName + ']';
+    }
+
     /**
      * Generic type restrictions that can be empty.
      */
@@ -11,10 +37,12 @@ export class PgslGenericType extends BasePgslType {
 
     /**
      * Construct a generic type.
-     * 
+     *
+     * @param pOwner - Owner/initiator ot the generic type.
+     * @param pGenericName - Name of the generic.
      * @param pRestrictions - Generic type restrictions.
      */
-    public constructor(pRestrictions: Array<BasePgslType>) {
+    public constructor(pOwner: BaseDeclarationAst, pGenericName: string, pRestrictions: Array<BasePgslType>) {
         // Combining all type kinds by ANDing them.
         const lTypeKind: BasePgslTypeKind = (() => {
             // If its a wildcard restriction it naturally doesnt fit any real type unless it get gated somewhere.
@@ -29,7 +57,7 @@ export class PgslGenericType extends BasePgslType {
 
         // Create meta.
         const lTypeMeta: BasePgslTypeMeta = {
-            typeName: 'Generic',
+            typeName: PgslGenericType.identifierOf(pOwner, pGenericName),
             generics: pRestrictions
         };
 

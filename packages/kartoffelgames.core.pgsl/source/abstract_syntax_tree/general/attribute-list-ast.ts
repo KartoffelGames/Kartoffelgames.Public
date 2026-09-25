@@ -8,7 +8,7 @@ import { PgslValueFixedState } from '../../enum/pgsl-value-fixed-state.ts';
 import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree, type AbstractSyntaxTreeConstructor } from '../abstract-syntax-tree.ts';
 import { FunctionDeclarationAst } from '../declaration/function-declaration-ast.ts';
-import type { IDeclarationAst } from '../declaration/i-declaration-ast.interface.ts';
+import type { IDeclarationAst } from '../declaration/base-declaration-ast.ts';
 import { StructPropertyDeclarationAst } from '../declaration/struct-property-declaration-ast.ts';
 import { VariableDeclarationAst } from '../declaration/variable-declaration-ast.ts';
 import { ExpressionAstBuilder } from '../expression/expression-ast-builder.ts';

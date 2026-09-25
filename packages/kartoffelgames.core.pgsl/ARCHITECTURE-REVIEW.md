@@ -613,10 +613,17 @@ monomorphise — which is what makes binding mandatory rather than a nicety (§4
 Every type is still constructed fresh. Each converted type now exposes a static `identifierOf` that
 produces the cache key from the same arguments its constructor takes, and the constructor uses that
 same static for its own `meta.typeName` — so key and type cannot drift, and a lookup never has to
-build a type to discover whether it already exists. A backtick descends into a sub-identity, a comma
-separates sequence items: ``Vector3`float``, ``Matrix44`float``, ``Array`float,5,fixed``.
-Sub-identities are already finished strings on the cached inner type, so composing a key is a concat
-rather than a walk.
+build a type to discover whether it already exists. A bracket pair encloses a type's components, a
+comma separates them: `Vector3[float]`, `Matrix44[float]`, `Array[float,5,fixed]`. Sub-identities are
+already finished strings on the cached inner type, so composing a key is a concat rather than a walk.
+
+The brackets replaced a bare backtick that introduced a sub-identity without closing it. That form
+only stayed unambiguous while every type class had a fixed component count and at most one
+sub-identity, in last position — `PgslArrayType` already violated the second half, and the generic
+violates the first, since a function-owned slot contributes one more component than a struct-owned
+one would. Closing the group makes distinct types produce distinct keys by construction, instead of
+by an argument about commas never appearing inside an identifier that has to be re-checked every
+time a type class changes shape.
 
 The cache belongs **on the AST context, not on a static**. Struct and enum resolve their names
 against the document, and a struct's capabilities come from its members, so two documents each
@@ -633,7 +640,26 @@ Two things to settle when wiring it up:
   length unresolved while producing different `FixedFootprint`. `identifierOf` already encodes the
   fixed state as its own field for exactly this reason — keep it there.
 
-`PgslGenericType` deliberately has no `identifierOf`.
+`PgslGenericType` **has** an `identifierOf`, and it keys on the declaration site rather than on the
+restrictions: `Generic[Function,select,1,TResult]`, `Generic[Struct,Light,TValue]`. A structural key
+would merge `<T extends float | integer, U extends float | integer>` into one slot, which is exactly
+what reference-identity `equals` exists to prevent. A declaration-site key does not — it names one
+slot and one slot only, so it is nominal identity in the same family as `PgslStructType.identifierOf`
+returning the bare struct name.
+
+The owner identification is composed by the declaring node and handed in, so the generic never
+learns what an overload is: `FunctionDeclarationAst` passes `Function,select,1` (the header index is
+required — `select` declares four overloads that all name their generic `TResult` with different
+restrictions), and a generic struct would pass `Struct,Light`. The owner kind leads the coordinate
+because owners contribute different component counts, and it is what tells a reader how to read the
+rest.
+
+This also fixes a collision that existed regardless of the cache: the generic's `typeName` was the
+constant `'Generic'`, so `Vector3<T>` and `Vector3<U>` composed to the same identity and would have
+interned to one object.
+
+Whether generics themselves enter the cache is still open. Nothing forces it — `equals` is already
+`===` — but the key is unique per slot, so it would be sound.
 
 ### Migration state
 

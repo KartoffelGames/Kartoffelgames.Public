@@ -3,7 +3,7 @@ import type { AliasDeclarationCst, DeclarationCst, EnumDeclarationCst, FunctionD
 import { AliasDeclarationAst } from './alias-declaration-ast.ts';
 import { EnumDeclarationAst } from './enum-declaration-ast.ts';
 import { FunctionDeclarationAst } from './function-declaration-ast.ts';
-import type { IDeclarationAst } from './i-declaration-ast.interface.ts';
+import type { IDeclarationAst } from './base-declaration-ast.ts';
 import { StructDeclarationAst } from './struct-declaration-ast.ts';
 import { VariableDeclarationAst } from './variable-declaration-ast.ts';
 

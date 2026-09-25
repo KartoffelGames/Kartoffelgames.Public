@@ -2,7 +2,7 @@ import type { StructDeclarationCst } from '../../concrete_syntax_tree/declaratio
 import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
 import { AttributeListAst } from '../general/attribute-list-ast.ts';
-import type { DeclarationAstData, IDeclarationAst } from './i-declaration-ast.interface.ts';
+import type { DeclarationAstData, IDeclarationAst } from './base-declaration-ast.ts';
 import { StructPropertyDeclarationAst } from './struct-property-declaration-ast.ts';
 
 /**

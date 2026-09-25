@@ -9,7 +9,7 @@ import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
 import type { IExpressionAst } from '../expression/i-expression-ast.interface.ts';
 import { AttributeListAst } from '../general/attribute-list-ast.ts';
 import { TypeDeclarationAst } from '../general/type-declaration-ast.ts';
-import type { DeclarationAstData, IDeclarationAst } from './i-declaration-ast.interface.ts';
+import type { DeclarationAstData, IDeclarationAst } from './base-declaration-ast.ts';
 import type { StructDeclarationAst } from './struct-declaration-ast.ts';
 
 /**

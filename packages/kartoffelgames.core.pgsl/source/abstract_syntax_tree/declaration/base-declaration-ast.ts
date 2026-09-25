@@ -5,7 +5,9 @@ import type { AttributeListAst } from '../general/attribute-list-ast.ts';
 /**
  * PGSL base declaration. Every declaration has a optional attribute list.
  */
-export interface IDeclarationAst extends AbstractSyntaxTree {
+export abstract class BaseDeclarationAst extends AbstractSyntaxTree {
+    public abstract name: string;
+
     /**
      * Declaration data.
      */

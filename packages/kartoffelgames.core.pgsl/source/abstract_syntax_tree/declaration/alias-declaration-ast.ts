@@ -4,7 +4,7 @@ import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.
 import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
 import { AttributeListAst } from '../general/attribute-list-ast.ts';
 import { TypeDeclarationAst } from '../general/type-declaration-ast.ts';
-import type { DeclarationAstData, IDeclarationAst } from './i-declaration-ast.interface.ts';
+import type { DeclarationAstData, IDeclarationAst } from './base-declaration-ast.ts';
 
 /**
  * PGSL syntax tree for a alias declaration.

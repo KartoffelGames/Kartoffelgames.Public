@@ -13,7 +13,7 @@ import type { BaseType } from '../type/base-type.ts';
 import { PgslInvalidType } from '../type/pgsl-invalid-type.ts';
 import { PgslStructType } from '../type/pgsl-struct-type.ts';
 import { PgslVoidType } from '../type/pgsl-void-type.ts';
-import type { DeclarationAstData, IDeclarationAst } from './i-declaration-ast.interface.ts';
+import type { DeclarationAstData, IDeclarationAst } from './base-declaration-ast.ts';
 
 /**
  * PGSL syntax tree for a alias declaration.

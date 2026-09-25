@@ -8,7 +8,7 @@ import type { BaseType } from '../type/base-type.ts';
 import { PgslInvalidType } from '../type/pgsl-invalid-type.ts';
 import { PgslNumericType } from '../type/pgsl-numeric-type.ts';
 import { PgslStringType } from '../type/pgsl-string-type.ts';
-import type { DeclarationAstData, IDeclarationAst } from './i-declaration-ast.interface.ts';
+import type { DeclarationAstData, IDeclarationAst } from './base-declaration-ast.ts';
 
 /**
  * PGSL syntax tree of a enum declaration.

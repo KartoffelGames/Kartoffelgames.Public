@@ -2,7 +2,7 @@ import type { DocumentCst } from '../concrete_syntax_tree/general.type.ts';
 import type { AbstractSyntaxTreeContext, AbstractSyntaxTreeIncident, AbstractSyntaxTreeSymbolUsageName } from './abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from './abstract-syntax-tree.ts';
 import { DeclarationAstBuilder } from './declaration/declaration-ast-builder.ts';
-import type { IDeclarationAst } from './declaration/i-declaration-ast.interface.ts';
+import type { IDeclarationAst } from './declaration/base-declaration-ast.ts';
 
 export class DocumentAst extends AbstractSyntaxTree<DocumentCst, DocumentAstData> {
     /**

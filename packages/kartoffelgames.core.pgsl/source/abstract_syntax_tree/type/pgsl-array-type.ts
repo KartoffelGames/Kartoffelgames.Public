@@ -61,9 +61,8 @@ export class PgslArrayType extends BasePgslType {
      * 
      * @param pType - The inner element type of the array.
      * @param pLengthExpression - Optional length expression for fixed-size arrays.
-     * @param pShadowedType - Type that is the actual type of this.
      */
-    public constructor(pType: BasePgslType, pLengthExpression: IExpressionAst | null, pShadowedType?: BasePgslType) {
+    public constructor(pType: BasePgslType, pLengthExpression: IExpressionAst | null) {
         // Init static flags for arrays.
         let lKindFlags: BasePgslTypeKind = BasePgslTypeKind.Array | BasePgslTypeKind.Composite | BasePgslTypeKind.Indexable;
 
@@ -87,7 +86,7 @@ export class PgslArrayType extends BasePgslType {
             generics: [pType]
         };
 
-        super(lKindFlags, lMeta, pShadowedType);
+        super(lKindFlags, lMeta);
 
         // Set a static length if its length value comes from a static number expression.
         this.mStaticLength = null;

@@ -133,9 +133,8 @@ export class PgslMatrixType extends BasePgslType {
      * @param pColumnCount - The number of columns in the matrix.
      * @param pRowCount - The number of rows in the matrix.
      * @param pInnerType - The inner element type of the matrix.
-     * @param pShadowedType - Type that is the actual type of this.
      */
-    public constructor(pColumnCount: number, pRowCount: number, pInnerType: BasePgslType, pShadowedType?: BasePgslType) {
+    public constructor(pColumnCount: number, pRowCount: number, pInnerType: BasePgslType) {
         // A matrix is always a composite that can be indexed. It is never a scalar itself.
         let lKindFlags: BasePgslTypeKind = BasePgslTypeKind.Matrix | BasePgslTypeKind.Composite | BasePgslTypeKind.Indexable;
 
@@ -153,7 +152,7 @@ export class PgslMatrixType extends BasePgslType {
             generics: [pInnerType]
         };
 
-        super(lKindFlags, lTypeMeta, pShadowedType);
+        super(lKindFlags, lTypeMeta);
 
         this.mColumnCount = pColumnCount;
         this.mRowCount = pRowCount;

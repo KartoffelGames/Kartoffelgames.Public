@@ -27,10 +27,8 @@ export class PgslBooleanType extends BasePgslType {
 
     /**
      * Constructor for boolean type.
-     * 
-     * @param pShadowedType - Type that is the actual type of this.
      */
-    public constructor(pShadowedType?: BasePgslType) {
+    public constructor() {
         // Anything a boolean is.
         const lTypeKind: BasePgslTypeKind =
             BasePgslTypeKind.Boolean | BasePgslTypeKind.Scalar | BasePgslTypeKind.Plain |
@@ -42,7 +40,7 @@ export class PgslBooleanType extends BasePgslType {
             typeName: PgslBooleanType.identifierOf()
         };
 
-        super(lTypeKind, lTypeMeta, pShadowedType);
+        super(lTypeKind, lTypeMeta);
     }
 
     /**

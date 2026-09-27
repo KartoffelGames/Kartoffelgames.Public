@@ -43,9 +43,8 @@ export class PgslStructType extends BasePgslType {
      * Constructor for struct type.
      * 
      * @param pStructDeclaration - Declaration of the struct type.
-     * @param pShadowedType - Type that is the actual type of this.
      */
-    public constructor(pStructDeclaration: StructDeclarationAst, pShadowedType?: BasePgslType) {
+    public constructor(pStructDeclaration: StructDeclarationAst) {
         // Everything a struct is.
         let lTypeKind: BasePgslTypeKind = BasePgslTypeKind.Struct | BasePgslTypeKind.Composite | BasePgslTypeKind.Plain | BasePgslTypeKind.Concrete | BasePgslTypeKind.Storable;
 
@@ -72,7 +71,7 @@ export class PgslStructType extends BasePgslType {
             typeName: PgslStructType.identifierOf(pStructDeclaration)
         };
 
-        super(lTypeKind, lTypeMeta, pShadowedType);
+        super(lTypeKind, lTypeMeta);
 
         this.mStructName = pStructDeclaration.name;
     }

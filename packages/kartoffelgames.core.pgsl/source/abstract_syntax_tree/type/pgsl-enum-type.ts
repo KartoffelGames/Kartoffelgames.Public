@@ -42,9 +42,8 @@ export class PgslEnumType extends BasePgslType {
      * Constructor for enum type.
      *
      * @param pEnumDeclaration - Declaration of the enum type.
-     * @param pShadowedType - Type that is the actual type of this.
      */
-    public constructor(pEnumDeclaration: EnumDeclarationAst, pShadowedType?: BasePgslType) {
+    public constructor(pEnumDeclaration: EnumDeclarationAst) {
         // Everything a enum is.
         let lTypeKind: BasePgslTypeKind = BasePgslTypeKind.Enum | BasePgslTypeKind.Composite | BasePgslTypeKind.FixedFootprint;
 
@@ -56,7 +55,7 @@ export class PgslEnumType extends BasePgslType {
             typeName: PgslEnumType.identifierOf(pEnumDeclaration)
         };
 
-        super(lTypeKind, lTypeMeta, pShadowedType);
+        super(lTypeKind, lTypeMeta);
 
         this.mEnumName = pEnumDeclaration.name;
     }

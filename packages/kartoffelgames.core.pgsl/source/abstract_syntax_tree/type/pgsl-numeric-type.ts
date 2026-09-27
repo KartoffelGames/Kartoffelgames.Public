@@ -35,9 +35,8 @@ export class PgslNumericType extends BasePgslType {
      * Constructor for numeric type.
      * 
      * @param pNumericType - The specific numeric type variant.
-     * @param pShadowedType - Type that is the actual type of this.
      */
-    public constructor(pNumericType: PgslNumericTypeName, pShadowedType?: BasePgslType) {
+    public constructor(pNumericType: PgslNumericTypeName) {
         // Everything a base number is.
         let lTypeKind: BasePgslTypeKind = BasePgslTypeKind.Numeric | BasePgslTypeKind.Plain | BasePgslTypeKind.Scalar;
         lTypeKind |= BasePgslTypeKind.Storable | BasePgslTypeKind.HostShareable | BasePgslTypeKind.Constructible | BasePgslTypeKind.FixedFootprint;
@@ -66,7 +65,7 @@ export class PgslNumericType extends BasePgslType {
             typeName: pNumericType
         };
 
-        super(lTypeKind, lMeta, pShadowedType);
+        super(lTypeKind, lMeta);
     }
 
     /**

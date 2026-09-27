@@ -37,8 +37,18 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
         // Register type name useage.
         pContext.registerSymbolUsage(this.cst.typeName);
 
+        // Build-in types are declared with their underlying type and only keep their name for the declaration.
+        const lType: BasePgslType = this.resolveType(pContext);
+        if (lType instanceof PgslBuildInType) {
+            return {
+                type: lType.underlyingType,
+                buildIn: lType.typename
+            };
+        }
+
         return {
-            type: this.resolveType(pContext)
+            type: lType,
+            buildIn: null
         };
     }
 
@@ -211,11 +221,8 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
             }
         }
 
-        // Build BuildInType definition without template.
-        const lBuildInType: PgslBuildInType = new PgslBuildInType(lBuildInTypeName as any, lTemplateExpression).process(pContext);
-
-        // Read the inner type and set the build in type as shadowed type.
-        return lBuildInType.underlyingType;
+        // Build BuildInType definition. It is split into its underlying type and name after the type is resolved.
+        return new PgslBuildInType(lBuildInTypeName, lTemplateExpression);
     }
 
     /**
@@ -591,4 +598,5 @@ type TypeDeclarationAstTemplateList = Array<TypeDeclarationAstTemplate>;
 
 export type TypeDeclarationAstData = {
     type: BasePgslType;
+    buildIn: PgslBuildInTypeName | null;
 };

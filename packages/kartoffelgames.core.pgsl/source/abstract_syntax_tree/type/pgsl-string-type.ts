@@ -27,16 +27,14 @@ export class PgslStringType extends BasePgslType {
 
     /**
      * Constructor for string type.
-     * 
-     * @param pShadowedType - Type that is the actual type of this.
      */
-    public constructor(pShadowedType?: BasePgslType) {
+    public constructor() {
         // Create meta.
         const lTypeMeta: BasePgslTypeMeta = {
             typeName: PgslStringType.identifierOf()
         };
 
-        super(BasePgslTypeKind.String | BasePgslTypeKind.Concrete, lTypeMeta, pShadowedType);
+        super(BasePgslTypeKind.String | BasePgslTypeKind.Concrete, lTypeMeta);
     }
 
     /**

@@ -44,9 +44,8 @@ export class PgslSamplerType extends BasePgslType {
      * Constructor for sampler type.
      * 
      * @param pComparison - Whether this is a comparison sampler.
-     * @param pShadowedType - Type that is the actual type of this.
      */
-    public constructor(pComparison: boolean, pShadowedType?: BasePgslType) {
+    public constructor(pComparison: boolean) {
         // Anything a sampler is.
         const lTypeKind: BasePgslTypeKind = BasePgslTypeKind.Sampler | BasePgslTypeKind.Concrete | BasePgslTypeKind.Storable;
 
@@ -55,7 +54,7 @@ export class PgslSamplerType extends BasePgslType {
             typeName: PgslSamplerType.identifierOf(pComparison)
         };
 
-        super(lTypeKind, lTypeMeta, pShadowedType);
+        super(lTypeKind, lTypeMeta);
 
         this.mComparison = pComparison;
     }

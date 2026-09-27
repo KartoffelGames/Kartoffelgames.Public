@@ -61,9 +61,8 @@ export class PgslPointerType extends BasePgslType {
      * Constructor for pointer type.
      *
      * @param pReferencedType - The type that this pointer references.
-     * @param pShadowedType - Type that is the actual type of this.
      */
-    public constructor(pReferencedType: BasePgslType, pShadowedType?: BasePgslType) {
+    public constructor(pReferencedType: BasePgslType) {
         // Everything a pointer is.
         const lTypeKind: BasePgslTypeKind = BasePgslTypeKind.Pointer | BasePgslTypeKind.Concrete | BasePgslTypeKind.Storable;
 
@@ -73,7 +72,7 @@ export class PgslPointerType extends BasePgslType {
             generics: [pReferencedType]
         };
 
-        super(lTypeKind, lTypeMeta, pShadowedType);
+        super(lTypeKind, lTypeMeta);
 
         // No address space assigned yet.
         this.mAssignedAddressSpace = null;

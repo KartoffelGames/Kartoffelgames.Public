@@ -130,9 +130,8 @@ export class PgslBuildInType extends BasePgslType {
      * 
      * @param pType - The specific built-in type variant.
      * @param pTemplate - Optional template expression for parameterized types.
-     * @param pShadowedType - Type that is the actual type of this.
      */
-    public constructor(pType: PgslBuildInTypeName, pTemplate: IExpressionAst | null, pShadowedType?: BasePgslType) {
+    public constructor(pType: PgslBuildInTypeName, pTemplate: IExpressionAst | null) {
         // Create the underlying type first.
         const lUnderlyingType: BasePgslType = PgslBuildInType.determinateAliasedType(pType, pTemplate);
 
@@ -142,7 +141,7 @@ export class PgslBuildInType extends BasePgslType {
         };
 
         // Copy any kind information from underlying type.
-        super(lUnderlyingType.kind, lMeta, pShadowedType);
+        super(lUnderlyingType.kind, lMeta);
 
         // Set data.
         this.mUnderlyingType = lUnderlyingType;

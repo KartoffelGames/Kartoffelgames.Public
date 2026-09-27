@@ -2,18 +2,8 @@
  * Provides common functionality for type comparison, casting, and property management.
  */
 export abstract class BasePgslType {
-    private mShadowedType: BasePgslType;
     private mTypeKind: BasePgslTypeKind;
     private mTypeMeta: BasePgslTypeMeta;
-
-    /**
-     * The type that is being shadowed.
-     * If it does not shadow another type, it is itself.
-     * Mostlty used for buildin types with special side functionality.
-     */
-    public get shadowedType(): BasePgslType {
-        return this.mShadowedType;
-    }
 
     /**
      * Fast compareable type compatibility.
@@ -34,18 +24,11 @@ export abstract class BasePgslType {
      * Create a new distinct type.
      * 
      * @param pTypeKind - Type functionality specification used for a fast compare.
-     * @param pTypeMeta 
-     * @param pShadowedType 
+     * @param pTypeMeta
      */
-    public constructor(pTypeKind: BasePgslTypeKind, pTypeMeta: BasePgslTypeMeta, pShadowedType?: BasePgslType) {
+    public constructor(pTypeKind: BasePgslTypeKind, pTypeMeta: BasePgslTypeMeta) {
         this.mTypeKind = pTypeKind;
         this.mTypeMeta = pTypeMeta;
-
-        // Either set shadowed type to this instance, or if its set to the specified one.
-        this.mShadowedType = this;
-        if (pShadowedType) {
-            this.mShadowedType = pShadowedType;
-        }
     }
 
     /**

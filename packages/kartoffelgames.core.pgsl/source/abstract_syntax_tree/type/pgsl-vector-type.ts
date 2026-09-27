@@ -71,9 +71,8 @@ export class PgslVectorType extends BasePgslType {
      * 
      * @param pVectorDimension - The vector dimension (2, 3, or 4).
      * @param pInnerType - The inner element type of the vector.
-     * @param pShadowedType - Type that is the actual type of this.
      */
-    public constructor(pVectorDimension: number, pInnerType: BasePgslType, pShadowedType?: BasePgslType) {
+    public constructor(pVectorDimension: number, pInnerType: BasePgslType) {
         // What a vector is.
         let lKindFlags: BasePgslTypeKind = BasePgslTypeKind.Vector | BasePgslTypeKind.Composite | BasePgslTypeKind.Indexable;
 
@@ -91,7 +90,7 @@ export class PgslVectorType extends BasePgslType {
             generics: [pInnerType]
         };
 
-        super(lKindFlags, lTypeMeta, pShadowedType);
+        super(lKindFlags, lTypeMeta);
 
         this.mVectorDimension = pVectorDimension;
     }

@@ -1,7 +1,7 @@
 import { Exception } from '@kartoffelgames/core';
 import { PgslArrayType } from '../type/pgsl-array-type.ts';
 import { PgslBooleanType } from '../type/pgsl-boolean-type.ts';
-import { PgslBuildInType } from '../type/pgsl-build-in-type.ts';
+import { PgslBuildInType, PgslBuildInTypeName } from '../type/pgsl-build-in-type.ts';
 import { PgslInvalidType } from '../type/pgsl-invalid-type.ts';
 import { PgslMatrixType } from '../type/pgsl-matrix-type.ts';
 import { PgslNumericType } from '../type/pgsl-numeric-type.ts';
@@ -116,7 +116,7 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
                 }
 
                 // Length expression must be constant or a pipeline parameter constant.
-                if(lLengthExpression.data.fixedState < PgslValueFixedState.PipelineCreationFixed) {
+                if (lLengthExpression.data.fixedState < PgslValueFixedState.PipelineCreationFixed) {
                     pContext.pushIncident(`Array length expression must be a constant expression.`, lLengthExpression);
                 }
 
@@ -169,6 +169,8 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
             return null;
         }
 
+        const lBuildInTypeName: PgslBuildInTypeName = pRawName as any;
+
         // Validate build in type with template.
         const lTemplateExpression: IExpressionAst | null = (() => {
             if (pRawTemplate.length > 0) {
@@ -191,8 +193,26 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
             return null;
         })();
 
+        // Only clip distance needs validation.
+        if (lBuildInTypeName === PgslBuildInType.typeName.clipDistances) {
+            // Template must be provided for ClipDistances.
+            if (!lTemplateExpression) {
+                pContext.pushIncident(`Clip distance built-in template value must have a value expression.`);
+            } else {
+                // Template needs to be a constant.
+                if (lTemplateExpression.data.fixedState < PgslValueFixedState.Constant) {
+                    pContext.pushIncident(`Clip distance built-in template value must be a constant.`);
+                }
+
+                // Template needs to be a unsigned integer.
+                if (lTemplateExpression.data.resolveType.conversionRankTo(new PgslNumericType(PgslNumericType.typeName.unsignedInteger)) === Number.POSITIVE_INFINITY) {
+                    pContext.pushIncident(`Clip distance built-in template value must be an unsigned integer.`);
+                }
+            }
+        }
+
         // Build BuildInType definition without template.
-        const lBuildInType: PgslBuildInType = new PgslBuildInType(pRawName as any, lTemplateExpression).process(pContext);
+        const lBuildInType: PgslBuildInType = new PgslBuildInType(lBuildInTypeName as any, lTemplateExpression).process(pContext);
 
         // Read the inner type and set the build in type as shadowed type.
         return lBuildInType.underlyingType;

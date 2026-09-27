@@ -1,24 +1,47 @@
-import type { TypeCst } from '../../concrete_syntax_tree/general.type.ts';
 import { PgslValueAddressSpace } from '../../enum/pgsl-value-address-space.enum.ts';
 import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
-import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
-import type { BaseType, TypeProperties } from './base-type.ts';
+import { BasePgslType, BasePgslTypeKind, type BasePgslTypeMeta } from './base-pgsl-type.ts';
+
+// TODO: Treat pointer addressspace as internal generic.
+//       A user set pointer has no space restriction but a build in can.
+//       For every called user function with a different pointer addressspace emit a different function "overload".
+//       As a buildin doesnt get emitted, this doesnt take effect but the validation will be effective.
 
 /**
  * Pointer type definition.
  * Represents a pointer type that references another type in memory.
  * Pointers allow indirect access to values and are used for referencing data.
  */
-export class PgslPointerType extends AbstractSyntaxTree<TypeCst, TypeProperties> implements BaseType {
+export class PgslPointerType extends BasePgslType {
+    /**
+     * Type names for pointer types.
+     */
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+    public static get typeName() {
+        return {
+            pointer: 'Pointer'
+        } as const;
+    }
+
+    /**
+     * Get a string identification for the type.
+     *
+     * @param pReferencedType - The type that the pointer references.
+     *
+     * @returns The type identification.
+     */
+    public static identifierOf(pReferencedType: BasePgslType): string {
+        return PgslPointerType.typeName.pointer + '[' + pReferencedType.meta.typeName + ']';
+    }
+
+    // TODO: That needs to go.
     private mAssignedAddressSpace: PgslValueAddressSpace | null;
-    private readonly mReferencedType: BaseType;
-    private readonly mShadowedType: BaseType;
 
     /**
      * Gets the assigned address space for this pointer.
      * The address space defines where the pointer points to (e.g., function, module, etc.).
      * Defaults to a private address space.
-     * 
+     *
      * @returns The assigned address space, or null if not yet assigned.
      */
     public get assignedAddressSpace(): PgslValueAddressSpace {
@@ -27,33 +50,30 @@ export class PgslPointerType extends AbstractSyntaxTree<TypeCst, TypeProperties>
 
     /**
      * Gets the type that this pointer references.
-     * 
+     *
      * @returns The referenced type.
      */
-    public get referencedType(): BaseType {
-        return this.mReferencedType;
-    }
-
-    /**
-     * The type that is being shadowed.
-     * If it does not shadow another type, it is itself.
-     */
-    public get shadowedType(): BaseType {
-        return this.mShadowedType;
+    public get referencedType(): BasePgslType {
+        return this.meta.generics![0];
     }
 
     /**
      * Constructor for pointer type.
-     * 
-     * @param pReferenceType - The type that this pointer references.
+     *
+     * @param pReferencedType - The type that this pointer references.
      * @param pShadowedType - Type that is the actual type of this.
      */
-    public constructor(pReferenceType: BaseType, pShadowedType?: BaseType) {
-        super({ type: 'Type', range: [0, 0, 0, 0] });
+    public constructor(pReferencedType: BasePgslType, pShadowedType?: BasePgslType) {
+        // Everything a pointer is.
+        const lTypeKind: BasePgslTypeKind = BasePgslTypeKind.Pointer | BasePgslTypeKind.Concrete | BasePgslTypeKind.Storable;
 
-        // Set data.
-        this.mShadowedType = pShadowedType ?? this;
-        this.mReferencedType = pReferenceType;
+        // Construct meta.
+        const lTypeMeta: BasePgslTypeMeta = {
+            typeName: PgslPointerType.identifierOf(pReferencedType),
+            generics: [pReferencedType]
+        };
+
+        super(lTypeKind, lTypeMeta, pShadowedType);
 
         // No address space assigned yet.
         this.mAssignedAddressSpace = null;
@@ -61,9 +81,9 @@ export class PgslPointerType extends AbstractSyntaxTree<TypeCst, TypeProperties>
 
     /**
      * Assign an address space to this pointer type.
-     * 
+     *
      * @param pAddressSpace - Address space of pointer type.
-     * @param pContext - Context. 
+     * @param pContext - Context.
      */
     public assignAddressSpace(pAddressSpace: PgslValueAddressSpace, pContext: AbstractSyntaxTreeContext): void {
         // When a address space is already assigned and the new one is different, report an error.
@@ -76,72 +96,35 @@ export class PgslPointerType extends AbstractSyntaxTree<TypeCst, TypeProperties>
     }
 
     /**
+     * Get this types convertion rank to another type.
+     * A pointer only converts into a pointer of the same referenced type.
+     *
+     * @param pTarget - Conversion target type.
+     *
+     * @returns Zero for the same pointer, infinity for anything else.
+     */
+    public override conversionRankTo(pTarget: BasePgslType): number {
+        if (this.equals(pTarget)) {
+            return 0;
+        }
+
+        return Number.POSITIVE_INFINITY;
+    }
+
+    /**
      * Compare this pointer type with a target type for equality.
      * Two pointer types are equal if they reference the same type.
-     * 
-     * @param pTarget - Target comparison type. 
-     * 
+     *
+     * @param pTarget - Target comparison type.
+     *
      * @returns True when both pointers reference the same type.
      */
-    public equals(pTarget: BaseType): boolean {
-        // Target type must be a pointer.
-        if (!(pTarget instanceof PgslPointerType)) {
+    public override equals(pTarget: BasePgslType): pTarget is this {
+        // Must both be a pointer.
+        if (!this.isSameTypeClass(pTarget)) {
             return false;
         }
 
         return this.referencedType.equals(pTarget.referencedType);
-    }
-
-
-    /**
-     * Check if this pointer type is implicitly castable into the target type.
-     * Pointer types are never castable to other types.
-     * 
-     * @param pTarget - Target type to check castability to.
-     * 
-     * @returns Always false - pointers cannot be cast.
-     */
-    public isCastableInto(pTarget: BaseType): boolean {
-        // A pointer is never explicit nor implicit castable.
-        return this.equals(pTarget);
-    }
-
-    /**
-     * Collect type properties for pointer types.
-     * Validates that the referenced type is storable and defines pointer characteristics.
-     * 
-     * @param pContext - Trace context for validation and error reporting.
-     * 
-     * @returns Type properties for pointer types.
-     */
-    protected override onProcess(pContext: AbstractSyntaxTreeContext): TypeProperties {
-        // Only storable types can be referenced by pointers.
-        if (!this.mReferencedType.data.storable) {
-            pContext.pushIncident('Referenced types of pointers need to be storable');
-        }
-
-        // Build meta types.
-        const lMetaTypeList: Array<string> = new Array<string>();
-        for (const lMetaType of this.mReferencedType.data.metaTypes) {
-            lMetaTypeList.push(`Pointer<${lMetaType}>`);
-        }
-
-        // Add base pointer meta type.
-        lMetaTypeList.push('Pointer');
-
-        return {
-            // Meta information.
-            metaTypes: lMetaTypeList,
-
-            composite: false,
-            indexable: false,
-            storable: true,
-            hostShareable: false,
-            constructible: false,
-            fixedFootprint: false,
-            concrete: true,
-            scalar: false,
-            plain: false
-        };
     }
 }

@@ -1,4 +1,4 @@
-import type { IExpressionAst } from '../expression/i-expression-ast.interface.ts';
+import type { IExpressionAst } from '../../expression/i-expression-ast.interface.ts';
 import { BasePgslType } from "./base-pgsl-type.ts";
 import { PgslArrayType } from './pgsl-array-type.ts';
 import { PgslBooleanType } from './pgsl-boolean-type.ts';

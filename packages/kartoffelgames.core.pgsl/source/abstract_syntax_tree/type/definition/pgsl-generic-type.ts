@@ -1,4 +1,4 @@
-import { BaseDeclarationAst } from "../declaration/base-declaration-ast.ts";
+import { BaseDeclarationAst } from "../../declaration/base-declaration-ast.ts";
 import { BasePgslType, BasePgslTypeKind } from './base-pgsl-type.ts';
 
 /**

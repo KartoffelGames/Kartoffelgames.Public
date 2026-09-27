@@ -1,4 +1,4 @@
-import type { EnumDeclarationAst } from '../declaration/enum-declaration-ast.ts';
+import type { EnumDeclarationAst } from '../../declaration/enum-declaration-ast.ts';
 import { BasePgslType, BasePgslTypeKind } from './base-pgsl-type.ts';
 
 /**

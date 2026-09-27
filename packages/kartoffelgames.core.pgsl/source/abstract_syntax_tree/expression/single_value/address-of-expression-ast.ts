@@ -1,8 +1,8 @@
 import type { AddressOfExpressionCst } from '../../../concrete_syntax_tree/expression.type.ts';
 import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
-import { PgslPointerType } from '../../type/pgsl-pointer-type.ts';
-import type { BaseType } from '../../type/base-type.ts';
+import { PgslPointerType } from '../../type/definition/pgsl-pointer-type.ts';
+import { BasePgslTypeKind, type BasePgslType } from '../../type/definition/base-pgsl-type.ts';
 import { ExpressionAstBuilder } from '../expression-ast-builder.ts';
 import type { ExpressionAstData, IExpressionAst } from '../i-expression-ast.interface.ts';
 
@@ -25,10 +25,10 @@ export class AddressOfExpressionAst extends AbstractSyntaxTree<AddressOfExpressi
         }
 
         // Read type attachment of variable.
-        const lVariableResolveType: BaseType = lVariable.data.resolveType;
+        const lVariableResolveType: BasePgslType = lVariable.data.resolveType;
 
         // Type of expression needs to be storable.
-        if (!lVariableResolveType.data.storable) {
+        if (!lVariableResolveType.isKind(BasePgslTypeKind.Storable)) {
             pContext.pushIncident(`Target of address needs to storable`, this);
         }
 

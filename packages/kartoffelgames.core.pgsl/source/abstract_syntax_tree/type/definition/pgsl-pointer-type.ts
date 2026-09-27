@@ -1,5 +1,5 @@
-import { PgslValueAddressSpace } from '../../enum/pgsl-value-address-space.enum.ts';
-import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
+import { PgslValueAddressSpace } from '../../../enum/pgsl-value-address-space.enum.ts';
+import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { BasePgslType, BasePgslTypeKind } from './base-pgsl-type.ts';
 
 // TODO: Treat pointer addressspace as internal generic.

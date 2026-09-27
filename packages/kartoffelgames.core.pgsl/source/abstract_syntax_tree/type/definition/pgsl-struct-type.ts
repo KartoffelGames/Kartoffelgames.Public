@@ -1,4 +1,4 @@
-import type { StructDeclarationAst } from '../declaration/struct-declaration-ast.ts';
+import type { StructDeclarationAst } from '../../declaration/struct-declaration-ast.ts';
 import { BasePgslType, BasePgslTypeKind } from './base-pgsl-type.ts';
 
 /**

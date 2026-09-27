@@ -1,5 +1,5 @@
-import type { PgslAccessMode } from '../../buildin/enum/pgsl-access-mode-enum.ts';
-import type { PgslTexelFormat } from '../../buildin/enum/pgsl-texel-format-enum.ts';
+import type { PgslAccessMode } from '../../../buildin/enum/pgsl-access-mode-enum.ts';
+import type { PgslTexelFormat } from '../../../buildin/enum/pgsl-texel-format-enum.ts';
 import { BasePgslType, BasePgslTypeKind, type BasePgslTypeMeta } from './base-pgsl-type.ts';
 
 /**

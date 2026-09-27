@@ -1,5 +1,5 @@
-import { PgslValueFixedState } from '../../enum/pgsl-value-fixed-state.ts';
-import type { IExpressionAst } from '../expression/i-expression-ast.interface.ts';
+import { PgslValueFixedState } from '../../../enum/pgsl-value-fixed-state.ts';
+import type { IExpressionAst } from '../../expression/i-expression-ast.interface.ts';
 import { BasePgslType, BasePgslTypeKind, type BasePgslTypeMeta } from './base-pgsl-type.ts';
 
 /**

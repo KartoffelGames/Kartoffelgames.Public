@@ -1,8 +1,8 @@
 import type { AddressOfExpressionCst } from '../../../concrete_syntax_tree/expression.type.ts';
 import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
-import { PgslPointerType } from '../../type/definition/pgsl-pointer-type.ts';
 import { BasePgslTypeKind, type BasePgslType } from '../../type/definition/base-pgsl-type.ts';
+import { PgslPointerType } from '../../type/definition/pgsl-pointer-type.ts';
 import { ExpressionAstBuilder } from '../expression-ast-builder.ts';
 import type { ExpressionAstData, IExpressionAst } from '../i-expression-ast.interface.ts';
 

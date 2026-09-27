@@ -42,6 +42,17 @@ export class PgslNumericType extends BasePgslType {
     ]);
 
     /**
+     * Get a string identification for the type.
+     *
+     * @param pNumericType - The specific numeric type variant.
+     *
+     * @returns The type identification.
+     */
+    public static identifierOf(pNumericType: PgslNumericTypeName): string {
+        return pNumericType;
+    }
+
+    /**
      * Gets the specific numeric type variant.
      * 
      * @returns The numeric type name.
@@ -81,7 +92,7 @@ export class PgslNumericType extends BasePgslType {
 
         // Create and use meta.
         super(lTypeKind, {
-            typeName: pNumericType
+            typeName: PgslNumericType.identifierOf(pNumericType)
         });
     }
 

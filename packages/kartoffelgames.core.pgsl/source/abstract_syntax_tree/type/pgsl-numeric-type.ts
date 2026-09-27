@@ -23,6 +23,25 @@ export class PgslNumericType extends BasePgslType {
     }
 
     /**
+     * Conversions table between numeric types for abstract types..
+     * Must be under the typeName declaration to avoid initialization order issues.
+     */
+    // eslint-disable-next-line @typescript-eslint/member-ordering
+    private static readonly CONVERSION_RANKS: ReadonlyMap<PgslNumericTypeName, ReadonlyMap<PgslNumericTypeName, number>> = new Map<PgslNumericTypeName, ReadonlyMap<PgslNumericTypeName, number>>([
+        [PgslNumericType.typeName.abstractFloat, new Map<PgslNumericTypeName, number>([
+            [PgslNumericType.typeName.float32, 1],
+            [PgslNumericType.typeName.float16, 2]
+        ])],
+        [PgslNumericType.typeName.abstractInteger, new Map<PgslNumericTypeName, number>([
+            [PgslNumericType.typeName.signedInteger, 3],
+            [PgslNumericType.typeName.unsignedInteger, 4],
+            [PgslNumericType.typeName.abstractFloat, 5],
+            [PgslNumericType.typeName.float32, 6],
+            [PgslNumericType.typeName.float16, 7]
+        ])]
+    ]);
+
+    /**
      * Gets the specific numeric type variant.
      * 
      * @returns The numeric type name.
@@ -99,30 +118,13 @@ export class PgslNumericType extends BasePgslType {
             return Number.POSITIVE_INFINITY;
         }
 
-        switch (this.mNumericType) {
-            // An abstract integer is castable into all numeric types.
-            case PgslNumericType.typeName.abstractInteger: {
-                return true;
-            }
-
-            // An abstract float is only castable into float types.
-            case PgslNumericType.typeName.abstractFloat: {
-                // List of all float types.
-                const lFloatTypes: Array<PgslNumericTypeName> = [
-                    PgslNumericType.typeName.abstractFloat,
-                    PgslNumericType.typeName.float32,
-                    PgslNumericType.typeName.float16
-                ];
-
-                // Check if target type is a float type.
-                if (lFloatTypes.includes(pTarget.numericTypeName)) {
-                    return true;
-                }
-            }
+        // Same numeric type needs no conversion.
+        if (this.numericTypeName === pTarget.numericTypeName) {
+            return 0;
         }
 
-        // Any other non-abstract numeric type is only castable when they are the same type.
-        return this.equals(pTarget);
+        // Any other numeric types must be a registered automatic conversion.
+        return PgslNumericType.CONVERSION_RANKS.get(this.numericTypeName)?.get(pTarget.numericTypeName) ?? Number.POSITIVE_INFINITY;
     }
 }
 

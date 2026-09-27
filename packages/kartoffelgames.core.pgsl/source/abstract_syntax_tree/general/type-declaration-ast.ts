@@ -306,7 +306,7 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
         }
 
         // Build numeric definition.
-        return new PgslNumericType(pRawName as any).process(pContext);
+        return new PgslNumericType(pRawName as any);
     }
 
     /**
@@ -436,7 +436,7 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
         }
 
         // Build texture type definition.
-        return new PgslTextureType(pRawName as any, lTemplateAstList).process(pContext);
+        return new PgslTextureType(pRawName as any, lTemplateAstList);
     }
 
     /**

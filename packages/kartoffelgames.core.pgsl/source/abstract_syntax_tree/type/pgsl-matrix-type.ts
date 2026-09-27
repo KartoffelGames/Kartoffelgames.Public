@@ -1,5 +1,5 @@
 import { Exception } from '@kartoffelgames/core';
-import { BasePgslType, BasePgslTypeKind, type BasePgslTypeMeta } from './base-pgsl-type.ts';
+import { BasePgslType, BasePgslTypeKind } from './base-pgsl-type.ts';
 import { PgslVectorType } from './pgsl-vector-type.ts';
 
 /**
@@ -146,13 +146,11 @@ export class PgslMatrixType extends BasePgslType {
         lKindFlags |= pInnerType.isKind(BasePgslTypeKind.Constructible) ? BasePgslTypeKind.Constructible : BasePgslTypeKind.None;
         lKindFlags |= pInnerType.isKind(BasePgslTypeKind.HostShareable) ? BasePgslTypeKind.HostShareable : BasePgslTypeKind.None;
 
-        // Create meta.
-        const lTypeMeta: BasePgslTypeMeta = {
+        // Create and use meta.
+        super(lKindFlags, {
             typeName: PgslMatrixType.identifierOf(pColumnCount, pRowCount, pInnerType),
             generics: [pInnerType]
-        };
-
-        super(lKindFlags, lTypeMeta);
+        });
 
         this.mColumnCount = pColumnCount;
         this.mRowCount = pRowCount;

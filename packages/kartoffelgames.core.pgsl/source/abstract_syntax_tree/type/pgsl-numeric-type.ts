@@ -79,12 +79,10 @@ export class PgslNumericType extends BasePgslType {
             }
         })();
 
-        // Create meta.
-        const lMeta: BasePgslTypeMeta = {
+        // Create and use meta.
+        super(lTypeKind, {
             typeName: pNumericType
-        };
-
-        super(lTypeKind, lMeta);
+        });
     }
 
     /**

@@ -1,5 +1,5 @@
 import type { StructDeclarationAst } from '../declaration/struct-declaration-ast.ts';
-import { BasePgslType, BasePgslTypeKind, type BasePgslTypeMeta } from './base-pgsl-type.ts';
+import { BasePgslType, BasePgslTypeKind } from './base-pgsl-type.ts';
 
 /**
  * Struct type definition.
@@ -66,12 +66,10 @@ export class PgslStructType extends BasePgslType {
         lTypeKind |= lPropertiesFixedFootprint ? BasePgslTypeKind.FixedFootprint : BasePgslTypeKind.None;
         lTypeKind |= lPropertiesHostShareable ? BasePgslTypeKind.HostShareable : BasePgslTypeKind.None;
 
-        // Construct meta.
-        const lTypeMeta: BasePgslTypeMeta = {
+        // Create and use meta.
+        super(lTypeKind, {
             typeName: PgslStructType.identifierOf(pStructDeclaration)
-        };
-
-        super(lTypeKind, lTypeMeta);
+        });
 
         this.mStructName = pStructDeclaration.name;
     }
@@ -85,11 +83,11 @@ export class PgslStructType extends BasePgslType {
      * @returns Zero for the same struct, infinity for anything else.
      */
     public override conversionRankTo(pTarget: BasePgslType): number {
-        if(this.equals(pTarget)){
+        if (this.equals(pTarget)) {
             return 0;
         }
 
-        return  Number.POSITIVE_INFINITY;
+        return Number.POSITIVE_INFINITY;
     }
 
     /**

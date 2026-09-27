@@ -1,4 +1,4 @@
-import { BasePgslType, BasePgslTypeKind, type BasePgslTypeMeta } from './base-pgsl-type.ts';
+import { BasePgslType, BasePgslTypeKind } from './base-pgsl-type.ts';
 
 /**
  * Invalid type definition.
@@ -30,12 +30,10 @@ export class PgslInvalidType extends BasePgslType {
      * Constructor for invalid type.
      */
     public constructor() {
-        // Create meta.
-        const lTypeMeta: BasePgslTypeMeta = {
+        // Create and use meta.
+        super(BasePgslTypeKind.Invalid, {
             typeName: PgslInvalidType.identifierOf()
-        };
-
-        super(BasePgslTypeKind.Invalid, lTypeMeta);
+        });
     }
 
     /**

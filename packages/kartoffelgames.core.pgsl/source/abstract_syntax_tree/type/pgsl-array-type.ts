@@ -81,12 +81,11 @@ export class PgslArrayType extends BasePgslType {
         // Is constructible when inner type is constructible and array is fixed.
         lKindFlags |= lIsFixed && pType.isKind(BasePgslTypeKind.Constructible) ? BasePgslTypeKind.Constructible : BasePgslTypeKind.None;
 
-        const lMeta: BasePgslTypeMeta = {
+        // Create and use meta.
+        super(lKindFlags, {
             typeName: PgslArrayType.identifierOf(pType, pLengthExpression),
             generics: [pType]
-        };
-
-        super(lKindFlags, lMeta);
+        });
 
         // Set a static length if its length value comes from a static number expression.
         this.mStaticLength = null;

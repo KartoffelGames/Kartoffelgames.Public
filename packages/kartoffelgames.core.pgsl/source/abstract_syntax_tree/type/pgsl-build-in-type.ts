@@ -1,5 +1,5 @@
 import type { IExpressionAst } from '../expression/i-expression-ast.interface.ts';
-import { BasePgslType, BasePgslTypeMeta } from "./base-pgsl-type.ts";
+import { BasePgslType } from "./base-pgsl-type.ts";
 import { PgslArrayType } from './pgsl-array-type.ts';
 import { PgslBooleanType } from './pgsl-boolean-type.ts';
 import { PgslInvalidType } from './pgsl-invalid-type.ts';
@@ -135,13 +135,10 @@ export class PgslBuildInType extends BasePgslType {
         // Create the underlying type first.
         const lUnderlyingType: BasePgslType = PgslBuildInType.determinateAliasedType(pType, pTemplate);
 
-        // Create meta.
-        const lMeta: BasePgslTypeMeta = {
-            typeName: pType
-        };
-
         // Copy any kind information from underlying type.
-        super(lUnderlyingType.kind, lMeta);
+        super(lUnderlyingType.kind, {
+            typeName: pType
+        });
 
         // Set data.
         this.mUnderlyingType = lUnderlyingType;

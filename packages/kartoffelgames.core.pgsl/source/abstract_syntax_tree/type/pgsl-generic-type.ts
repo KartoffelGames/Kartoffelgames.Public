@@ -1,5 +1,5 @@
 import { BaseDeclarationAst } from "../declaration/base-declaration-ast.ts";
-import { BasePgslType, BasePgslTypeKind, type BasePgslTypeMeta } from './base-pgsl-type.ts';
+import { BasePgslType, BasePgslTypeKind } from './base-pgsl-type.ts';
 
 /**
  * Generic type definition for a single generic type with optional restrictions.
@@ -55,13 +55,11 @@ export class PgslGenericType extends BasePgslType {
             }, ~0);
         })();
 
-        // Create meta.
-        const lTypeMeta: BasePgslTypeMeta = {
+        // Create and use meta.
+        super(lTypeKind, {
             typeName: PgslGenericType.identifierOf(pOwner, pGenericName),
             generics: pRestrictions
-        };
-
-        super(lTypeKind, lTypeMeta);
+        });
     }
 
     /**

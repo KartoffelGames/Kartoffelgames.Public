@@ -1,4 +1,4 @@
-import { BasePgslType, BasePgslTypeKind, type BasePgslTypeMeta } from './base-pgsl-type.ts';
+import { BasePgslType, BasePgslTypeKind } from './base-pgsl-type.ts';
 
 /**
  * Void type definition.
@@ -29,11 +29,10 @@ export class PgslVoidType extends BasePgslType {
      * Constructor for void type.
      */
     public constructor() {
-        const lTypeMeta: BasePgslTypeMeta = {
+        // Create and use meta.
+        super(BasePgslTypeKind.Void, {
             typeName: PgslVoidType.identifierOf()
-        };
-
-        super(BasePgslTypeKind.Void, lTypeMeta);
+        });
     }
 
     /**
@@ -45,11 +44,11 @@ export class PgslVoidType extends BasePgslType {
      * @returns Zero for another void, infinity for anything else.
      */
     public override conversionRankTo(pTarget: BasePgslType): number {
-        if(this.equals(pTarget)){
+        if (this.equals(pTarget)) {
             return 0;
         }
 
-        return  Number.POSITIVE_INFINITY;
+        return Number.POSITIVE_INFINITY;
     }
 
     /**

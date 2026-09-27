@@ -1,4 +1,4 @@
-import { BasePgslType, BasePgslTypeKind, type BasePgslTypeMeta } from './base-pgsl-type.ts';
+import { BasePgslType, BasePgslTypeKind } from './base-pgsl-type.ts';
 
 /**
  * Sampler type definition.
@@ -49,12 +49,10 @@ export class PgslSamplerType extends BasePgslType {
         // Anything a sampler is.
         const lTypeKind: BasePgslTypeKind = BasePgslTypeKind.Sampler | BasePgslTypeKind.Concrete | BasePgslTypeKind.Storable;
 
-        // Create meta, use the right type name.
-        const lTypeMeta: BasePgslTypeMeta = {
+        // Create and use meta.
+        super(lTypeKind, {
             typeName: PgslSamplerType.identifierOf(pComparison)
-        };
-
-        super(lTypeKind, lTypeMeta);
+        });
 
         this.mComparison = pComparison;
     }

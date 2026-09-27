@@ -1,5 +1,5 @@
 import type { EnumDeclarationAst } from '../declaration/enum-declaration-ast.ts';
-import { BasePgslType, BasePgslTypeKind, type BasePgslTypeMeta } from './base-pgsl-type.ts';
+import { BasePgslType, BasePgslTypeKind } from './base-pgsl-type.ts';
 
 /**
  * Enum type.
@@ -50,12 +50,10 @@ export class PgslEnumType extends BasePgslType {
         // A enum is only concrete when its underlying type is.
         lTypeKind |= pEnumDeclaration.data.underlyingType.isKind(BasePgslTypeKind.Concrete) ? BasePgslTypeKind.Concrete : BasePgslTypeKind.None;
 
-        // Construct meta.
-        const lTypeMeta: BasePgslTypeMeta = {
+        // Create and use meta.
+        super(lTypeKind, {
             typeName: PgslEnumType.identifierOf(pEnumDeclaration)
-        };
-
-        super(lTypeKind, lTypeMeta);
+        });
 
         this.mEnumName = pEnumDeclaration.name;
     }

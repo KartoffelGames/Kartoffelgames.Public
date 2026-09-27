@@ -1,4 +1,4 @@
-import { BasePgslType, BasePgslTypeKind, type BasePgslTypeMeta } from './base-pgsl-type.ts';
+import { BasePgslType, BasePgslTypeKind } from './base-pgsl-type.ts';
 
 /**
  * Vector type definition.
@@ -84,13 +84,11 @@ export class PgslVectorType extends BasePgslType {
         lKindFlags |= pInnerType.isKind(BasePgslTypeKind.Constructible) ? BasePgslTypeKind.Constructible : BasePgslTypeKind.None;
         lKindFlags |= pInnerType.isKind(BasePgslTypeKind.HostShareable) ? BasePgslTypeKind.HostShareable : BasePgslTypeKind.None;
 
-        // Create meta.
-        const lTypeMeta: BasePgslTypeMeta = {
+        // Create and use meta.
+        super(lKindFlags, {
             typeName: PgslVectorType.identifierOf(pVectorDimension, pInnerType),
             generics: [pInnerType]
-        };
-
-        super(lKindFlags, lTypeMeta);
+        });
 
         this.mVectorDimension = pVectorDimension;
     }

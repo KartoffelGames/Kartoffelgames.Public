@@ -35,12 +35,10 @@ export class PgslBooleanType extends BasePgslType {
             BasePgslTypeKind.Concrete | BasePgslTypeKind.FixedFootprint | BasePgslTypeKind.Constructible |
             BasePgslTypeKind.Storable;
 
-        // Create meta.
-        const lTypeMeta: BasePgslTypeMeta = {
+        // Create and use meta.
+        super(lTypeKind, {
             typeName: PgslBooleanType.identifierOf()
-        };
-
-        super(lTypeKind, lTypeMeta);
+        });
     }
 
     /**
@@ -52,11 +50,11 @@ export class PgslBooleanType extends BasePgslType {
      * @returns Zero for another boolean, infinity for anything else.
      */
     public override conversionRankTo(pTarget: BasePgslType): number {
-        if(this.equals(pTarget)){
+        if (this.equals(pTarget)) {
             return 0;
         }
 
-        return  Number.POSITIVE_INFINITY;
+        return Number.POSITIVE_INFINITY;
     }
 
     /**

@@ -1,4 +1,4 @@
-import { BasePgslType, BasePgslTypeKind, type BasePgslTypeMeta } from './base-pgsl-type.ts';
+import { BasePgslType, BasePgslTypeKind } from './base-pgsl-type.ts';
 
 /**
  * String type definition.
@@ -29,12 +29,10 @@ export class PgslStringType extends BasePgslType {
      * Constructor for string type.
      */
     public constructor() {
-        // Create meta.
-        const lTypeMeta: BasePgslTypeMeta = {
+        // Create and use meta.
+        super(BasePgslTypeKind.String | BasePgslTypeKind.Concrete, {
             typeName: PgslStringType.identifierOf()
-        };
-
-        super(BasePgslTypeKind.String | BasePgslTypeKind.Concrete, lTypeMeta);
+        });
     }
 
     /**
@@ -46,11 +44,11 @@ export class PgslStringType extends BasePgslType {
      * @returns Zero for another string, infinity for anything else.
      */
     public override conversionRankTo(pTarget: BasePgslType): number {
-        if(this.equals(pTarget)){
+        if (this.equals(pTarget)) {
             return 0;
         }
 
-        return  Number.POSITIVE_INFINITY;
+        return Number.POSITIVE_INFINITY;
     }
 
     /**

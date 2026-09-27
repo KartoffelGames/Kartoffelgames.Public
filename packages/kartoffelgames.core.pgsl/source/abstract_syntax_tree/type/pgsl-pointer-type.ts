@@ -1,6 +1,6 @@
 import { PgslValueAddressSpace } from '../../enum/pgsl-value-address-space.enum.ts';
 import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
-import { BasePgslType, BasePgslTypeKind, type BasePgslTypeMeta } from './base-pgsl-type.ts';
+import { BasePgslType, BasePgslTypeKind } from './base-pgsl-type.ts';
 
 // TODO: Treat pointer addressspace as internal generic.
 //       A user set pointer has no space restriction but a build in can.
@@ -66,13 +66,11 @@ export class PgslPointerType extends BasePgslType {
         // Everything a pointer is.
         const lTypeKind: BasePgslTypeKind = BasePgslTypeKind.Pointer | BasePgslTypeKind.Concrete | BasePgslTypeKind.Storable;
 
-        // Construct meta.
-        const lTypeMeta: BasePgslTypeMeta = {
+        // Create and use meta.
+        super(lTypeKind, {
             typeName: PgslPointerType.identifierOf(pReferencedType),
             generics: [pReferencedType]
-        };
-
-        super(lTypeKind, lTypeMeta);
+        });
 
         // No address space assigned yet.
         this.mAssignedAddressSpace = null;

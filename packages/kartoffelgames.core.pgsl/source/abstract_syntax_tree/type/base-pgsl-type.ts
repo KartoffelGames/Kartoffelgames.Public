@@ -145,18 +145,19 @@ export const BasePgslTypeKind = {
     SignedInteger: 1 << 16,
     UnsignedInteger: 1 << 17,
     Float16: 1 << 18,
-    Abstract: 1 << 19,
+    Float32: 1 << 19,
+    Abstract: 1 << 20,
 
     // Type capabilities.
-    Scalar: 1 << 20,
-    Composite: 1 << 21,
-    Indexable: 1 << 22,
-    Plain: 1 << 23,
-    Concrete: 1 << 24,
-    FixedFootprint: 1 << 25,
-    Constructible: 1 << 26,
-    HostShareable: 1 << 27,
-    Storable: 1 << 28,
+    Scalar: 1 << 21,
+    Composite: 1 << 22,
+    Indexable: 1 << 23,
+    Plain: 1 << 24,
+    Concrete: 1 << 25,
+    FixedFootprint: 1 << 26,
+    Constructible: 1 << 27,
+    HostShareable: 1 << 28,
+    Storable: 1 << 29,
 };
 
 export type BasePgslTypeKind = typeof BasePgslTypeKind[keyof typeof BasePgslTypeKind];

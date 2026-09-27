@@ -1,14 +1,11 @@
-import type { TypeCst } from '../../concrete_syntax_tree/general.type.ts';
-import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
-import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
-import type { BaseType, TypeProperties } from './base-type.ts';
+import { BasePgslType, BasePgslTypeKind, BasePgslTypeMeta } from "./base-pgsl-type.ts";
 
 /**
  * Numeric type definition.
  * Represents all numeric types in PGSL including integers, floats, and abstract numeric types.
  * Handles type casting rules between different numeric types.
  */
-export class PgslNumericType extends AbstractSyntaxTree<TypeCst, TypeProperties> implements BaseType {
+export class PgslNumericType extends BasePgslType {
     /**
      * Type names for all available numeric types.
      * Maps numeric type names to their string representations.
@@ -25,24 +22,13 @@ export class PgslNumericType extends AbstractSyntaxTree<TypeCst, TypeProperties>
         } as const;
     }
 
-    private readonly mNumericType: PgslNumericTypeName;
-    private readonly mShadowedType: BaseType;
-
     /**
      * Gets the specific numeric type variant.
      * 
      * @returns The numeric type name.
      */
     public get numericTypeName(): PgslNumericTypeName {
-        return this.mNumericType;
-    }
-
-    /**
-     * The type that is being shadowed.
-     * If it does not shadow another type, it is itself.
-     */
-    public get shadowedType(): BaseType {
-        return this.mShadowedType;
+        return this.meta.typeName as PgslNumericTypeName;
     }
 
     /**
@@ -51,12 +37,36 @@ export class PgslNumericType extends AbstractSyntaxTree<TypeCst, TypeProperties>
      * @param pNumericType - The specific numeric type variant.
      * @param pShadowedType - Type that is the actual type of this.
      */
-    public constructor(pNumericType: PgslNumericTypeName, pShadowedType?: BaseType) {
-        super({ type: 'Type', range: [0, 0, 0, 0] });
+    public constructor(pNumericType: PgslNumericTypeName, pShadowedType?: BasePgslType) {
+        // Everything a base number is.
+        let lTypeKind: BasePgslTypeKind = BasePgslTypeKind.Numeric | BasePgslTypeKind.Plain | BasePgslTypeKind.Scalar;
+        lTypeKind |= BasePgslTypeKind.Storable | BasePgslTypeKind.HostShareable | BasePgslTypeKind.Constructible | BasePgslTypeKind.FixedFootprint;
 
-        // Set data.
-        this.mShadowedType = pShadowedType ?? this;
-        this.mNumericType = pNumericType;
+        // A concrete numeric type is any type that is not abstract.
+        const lIsConcrete: boolean = pNumericType !== PgslNumericType.typeName.abstractFloat && pNumericType !== PgslNumericType.typeName.abstractInteger;
+        lTypeKind |= lIsConcrete ? BasePgslTypeKind.Concrete : BasePgslTypeKind.None;
+
+        // Based on type name, set number type flags.
+        lTypeKind |= (() => {
+            switch (pNumericType) {
+                // Integer types.
+                case PgslNumericType.typeName.abstractInteger: return BasePgslTypeKind.Integer | BasePgslTypeKind.Abstract;
+                case PgslNumericType.typeName.signedInteger: return BasePgslTypeKind.Integer | BasePgslTypeKind.SignedInteger;
+                case PgslNumericType.typeName.unsignedInteger: return BasePgslTypeKind.Integer | BasePgslTypeKind.UnsignedInteger;
+
+                // Float
+                case PgslNumericType.typeName.abstractFloat: return BasePgslTypeKind.Float | BasePgslTypeKind.Abstract;
+                case PgslNumericType.typeName.float32: return BasePgslTypeKind.Float | BasePgslTypeKind.Float32;
+                case PgslNumericType.typeName.float16: return BasePgslTypeKind.Float | BasePgslTypeKind.Float16;
+            }
+        })();
+
+        // Create meta.
+        const lMeta: BasePgslTypeMeta = {
+            typeName: pNumericType
+        };
+
+        super(lTypeKind, lMeta, pShadowedType);
     }
 
     /**
@@ -67,29 +77,27 @@ export class PgslNumericType extends AbstractSyntaxTree<TypeCst, TypeProperties>
      * 
      * @returns True when both types have the same numeric type.
      */
-    public equals(pTarget: BaseType): boolean {
+    public equals(pTarget: BasePgslType): pTarget is this {
         // Must both be the same numeric type.
-        if (!(pTarget instanceof PgslNumericType)) {
+        if (!this.isSameTypeClass(pTarget)) {
             return false;
         }
 
         // Must have the same numeric type.
-        return this.mNumericType === pTarget.numericTypeName;
+        return this.numericTypeName === pTarget.numericTypeName;
     }
 
     /**
-     * Check if this numeric type is implicitly castable into the target type.
-     * Implements PGSL's implicit casting rules for numeric types.
-     * Abstract types have special casting rules.
+     * Get this types convertion rank to another type.
      * 
-     * @param pTarget - Target type to check castability to.
+     * @param pTarget - Conversion target type.
      * 
-     * @returns True when implicit casting is allowed, false otherwise.
+     * @returns the conversation rank from this type to the specified.
      */
-    public isCastableInto(pTarget: BaseType): boolean {
+    public conversionRankTo(pTarget: BasePgslType): number {
         // Target type must be a numeric type.
-        if (!(pTarget instanceof PgslNumericType)) {
-            return false;
+        if (!this.isSameTypeClass(pTarget)) {
+            return Number.POSITIVE_INFINITY;
         }
 
         switch (this.mNumericType) {
@@ -117,74 +125,9 @@ export class PgslNumericType extends AbstractSyntaxTree<TypeCst, TypeProperties>
         // Any other non-abstract numeric type is only castable when they are the same type.
         return this.equals(pTarget);
     }
-
-    /**
-     * Collect type properties for numeric types.
-     * Numeric types are scalar, storable, and mostly host-shareable.
-     * Abstract types are not concrete.
-     * 
-     * @param _pContext - Context (unused for numeric types).
-     * 
-     * @returns Type properties for numeric types.
-     */
-    protected override onProcess(_pContext: AbstractSyntaxTreeContext): TypeProperties {
-        // A concrete numeric type is any type that is not abstract.
-        const lIsConcrete: boolean = this.mNumericType !== PgslNumericType.typeName.abstractFloat && this.mNumericType !== PgslNumericType.typeName.abstractInteger;
-
-        // Build meta types.
-        const lMetaTypeList: Array<string> = new Array<string>();
-        switch (this.mNumericType) {
-            case PgslNumericType.typeName.signedInteger: {
-                lMetaTypeList.push(PgslNumericType.typeName.signedInteger);
-                lMetaTypeList.push('numeric-integer');
-                lMetaTypeList.push('numeric');
-            }
-            case PgslNumericType.typeName.unsignedInteger: {
-                lMetaTypeList.push(PgslNumericType.typeName.unsignedInteger);
-                lMetaTypeList.push('numeric-integer');
-                lMetaTypeList.push('numeric');
-            }
-            case PgslNumericType.typeName.abstractInteger: {
-                lMetaTypeList.push('numeric-integer');
-                lMetaTypeList.push('numeric');
-            }
-            case PgslNumericType.typeName.float32: {
-                lMetaTypeList.push(PgslNumericType.typeName.float32);
-                lMetaTypeList.push('numeric-float');
-                lMetaTypeList.push('numeric');
-            }
-            case PgslNumericType.typeName.float16: {
-                lMetaTypeList.push(PgslNumericType.typeName.float16);
-                lMetaTypeList.push('numeric-float');
-                lMetaTypeList.push('numeric');
-            }
-            case PgslNumericType.typeName.abstractFloat: {
-                lMetaTypeList.push('numeric-float');
-                lMetaTypeList.push('numeric');
-            }
-        }
-
-        return {
-            // Meta information.
-            metaTypes: lMetaTypeList,
-
-            // Dynamic properties.
-            concrete: lIsConcrete,
-
-            storable: true,
-            hostShareable: true,
-            composite: false,
-            constructible: true,
-            fixedFootprint: true,
-            indexable: false,
-            scalar: true,
-            plain: true,
-        };
-    }
 }
 
 /**
  * Type representing all available numeric type names.
- * Derived from the static typeName getter for type safety.
  */
 export type PgslNumericTypeName = (typeof PgslNumericType.typeName)[keyof typeof PgslNumericType.typeName];

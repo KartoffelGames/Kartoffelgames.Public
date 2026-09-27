@@ -11,7 +11,7 @@ import { PgslPointerType } from '../../../abstract_syntax_tree/type/pgsl-pointer
 import { PgslSamplerType } from '../../../abstract_syntax_tree/type/pgsl-sampler-type.ts';
 import { PgslStringType } from '../../../abstract_syntax_tree/type/pgsl-string-type.ts';
 import { PgslStructType } from '../../../abstract_syntax_tree/type/pgsl-struct-type.ts';
-import { PgslTextureType, type PgslTextureTypeName } from '../../../abstract_syntax_tree/type/pgsl-texture-type.ts';
+import { PgslTextureType, type PgslTextureTypeName, type PgslTextureTypeStorage } from '../../../abstract_syntax_tree/type/pgsl-texture-type.ts';
 import { PgslVectorType } from '../../../abstract_syntax_tree/type/pgsl-vector-type.ts';
 import { PgslVoidType } from '../../../abstract_syntax_tree/type/pgsl-void-type.ts';
 import { PgslAccessModeEnum } from '../../../buildin/enum/pgsl-access-mode-enum.ts';
@@ -315,9 +315,15 @@ export class TypeAstTranspilerProcessor implements ITranspilerProcessor<BaseType
 
         // For storage textures, include format and access mode
         if (lWgslTextureMode === 'storage') {
+            // Storage textures always carry a format and access mode.
+            const lStorage: PgslTextureTypeStorage | null = pType.storage;
+            if (!lStorage) {
+                throw new Exception(`Storage texture "${pType.textureType}" has no texel format and access mode.`, this);
+            }
+
             // Convert the format to WGSL format string.
             const lFormatWgsl: string = (() => {
-                switch (pType.format) {
+                switch (lStorage.format) {
                     case PgslTexelFormatEnum.VALUES.Rgba8unorm: return 'rgba8unorm';
                     case PgslTexelFormatEnum.VALUES.Rgba8snorm: return 'rgba8snorm';
                     case PgslTexelFormatEnum.VALUES.Rgba8uint: return 'rgba8uint';
@@ -363,7 +369,7 @@ export class TypeAstTranspilerProcessor implements ITranspilerProcessor<BaseType
 
             // Convert the access mode to WGSL access mode string.
             const lAccessMode = (() => {
-                switch (pType.access) {
+                switch (lStorage.access) {
                     case PgslAccessModeEnum.VALUES.Read: return 'read';
                     case PgslAccessModeEnum.VALUES.Write: return 'write';
                     case PgslAccessModeEnum.VALUES.ReadWrite: return 'read_write';

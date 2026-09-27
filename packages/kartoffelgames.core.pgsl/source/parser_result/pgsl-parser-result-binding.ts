@@ -3,6 +3,7 @@ import { StructDeclarationAst } from '../abstract_syntax_tree/declaration/struct
 import type { VariableDeclarationAst } from '../abstract_syntax_tree/declaration/variable-declaration-ast.ts';
 import type { DocumentAst } from '../abstract_syntax_tree/document-ast.ts';
 import type { BaseType } from '../abstract_syntax_tree/type/base-type.ts';
+import { BasePgslTypeKind } from '../abstract_syntax_tree/type/base-pgsl-type.ts';
 import { PgslArrayType } from '../abstract_syntax_tree/type/pgsl-array-type.ts';
 import { PgslMatrixType } from '../abstract_syntax_tree/type/pgsl-matrix-type.ts';
 import { PgslNumericType } from '../abstract_syntax_tree/type/pgsl-numeric-type.ts';
@@ -22,6 +23,7 @@ import type { PgslParserResultType, PgslParserResultTypeAlignmentType } from './
 import { PgslParserResultVectorType } from './type/pgsl-parser-result-vector-type.ts';
 import { PgslParserResultObject } from './pgsl-parser-result-object.ts';
 import { PgslAccessModeEnum } from '../buildin/enum/pgsl-access-mode-enum.ts';
+import { type PgslTexelFormat, PgslTexelFormatEnum } from '../buildin/enum/pgsl-texel-format-enum.ts';
 
 /**
  * Represents a binding result from PGSL parser with type and location information.
@@ -210,7 +212,28 @@ export class PgslParserResultBinding extends PgslParserResultObject {
                     // Convert sampled type.
                     const lSampledType: PgslParserResultNumericType = this.convertType(pType.sampledType, pDocument, 'packed') as PgslParserResultNumericType;
 
-                    return new PgslParserResultTextureType(lDimensionType, lSampledType, pType.format);
+                    // Only storage textures declare a format. Any other texture gets a default format that matches its sampled type.
+                    const lTextureFormat: PgslTexelFormat = (() => {
+                        if (pType.storage) {
+                            return pType.storage.format;
+                        }
+
+                        // Depth and external textures.
+                        if (!PgslTextureType.isSampledTextureType(pType.textureType)) {
+                            return PgslTexelFormatEnum.VALUES.Bgra8unorm;
+                        }
+
+                        if (pType.sampledType.isKind(BasePgslTypeKind.UnsignedInteger)) {
+                            return PgslTexelFormatEnum.VALUES.Rgba8uint;
+                        }
+                        if (pType.sampledType.isKind(BasePgslTypeKind.SignedInteger)) {
+                            return PgslTexelFormatEnum.VALUES.Rgba8sint;
+                        }
+
+                        return PgslTexelFormatEnum.VALUES.Rgba8unorm;
+                    })();
+
+                    return new PgslParserResultTextureType(lDimensionType, lSampledType, lTextureFormat);
                 }
 
                 // Sampler type.

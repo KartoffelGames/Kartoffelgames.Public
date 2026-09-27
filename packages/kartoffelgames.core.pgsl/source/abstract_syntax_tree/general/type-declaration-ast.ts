@@ -9,7 +9,7 @@ import { PgslPointerType } from '../type/pgsl-pointer-type.ts';
 import { PgslSamplerType } from '../type/pgsl-sampler-type.ts';
 import { PgslStringType } from '../type/pgsl-string-type.ts';
 import { PgslStructType } from '../type/pgsl-struct-type.ts';
-import { PgslTextureType } from '../type/pgsl-texture-type.ts';
+import { PgslTextureType, type PgslTextureTypeName } from '../type/pgsl-texture-type.ts';
 import { BasePgslType, BasePgslTypeKind } from '../type/base-pgsl-type.ts';
 import { PgslVectorType } from '../type/pgsl-vector-type.ts';
 import { PgslVoidType } from '../type/pgsl-void-type.ts';
@@ -22,6 +22,8 @@ import type { AliasDeclarationAst } from '../declaration/alias-declaration-ast.t
 import type { ExpressionCst } from '../../concrete_syntax_tree/expression.type.ts';
 import { ExpressionAstBuilder } from '../expression/expression-ast-builder.ts';
 import { PgslValueFixedState } from "../../enum/pgsl-value-fixed-state.ts";
+import { type PgslAccessMode, PgslAccessModeEnum } from '../../buildin/enum/pgsl-access-mode-enum.ts';
+import { type PgslTexelFormat, PgslTexelFormatEnum } from '../../buildin/enum/pgsl-texel-format-enum.ts';
 
 /**
  * PGSL base type definition.
@@ -421,22 +423,98 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
             return null;
         }
 
-        // Validate texture templates, that they are eighter a PgslExpression or ITypeDeclaration.
-        const lTemplateAstList: Array<IExpressionAst | TypeDeclarationAst> = new Array<IExpressionAst | TypeDeclarationAst>();
-        for (const lTemplate of pRawTemplate) {
-            if (lTemplate.type === 'TypeDeclaration') {
-                // Build type declaration template.
-                lTemplateAstList.push(new TypeDeclarationAst(lTemplate).process(pContext));
-            } else {
-                const lTemplateExpression: IExpressionAst = ExpressionAstBuilder.build(lTemplate).process(pContext);
+        const lTextureTypeName: PgslTextureTypeName = pRawName as PgslTextureTypeName;
 
-                // Build expression template.
-                lTemplateAstList.push(lTemplateExpression);
+        // Sampled textures are declared with the type they sample.
+        if (PgslTextureType.isSampledTextureType(lTextureTypeName)) {
+            // Validate texture template.
+            if (pRawTemplate.length !== 1) {
+                pContext.pushIncident(`Texture type "${lTextureTypeName}" needs a single template type.`, this);
             }
+
+            // Validate template parameter. A missing template is already reported.
+            const lSampledTypeDefinition: TypeDeclarationAstTemplate | undefined = pRawTemplate[0];
+            if (!lSampledTypeDefinition) {
+                return new PgslInvalidType();
+            }
+            if (lSampledTypeDefinition.type !== 'TypeDeclaration') {
+                pContext.pushIncident(`Texture template parameter needs to be a type definition.`, this);
+                return new PgslInvalidType();
+            }
+
+            // Build sampled type.
+            const lSampledType: BasePgslType = new TypeDeclarationAst(lSampledTypeDefinition).process(pContext).data.type;
+
+            // Only 32 bit concrete numeric scalars can be sampled.
+            const lSampleable: boolean = lSampledType.isKind(BasePgslTypeKind.Numeric) && (lSampledType.isKind(BasePgslTypeKind.Float32) || lSampledType.isKind(BasePgslTypeKind.SignedInteger) || lSampledType.isKind(BasePgslTypeKind.UnsignedInteger));
+            if (!lSampleable) {
+                pContext.pushIncident(`Texture sampled type must be a float, int or uint type.`, this);
+            }
+
+            return new PgslTextureType(lTextureTypeName, lSampledType, null);
         }
 
-        // Build texture type definition.
-        return new PgslTextureType(pRawName as any, lTemplateAstList);
+        // Storage textures are declared with a texel format and an access mode.
+        if (PgslTextureType.isStorageTextureType(lTextureTypeName)) {
+            // Validate texture templates.
+            if (pRawTemplate.length !== 2) {
+                pContext.pushIncident(`Texture type "${lTextureTypeName}" needs a texel format and an access mode template.`, this);
+            }
+
+            // Read a template value from a constant string expression. A missing template is already reported.
+            const lReadStringTemplate = (pTemplateIndex: number): string | null => {
+                const lTemplate: TypeDeclarationAstTemplate | undefined = pRawTemplate[pTemplateIndex];
+                if (!lTemplate) {
+                    return null;
+                }
+                if (lTemplate.type === 'TypeDeclaration') {
+                    pContext.pushIncident(`Texture template parameter ${pTemplateIndex + 1} must be a string value expression.`, this);
+                    return null;
+                }
+
+                const lTemplateExpression: IExpressionAst = ExpressionAstBuilder.build(lTemplate).process(pContext);
+                if (!lTemplateExpression.data.resolveType.isKind(BasePgslTypeKind.String) || typeof lTemplateExpression.data.constantValue !== 'string') {
+                    pContext.pushIncident(`Texture template parameter ${pTemplateIndex + 1} must be a string value expression.`, this);
+                    return null;
+                }
+
+                return lTemplateExpression.data.constantValue;
+            };
+
+            // Read texel format.
+            let lFormat: PgslTexelFormat = PgslTexelFormatEnum.VALUES.Bgra8unorm;
+            const lFormatValue: string | null = lReadStringTemplate(0);
+            if (lFormatValue !== null) {
+                if (PgslTexelFormatEnum.containsValue(lFormatValue)) {
+                    lFormat = lFormatValue;
+                } else {
+                    pContext.pushIncident(`Unknown texel format: "${lFormatValue}".`, this);
+                }
+            }
+
+            // Read access mode.
+            let lAccess: PgslAccessMode = PgslAccessModeEnum.VALUES.Read;
+            const lAccessValue: string | null = lReadStringTemplate(1);
+            if (lAccessValue !== null) {
+                if (PgslAccessModeEnum.containsValue(lAccessValue)) {
+                    lAccess = lAccessValue;
+                } else {
+                    pContext.pushIncident(`Unknown access mode: "${lAccessValue}".`, this);
+                }
+            }
+
+            // Storage textures sample the channel type of their texel format.
+            const lSampledType: PgslNumericType = new PgslNumericType(PgslTexelFormatEnum.texelNumericType(lFormat));
+
+            return new PgslTextureType(lTextureTypeName, lSampledType, { format: lFormat, access: lAccess });
+        }
+
+        // Depth and external textures have no templates and always sample floats.
+        if (pRawTemplate.length > 0) {
+            pContext.pushIncident(`Texture type "${lTextureTypeName}" can't have template parameters.`, this);
+        }
+
+        return new PgslTextureType(lTextureTypeName, new PgslNumericType(PgslNumericType.typeName.float32), null);
     }
 
     /**

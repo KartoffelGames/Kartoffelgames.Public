@@ -8,8 +8,9 @@ import type { DocumentAst } from './document-ast.ts';
 import type { IValueStoreAst } from './i-value-store-ast.interface.ts';
 import type { DoWhileStatementAst } from './statement/branch/do-while-statement-ast.ts';
 import type { ForStatementAst } from './statement/branch/for-statement-ast.ts';
-import type { WhileStatementAst } from './statement/branch/while-statement-ast.ts';
 import type { SwitchStatementAst } from './statement/branch/switch-statement-ast.ts';
+import type { WhileStatementAst } from './statement/branch/while-statement-ast.ts';
+import { PgslTypeCache } from "./type/pgsl-type-cache.ts";
 
 /**
  * Represents a syntax tree context for building abstract syntax trees.
@@ -25,9 +26,9 @@ export class AbstractSyntaxTreeContext {
     private readonly mProcessingStack: Set<string>;
     private mScope: AbstractSyntaxTreeScope | null;
     private readonly mStructs: Map<string, StructDeclarationAst>;
+    private readonly mTypeCache: PgslTypeCache;
     private readonly mUsages: Set<AbstractSyntaxTreeSymbolUsageName> = new Set<AbstractSyntaxTreeSymbolUsageName>();
     
-
     /**
      * Gets the document associated with this context.
      *
@@ -53,6 +54,13 @@ export class AbstractSyntaxTreeContext {
     }
 
     /**
+     * Get context types.
+     */
+    public get types(): PgslTypeCache {
+        return this.mTypeCache;
+    }
+
+    /**
      * Gets the set of usaged names for types, functions and attributes recorded in this context.
      * 
      * @returns A readonly set of usage names.
@@ -67,7 +75,9 @@ export class AbstractSyntaxTreeContext {
     public constructor() {
         this.mScope = null;
         this.mDocument = null;
+
         this.mIncidents = new Array<AbstractSyntaxTreeIncident>();
+        this.mTypeCache = new PgslTypeCache();
 
         // Initialize declaration maps.
         this.mAliases = new Map<string, AliasDeclarationAst>();

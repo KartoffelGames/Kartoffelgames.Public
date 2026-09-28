@@ -2,8 +2,8 @@ import type { PointerExpressionCst } from '../../../concrete_syntax_tree/express
 import { PgslValueFixedState } from '../../../enum/pgsl-value-fixed-state.ts';
 import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
+import type { BasePgslType } from '../../type/definition/base-pgsl-type.ts';
 import { PgslPointerType } from '../../type/definition/pgsl-pointer-type.ts';
-import type { BaseType } from '../../type/base-type.ts';
 import { ExpressionAstBuilder } from '../expression-ast-builder.ts';
 import type { ExpressionAstData, IExpressionAst } from '../i-expression-ast.interface.ts';
 
@@ -20,7 +20,7 @@ export class PointerExpressionAst extends AbstractSyntaxTree<PointerExpressionCs
         // Build expression.
         const lExpression: IExpressionAst = ExpressionAstBuilder.build(this.cst.expression).process(pContext);
 
-        const lResolveType: BaseType = (() => {
+        const lResolveType: BasePgslType = (() => {
             // Value needs to be a pointer.
             if (!(lExpression.data.resolveType instanceof PgslPointerType)) {
                 pContext.pushIncident('Pointer of expression needs to be a pointer type.', this);

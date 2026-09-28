@@ -10,7 +10,7 @@ import { ExpressionAstBuilder } from '../../expression/expression-ast-builder.ts
 import type { IExpressionAst } from '../../expression/i-expression-ast.interface.ts';
 import { TypeDeclarationAst } from '../../general/type-declaration-ast.ts';
 import type { IValueStoreAst, ValueStoreAstData } from '../../i-value-store-ast.interface.ts';
-import type { BaseType } from '../../type/base-type.ts';
+import { BasePgslType, BasePgslTypeKind } from "../../type/definition/base-pgsl-type.ts";
 import { PgslPointerType } from '../../type/definition/pgsl-pointer-type.ts';
 import type { IStatementAst, StatementAstData } from '../i-statement-ast.interface.ts';
 
@@ -34,7 +34,7 @@ export class VariableDeclarationStatementAst extends AbstractSyntaxTree<Variable
 
         // Create type declaration.
         const lTypeDeclaration: TypeDeclarationAst = new TypeDeclarationAst(this.cst.typeDeclaration).process(pContext);
-        const lType: BaseType = lTypeDeclaration.data.type;
+        const lType: BasePgslType = lTypeDeclaration.data.type;
 
         // Expression value has a fixed byte size.
 
@@ -47,7 +47,7 @@ export class VariableDeclarationStatementAst extends AbstractSyntaxTree<Variable
             lConstantValue = lExpression.data.constantValue;
 
             // Validate same type.
-            if (!lExpression.data.resolveType.isCastableInto(lType)) {
+            if (lExpression.data.resolveType.conversionRankTo(lType) === Number.POSITIVE_INFINITY) {
                 pContext.pushIncident(`Expression values type can't be converted to variables type.`, lExpression);
             }
         }
@@ -82,11 +82,11 @@ export class VariableDeclarationStatementAst extends AbstractSyntaxTree<Variable
 
             return PgslValueFixedState.Variable;
         })();
-        
+
         // Value validation does not apply to pointers.
         if (!(lType instanceof PgslPointerType)) {
             // Type needs to be storable.
-            if (!lType.data.constructible) {
+            if (!lType.isKind(BasePgslTypeKind.Constructible)) {
                 pContext.pushIncident(`Type is not constructible type.`, this);
             }
         } else {

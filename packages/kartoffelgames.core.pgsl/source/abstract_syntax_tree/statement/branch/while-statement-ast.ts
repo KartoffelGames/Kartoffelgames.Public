@@ -29,7 +29,7 @@ export class WhileStatementAst extends AbstractSyntaxTree<WhileStatementCst, Whi
             const lBlock: BlockStatementAst = new BlockStatementAst(this.cst.block).process(pContext);
 
             // Expression must be a boolean.
-            if (!lExpression.data.resolveType.isCastableInto(new PgslBooleanType())) {
+            if (lExpression.data.resolveType.conversionRankTo(new PgslBooleanType()) === Number.POSITIVE_INFINITY) {
                 pContext.pushIncident('Expression of while loops must resolve into a boolean.', lExpression);
             }
 

@@ -1,14 +1,14 @@
 import { EnumUtil } from '@kartoffelgames/core';
-import { PgslAssignment } from '../../../enum/pgsl-assignment.enum.ts';
-import { PgslValueFixedState } from '../../../enum/pgsl-value-fixed-state.ts';
+import type { ExpressionCst } from '../../../concrete_syntax_tree/expression.type.ts';
 import type { AssignmentStatementCst } from '../../../concrete_syntax_tree/statement.type.ts';
+import { PgslAssignment } from '../../../enum/pgsl-assignment.enum.ts';
+import { PgslOperator } from '../../../enum/pgsl-operator.enum.ts';
+import { PgslValueFixedState } from '../../../enum/pgsl-value-fixed-state.ts';
 import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
 import { ExpressionAstBuilder } from '../../expression/expression-ast-builder.ts';
 import type { IExpressionAst } from '../../expression/i-expression-ast.interface.ts';
 import type { IStatementAst, StatementAstData } from '../i-statement-ast.interface.ts';
-import { PgslOperator } from '../../../enum/pgsl-operator.enum.ts';
-import type { ExpressionCst } from '../../../concrete_syntax_tree/expression.type.ts';
 
 /**
  * PGSL structure holding a assignment statement.
@@ -66,7 +66,7 @@ export class AssignmentStatementAst extends AbstractSyntaxTree<AssignmentStateme
         const lExpression: IExpressionAst = ExpressionAstBuilder.build(lExpressionCst).process(pContext);
 
         // Validate that it has the same value.
-        if (!lExpression.data.resolveType.isCastableInto(lVariable.data.resolveType)) {
+        if (lExpression.data.resolveType.conversionRankTo(lVariable.data.resolveType) === Number.POSITIVE_INFINITY) {
             pContext.pushIncident(`Can't assign a different type to a variable.`, lExpression);
         }
 

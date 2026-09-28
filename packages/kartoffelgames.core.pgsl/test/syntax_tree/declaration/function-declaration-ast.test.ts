@@ -15,8 +15,8 @@ import type { PgslParserResultComputeEntryPoint } from '../../../source/parser_r
 import type { PgslParserResultFragmentEntryPoint } from '../../../source/parser_result/entry_point/pgsl-parser-result-fragment-entry-point.ts';
 import type { PgslParserResultVertexEntryPoint } from '../../../source/parser_result/entry_point/pgsl-parser-result-vertex-entry-point.ts';
 import type { PgslParserResult } from '../../../source/parser_result/pgsl-parser-result.ts';
-import type { PgslParserResultNumericType } from '../../../source/parser_result/type/definition/pgsl-parser-result-numeric-type.ts';
-import type { PgslParserResultVectorType } from '../../../source/parser_result/type/definition/pgsl-parser-result-vector-type.ts';
+import type { PgslParserResultNumericType } from '../../../source/parser_result/type/pgsl-parser-result-numeric-type.ts';
+import type { PgslParserResultVectorType } from '../../../source/parser_result/type/pgsl-parser-result-vector-type.ts';
 import { WgslTranspiler } from '../../../source/transpilation/wgsl/wgsl-transpiler.ts';
 
 // Create parser instance.

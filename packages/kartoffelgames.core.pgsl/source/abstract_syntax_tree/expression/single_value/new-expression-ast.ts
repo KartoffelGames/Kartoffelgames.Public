@@ -4,7 +4,7 @@ import { PgslValueFixedState } from '../../../enum/pgsl-value-fixed-state.ts';
 import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
 import { TypeDeclarationAst } from '../../general/type-declaration-ast.ts';
-import type { BaseType } from '../../type/base-type.ts';
+import { BasePgslTypeKind, type BasePgslType } from '../../type/definition/base-pgsl-type.ts';
 import { PgslArrayType } from '../../type/definition/pgsl-array-type.ts';
 import { PgslBooleanType } from '../../type/definition/pgsl-boolean-type.ts';
 import { PgslInvalidType } from '../../type/definition/pgsl-invalid-type.ts';
@@ -26,10 +26,10 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                 parameters: [
                     [{ typeRestrictions: [], count: { min: 1, max: 100 } }]
                 ],
-                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BaseType>): BaseType => {
+                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>): BasePgslType => {
                     // Find the first concrete numeric type and check if all others match.
-                    const lConcreteType: BaseType = pParameterList.find((pParam) => {
-                        return pParam.data.concrete;
+                    const lConcreteType: BasePgslType = pParameterList.find((pParam) => {
+                        return pParam.isKind(BasePgslTypeKind.Concrete);
                     }) ?? pParameterList[0];
 
                     // Create length expression and trace it.
@@ -41,7 +41,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     const lConstantLengthExpressionAst: LiteralValueExpressionAst = new LiteralValueExpressionAst(lConstantLengthExpressionCst).process(pContext);
 
                     // Construct fixed array type.
-                    return new PgslArrayType(lConcreteType, lConstantLengthExpressionAst).process(pContext);
+                    return new PgslArrayType(lConcreteType, lConstantLengthExpressionAst);
                 }
             };
 
@@ -56,13 +56,13 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     // Scalar
                     [{ typeRestrictions: ['numeric', PgslBooleanType.typeName.boolean], count: { min: 2, max: 2 } }]
                 ],
-                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BaseType>, pGeneric: BaseType | null) => {
+                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pGeneric: BasePgslType | null) => {
                     // Find inner type by generic or first concrete type.
-                    const lElementType: BaseType = pGeneric ?? pParameterList.find((pParam) => {
-                        return pParam.data.concrete;
+                    const lElementType: BasePgslType = pGeneric ?? pParameterList.find((pParam) => {
+                        return pParam.isKind(BasePgslTypeKind.Concrete);
                     }) ?? pParameterList[0];
 
-                    return new PgslVectorType(2, lElementType).process(pContext);
+                    return pContext.types.create(PgslVectorType, 2, lElementType);
                 }
             };
 
@@ -95,10 +95,10 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                         { typeRestrictions: [`${PgslVectorType.typeName.vector2}<numeric>`] }
                     ],
                 ],
-                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BaseType>, pGeneric: BaseType | null) => {
+                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pGeneric: BasePgslType | null) => {
                     // Find inner type by generic or first concrete type.
-                    let lElementType: BaseType = pGeneric ?? pParameterList.find((pParam) => {
-                        return pParam.data.concrete;
+                    let lElementType: BasePgslType = pGeneric ?? pParameterList.find((pParam) => {
+                        return pParam.isKind(BasePgslTypeKind.Concrete);
                     }) ?? pParameterList[0];
 
                     // If element type is a vector, extract inner type.
@@ -106,7 +106,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                         lElementType = lElementType.innerType;
                     }
 
-                    return new PgslVectorType(3, lElementType).process(pContext);
+                    return pContext.types.create(PgslVectorType, 3, lElementType);
                 }
             };
 
@@ -187,10 +187,10 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                         { typeRestrictions: [`${PgslVectorType.typeName.vector3}<numeric>`] }
                     ],
                 ],
-                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BaseType>, pGeneric: BaseType | null) => {
+                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pGeneric: BasePgslType | null) => {
                     // Find inner type by generic or first concrete type.
-                    let lElementType: BaseType = pGeneric ?? pParameterList.find((pParam) => {
-                        return pParam.data.concrete;
+                    let lElementType: BasePgslType = pGeneric ?? pParameterList.find((pParam) => {
+                        return pParam.isKind(BasePgslTypeKind.Concrete);
                     }) ?? pParameterList[0];
 
                     // If element type is a vector, extract inner type.
@@ -198,7 +198,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                         lElementType = lElementType.innerType;
                     }
 
-                    return new PgslVectorType(4, lElementType).process(pContext);
+                    return pContext.types.create(PgslVectorType, 4, lElementType);
                 }
             };
 
@@ -215,10 +215,10 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     // Vectors
                     [{ typeRestrictions: [`${PgslVectorType.typeName.vector2}<numeric-float>`], count: { min: 2, max: 2 } }],
                 ],
-                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BaseType>, pGeneric: BaseType | null) => {
+                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pGeneric: BasePgslType | null) => {
                     // Find inner type by generic or first concrete type.
-                    let lElementType: BaseType = pGeneric ?? pParameterList.find((pParam) => {
-                        return pParam.data.concrete;
+                    let lElementType: BasePgslType = pGeneric ?? pParameterList.find((pParam) => {
+                        return pParam.isKind(BasePgslTypeKind.Concrete);
                     }) ?? pParameterList[0];
 
                     // If element type is a vector, extract inner type.
@@ -226,7 +226,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                         lElementType = lElementType.innerType;
                     }
 
-                    return new PgslMatrixType(2, 2, lElementType).process(pContext);
+                    return pContext.types.create(PgslMatrixType, 2, 2, lElementType);
                 }
             };
             case PgslMatrixType.typeName.matrix23: return {
@@ -241,10 +241,10 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     // Vectors
                     [{ typeRestrictions: [`${PgslVectorType.typeName.vector3}<numeric-float>`], count: { min: 2, max: 2 } }],
                 ],
-                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BaseType>, pGeneric: BaseType | null) => {
+                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pGeneric: BasePgslType | null) => {
                     // Find inner type by generic or first concrete type.
-                    let lElementType: BaseType = pGeneric ?? pParameterList.find((pParam) => {
-                        return pParam.data.concrete;
+                    let lElementType: BasePgslType = pGeneric ?? pParameterList.find((pParam) => {
+                        return pParam.isKind(BasePgslTypeKind.Concrete);
                     }) ?? pParameterList[0];
 
                     // If element type is a vector, extract inner type.
@@ -252,7 +252,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                         lElementType = lElementType.innerType;
                     }
 
-                    return new PgslMatrixType(2, 3, lElementType).process(pContext);
+                    return pContext.types.create(PgslMatrixType, 2, 3, lElementType);
                 }
             };
             case PgslMatrixType.typeName.matrix24: return {
@@ -267,10 +267,10 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     // Vectors
                     [{ typeRestrictions: [`${PgslVectorType.typeName.vector4}<numeric-float>`], count: { min: 2, max: 2 } }],
                 ],
-                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BaseType>, pGeneric: BaseType | null) => {
+                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pGeneric: BasePgslType | null) => {
                     // Find inner type by generic or first concrete type.
-                    let lElementType: BaseType = pGeneric ?? pParameterList.find((pParam) => {
-                        return pParam.data.concrete;
+                    let lElementType: BasePgslType = pGeneric ?? pParameterList.find((pParam) => {
+                        return pParam.isKind(BasePgslTypeKind.Concrete);
                     }) ?? pParameterList[0];
 
                     // If element type is a vector, extract inner type.
@@ -278,7 +278,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                         lElementType = lElementType.innerType;
                     }
 
-                    return new PgslMatrixType(2, 4, lElementType).process(pContext);
+                    return pContext.types.create(PgslMatrixType, 2, 4, lElementType);
                 }
             };
             case PgslMatrixType.typeName.matrix32: return {
@@ -293,10 +293,10 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     // Vectors
                     [{ typeRestrictions: [`${PgslVectorType.typeName.vector2}<numeric-float>`], count: { min: 3, max: 3 } }],
                 ],
-                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BaseType>, pGeneric: BaseType | null) => {
+                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pGeneric: BasePgslType | null) => {
                     // Find inner type by generic or first concrete type.
-                    let lElementType: BaseType = pGeneric ?? pParameterList.find((pParam) => {
-                        return pParam.data.concrete;
+                    let lElementType: BasePgslType = pGeneric ?? pParameterList.find((pParam) => {
+                        return pParam.isKind(BasePgslTypeKind.Concrete);
                     }) ?? pParameterList[0];
 
                     // If element type is a vector, extract inner type.
@@ -304,7 +304,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                         lElementType = lElementType.innerType;
                     }
 
-                    return new PgslMatrixType(3, 2, lElementType).process(pContext);
+                    return pContext.types.create(PgslMatrixType, 3, 2, lElementType);
                 }
             };
             case PgslMatrixType.typeName.matrix33: return {
@@ -319,10 +319,10 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     // Vectors
                     [{ typeRestrictions: [`${PgslVectorType.typeName.vector3}<numeric-float>`], count: { min: 3, max: 3 } }],
                 ],
-                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BaseType>, pGeneric: BaseType | null) => {
+                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pGeneric: BasePgslType | null) => {
                     // Find inner type by generic or first concrete type.
-                    let lElementType: BaseType = pGeneric ?? pParameterList.find((pParam) => {
-                        return pParam.data.concrete;
+                    let lElementType: BasePgslType = pGeneric ?? pParameterList.find((pParam) => {
+                        return pParam.isKind(BasePgslTypeKind.Concrete);
                     }) ?? pParameterList[0];
 
                     // If element type is a vector, extract inner type.
@@ -330,7 +330,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                         lElementType = lElementType.innerType;
                     }
 
-                    return new PgslMatrixType(3, 3, lElementType).process(pContext);
+                    return pContext.types.create(PgslMatrixType, 3, 3, lElementType);
                 }
             };
             case PgslMatrixType.typeName.matrix34: return {
@@ -345,10 +345,10 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     // Vectors
                     [{ typeRestrictions: [`${PgslVectorType.typeName.vector4}<numeric-float>`], count: { min: 3, max: 3 } }],
                 ],
-                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BaseType>, pGeneric: BaseType | null) => {
+                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pGeneric: BasePgslType | null) => {
                     // Find inner type by generic or first concrete type.
-                    let lElementType: BaseType = pGeneric ?? pParameterList.find((pParam) => {
-                        return pParam.data.concrete;
+                    let lElementType: BasePgslType = pGeneric ?? pParameterList.find((pParam) => {
+                        return pParam.isKind(BasePgslTypeKind.Concrete);
                     }) ?? pParameterList[0];
 
                     // If element type is a vector, extract inner type.
@@ -356,7 +356,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                         lElementType = lElementType.innerType;
                     }
 
-                    return new PgslMatrixType(3, 4, lElementType).process(pContext);
+                    return pContext.types.create(PgslMatrixType, 3, 4, lElementType);
                 }
             };
             case PgslMatrixType.typeName.matrix42: return {
@@ -371,10 +371,10 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     // Vectors
                     [{ typeRestrictions: [`${PgslVectorType.typeName.vector2}<numeric-float>`], count: { min: 4, max: 4 } }],
                 ],
-                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BaseType>, pGeneric: BaseType | null) => {
+                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pGeneric: BasePgslType | null) => {
                     // Find inner type by generic or first concrete type.
-                    let lElementType: BaseType = pGeneric ?? pParameterList.find((pParam) => {
-                        return pParam.data.concrete;
+                    let lElementType: BasePgslType = pGeneric ?? pParameterList.find((pParam) => {
+                        return pParam.isKind(BasePgslTypeKind.Concrete);
                     }) ?? pParameterList[0];
 
                     // If element type is a vector, extract inner type.
@@ -382,7 +382,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                         lElementType = lElementType.innerType;
                     }
 
-                    return new PgslMatrixType(4, 2, lElementType).process(pContext);
+                    return pContext.types.create(PgslMatrixType, 4, 2, lElementType);
                 }
             };
 
@@ -398,10 +398,10 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     // Vectors
                     [{ typeRestrictions: [`${PgslVectorType.typeName.vector3}<numeric-float>`], count: { min: 4, max: 4 } }],
                 ],
-                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BaseType>, pGeneric: BaseType | null) => {
+                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pGeneric: BasePgslType | null) => {
                     // Find inner type by generic or first concrete type.
-                    let lElementType: BaseType = pGeneric ?? pParameterList.find((pParam) => {
-                        return pParam.data.concrete;
+                    let lElementType: BasePgslType = pGeneric ?? pParameterList.find((pParam) => {
+                        return pParam.isKind(BasePgslTypeKind.Concrete);
                     }) ?? pParameterList[0];
 
                     // If element type is a vector, extract inner type.
@@ -409,7 +409,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                         lElementType = lElementType.innerType;
                     }
 
-                    return new PgslMatrixType(4, 3, lElementType).process(pContext);
+                    return pContext.types.create(PgslMatrixType, 4, 3, lElementType);
                 }
             };
             case PgslMatrixType.typeName.matrix44: return {
@@ -424,10 +424,10 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     // Vectors
                     [{ typeRestrictions: [`${PgslVectorType.typeName.vector4}<numeric-float>`], count: { min: 4, max: 4 } }],
                 ],
-                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BaseType>, pGeneric: BaseType | null) => {
+                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pGeneric: BasePgslType | null) => {
                     // Find inner type by generic or first concrete type.
-                    let lElementType: BaseType = pGeneric ?? pParameterList.find((pParam) => {
-                        return pParam.data.concrete;
+                    let lElementType: BasePgslType = pGeneric ?? pParameterList.find((pParam) => {
+                        return pParam.isKind(BasePgslTypeKind.Concrete);
                     }) ?? pParameterList[0];
 
                     // If element type is a vector, extract inner type.
@@ -435,7 +435,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                         lElementType = lElementType.innerType;
                     }
 
-                    return new PgslMatrixType(4, 4, lElementType).process(pContext);
+                    return pContext.types.create(PgslMatrixType, 4, 4, lElementType);
                 }
             };
 
@@ -446,7 +446,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     [{ typeRestrictions: [PgslBooleanType.typeName.boolean] }]
                 ],
                 returnType: (pContext: AbstractSyntaxTreeContext) => {
-                    return new PgslBooleanType().process(pContext);
+                    return pContext.types.create(PgslBooleanType);
                 }
             };
             case PgslNumericType.typeName.float16: return {
@@ -455,7 +455,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     [{ typeRestrictions: [PgslBooleanType.typeName.boolean] }]
                 ],
                 returnType: (pContext: AbstractSyntaxTreeContext) => {
-                    return new PgslNumericType(PgslNumericType.typeName.float16).process(pContext);
+                    return pContext.types.create(PgslNumericType, PgslNumericType.typeName.float16);
                 }
             };
             case PgslNumericType.typeName.float32: return {
@@ -464,7 +464,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     [{ typeRestrictions: [PgslBooleanType.typeName.boolean] }]
                 ],
                 returnType: (pContext: AbstractSyntaxTreeContext) => {
-                    return new PgslNumericType(PgslNumericType.typeName.float32).process(pContext);
+                    return pContext.types.create(PgslNumericType, PgslNumericType.typeName.float32);
                 }
             };
             case PgslNumericType.typeName.signedInteger: return {
@@ -473,7 +473,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     [{ typeRestrictions: [PgslBooleanType.typeName.boolean] }]
                 ],
                 returnType: (pContext: AbstractSyntaxTreeContext) => {
-                    return new PgslNumericType(PgslNumericType.typeName.signedInteger).process(pContext);
+                    return pContext.types.create(PgslNumericType, PgslNumericType.typeName.signedInteger);
                 }
             };
             case PgslNumericType.typeName.unsignedInteger: return {
@@ -482,7 +482,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     [{ typeRestrictions: [PgslBooleanType.typeName.boolean] }]
                 ],
                 returnType: (pContext: AbstractSyntaxTreeContext) => {
-                    return new PgslNumericType(PgslNumericType.typeName.unsignedInteger).process(pContext);
+                    return pContext.types.create(PgslNumericType, PgslNumericType.typeName.unsignedInteger);
                 }
             };
         }
@@ -519,7 +519,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
         });
 
         // Map only the parameter types for result type resolution.
-        const lParameterTypeList: Array<BaseType> = lParameterExpressionList.map((pParameterExpression) => {
+        const lParameterTypeList: Array<BasePgslType> = lParameterExpressionList.map((pParameterExpression) => {
             return pParameterExpression.data.resolveType;
         });
 
@@ -529,7 +529,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
         }
 
         // Build first generic type if available.
-        const lGenericType: BaseType | null = (() => {
+        const lGenericType: BasePgslType | null = (() => {
             if (this.cst.genericList.length > 0) {
                 return new TypeDeclarationAst(this.cst.genericList[0]).process(pContext).data.type;
             }
@@ -549,12 +549,12 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                 }
 
                 // Must be constructable.
-                if (!lParameterExpression.data.resolveType.data.constructible) {
+                if (!lParameterExpression.data.resolveType.isKind(BasePgslTypeKind.Constructible)) {
                     pContext.pushIncident(`New expression type must be constructible.`, this);
                 }
 
                 // Must be fixed.
-                if (!lParameterExpression.data.resolveType.data.fixedFootprint) {
+                if (!lParameterExpression.data.resolveType.isKind(BasePgslTypeKind.FixedFootprint)) {
                     pContext.pushIncident(`New expression type must be length fixed.`, this);
                 }
             }
@@ -603,7 +603,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                         }
 
                         // Get actual parameter type.
-                        const lActualType: BaseType = lParameterTypeList[lParameterIndex];
+                        const lActualType: BasePgslType = lParameterTypeList[lParameterIndex];
 
                         // Check type restrictions.
                         const lTypeMatched: boolean = (() => {
@@ -643,7 +643,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
         })();
 
         // Resolve result type.
-        const lResultType: BaseType = lCallDefinition.returnType(pContext, lParameterTypeList, lGenericType);
+        const lResultType: BasePgslType = lCallDefinition.returnType(pContext, lParameterTypeList, lGenericType);
 
         return {
             // Expression data.
@@ -662,7 +662,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
 type PgslNewExpressionCallDefinition = {
     generics?: Array<string>;
     parameters: Array<Array<PgslNewExpressionCallDefinitionParameter>>;
-    returnType: (pContext: AbstractSyntaxTreeContext, pParameterTypes: Array<BaseType>, pGeneric: BaseType | null) => BaseType;
+    returnType: (pContext: AbstractSyntaxTreeContext, pParameterTypes: Array<BasePgslType>, pGeneric: BasePgslType | null) => BasePgslType;
 };
 
 type PgslNewExpressionCallDefinitionParameter = {

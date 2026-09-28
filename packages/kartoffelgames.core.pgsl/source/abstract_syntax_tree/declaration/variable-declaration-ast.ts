@@ -84,7 +84,7 @@ export class VariableDeclarationAst extends BaseDeclarationAst<VariableDeclarati
         this.validateDeclaration(pContext, lAttributes, lDeclarationType, lType, lExpression);
 
         // Validate if expression fits declaration type.
-        if (lExpression && !lExpression.data.resolveType.isCastableInto(lType)) {
+        if (lExpression && lExpression.data.resolveType.conversionRankTo(lType) === Number.POSITIVE_INFINITY) {
             // Expression type is not castable into declaration type.
             pContext.pushIncident(`Initializing value has incompatible type.`, this);
         }

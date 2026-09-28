@@ -2,8 +2,8 @@ import { Exception } from '@kartoffelgames/core';
 import { StructDeclarationAst } from '../abstract_syntax_tree/declaration/struct-declaration-ast.ts';
 import type { VariableDeclarationAst } from '../abstract_syntax_tree/declaration/variable-declaration-ast.ts';
 import type { DocumentAst } from '../abstract_syntax_tree/document-ast.ts';
-import type { BaseType } from '../abstract_syntax_tree/type/base-type.ts';
-import { BasePgslTypeKind } from '../abstract_syntax_tree/type/base-pgsl-type.ts';
+import type { BasePgslType } from '../abstract_syntax_tree/type/definition/base-pgsl-type.ts';
+import { BasePgslTypeKind } from '../abstract_syntax_tree/type/definition/base-pgsl-type.ts';
 import { PgslArrayType } from '../abstract_syntax_tree/type/definition/pgsl-array-type.ts';
 import { PgslMatrixType } from '../abstract_syntax_tree/type/definition/pgsl-matrix-type.ts';
 import { PgslNumericType } from '../abstract_syntax_tree/type/definition/pgsl-numeric-type.ts';
@@ -11,19 +11,19 @@ import { PgslSamplerType } from '../abstract_syntax_tree/type/definition/pgsl-sa
 import { PgslStructType } from '../abstract_syntax_tree/type/definition/pgsl-struct-type.ts';
 import { PgslTextureType } from '../abstract_syntax_tree/type/definition/pgsl-texture-type.ts';
 import { PgslVectorType } from '../abstract_syntax_tree/type/definition/pgsl-vector-type.ts';
-import { PgslDeclarationType } from '../enum/pgsl-declaration-type.enum.ts';
-import type { TranspilationMeta, TranspilationMetaBinding } from '../transpilation/transpilation-meta.ts';
-import { PgslParserResultArrayType } from './type/definition/pgsl-parser-result-array-type.ts';
-import { PgslParserResultMatrixType } from './type/definition/pgsl-parser-result-matrix-type.ts';
-import { PgslParserResultNumericType } from './type/definition/pgsl-parser-result-numeric-type.ts';
-import { PgslParserResultSamplerType } from './type/definition/pgsl-parser-result-sampler-type.ts';
-import { type PgslParserResultStructProperty, PgslParserResultStructType } from './type/definition/pgsl-parser-result-struct-type.ts';
-import { type PgslParserResultTextureDimensionType, PgslParserResultTextureType } from './type/definition/pgsl-parser-result-texture-type.ts';
-import type { PgslParserResultType, PgslParserResultTypeAlignmentType } from './type/definition/pgsl-parser-result-type.ts';
-import { PgslParserResultVectorType } from './type/definition/pgsl-parser-result-vector-type.ts';
-import { PgslParserResultObject } from './pgsl-parser-result-object.ts';
 import { PgslAccessModeEnum } from '../buildin/enum/pgsl-access-mode-enum.ts';
 import { type PgslTexelFormat, PgslTexelFormatEnum } from '../buildin/enum/pgsl-texel-format-enum.ts';
+import { PgslDeclarationType } from '../enum/pgsl-declaration-type.enum.ts';
+import type { TranspilationMeta, TranspilationMetaBinding } from '../transpilation/transpilation-meta.ts';
+import { PgslParserResultObject } from './pgsl-parser-result-object.ts';
+import { PgslParserResultArrayType } from './type/pgsl-parser-result-array-type.ts';
+import { PgslParserResultMatrixType } from './type/pgsl-parser-result-matrix-type.ts';
+import { PgslParserResultNumericType } from './type/pgsl-parser-result-numeric-type.ts';
+import { PgslParserResultSamplerType } from './type/pgsl-parser-result-sampler-type.ts';
+import { type PgslParserResultStructProperty, PgslParserResultStructType } from './type/pgsl-parser-result-struct-type.ts';
+import { type PgslParserResultTextureDimensionType, PgslParserResultTextureType } from './type/pgsl-parser-result-texture-type.ts';
+import type { PgslParserResultType, PgslParserResultTypeAlignmentType } from './type/pgsl-parser-result-type.ts';
+import { PgslParserResultVectorType } from './type/pgsl-parser-result-vector-type.ts';
 
 /**
  * Represents a binding result from PGSL parser with type and location information.
@@ -36,7 +36,7 @@ export class PgslParserResultBinding extends PgslParserResultObject {
     private readonly mBindLocationName: string;
     private readonly mBindingType: PgslParserResultBindingType;
     private readonly mType: PgslParserResultType;
-    
+
     /**
      * Gets the access mode of the binding.
      */
@@ -115,7 +115,7 @@ export class PgslParserResultBinding extends PgslParserResultObject {
             }
         })();
 
-        this.mAccessMode = (()=>{
+        this.mAccessMode = (() => {
             switch (pValue.data.accessMode) {
                 case PgslAccessModeEnum.VALUES.Read: return 'read';
                 case PgslAccessModeEnum.VALUES.Write: return 'write';
@@ -152,7 +152,7 @@ export class PgslParserResultBinding extends PgslParserResultObject {
      *
      * @returns The parser result type.
      */
-    private convertType(pType: BaseType, pDocument: DocumentAst, pEnforceAlignmentType?: PgslParserResultTypeAlignmentType): PgslParserResultType {
+    private convertType(pType: BasePgslType, pDocument: DocumentAst, pEnforceAlignmentType?: PgslParserResultTypeAlignmentType): PgslParserResultType {
         // Convert binding type to alignment type.
         const lAlignmentType: PgslParserResultTypeAlignmentType = pEnforceAlignmentType ?? (() => {
             switch (this.mBindingType) {

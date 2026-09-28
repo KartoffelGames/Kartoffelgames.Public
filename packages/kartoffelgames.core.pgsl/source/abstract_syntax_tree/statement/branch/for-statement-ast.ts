@@ -39,7 +39,7 @@ export class ForStatementAst extends AbstractSyntaxTree<ForStatementCst, ForStat
                 lExpression = ExpressionAstBuilder.build(this.cst.expression).process(pContext);
 
                 // Expression must be a boolean.
-                if (!lExpression.data.resolveType.isCastableInto(new PgslBooleanType())) {
+                if (lExpression.data.resolveType.conversionRankTo(new PgslBooleanType()) === Number.POSITIVE_INFINITY) {
                     pContext.pushIncident('Expression of for loops must resolve into a boolean.', lExpression);
                 }
             }

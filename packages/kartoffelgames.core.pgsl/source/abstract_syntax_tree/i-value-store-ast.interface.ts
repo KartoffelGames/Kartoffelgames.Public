@@ -1,8 +1,8 @@
+import type { PgslAccessMode } from '../buildin/enum/pgsl-access-mode-enum.ts';
 import type { PgslDeclarationType } from '../enum/pgsl-declaration-type.enum.ts';
 import type { PgslValueAddressSpace } from '../enum/pgsl-value-address-space.enum.ts';
 import type { PgslValueFixedState } from '../enum/pgsl-value-fixed-state.ts';
-import type { PgslAccessMode } from '../buildin/enum/pgsl-access-mode-enum.ts';
-import type { BaseType } from './type/base-type.ts';
+import { BasePgslType } from "./type/definition/base-pgsl-type.ts";
 
 /**
  * Interface representing a value storage in the abstract syntax tree.
@@ -30,7 +30,7 @@ export type ValueStoreAstData = {
     /**
      * The type of the value
      */
-    type: BaseType;
+    type: BasePgslType;
 
     /**
      * The name of the value

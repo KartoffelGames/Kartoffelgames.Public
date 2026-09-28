@@ -88,8 +88,8 @@ export class EnumDeclarationAst extends BaseDeclarationAst<EnumDeclarationCst, E
             lPropertyList.set(lProperty.name, lExpressionAst);
 
             // Validate property type.
-            const lIsNumeric: boolean = lExpressionAst.data.resolveType.isCastableInto(new PgslNumericType(PgslNumericType.typeName.unsignedInteger));
-            const lIsString: boolean = lExpressionAst.data.resolveType.isCastableInto(new PgslStringType());
+            const lIsNumeric: boolean = lExpressionAst.data.resolveType.conversionRankTo(new PgslNumericType(PgslNumericType.typeName.unsignedInteger)) !== Number.POSITIVE_INFINITY;
+            const lIsString: boolean = lExpressionAst.data.resolveType.conversionRankTo(new PgslStringType()) !== Number.POSITIVE_INFINITY;
 
             // All values need to be string or integer.
             if (!lIsNumeric && !lIsString) {

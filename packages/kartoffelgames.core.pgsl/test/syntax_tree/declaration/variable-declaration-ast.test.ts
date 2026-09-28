@@ -17,14 +17,14 @@ import { PgslParser } from '../../../source/parser/pgsl-parser.ts';
 import type { PgslParserResultBinding } from '../../../source/parser_result/pgsl-parser-result-binding.ts';
 import type { PgslParserResultParameter } from '../../../source/parser_result/pgsl-parser-result-parameter.ts';
 import type { PgslParserResult } from '../../../source/parser_result/pgsl-parser-result.ts';
-import { PgslParserResultArrayType } from '../../../source/parser_result/type/definition/pgsl-parser-result-array-type.ts';
-import { PgslParserResultBooleanType } from '../../../source/parser_result/type/definition/pgsl-parser-result-boolean-type.ts';
-import { PgslParserResultMatrixType } from '../../../source/parser_result/type/definition/pgsl-parser-result-matrix-type.ts';
-import { PgslParserResultNumericType } from '../../../source/parser_result/type/definition/pgsl-parser-result-numeric-type.ts';
-import { PgslParserResultSamplerType } from '../../../source/parser_result/type/definition/pgsl-parser-result-sampler-type.ts';
-import { type PgslParserResultStructProperty, PgslParserResultStructType } from '../../../source/parser_result/type/definition/pgsl-parser-result-struct-type.ts';
-import { PgslParserResultTextureType } from '../../../source/parser_result/type/definition/pgsl-parser-result-texture-type.ts';
-import { PgslParserResultVectorType } from '../../../source/parser_result/type/definition/pgsl-parser-result-vector-type.ts';
+import { PgslParserResultArrayType } from '../../../source/parser_result/type/pgsl-parser-result-array-type.ts';
+import { PgslParserResultBooleanType } from '../../../source/parser_result/type/pgsl-parser-result-boolean-type.ts';
+import { PgslParserResultMatrixType } from '../../../source/parser_result/type/pgsl-parser-result-matrix-type.ts';
+import { PgslParserResultNumericType } from '../../../source/parser_result/type/pgsl-parser-result-numeric-type.ts';
+import { PgslParserResultSamplerType } from '../../../source/parser_result/type/pgsl-parser-result-sampler-type.ts';
+import { type PgslParserResultStructProperty, PgslParserResultStructType } from '../../../source/parser_result/type/pgsl-parser-result-struct-type.ts';
+import { PgslParserResultTextureType } from '../../../source/parser_result/type/pgsl-parser-result-texture-type.ts';
+import { PgslParserResultVectorType } from '../../../source/parser_result/type/pgsl-parser-result-vector-type.ts';
 import { WgslTranspiler } from '../../../source/transpilation/wgsl/wgsl-transpiler.ts';
 
 // Create parser instance.

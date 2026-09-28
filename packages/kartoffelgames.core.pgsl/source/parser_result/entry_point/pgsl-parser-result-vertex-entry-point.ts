@@ -7,9 +7,9 @@ import { PgslNumericType } from '../../abstract_syntax_tree/type/definition/pgsl
 import type { PgslStructType } from '../../abstract_syntax_tree/type/definition/pgsl-struct-type.ts';
 import { PgslVectorType } from '../../abstract_syntax_tree/type/definition/pgsl-vector-type.ts';
 import type { TranspilationMeta } from '../../transpilation/transpilation-meta.ts';
-import { PgslParserResultNumericType } from '../type/definition/pgsl-parser-result-numeric-type.ts';
-import type { PgslParserResultType } from '../type/definition/pgsl-parser-result-type.ts';
-import { PgslParserResultVectorType } from '../type/definition/pgsl-parser-result-vector-type.ts';
+import { PgslParserResultNumericType } from '../type/pgsl-parser-result-numeric-type.ts';
+import type { PgslParserResultType } from '../type/pgsl-parser-result-type.ts';
+import { PgslParserResultVectorType } from '../type/pgsl-parser-result-vector-type.ts';
 import { PgslParserResultEntryPoint } from './pgsl-parser-result-entry-point.ts';
 
 export class PgslParserResultVertexEntryPoint extends PgslParserResultEntryPoint {

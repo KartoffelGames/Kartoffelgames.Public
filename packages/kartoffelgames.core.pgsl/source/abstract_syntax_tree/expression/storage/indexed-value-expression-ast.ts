@@ -2,11 +2,11 @@ import type { IndexedValueExpressionCst } from '../../../concrete_syntax_tree/ex
 import { PgslValueFixedState } from '../../../enum/pgsl-value-fixed-state.ts';
 import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
-import { PgslArrayType } from '../../type/pgsl-array-type.ts';
-import { PgslMatrixType } from '../../type/pgsl-matrix-type.ts';
-import { PgslNumericType } from '../../type/pgsl-numeric-type.ts';
-import type { BaseType } from '../../type/base-type.ts';
-import { PgslVectorType } from '../../type/pgsl-vector-type.ts';
+import { BasePgslType, BasePgslTypeKind } from "../../type/definition/base-pgsl-type.ts";
+import { PgslArrayType } from '../../type/definition/pgsl-array-type.ts';
+import { PgslMatrixType } from '../../type/definition/pgsl-matrix-type.ts';
+import { PgslNumericType } from '../../type/definition/pgsl-numeric-type.ts';
+import { PgslVectorType } from '../../type/definition/pgsl-vector-type.ts';
 import { ExpressionAstBuilder } from '../expression-ast-builder.ts';
 import type { ExpressionAstData, IExpressionAst } from '../i-expression-ast.interface.ts';
 
@@ -25,12 +25,12 @@ export class IndexedValueExpressionAst extends AbstractSyntaxTree<IndexedValueEx
         const lIndex: IExpressionAst = ExpressionAstBuilder.build(this.cst.index).process(pContext);
 
         // Value needs to be indexable.
-        if (!lValue.data.resolveType.data.indexable) {
+        if (!lValue.data.resolveType.isKind(BasePgslTypeKind.Indexable)) {
             pContext.pushIncident('Value of index expression needs to be a indexable composite value.', this);
         }
 
         // Value needs to be a unsigned numeric value.
-        if (!lIndex.data.resolveType.isCastableInto(new PgslNumericType(PgslNumericType.typeName.unsignedInteger).process(pContext))) {
+        if (lIndex.data.resolveType.conversionRankTo(new PgslNumericType(PgslNumericType.typeName.unsignedInteger)) === Number.POSITIVE_INFINITY) {
             pContext.pushIncident('Index needs to be a unsigned numeric value.', this);
         }
 
@@ -39,7 +39,7 @@ export class IndexedValueExpressionAst extends AbstractSyntaxTree<IndexedValueEx
             pContext.pushIncident('Index needs to be a unsigned numeric value.', this);
         }
 
-        const lResolveType: BaseType = (() => {
+        const lResolveType: BasePgslType = (() => {
             switch (true) {
                 case lValue.data.resolveType instanceof PgslArrayType: {
                     return lValue.data.resolveType.innerType;

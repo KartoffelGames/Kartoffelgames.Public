@@ -1,5 +1,5 @@
-import { PgslNumericType, type PgslNumericTypeName } from '../../abstract_syntax_tree/type/pgsl-numeric-type.ts';
-import { PgslVectorType } from '../../abstract_syntax_tree/type/pgsl-vector-type.ts';
+import { PgslNumericType, type PgslNumericTypeName } from '../../abstract_syntax_tree/type/definition/pgsl-numeric-type.ts';
+import { PgslVectorType } from '../../abstract_syntax_tree/type/definition/pgsl-vector-type.ts';
 import type { StructDeclarationCst, StructPropertyDeclarationCst } from '../../concrete_syntax_tree/declaration.type.ts';
 import type { AttributeListCst, TypeDeclarationCst } from '../../concrete_syntax_tree/general.type.ts';
 

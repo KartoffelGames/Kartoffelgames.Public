@@ -4,8 +4,8 @@ import { PgslValueFixedState } from '../../../enum/pgsl-value-fixed-state.ts';
 import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
 import type { IValueStoreAst } from '../../i-value-store-ast.interface.ts';
-import { PgslEnumType } from '../../type/pgsl-enum-type.ts';
-import { PgslInvalidType } from '../../type/pgsl-invalid-type.ts';
+import { PgslEnumType } from '../../type/definition/pgsl-enum-type.ts';
+import { PgslInvalidType } from '../../type/definition/pgsl-invalid-type.ts';
 import type { ExpressionAstData, IExpressionAst } from '../i-expression-ast.interface.ts';
 
 /**
@@ -61,7 +61,7 @@ export class VariableNameExpressionAst extends AbstractSyntaxTree<VariableNameEx
             // Expression meta data.
             fixedState: PgslValueFixedState.Variable,
             isStorage: false,
-            resolveType: new PgslInvalidType().process(pContext),
+            resolveType: new PgslInvalidType(),
             constantValue: null,
             storageAddressSpace: PgslValueAddressSpace.Function
         };

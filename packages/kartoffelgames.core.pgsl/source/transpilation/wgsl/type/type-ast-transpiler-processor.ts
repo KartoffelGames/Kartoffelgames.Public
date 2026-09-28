@@ -1,19 +1,19 @@
 import { Exception } from '@kartoffelgames/core';
 import type { IAnyParameterConstructor } from '../../../../../kartoffelgames.core/source/interface/i-constructor.ts';
-import type { BaseType } from '../../../abstract_syntax_tree/type/base-type.ts';
-import { PgslArrayType } from '../../../abstract_syntax_tree/type/pgsl-array-type.ts';
-import { PgslBooleanType } from '../../../abstract_syntax_tree/type/pgsl-boolean-type.ts';
-import { PgslBuildInType } from '../../../abstract_syntax_tree/type/pgsl-build-in-type.ts';
-import { PgslInvalidType } from '../../../abstract_syntax_tree/type/pgsl-invalid-type.ts';
-import { PgslMatrixType } from '../../../abstract_syntax_tree/type/pgsl-matrix-type.ts';
-import { PgslNumericType } from '../../../abstract_syntax_tree/type/pgsl-numeric-type.ts';
-import { PgslPointerType } from '../../../abstract_syntax_tree/type/pgsl-pointer-type.ts';
-import { PgslSamplerType } from '../../../abstract_syntax_tree/type/pgsl-sampler-type.ts';
-import { PgslStringType } from '../../../abstract_syntax_tree/type/pgsl-string-type.ts';
-import { PgslStructType } from '../../../abstract_syntax_tree/type/pgsl-struct-type.ts';
-import { PgslTextureType, type PgslTextureTypeName, type PgslTextureTypeStorage } from '../../../abstract_syntax_tree/type/pgsl-texture-type.ts';
-import { PgslVectorType } from '../../../abstract_syntax_tree/type/pgsl-vector-type.ts';
-import { PgslVoidType } from '../../../abstract_syntax_tree/type/pgsl-void-type.ts';
+import { BasePgslType, BasePgslTypeKind } from "../../../abstract_syntax_tree/type/definition/base-pgsl-type.ts";
+import { PgslArrayType } from '../../../abstract_syntax_tree/type/definition/pgsl-array-type.ts';
+import { PgslBooleanType } from '../../../abstract_syntax_tree/type/definition/pgsl-boolean-type.ts';
+import { PgslBuildInType } from '../../../abstract_syntax_tree/type/definition/pgsl-build-in-type.ts';
+import { PgslInvalidType } from '../../../abstract_syntax_tree/type/definition/pgsl-invalid-type.ts';
+import { PgslMatrixType } from '../../../abstract_syntax_tree/type/definition/pgsl-matrix-type.ts';
+import { PgslNumericType } from '../../../abstract_syntax_tree/type/definition/pgsl-numeric-type.ts';
+import { PgslPointerType } from '../../../abstract_syntax_tree/type/definition/pgsl-pointer-type.ts';
+import { PgslSamplerType } from '../../../abstract_syntax_tree/type/definition/pgsl-sampler-type.ts';
+import { PgslStringType } from '../../../abstract_syntax_tree/type/definition/pgsl-string-type.ts';
+import { PgslStructType } from '../../../abstract_syntax_tree/type/definition/pgsl-struct-type.ts';
+import { PgslTextureType, type PgslTextureTypeName, type PgslTextureTypeStorage } from '../../../abstract_syntax_tree/type/definition/pgsl-texture-type.ts';
+import { PgslVectorType } from '../../../abstract_syntax_tree/type/definition/pgsl-vector-type.ts';
+import { PgslVoidType } from '../../../abstract_syntax_tree/type/definition/pgsl-void-type.ts';
 import { PgslAccessModeEnum } from '../../../buildin/enum/pgsl-access-mode-enum.ts';
 import { PgslTexelFormatEnum } from '../../../buildin/enum/pgsl-texel-format-enum.ts';
 import { PgslValueAddressSpace } from '../../../enum/pgsl-value-address-space.enum.ts';
@@ -22,16 +22,16 @@ import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../
 /**
  * Function type for transpiling PGSL types to WGSL.
  */
-export class TypeAstTranspilerProcessor implements ITranspilerProcessor<BaseType> {
+export class TypeAstTranspilerProcessor implements ITranspilerProcessor<BasePgslType> {
     /**
      * Map of PGSL type constructors to their WGSL transpilation functions.
      */
-    private readonly mTypeTranspilers: Map<IAnyParameterConstructor<BaseType>, TypeAstTranspilerProcessorFunction<any>>;
+    private readonly mTypeTranspilers: Map<IAnyParameterConstructor<BasePgslType>, TypeAstTranspilerProcessorFunction<any>>;
 
     /**
      * Gets the target type that this processor handles.
      */
-    public get target(): Array<IAnyParameterConstructor<BaseType>> {
+    public get target(): Array<IAnyParameterConstructor<BasePgslType>> {
         return [
             PgslArrayType,
             PgslBooleanType,
@@ -53,7 +53,7 @@ export class TypeAstTranspilerProcessor implements ITranspilerProcessor<BaseType
      * Creates a new type definition transpiler processor.
      */
     public constructor() {
-        this.mTypeTranspilers = new Map<IAnyParameterConstructor<BaseType>, TypeAstTranspilerProcessorFunction<BaseType>>();
+        this.mTypeTranspilers = new Map<IAnyParameterConstructor<BasePgslType>, TypeAstTranspilerProcessorFunction<BasePgslType>>();
 
         // Register all type transpilers.
         this.mTypeTranspilers.set(PgslBooleanType, this.transpileBooleanType);
@@ -81,7 +81,7 @@ export class TypeAstTranspilerProcessor implements ITranspilerProcessor<BaseType
      * 
      * @returns The transpiled WGSL type string.
      */
-    public process(pInstance: BaseType, pTranspile: PgslTranspilerProcessorTranspile): string {
+    public process(pInstance: BasePgslType, pTranspile: PgslTranspilerProcessorTranspile): string {
         return this.processType(pInstance, pTranspile);
     }
 
@@ -93,9 +93,9 @@ export class TypeAstTranspilerProcessor implements ITranspilerProcessor<BaseType
      * 
      * @returns The transpiled WGSL type string.
      */
-    private processType(pType: BaseType, pTranspile: PgslTranspilerProcessorTranspile): string {
+    private processType(pType: BasePgslType, pTranspile: PgslTranspilerProcessorTranspile): string {
         // Get the appropriate transpiler for the type.
-        const lTranspiler = this.mTypeTranspilers.get(pType.constructor as IAnyParameterConstructor<BaseType>);
+        const lTranspiler = this.mTypeTranspilers.get(pType.constructor as IAnyParameterConstructor<BasePgslType>);
         if (!lTranspiler) {
             throw new Error(`No transpilation processor found for type of type '${pType.constructor.name}'.`);
         }
@@ -114,7 +114,7 @@ export class TypeAstTranspilerProcessor implements ITranspilerProcessor<BaseType
      */
     private transpileArrayType(pType: PgslArrayType, pTranspile: PgslTranspilerProcessorTranspile): string {
         // None concrete inner types are expressed as an unknown array.
-        if (!pType.innerType.data.concrete) {
+        if (!pType.innerType.isKind(BasePgslTypeKind.Concrete)) {
             return `array`;
         }
 
@@ -160,7 +160,7 @@ export class TypeAstTranspilerProcessor implements ITranspilerProcessor<BaseType
      * 
      * @throws {Exception} Invalid types cannot be transpiled.
      */
-    private transpileInvalidType(_pType: BaseType, _pTranspile: PgslTranspilerProcessorTranspile): string {
+    private transpileInvalidType(_pType: BasePgslType, _pTranspile: PgslTranspilerProcessorTranspile): string {
         throw new Exception('Invalid type encountered during transpilation', this);
     }
 
@@ -176,7 +176,7 @@ export class TypeAstTranspilerProcessor implements ITranspilerProcessor<BaseType
         const lMatrixTypename: string = `mat${pType.columnCount}x${pType.rowCount}`;
 
         // None concrete inner types are expressed as unknown matrices.
-        if (!pType.data.concrete) {
+        if (!pType.isKind(BasePgslTypeKind.Concrete)) {
             return lMatrixTypename;
         }
 
@@ -395,7 +395,7 @@ export class TypeAstTranspilerProcessor implements ITranspilerProcessor<BaseType
         const lVectorTypename: string = `vec${pType.dimension}`;
 
         // None concrete inner types are expressed as unknown matrices.
-        if (!pType.data.concrete) {
+        if (!pType.isKind(BasePgslTypeKind.Concrete)) {
             return lVectorTypename;
         }
 
@@ -413,4 +413,4 @@ export class TypeAstTranspilerProcessor implements ITranspilerProcessor<BaseType
  * 
  * @returns The transpiled WGSL type string.
  */
-type TypeAstTranspilerProcessorFunction<TType extends BaseType> = (pType: TType, pTranspile: PgslTranspilerProcessorTranspile) => string;
+type TypeAstTranspilerProcessorFunction<TType extends BasePgslType> = (pType: TType, pTranspile: PgslTranspilerProcessorTranspile) => string;

@@ -1,11 +1,11 @@
-import { PgslValueFixedState } from '../../../enum/pgsl-value-fixed-state.ts';
 import type { SwitchStatementCst } from '../../../concrete_syntax_tree/statement.type.ts';
-import { PgslNumericType } from '../../type/pgsl-numeric-type.ts';
-import type { BaseType } from '../../type/base-type.ts';
+import { PgslValueFixedState } from '../../../enum/pgsl-value-fixed-state.ts';
 import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
 import { ExpressionAstBuilder } from '../../expression/expression-ast-builder.ts';
 import type { IExpressionAst } from '../../expression/i-expression-ast.interface.ts';
+import { BasePgslType } from "../../type/definition/base-pgsl-type.ts";
+import { PgslNumericType } from '../../type/definition/pgsl-numeric-type.ts';
 import { BlockStatementAst } from '../execution/block-statement-ast.ts';
 import type { IStatementAst, StatementAstData } from '../i-statement-ast.interface.ts';
 
@@ -27,10 +27,10 @@ export class SwitchStatementAst extends AbstractSyntaxTree<SwitchStatementCst, S
 
         // Trace block in switch scope
         return pContext.pushScope('switch', () => {
-            const lCastableIntoInteger = (pType: BaseType) => {
-                const lSignedIntegerType = new PgslNumericType(PgslNumericType.typeName.signedInteger).process(pContext);
-                const lUnsignedIntegerType = new PgslNumericType( PgslNumericType.typeName.unsignedInteger).process(pContext);
-                return pType.isCastableInto(lSignedIntegerType) || pType.isCastableInto(lUnsignedIntegerType);
+            const lCastableIntoInteger = (pType: BasePgslType) => {
+                const lSignedIntegerType = new PgslNumericType(PgslNumericType.typeName.signedInteger);
+                const lUnsignedIntegerType = new PgslNumericType(PgslNumericType.typeName.unsignedInteger);
+                return pType.conversionRankTo(lSignedIntegerType) !== Number.POSITIVE_INFINITY || pType.conversionRankTo(lUnsignedIntegerType) !== Number.POSITIVE_INFINITY;
             };
 
             // Expression resolve type must be a unsigned integer.

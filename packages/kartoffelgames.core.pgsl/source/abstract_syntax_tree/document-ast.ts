@@ -1,8 +1,8 @@
 import type { DocumentCst } from '../concrete_syntax_tree/general.type.ts';
 import type { AbstractSyntaxTreeContext, AbstractSyntaxTreeIncident, AbstractSyntaxTreeSymbolUsageName } from './abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from './abstract-syntax-tree.ts';
+import type { BaseDeclarationAst } from './declaration/base-declaration-ast.ts';
 import { DeclarationAstBuilder } from './declaration/declaration-ast-builder.ts';
-import type { IDeclarationAst } from './declaration/base-declaration-ast.ts';
 
 export class DocumentAst extends AbstractSyntaxTree<DocumentCst, DocumentAstData> {
     /**
@@ -19,7 +19,7 @@ export class DocumentAst extends AbstractSyntaxTree<DocumentCst, DocumentAstData
         // Prepare data containers.
         const lDocumentData = {
             incidents: new Array<AbstractSyntaxTreeIncident>(),
-            content: new Array<IDeclarationAst>(),
+            content: new Array<BaseDeclarationAst>(),
             symbolUsages: new Set<AbstractSyntaxTreeSymbolUsageName>(),
             metaValues: new Map<string, string>(this.cst.metaValues)
         };
@@ -59,7 +59,7 @@ export class DocumentAst extends AbstractSyntaxTree<DocumentCst, DocumentAstData
 
 type DocumentAstData = {
     incidents: ReadonlyArray<AbstractSyntaxTreeIncident>;
-    content: ReadonlyArray<IDeclarationAst>;
+    content: ReadonlyArray<BaseDeclarationAst>;
     symbolUsages: Set<AbstractSyntaxTreeSymbolUsageName>;
     metaValues: Map<string, string>;
 };

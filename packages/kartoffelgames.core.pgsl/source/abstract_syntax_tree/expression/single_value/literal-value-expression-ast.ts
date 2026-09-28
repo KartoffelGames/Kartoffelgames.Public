@@ -3,10 +3,10 @@ import { PgslValueAddressSpace } from '../../../enum/pgsl-value-address-space.en
 import { PgslValueFixedState } from '../../../enum/pgsl-value-fixed-state.ts';
 import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
-import { PgslBooleanType } from '../../type/pgsl-boolean-type.ts';
-import { PgslInvalidType } from '../../type/pgsl-invalid-type.ts';
-import { PgslNumericType, type PgslNumericTypeName } from '../../type/pgsl-numeric-type.ts';
-import type { BaseType } from '../../type/base-type.ts';
+import { BasePgslType } from "../../type/definition/base-pgsl-type.ts";
+import { PgslBooleanType } from '../../type/definition/pgsl-boolean-type.ts';
+import { PgslInvalidType } from '../../type/definition/pgsl-invalid-type.ts';
+import { PgslNumericType, type PgslNumericTypeName } from '../../type/definition/pgsl-numeric-type.ts';
 import type { ExpressionAstData, IExpressionAst } from '../i-expression-ast.interface.ts';
 
 /**
@@ -25,7 +25,7 @@ export class LiteralValueExpressionAst extends AbstractSyntaxTree<LiteralValueEx
         return {
             // Expression data.
             textValue: this.cst.textValue,
-            
+
             // Expression meta data.
             fixedState: PgslValueFixedState.Constant,
             isStorage: false,
@@ -44,13 +44,13 @@ export class LiteralValueExpressionAst extends AbstractSyntaxTree<LiteralValueEx
      * @throws {@link Exception}
      * When a unsupported type should be set or the {@link pTextValue} value does not fit the {@link pType}.
      */
-    private convertData(pContext: AbstractSyntaxTreeContext, pTextValue: string): [BaseType, number] {
+    private convertData(pContext: AbstractSyntaxTreeContext, pTextValue: string): [BasePgslType, number] {
         // Might be a boolean
         if (pTextValue === 'true') {
-            return [new PgslBooleanType().process(pContext), 1];
+            return [new PgslBooleanType(), 1];
         }
         if (pTextValue === 'false') {
-            return [new PgslBooleanType().process(pContext), 0];
+            return [new PgslBooleanType(), 0];
         }
 
         // Might be a integer.
@@ -76,7 +76,7 @@ export class LiteralValueExpressionAst extends AbstractSyntaxTree<LiteralValueEx
                 }
             }
 
-            return [new PgslNumericType(lSuffixType).process(pContext), lNumber];
+            return [new PgslNumericType(lSuffixType), lNumber];
         }
 
         // Might be a float.
@@ -122,12 +122,12 @@ export class LiteralValueExpressionAst extends AbstractSyntaxTree<LiteralValueEx
                 }
             }
 
-            return [new PgslNumericType(lSuffixType).process(pContext), lNumber];
+            return [new PgslNumericType(lSuffixType), lNumber];
         }
 
         pContext.pushIncident(`No matching Type for literal "${pTextValue}".`, this);
 
-        return [new PgslInvalidType().process(pContext), 0];
+        return [new PgslInvalidType(), 0];
     }
 }
 

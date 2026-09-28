@@ -1,12 +1,12 @@
 import { Exception } from '@kartoffelgames/core';
 import type { VariableDeclarationAst } from '../abstract_syntax_tree/declaration/variable-declaration-ast.ts';
-import { PgslBooleanType } from '../abstract_syntax_tree/type/pgsl-boolean-type.ts';
-import { PgslNumericType } from '../abstract_syntax_tree/type/pgsl-numeric-type.ts';
-import type { BaseType } from '../abstract_syntax_tree/type/base-type.ts';
+import type { BasePgslType } from '../abstract_syntax_tree/type/definition/base-pgsl-type.ts';
+import { PgslBooleanType } from '../abstract_syntax_tree/type/definition/pgsl-boolean-type.ts';
+import { PgslNumericType } from '../abstract_syntax_tree/type/definition/pgsl-numeric-type.ts';
+import { PgslParserResultObject } from './pgsl-parser-result-object.ts';
 import { PgslParserResultBooleanType } from './type/pgsl-parser-result-boolean-type.ts';
 import { PgslParserResultNumericType } from './type/pgsl-parser-result-numeric-type.ts';
 import type { PgslParserResultType } from './type/pgsl-parser-result-type.ts';
-import { PgslParserResultObject } from './pgsl-parser-result-object.ts';
 
 /**
  * Represents a parameter result from PGSL parser with name and type information.
@@ -52,7 +52,7 @@ export class PgslParserResultParameter extends PgslParserResultObject {
      *
      * @returns The converted PgslParserResultType.
      */
-    private convertType(pType: BaseType): PgslParserResultType {
+    private convertType(pType: BasePgslType): PgslParserResultType {
         // Handle numeric types
         const lType = (() => {
             if (pType instanceof PgslNumericType) {

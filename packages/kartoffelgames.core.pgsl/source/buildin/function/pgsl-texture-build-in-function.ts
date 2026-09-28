@@ -1,9 +1,9 @@
-import { PgslNumericType, type PgslNumericTypeName } from '../../abstract_syntax_tree/type/pgsl-numeric-type.ts';
-import { PgslSamplerType, type PgslSamplerTypeName } from '../../abstract_syntax_tree/type/pgsl-sampler-type.ts';
-import { PgslTextureType } from '../../abstract_syntax_tree/type/pgsl-texture-type.ts';
-import { PgslVectorType } from '../../abstract_syntax_tree/type/pgsl-vector-type.ts';
-import { PgslVoidType } from '../../abstract_syntax_tree/type/pgsl-void-type.ts';
-import type { FunctionDeclarationCst, FunctionDeclarationGenericCst, FunctionDeclarationHeaderCst, FunctionDeclarationParameterCst } from '../../concrete_syntax_tree/declaration.type.ts';
+import { PgslNumericType, type PgslNumericTypeName } from '../../abstract_syntax_tree/type/definition/pgsl-numeric-type.ts';
+import { PgslSamplerType, type PgslSamplerTypeName } from '../../abstract_syntax_tree/type/definition/pgsl-sampler-type.ts';
+import { PgslTextureType } from '../../abstract_syntax_tree/type/definition/pgsl-texture-type.ts';
+import { PgslVectorType } from '../../abstract_syntax_tree/type/definition/pgsl-vector-type.ts';
+import { PgslVoidType } from '../../abstract_syntax_tree/type/definition/pgsl-void-type.ts';
+import type { FunctionDeclarationCst, FunctionDeclarationGenericCst, FunctionOverloadDeclarationCst, FunctionDeclarationParameterCst } from '../../concrete_syntax_tree/declaration.type.ts';
 import type { AttributeListCst, TypeDeclarationCst } from '../../concrete_syntax_tree/general.type.ts';
 import type { BlockStatementCst } from '../../concrete_syntax_tree/statement.type.ts';
 import { type PgslTexelFormat, PgslTexelFormatEnum } from '../enum/pgsl-texel-format-enum.ts';
@@ -1109,7 +1109,7 @@ export class PgslTextureBuildInFunction {
      * 
      * @returns cst function declaration.
      */
-    private static create(pName: string, pImplicitGenerics: boolean, pConstant: boolean, pDeclarations: Array<FunctionDeclarationHeaderCst>): FunctionDeclarationCst {
+    private static create(pName: string, pImplicitGenerics: boolean, pConstant: boolean, pDeclarations: Array<FunctionOverloadDeclarationCst>): FunctionDeclarationCst {
         return {
             type: 'FunctionDeclaration',
             isConstant: pConstant,
@@ -1130,7 +1130,7 @@ export class PgslTextureBuildInFunction {
      * 
      * @returns cst function declaration header.
      */
-    private static header(pGenerics: PgslTextureBuildInFunctionGenericList, pParameter: PgslTextureBuildInFunctionParameterList, pReturnType: TypeDeclarationCst | string): FunctionDeclarationHeaderCst {
+    private static header(pGenerics: PgslTextureBuildInFunctionGenericList, pParameter: PgslTextureBuildInFunctionParameterList, pReturnType: TypeDeclarationCst | string): FunctionOverloadDeclarationCst {
         const lEmptyBlock: BlockStatementCst = {
             type: 'BlockStatement',
             statements: [],
@@ -1168,7 +1168,7 @@ export class PgslTextureBuildInFunction {
         }
 
         return {
-            type: 'FunctionDeclarationHeader',
+            type: 'FunctionOverloadDeclaration',
             buildIn: true,
             range: [0, 0, 0, 0],
             block: lEmptyBlock,

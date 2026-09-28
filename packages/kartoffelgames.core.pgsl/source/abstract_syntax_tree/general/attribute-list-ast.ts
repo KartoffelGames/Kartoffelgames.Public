@@ -7,16 +7,16 @@ import type { AttributeListCst } from '../../concrete_syntax_tree/general.type.t
 import { PgslValueFixedState } from '../../enum/pgsl-value-fixed-state.ts';
 import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree, type AbstractSyntaxTreeConstructor } from '../abstract-syntax-tree.ts';
+import { BaseDeclarationAst } from "../declaration/base-declaration-ast.ts";
 import { FunctionDeclarationAst } from '../declaration/function-declaration-ast.ts';
-import type { IDeclarationAst } from '../declaration/base-declaration-ast.ts';
 import { StructPropertyDeclarationAst } from '../declaration/struct-property-declaration-ast.ts';
 import { VariableDeclarationAst } from '../declaration/variable-declaration-ast.ts';
 import { ExpressionAstBuilder } from '../expression/expression-ast-builder.ts';
 import type { IExpressionAst } from '../expression/i-expression-ast.interface.ts';
 import { StringValueExpressionAst } from '../expression/single_value/string-value-expression-ast.ts';
-import type { BaseType } from '../type/base-type.ts';
-import { PgslNumericType, type PgslNumericTypeName } from '../type/pgsl-numeric-type.ts';
-import { PgslStringType } from '../type/pgsl-string-type.ts';
+import { BasePgslType } from "../type/definition/base-pgsl-type.ts";
+import { PgslNumericType, type PgslNumericTypeName } from '../type/definition/pgsl-numeric-type.ts';
+import { PgslStringType } from '../type/definition/pgsl-string-type.ts';
 
 /**
  * Generic attribute list.
@@ -56,7 +56,7 @@ export class AttributeListAst extends AbstractSyntaxTree<AttributeListCst, Attri
         return AttributeListAst.mValidAttributes;
     }
 
-    private readonly mAttachedDeclaration: IDeclarationAst | null;
+    private readonly mAttachedDeclaration: BaseDeclarationAst | null;
 
     /**
      * Constructor.
@@ -64,7 +64,7 @@ export class AttributeListAst extends AbstractSyntaxTree<AttributeListCst, Attri
      * @param pMeta - Syntax tree meta data.
      * @param pAttributes - Attribute list.
      */
-    public constructor(pCst: AttributeListCst, pAttachedDeclaration: IDeclarationAst) {
+    public constructor(pCst: AttributeListCst, pAttachedDeclaration: BaseDeclarationAst) {
         super(pCst);
 
         // Init empty attribute list.
@@ -156,14 +156,14 @@ export class AttributeListAst extends AbstractSyntaxTree<AttributeListCst, Attri
             }
 
             // Create parameter ASTs and append with the attribute name.
-            const lValidatedParameters :Array<IExpressionAst> = this.validateParameter(pContext, lAttributeCst.name, lAttributeCst.parameters, lParameterDefinition);
+            const lValidatedParameters: Array<IExpressionAst> = this.validateParameter(pContext, lAttributeCst.name, lAttributeCst.parameters, lParameterDefinition);
 
             if (lAttributeCst.name === AttributeListAst.attributeNames.meta) {
                 // Skip any metadata when parameter count is not 2 (two strings) or parameters are invalid.
-                if (lValidatedParameters.length !== 2 ) { 
+                if (lValidatedParameters.length !== 2) {
                     continue;
                 }
-                if(!(lValidatedParameters[0] instanceof StringValueExpressionAst) || !(lValidatedParameters[1] instanceof StringValueExpressionAst)) {
+                if (!(lValidatedParameters[0] instanceof StringValueExpressionAst) || !(lValidatedParameters[1] instanceof StringValueExpressionAst)) {
                     continue;
                 }
 
@@ -293,7 +293,7 @@ export class AttributeListAst extends AbstractSyntaxTree<AttributeListCst, Attri
             lValidatedParameters.push(lAttributeParameterAst);
 
             // Read and get the actual attribute parameter.
-            const lActualAttributeParameterType: BaseType = lAttributeParameterAst.data.resolveType;
+            const lActualAttributeParameterType: BasePgslType = lAttributeParameterAst.data.resolveType;
 
             // Validate based on expected template type.
             if ('values' in lExpectedTemplateType) { // String or enum.
@@ -327,7 +327,7 @@ export class AttributeListAst extends AbstractSyntaxTree<AttributeListCst, Attri
                 }
 
                 // Check if parameter type matches expected type.
-                if (!lActualAttributeParameterType.isCastableInto(new PgslNumericType(lExpectedTemplateType.type).process(pContext))) {
+                if (lActualAttributeParameterType.conversionRankTo(new PgslNumericType(lExpectedTemplateType.type)) === Number.POSITIVE_INFINITY) {
                     pContext.pushIncident(`Attribute "${pAttributeName}" parameter ${lIndex} must be of type ${lExpectedTemplateType.type}.`, lAttributeParameterAst);
                 }
 

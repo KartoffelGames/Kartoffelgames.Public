@@ -1,9 +1,9 @@
 import type { IfStatementCst } from '../../../concrete_syntax_tree/statement.type.ts';
-import { PgslBooleanType } from '../../type/pgsl-boolean-type.ts';
 import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
 import { ExpressionAstBuilder } from '../../expression/expression-ast-builder.ts';
 import type { IExpressionAst } from '../../expression/i-expression-ast.interface.ts';
+import { PgslBooleanType } from '../../type/definition/pgsl-boolean-type.ts';
 import { BlockStatementAst } from '../execution/block-statement-ast.ts';
 import type { IStatementAst, StatementAstData } from '../i-statement-ast.interface.ts';
 
@@ -38,7 +38,7 @@ export class IfStatementAst extends AbstractSyntaxTree<IfStatementCst, IfStateme
         }
 
         // Expression must be a boolean.
-        if (!lExpression.data.resolveType.isCastableInto(new PgslBooleanType().process(pContext))) {
+        if (!lExpression.data.resolveType.isCastableInto(new PgslBooleanType())) {
             pContext.pushIncident('Expression of if must resolve into a boolean.', lExpression);
         }
 

@@ -1,15 +1,15 @@
 import { Exception } from '../../../../kartoffelgames.core/source/exception/exception.ts';
-import type { FunctionDeclarationAstDataDeclaration } from '../../abstract_syntax_tree/declaration/function-declaration-ast.ts';
+import { FunctionOverloadDeclarationAst } from "../../abstract_syntax_tree/declaration/function-overload-declaration-ast.ts";
 import { StructDeclarationAst } from '../../abstract_syntax_tree/declaration/struct-declaration-ast.ts';
 import type { DocumentAst } from '../../abstract_syntax_tree/document-ast.ts';
-import type { BaseType } from '../../abstract_syntax_tree/type/base-type.ts';
-import { PgslNumericType } from '../../abstract_syntax_tree/type/pgsl-numeric-type.ts';
-import type { PgslStructType } from '../../abstract_syntax_tree/type/pgsl-struct-type.ts';
-import { PgslVectorType } from '../../abstract_syntax_tree/type/pgsl-vector-type.ts';
+import type { BasePgslType } from '../../abstract_syntax_tree/type/definition/base-pgsl-type.ts';
+import { PgslNumericType } from '../../abstract_syntax_tree/type/definition/pgsl-numeric-type.ts';
+import type { PgslStructType } from '../../abstract_syntax_tree/type/definition/pgsl-struct-type.ts';
+import { PgslVectorType } from '../../abstract_syntax_tree/type/definition/pgsl-vector-type.ts';
 import type { TranspilationMeta } from '../../transpilation/transpilation-meta.ts';
-import { PgslParserResultNumericType } from '../type/pgsl-parser-result-numeric-type.ts';
-import type { PgslParserResultType } from '../type/pgsl-parser-result-type.ts';
-import { PgslParserResultVectorType } from '../type/pgsl-parser-result-vector-type.ts';
+import { PgslParserResultNumericType } from '../type/definition/pgsl-parser-result-numeric-type.ts';
+import type { PgslParserResultType } from '../type/definition/pgsl-parser-result-type.ts';
+import { PgslParserResultVectorType } from '../type/definition/pgsl-parser-result-vector-type.ts';
 import { PgslParserResultEntryPoint } from './pgsl-parser-result-entry-point.ts';
 
 export class PgslParserResultVertexEntryPoint extends PgslParserResultEntryPoint {
@@ -28,7 +28,7 @@ export class PgslParserResultVertexEntryPoint extends PgslParserResultEntryPoint
      * @param pFunctionDeclaration - The function declaration AST containing entry point information.
      * @param pParameters - Vertex parameter struct.
      */
-    public constructor(pFunctionDeclaration: FunctionDeclarationAstDataDeclaration, pParameters: PgslStructType, pDocument: DocumentAst, pMeta: TranspilationMeta) {
+    public constructor(pFunctionDeclaration: FunctionOverloadDeclarationAst, pParameters: PgslStructType, pDocument: DocumentAst, pMeta: TranspilationMeta) {
         super('vertex', pFunctionDeclaration);
 
         this.mParameters = this.convertParameters(pParameters, pDocument, pMeta);
@@ -92,7 +92,7 @@ export class PgslParserResultVertexEntryPoint extends PgslParserResultEntryPoint
      *
      * @returns The parser result type.
      */
-    private convertType(pType: BaseType): PgslParserResultType {
+    private convertType(pType: BasePgslType): PgslParserResultType {
         const lType: PgslParserResultType = (() => {
             switch (true) {
                 // Numeric types.

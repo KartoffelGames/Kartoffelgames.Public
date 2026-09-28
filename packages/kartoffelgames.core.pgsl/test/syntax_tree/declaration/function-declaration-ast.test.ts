@@ -1,21 +1,22 @@
 import { expect } from '@kartoffelgames/core-test';
-import { FunctionDeclarationAst, type FunctionDeclarationAstDataEntryPointWorkgroupSize } from '../../../source/abstract_syntax_tree/declaration/function-declaration-ast.ts';
+import { FunctionDeclarationAst } from '../../../source/abstract_syntax_tree/declaration/function-declaration-ast.ts';
+import { FunctionOverloadDeclarationAstDataEntryPointWorkgroupSize } from "../../../source/abstract_syntax_tree/declaration/function-overload-declaration-ast.ts";
 import type { DocumentAst } from '../../../source/abstract_syntax_tree/document-ast.ts';
 import { AttributeListAst } from '../../../source/abstract_syntax_tree/general/attribute-list-ast.ts';
 import { TypeDeclarationAst } from '../../../source/abstract_syntax_tree/general/type-declaration-ast.ts';
 import { BlockStatementAst } from '../../../source/abstract_syntax_tree/statement/execution/block-statement-ast.ts';
-import { PgslArrayType } from '../../../source/abstract_syntax_tree/type/pgsl-array-type.ts';
-import { PgslBuildInType } from '../../../source/abstract_syntax_tree/type/pgsl-build-in-type.ts';
-import { PgslMatrixType } from '../../../source/abstract_syntax_tree/type/pgsl-matrix-type.ts';
-import { PgslNumericType } from '../../../source/abstract_syntax_tree/type/pgsl-numeric-type.ts';
-import { PgslVectorType } from '../../../source/abstract_syntax_tree/type/pgsl-vector-type.ts';
+import { PgslArrayType } from '../../../source/abstract_syntax_tree/type/definition/pgsl-array-type.ts';
+import { PgslBuildInType } from '../../../source/abstract_syntax_tree/type/definition/pgsl-build-in-type.ts';
+import { PgslMatrixType } from '../../../source/abstract_syntax_tree/type/definition/pgsl-matrix-type.ts';
+import { PgslNumericType } from '../../../source/abstract_syntax_tree/type/definition/pgsl-numeric-type.ts';
+import { PgslVectorType } from '../../../source/abstract_syntax_tree/type/definition/pgsl-vector-type.ts';
 import { PgslParser } from '../../../source/parser/pgsl-parser.ts';
 import type { PgslParserResultComputeEntryPoint } from '../../../source/parser_result/entry_point/pgsl-parser-result-compute-entry-point.ts';
 import type { PgslParserResultFragmentEntryPoint } from '../../../source/parser_result/entry_point/pgsl-parser-result-fragment-entry-point.ts';
 import type { PgslParserResultVertexEntryPoint } from '../../../source/parser_result/entry_point/pgsl-parser-result-vertex-entry-point.ts';
 import type { PgslParserResult } from '../../../source/parser_result/pgsl-parser-result.ts';
-import type { PgslParserResultNumericType } from '../../../source/parser_result/type/pgsl-parser-result-numeric-type.ts';
-import type { PgslParserResultVectorType } from '../../../source/parser_result/type/pgsl-parser-result-vector-type.ts';
+import type { PgslParserResultNumericType } from '../../../source/parser_result/type/definition/pgsl-parser-result-numeric-type.ts';
+import type { PgslParserResultVectorType } from '../../../source/parser_result/type/definition/pgsl-parser-result-vector-type.ts';
 import { WgslTranspiler } from '../../../source/transpilation/wgsl/wgsl-transpiler.ts';
 
 // Create parser instance.
@@ -38,8 +39,8 @@ Deno.test('FunctionDeclarationAst - Parsing', async (pContext) => {
             expect(lFunctionNode).toBeInstanceOf(FunctionDeclarationAst);
             expect(lFunctionNode.data.name).toBe(lFunctionName);
             expect(lFunctionNode.data.declarations).toHaveLength(1);
-            expect(lFunctionNode.data.declarations[0].returnType).toBeInstanceOf(TypeDeclarationAst);
-            expect(lFunctionNode.data.declarations[0].block).toBeInstanceOf(BlockStatementAst);
+            expect(lFunctionNode.data.declarations[0].data.returnType).toBeInstanceOf(TypeDeclarationAst);
+            expect(lFunctionNode.data.declarations[0].data.block).toBeInstanceOf(BlockStatementAst);
         });
 
         await pContext.step('Array', async () => {
@@ -57,8 +58,8 @@ Deno.test('FunctionDeclarationAst - Parsing', async (pContext) => {
             expect(lFunctionNode).toBeInstanceOf(FunctionDeclarationAst);
             expect(lFunctionNode.data.name).toBe(lFunctionName);
             expect(lFunctionNode.data.declarations).toHaveLength(1);
-            expect(lFunctionNode.data.declarations[0].returnType).toBeInstanceOf(TypeDeclarationAst);
-            expect(lFunctionNode.data.declarations[0].block).toBeInstanceOf(BlockStatementAst);
+            expect(lFunctionNode.data.declarations[0].data.returnType).toBeInstanceOf(TypeDeclarationAst);
+            expect(lFunctionNode.data.declarations[0].data.block).toBeInstanceOf(BlockStatementAst);
         });
 
         await pContext.step('Vector', async () => {
@@ -76,8 +77,8 @@ Deno.test('FunctionDeclarationAst - Parsing', async (pContext) => {
             expect(lFunctionNode).toBeInstanceOf(FunctionDeclarationAst);
             expect(lFunctionNode.data.name).toBe(lFunctionName);
             expect(lFunctionNode.data.declarations).toHaveLength(1);
-            expect(lFunctionNode.data.declarations[0].returnType).toBeInstanceOf(TypeDeclarationAst);
-            expect(lFunctionNode.data.declarations[0].block).toBeInstanceOf(BlockStatementAst);
+            expect(lFunctionNode.data.declarations[0].data.returnType).toBeInstanceOf(TypeDeclarationAst);
+            expect(lFunctionNode.data.declarations[0].data.block).toBeInstanceOf(BlockStatementAst);
         });
 
         await pContext.step('Matrix', async () => {
@@ -95,8 +96,8 @@ Deno.test('FunctionDeclarationAst - Parsing', async (pContext) => {
             expect(lFunctionNode).toBeInstanceOf(FunctionDeclarationAst);
             expect(lFunctionNode.data.name).toBe(lFunctionName);
             expect(lFunctionNode.data.declarations).toHaveLength(1);
-            expect(lFunctionNode.data.declarations[0].returnType).toBeInstanceOf(TypeDeclarationAst);
-            expect(lFunctionNode.data.declarations[0].block).toBeInstanceOf(BlockStatementAst);
+            expect(lFunctionNode.data.declarations[0].data.returnType).toBeInstanceOf(TypeDeclarationAst);
+            expect(lFunctionNode.data.declarations[0].data.block).toBeInstanceOf(BlockStatementAst);
         });
 
         await pContext.step('Void', async (pContext) => {
@@ -114,8 +115,8 @@ Deno.test('FunctionDeclarationAst - Parsing', async (pContext) => {
                 expect(lFunctionNode).toBeInstanceOf(FunctionDeclarationAst);
                 expect(lFunctionNode.data.name).toBe(lFunctionName);
                 expect(lFunctionNode.data.declarations).toHaveLength(1);
-                expect(lFunctionNode.data.declarations[0].returnType).toBeInstanceOf(TypeDeclarationAst);
-                expect(lFunctionNode.data.declarations[0].block).toBeInstanceOf(BlockStatementAst);
+                expect(lFunctionNode.data.declarations[0].data.returnType).toBeInstanceOf(TypeDeclarationAst);
+                expect(lFunctionNode.data.declarations[0].data.block).toBeInstanceOf(BlockStatementAst);
             });
 
             await pContext.step('Empty return', async () => {
@@ -132,8 +133,8 @@ Deno.test('FunctionDeclarationAst - Parsing', async (pContext) => {
                 expect(lFunctionNode).toBeInstanceOf(FunctionDeclarationAst);
                 expect(lFunctionNode.data.name).toBe(lFunctionName);
                 expect(lFunctionNode.data.declarations).toHaveLength(1);
-                expect(lFunctionNode.data.declarations[0].returnType).toBeInstanceOf(TypeDeclarationAst);
-                expect(lFunctionNode.data.declarations[0].block).toBeInstanceOf(BlockStatementAst);
+                expect(lFunctionNode.data.declarations[0].data.returnType).toBeInstanceOf(TypeDeclarationAst);
+                expect(lFunctionNode.data.declarations[0].data.block).toBeInstanceOf(BlockStatementAst);
             });
         });
     });
@@ -152,7 +153,7 @@ Deno.test('FunctionDeclarationAst - Parsing', async (pContext) => {
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
             expect(lFunctionNode).toBeInstanceOf(FunctionDeclarationAst);
             expect(lFunctionNode.data.declarations).toHaveLength(1);
-            expect(lFunctionNode.data.declarations[0].parameter).toHaveLength(0);
+            expect(lFunctionNode.data.declarations[0].data.parameter).toHaveLength(0);
         });
 
         await pContext.step('Single parameter', async (pContext) => {
@@ -171,9 +172,9 @@ Deno.test('FunctionDeclarationAst - Parsing', async (pContext) => {
                 const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
                 expect(lFunctionNode).toBeInstanceOf(FunctionDeclarationAst);
                 expect(lFunctionNode.data.declarations).toHaveLength(1);
-                expect(lFunctionNode.data.declarations[0].parameter).toHaveLength(1);
-                expect(lFunctionNode.data.declarations[0].parameter[0].name).toBe(lParameterName);
-                expect(lFunctionNode.data.declarations[0].parameter[0].type).toBeInstanceOf(TypeDeclarationAst);
+                expect(lFunctionNode.data.declarations[0].data.parameter).toHaveLength(1);
+                expect(lFunctionNode.data.declarations[0].data.parameter[0].name).toBe(lParameterName);
+                expect(lFunctionNode.data.declarations[0].data.parameter[0].type).toBeInstanceOf(TypeDeclarationAst);
             });
 
             await pContext.step('Array', async () => {
@@ -191,9 +192,9 @@ Deno.test('FunctionDeclarationAst - Parsing', async (pContext) => {
                 const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
                 expect(lFunctionNode).toBeInstanceOf(FunctionDeclarationAst);
                 expect(lFunctionNode.data.declarations).toHaveLength(1);
-                expect(lFunctionNode.data.declarations[0].parameter).toHaveLength(1);
-                expect(lFunctionNode.data.declarations[0].parameter[0].name).toBe(lParameterName);
-                expect(lFunctionNode.data.declarations[0].parameter[0].type).toBeInstanceOf(TypeDeclarationAst);
+                expect(lFunctionNode.data.declarations[0].data.parameter).toHaveLength(1);
+                expect(lFunctionNode.data.declarations[0].data.parameter[0].name).toBe(lParameterName);
+                expect(lFunctionNode.data.declarations[0].data.parameter[0].type).toBeInstanceOf(TypeDeclarationAst);
             });
 
             await pContext.step('Vector', async () => {
@@ -211,9 +212,9 @@ Deno.test('FunctionDeclarationAst - Parsing', async (pContext) => {
                 const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
                 expect(lFunctionNode).toBeInstanceOf(FunctionDeclarationAst);
                 expect(lFunctionNode.data.declarations).toHaveLength(1);
-                expect(lFunctionNode.data.declarations[0].parameter).toHaveLength(1);
-                expect(lFunctionNode.data.declarations[0].parameter[0].name).toBe(lParameterName);
-                expect(lFunctionNode.data.declarations[0].parameter[0].type).toBeInstanceOf(TypeDeclarationAst);
+                expect(lFunctionNode.data.declarations[0].data.parameter).toHaveLength(1);
+                expect(lFunctionNode.data.declarations[0].data.parameter[0].name).toBe(lParameterName);
+                expect(lFunctionNode.data.declarations[0].data.parameter[0].type).toBeInstanceOf(TypeDeclarationAst);
             });
 
             await pContext.step('Matrix', async () => {
@@ -231,9 +232,9 @@ Deno.test('FunctionDeclarationAst - Parsing', async (pContext) => {
                 const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
                 expect(lFunctionNode).toBeInstanceOf(FunctionDeclarationAst);
                 expect(lFunctionNode.data.declarations).toHaveLength(1);
-                expect(lFunctionNode.data.declarations[0].parameter).toHaveLength(1);
-                expect(lFunctionNode.data.declarations[0].parameter[0].name).toBe(lParameterName);
-                expect(lFunctionNode.data.declarations[0].parameter[0].type).toBeInstanceOf(TypeDeclarationAst);
+                expect(lFunctionNode.data.declarations[0].data.parameter).toHaveLength(1);
+                expect(lFunctionNode.data.declarations[0].data.parameter[0].name).toBe(lParameterName);
+                expect(lFunctionNode.data.declarations[0].data.parameter[0].type).toBeInstanceOf(TypeDeclarationAst);
             });
 
             await pContext.step('Pointer', async (pContext) => {
@@ -252,9 +253,9 @@ Deno.test('FunctionDeclarationAst - Parsing', async (pContext) => {
                     const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
                     expect(lFunctionNode).toBeInstanceOf(FunctionDeclarationAst);
                     expect(lFunctionNode.data.declarations).toHaveLength(1);
-                    expect(lFunctionNode.data.declarations[0].parameter).toHaveLength(1);
-                    expect(lFunctionNode.data.declarations[0].parameter[0].name).toBe(lParameterName);
-                    expect(lFunctionNode.data.declarations[0].parameter[0].type).toBeInstanceOf(TypeDeclarationAst);
+                    expect(lFunctionNode.data.declarations[0].data.parameter).toHaveLength(1);
+                    expect(lFunctionNode.data.declarations[0].data.parameter[0].name).toBe(lParameterName);
+                    expect(lFunctionNode.data.declarations[0].data.parameter[0].type).toBeInstanceOf(TypeDeclarationAst);
                 });
 
                 await pContext.step('Vector', async () => {
@@ -272,9 +273,9 @@ Deno.test('FunctionDeclarationAst - Parsing', async (pContext) => {
                     const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
                     expect(lFunctionNode).toBeInstanceOf(FunctionDeclarationAst);
                     expect(lFunctionNode.data.declarations).toHaveLength(1);
-                    expect(lFunctionNode.data.declarations[0].parameter).toHaveLength(1);
-                    expect(lFunctionNode.data.declarations[0].parameter[0].name).toBe(lParameterName);
-                    expect(lFunctionNode.data.declarations[0].parameter[0].type).toBeInstanceOf(TypeDeclarationAst);
+                    expect(lFunctionNode.data.declarations[0].data.parameter).toHaveLength(1);
+                    expect(lFunctionNode.data.declarations[0].data.parameter[0].name).toBe(lParameterName);
+                    expect(lFunctionNode.data.declarations[0].data.parameter[0].type).toBeInstanceOf(TypeDeclarationAst);
                 });
 
                 await pContext.step('Array', async () => {
@@ -292,9 +293,9 @@ Deno.test('FunctionDeclarationAst - Parsing', async (pContext) => {
                     const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
                     expect(lFunctionNode).toBeInstanceOf(FunctionDeclarationAst);
                     expect(lFunctionNode.data.declarations).toHaveLength(1);
-                    expect(lFunctionNode.data.declarations[0].parameter).toHaveLength(1);
-                    expect(lFunctionNode.data.declarations[0].parameter[0].name).toBe(lParameterName);
-                    expect(lFunctionNode.data.declarations[0].parameter[0].type).toBeInstanceOf(TypeDeclarationAst);
+                    expect(lFunctionNode.data.declarations[0].data.parameter).toHaveLength(1);
+                    expect(lFunctionNode.data.declarations[0].data.parameter[0].name).toBe(lParameterName);
+                    expect(lFunctionNode.data.declarations[0].data.parameter[0].type).toBeInstanceOf(TypeDeclarationAst);
                 });
             });
         });
@@ -316,11 +317,11 @@ Deno.test('FunctionDeclarationAst - Parsing', async (pContext) => {
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
             expect(lFunctionNode).toBeInstanceOf(FunctionDeclarationAst);
             expect(lFunctionNode.data.declarations).toHaveLength(1);
-            expect(lFunctionNode.data.declarations[0].parameter).toHaveLength(2);
-            expect(lFunctionNode.data.declarations[0].parameter[0].name).toBe(lParameterOneName);
-            expect(lFunctionNode.data.declarations[0].parameter[0].type).toBeInstanceOf(TypeDeclarationAst);
-            expect(lFunctionNode.data.declarations[0].parameter[1].name).toBe(lParameterTwoName);
-            expect(lFunctionNode.data.declarations[0].parameter[1].type).toBeInstanceOf(TypeDeclarationAst);
+            expect(lFunctionNode.data.declarations[0].data.parameter).toHaveLength(2);
+            expect(lFunctionNode.data.declarations[0].data.parameter[0].name).toBe(lParameterOneName);
+            expect(lFunctionNode.data.declarations[0].data.parameter[0].type).toBeInstanceOf(TypeDeclarationAst);
+            expect(lFunctionNode.data.declarations[0].data.parameter[1].name).toBe(lParameterTwoName);
+            expect(lFunctionNode.data.declarations[0].data.parameter[1].type).toBeInstanceOf(TypeDeclarationAst);
         });
     });
 
@@ -351,8 +352,8 @@ Deno.test('FunctionDeclarationAst - Parsing', async (pContext) => {
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[2] as FunctionDeclarationAst;
             expect(lFunctionNode).toBeInstanceOf(FunctionDeclarationAst);
             expect(lFunctionNode.data.declarations).toHaveLength(1);
-            expect(lFunctionNode.data.declarations[0].entryPoint).toBeDefined();
-            expect(lFunctionNode.data.declarations[0].entryPoint?.stage).toBe('vertex');
+            expect(lFunctionNode.data.declarations[0].data.entryPoint).toBeDefined();
+            expect(lFunctionNode.data.declarations[0].data.entryPoint?.stage).toBe('vertex');
         });
 
         await pContext.step('Fragment', async () => {
@@ -381,8 +382,8 @@ Deno.test('FunctionDeclarationAst - Parsing', async (pContext) => {
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[2] as FunctionDeclarationAst;
             expect(lFunctionNode).toBeInstanceOf(FunctionDeclarationAst);
             expect(lFunctionNode.data.declarations).toHaveLength(1);
-            expect(lFunctionNode.data.declarations[0].entryPoint).toBeDefined();
-            expect(lFunctionNode.data.declarations[0].entryPoint?.stage).toBe('fragment');
+            expect(lFunctionNode.data.declarations[0].data.entryPoint).toBeDefined();
+            expect(lFunctionNode.data.declarations[0].data.entryPoint?.stage).toBe('fragment');
         });
 
         await pContext.step('Compute', async () => {
@@ -404,12 +405,12 @@ Deno.test('FunctionDeclarationAst - Parsing', async (pContext) => {
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
             expect(lFunctionNode).toBeInstanceOf(FunctionDeclarationAst);
             expect(lFunctionNode.data.declarations).toHaveLength(1);
-            expect(lFunctionNode.data.declarations[0].entryPoint).toBeDefined();
-            expect(lFunctionNode.data.declarations[0].entryPoint?.stage).toBe('compute');
-            expect((<{ workgroupSize: FunctionDeclarationAstDataEntryPointWorkgroupSize; }>lFunctionNode.data.declarations[0].entryPoint).workgroupSize).toBeDefined();
-            expect((<{ workgroupSize: FunctionDeclarationAstDataEntryPointWorkgroupSize; }>lFunctionNode.data.declarations[0].entryPoint).workgroupSize?.x).toBe(lWorkgroupX);
-            expect((<{ workgroupSize: FunctionDeclarationAstDataEntryPointWorkgroupSize; }>lFunctionNode.data.declarations[0].entryPoint).workgroupSize?.y).toBe(lWorkgroupY);
-            expect((<{ workgroupSize: FunctionDeclarationAstDataEntryPointWorkgroupSize; }>lFunctionNode.data.declarations[0].entryPoint).workgroupSize?.z).toBe(lWorkgroupZ);
+            expect(lFunctionNode.data.declarations[0].data.entryPoint).toBeDefined();
+            expect(lFunctionNode.data.declarations[0].data.entryPoint?.stage).toBe('compute');
+            expect((<{ workgroupSize: FunctionOverloadDeclarationAstDataEntryPointWorkgroupSize; }>lFunctionNode.data.declarations[0].data.entryPoint).workgroupSize).toBeDefined();
+            expect((<{ workgroupSize: FunctionOverloadDeclarationAstDataEntryPointWorkgroupSize; }>lFunctionNode.data.declarations[0].data.entryPoint).workgroupSize?.x).toBe(lWorkgroupX);
+            expect((<{ workgroupSize: FunctionOverloadDeclarationAstDataEntryPointWorkgroupSize; }>lFunctionNode.data.declarations[0].data.entryPoint).workgroupSize?.y).toBe(lWorkgroupY);
+            expect((<{ workgroupSize: FunctionOverloadDeclarationAstDataEntryPointWorkgroupSize; }>lFunctionNode.data.declarations[0].data.entryPoint).workgroupSize?.z).toBe(lWorkgroupZ);
         });
     });
 });

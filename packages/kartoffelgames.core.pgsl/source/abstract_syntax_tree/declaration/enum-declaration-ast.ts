@@ -3,10 +3,10 @@ import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.
 import { ExpressionAstBuilder } from '../expression/expression-ast-builder.ts';
 import type { IExpressionAst } from '../expression/i-expression-ast.interface.ts';
 import { AttributeListAst } from '../general/attribute-list-ast.ts';
-import type { BasePgslType } from '../type/base-pgsl-type.ts';
-import { PgslInvalidType } from '../type/pgsl-invalid-type.ts';
-import { PgslNumericType } from '../type/pgsl-numeric-type.ts';
-import { PgslStringType } from '../type/pgsl-string-type.ts';
+import type { BasePgslType } from '../type/definition/base-pgsl-type.ts';
+import { PgslInvalidType } from '../type/definition/pgsl-invalid-type.ts';
+import { PgslNumericType } from '../type/definition/pgsl-numeric-type.ts';
+import { PgslStringType } from '../type/definition/pgsl-string-type.ts';
 import { BaseDeclarationAst, type DeclarationAstData } from './base-declaration-ast.ts';
 
 /**
@@ -25,7 +25,7 @@ export class EnumDeclarationAst extends BaseDeclarationAst<EnumDeclarationCst, E
      * 
      * @param pContext - Processing context.
      */
-    public register(pContext: AbstractSyntaxTreeContext): this {
+    public override register(pContext: AbstractSyntaxTreeContext): this {
         // Check if enum is already defined.
         if (pContext.getEnum(this.cst.name)) {
             pContext.pushIncident(`Enum "${this.cst.name}" is already defined.`, this);
@@ -51,7 +51,7 @@ export class EnumDeclarationAst extends BaseDeclarationAst<EnumDeclarationCst, E
         // Fallback to invalid type.
         if (lProperties.size === 0) {
             pContext.pushIncident(`Enum ${this.cst.name} has no values`, this);
-            lFirstPropertyType = new PgslInvalidType().process(pContext);
+            lFirstPropertyType = new PgslInvalidType();
         } else {
             // Get first property type.
             lFirstPropertyType = lProperties.values().next().value!.data.resolveType;
@@ -88,8 +88,8 @@ export class EnumDeclarationAst extends BaseDeclarationAst<EnumDeclarationCst, E
             lPropertyList.set(lProperty.name, lExpressionAst);
 
             // Validate property type.
-            const lIsNumeric: boolean = lExpressionAst.data.resolveType.isCastableInto(new PgslNumericType(PgslNumericType.typeName.unsignedInteger).process(pContext));
-            const lIsString: boolean = lExpressionAst.data.resolveType.isCastableInto(new PgslStringType().process(pContext));
+            const lIsNumeric: boolean = lExpressionAst.data.resolveType.isCastableInto(new PgslNumericType(PgslNumericType.typeName.unsignedInteger));
+            const lIsString: boolean = lExpressionAst.data.resolveType.isCastableInto(new PgslStringType());
 
             // All values need to be string or integer.
             if (!lIsNumeric && !lIsString) {

@@ -139,7 +139,7 @@ dup   line 2   <- which file?
 
 **1d. Types carry no range at all.** The unmigrated type classes are still AST nodes and construct
 themselves with `super({ type: 'Type', range: [0, 0, 0, 0] })` (e.g.
-[pgsl-numeric-type.ts:56](source/abstract_syntax_tree/type/pgsl-numeric-type.ts:56)), so the
+[pgsl-numeric-type.ts:56](source/abstract_syntax_tree/type/definition/pgsl-numeric-type.ts:56)), so the
 `pushIncident` calls they make — `Texture sampled type must be a numeric type` and the rest — are
 reported at line 0, column 0.
 
@@ -1139,7 +1139,7 @@ Every one of these was reproduced by execution against the current tree, not fou
 | # | Defect | Repro | Effect |
 |---|---|---|---|
 | **D1** 🚩 | No operator precedence or associativity | `if (a + 1 < 10) { }` | **Ship blocker.** Rejected with `Arithmetic operation not supported for used types.` `1 * 2 + 3` parses as `1 * (2 + 3)`; `1 - 2 - 3` as `1 - (2 - 3)`. §5.2 |
-| **D2** | `metaTypes` switch falls through (no `break`) — [pgsl-numeric-type.ts:150](source/abstract_syntax_tree/type/pgsl-numeric-type.ts:150) | `normalize(v)` where `v: Vector4<int>` | Accepted with no incident; emits `normalize(vec4<i32>)`, invalid WGSL. Disappears with the numeric migration — `metaTypes` does not exist on `BasePgslType` |
+| **D2** | `metaTypes` switch falls through (no `break`) — [pgsl-numeric-type.ts:150](source/abstract_syntax_tree/type/definition/pgsl-numeric-type.ts:150) | `normalize(v)` where `v: Vector4<int>` | Accepted with no incident; emits `normalize(vec4<i32>)`, invalid WGSL. Disappears with the numeric migration — `metaTypes` does not exist on `BasePgslType` |
 | **D3** ✅ | Vectors and matrices reported `scalar: true` by copying the component type's `scalar` | `param p: Vector4<float> = ...;` | Passed `lMustBeScalar()`, then **uncaught** `Exception: Unsupported parameter type`. **Fixed** — neither sets `Scalar` any more |
 | **D4** | Binary ops return the left operand's type — [arithmetic-expression-ast.ts:143/207/305](source/abstract_syntax_tree/expression/operation/arithmetic-expression-ast.ts:207) | `let x: int = 1 + 2.0;` | Accepted, emits `var x:i32 = 1 + 2.0;` (invalid). `2.0 + 1` is rejected — asymmetric |
 | **D11** ✅ | Postfix chains do not compose — `lValueDecompositionExpressionGraph` / `lIndexedValueExpressionGraph` are separate left-recursive alternatives ([pgsl-parser.ts:944](source/parser/pgsl-parser.ts:944), [990](source/parser/pgsl-parser.ts:990)) | `let a: float = value.member[0];` | **Rejected**: `Unexpected token "[". "Semicolon" expected`. Same for `call().x` and `call()[0]`. `list[0].member` works, so the failure is asymmetric and looks arbitrary. §5.2. **Fixed** — covered by `indexed-value-expression-ast.test.ts` and `value-decomposition-expression-ast.test.ts`. |
@@ -1148,7 +1148,7 @@ Every one of these was reproduced by execution against the current tree, not fou
 | **D7** | No source identity in `CstRange` | two decls named `dup`, one imported | Both report a bare line number; the file is unknowable |
 | **D8** | Types were constructed with `range: [0,0,0,0]`, so every type-level incident reported `0:0` | any type-level incident | Types are no longer AST nodes and raise no incidents; each rule moved to the AST node that has a position. Still open for the unmigrated types — texture and build-in report from inside the type |
 | **D9** | Parser instance state leaks across `parse()` calls — `mUserDefinedTypeNames` is never cleared at entry ([pgsl-parser.ts:1823](source/parser/pgsl-parser.ts:1823) only overwrites at exit) | `p.parse('alias MyAlias = float;')` then `p.parse('private v: Vector4<MyAlias>;')` | `template[0].type` is `VariableNameExpression` on a fresh parser but `TypeDeclaration` on a reused one — **same input, different CST** |
-| **D10** | `PgslInvalidType` propagates instead of absorbing — `equals` returns `false` and `conversionRankTo` returns infinity unconditionally ([pgsl-invalid-type.ts](source/abstract_syntax_tree/type/pgsl-invalid-type.ts)) | one undefined variable used three times | **9 incidents**, 6 of them noise. One unknown typename in a function body gives 7. Behaviour carried over unchanged through the migration. §2 |
+| **D10** | `PgslInvalidType` propagates instead of absorbing — `equals` returns `false` and `conversionRankTo` returns infinity unconditionally ([pgsl-invalid-type.ts](source/abstract_syntax_tree/type/definition/pgsl-invalid-type.ts)) | one undefined variable used three times | **9 incidents**, 6 of them noise. One unknown typename in a function body gives 7. Behaviour carried over unchanged through the migration. §2 |
 
 D9 is worth calling out separately: it means `parse()` is not a pure function of its input, which
 also makes any caching or incremental-parsing work unsound until it is fixed. The fix is to reset

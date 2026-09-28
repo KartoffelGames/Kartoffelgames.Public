@@ -1,5 +1,5 @@
 import { StructPropertyDeclarationAst } from '../../../abstract_syntax_tree/declaration/struct-property-declaration-ast.ts';
-import { PgslBuildInType } from '../../../abstract_syntax_tree/type/pgsl-build-in-type.ts';
+import { PgslBuildInType } from '../../../abstract_syntax_tree/type/definition/pgsl-build-in-type.ts';
 import { PgslInterpolateSamplingEnum } from '../../../buildin/enum/pgsl-interpolate-sampling-enum.ts';
 import { PgslInterpolateTypeEnum } from '../../../buildin/enum/pgsl-interpolate-type-enum.ts';
 import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../i-transpiler-processor.interface.ts';

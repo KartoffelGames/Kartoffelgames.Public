@@ -1,8 +1,9 @@
 import { Exception } from '@kartoffelgames/core';
-import { FunctionDeclarationAst, type FunctionDeclarationAstDataDeclaration } from '../../../abstract_syntax_tree/declaration/function-declaration-ast.ts';
-import type { BaseType } from '../../../abstract_syntax_tree/type/base-type.ts';
-import { PgslVoidType } from '../../../abstract_syntax_tree/type/pgsl-void-type.ts';
+import { FunctionDeclarationAst } from '../../../abstract_syntax_tree/declaration/function-declaration-ast.ts';
+import type { BasePgslType } from '../../../abstract_syntax_tree/type/definition/base-pgsl-type.ts';
+import { PgslVoidType } from '../../../abstract_syntax_tree/type/definition/pgsl-void-type.ts';
 import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../i-transpiler-processor.interface.ts';
+import { FunctionOverloadDeclarationAst } from "../../../abstract_syntax_tree/declaration/function-overload-declaration-ast.ts";
 
 export class FunctionDeclarationAstTranspilerProcessor implements ITranspilerProcessor<FunctionDeclarationAst> {
     /**
@@ -30,17 +31,17 @@ export class FunctionDeclarationAstTranspilerProcessor implements ITranspilerPro
         }
 
         // Use first declaration only for transpilation.
-        const lSoleHeader: FunctionDeclarationAstDataDeclaration = pInstance.data.declarations[0];
-        if (typeof lSoleHeader.returnType === 'string') {
+        const lSoleHeader: FunctionOverloadDeclarationAst = pInstance.data.declarations[0];
+        if (typeof lSoleHeader.data.returnType === 'string') {
             throw new Exception(`Unable to transpile function "${pInstance.data.name}" with generic return type.`, this);
         }
 
         // Transpile return type. use empty string for void type.
-        const lReturnType: BaseType = lSoleHeader.returnType.data.type;
-        const lReturnTypeName: string | null = lReturnType instanceof PgslVoidType ? null : pTranspile(lSoleHeader.returnType);
+        const lReturnType: BasePgslType = lSoleHeader.data.returnType.data.type;
+        const lReturnTypeName: string | null = lReturnType instanceof PgslVoidType ? null : pTranspile(lSoleHeader.data.returnType);
 
         // Transpile function parameter list.
-        const lParameterList: string = lSoleHeader.parameter.map((pParameter) => {
+        const lParameterList: string = lSoleHeader.data.parameter.map((pParameter) => {
             if (typeof pParameter.type === 'string') {
                 throw new Exception(`Unable to transpile function "${pInstance.data.name}" with generic parameter type.`, this);
             }
@@ -50,11 +51,11 @@ export class FunctionDeclarationAstTranspilerProcessor implements ITranspilerPro
 
         // Transpile attributes.
         const lAttributes: string = (() => {
-            if (!lSoleHeader.entryPoint) {
+            if (!lSoleHeader.data.entryPoint) {
                 return '';
             }
 
-            switch (lSoleHeader.entryPoint.stage) {
+            switch (lSoleHeader.data.entryPoint.stage) {
                 case 'vertex': {
                     return `@vertex `;
                 }
@@ -62,11 +63,11 @@ export class FunctionDeclarationAstTranspilerProcessor implements ITranspilerPro
                     return `@fragment `;
                 }
                 case 'compute': {
-                    if (!lSoleHeader.entryPoint.workgroupSize) {
+                    if (!lSoleHeader.data.entryPoint.workgroupSize) {
                         throw new Exception(`Compute entry point for function "${pInstance.data.name}" is missing workgroup size definition.`, this);
                     }
 
-                    return `@compute @workgroup_size(${lSoleHeader.entryPoint.workgroupSize.x},${lSoleHeader.entryPoint.workgroupSize.y},${lSoleHeader.entryPoint.workgroupSize.z}) `;
+                    return `@compute @workgroup_size(${lSoleHeader.data.entryPoint.workgroupSize.x},${lSoleHeader.data.entryPoint.workgroupSize.y},${lSoleHeader.data.entryPoint.workgroupSize.z}) `;
                 }
             }
         })();
@@ -80,7 +81,7 @@ export class FunctionDeclarationAstTranspilerProcessor implements ITranspilerPro
         }
 
         // Add function block.
-        lResult += pTranspile(lSoleHeader.block);
+        lResult += pTranspile(lSoleHeader.data.block);
 
         return lResult;
     }

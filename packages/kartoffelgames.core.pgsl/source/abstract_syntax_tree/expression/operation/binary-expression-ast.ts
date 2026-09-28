@@ -4,9 +4,9 @@ import { PgslOperator } from '../../../enum/pgsl-operator.enum.ts';
 import { PgslValueAddressSpace } from '../../../enum/pgsl-value-address-space.enum.ts';
 import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
-import { PgslNumericType } from '../../type/pgsl-numeric-type.ts';
-import type { BaseType } from '../../type/base-type.ts';
-import { PgslVectorType } from '../../type/pgsl-vector-type.ts';
+import { BasePgslType } from "../../type/definition/base-pgsl-type.ts";
+import { PgslNumericType } from '../../type/definition/pgsl-numeric-type.ts';
+import { PgslVectorType } from '../../type/definition/pgsl-vector-type.ts';
 import { ExpressionAstBuilder } from '../expression-ast-builder.ts';
 import type { ExpressionAstData, IExpressionAst } from '../i-expression-ast.interface.ts';
 
@@ -19,7 +19,7 @@ export class BinaryExpressionAst extends AbstractSyntaxTree<BinaryExpressionCst,
     protected override onProcess(pContext: AbstractSyntaxTreeContext): BinaryExpressionAstData {
         // Try to convert operator.
         let lOperator: PgslOperator | undefined = EnumUtil.cast(PgslOperator, this.cst.operator);
-        if(!lOperator) {
+        if (!lOperator) {
             pContext.pushIncident(`Operator "${this.cst.operator}" is not a valid operator.`, this);
 
             lOperator = PgslOperator.BinaryOr;
@@ -44,8 +44,8 @@ export class BinaryExpressionAst extends AbstractSyntaxTree<BinaryExpressionCst,
         const lRightExpression: IExpressionAst = ExpressionAstBuilder.build(this.cst.right).process(pContext);
 
         // Type buffer for validating the processed types.
-        let lLeftValueType: BaseType;
-        let lRightValueType: BaseType;
+        let lLeftValueType: BasePgslType;
+        let lRightValueType: BasePgslType;
 
         // Validate vectors differently.
         if (lLeftExpression.data.resolveType instanceof PgslVectorType) {
@@ -69,14 +69,14 @@ export class BinaryExpressionAst extends AbstractSyntaxTree<BinaryExpressionCst,
             lRightValueType = lRightExpression.data.resolveType;
         }
 
-        const lUnsignedInteger: PgslNumericType = new PgslNumericType(PgslNumericType.typeName.unsignedInteger).process(pContext);
-        const lSignedInteger: PgslNumericType = new PgslNumericType(PgslNumericType.typeName.signedInteger).process(pContext);
+        const lUnsignedInteger: PgslNumericType = new PgslNumericType(PgslNumericType.typeName.unsignedInteger);
+        const lSignedInteger: PgslNumericType = new PgslNumericType(PgslNumericType.typeName.signedInteger);
 
         // Left value need to be a integer numeric.
-        if (!lLeftValueType.isCastableInto(lUnsignedInteger) && !lLeftValueType.isCastableInto(lSignedInteger)) {
+        if (lLeftValueType.conversionRankTo(lUnsignedInteger) === Number.POSITIVE_INFINITY && lLeftValueType.conversionRankTo(lSignedInteger) === Number.POSITIVE_INFINITY) {
             pContext.pushIncident(`Binary operations can only be applied to integer types.`, this);
         }
-        if (!lRightValueType.isCastableInto(lUnsignedInteger) && !lRightValueType.isCastableInto(lSignedInteger)) {
+        if (lRightValueType.conversionRankTo(lUnsignedInteger) === Number.POSITIVE_INFINITY && lRightValueType.conversionRankTo(lSignedInteger) === Number.POSITIVE_INFINITY) {
             pContext.pushIncident(`Binary operations can only be applied to integer types.`, this);
         }
 
@@ -88,7 +88,7 @@ export class BinaryExpressionAst extends AbstractSyntaxTree<BinaryExpressionCst,
             }
 
             // Right must be assignable to unsigned integer.
-            if (!lRightValueType.isCastableInto(lUnsignedInteger) || typeof lRightExpression.data.constantValue === 'number' && lRightExpression.data.constantValue < 0) {
+            if (lRightValueType.conversionRankTo(lUnsignedInteger) === Number.POSITIVE_INFINITY || typeof lRightExpression.data.constantValue === 'number' && lRightExpression.data.constantValue < 0) {
                 pContext.pushIncident(`Right expression of a shift operation must be an unsigned integer type.`, this);
             }
         }

@@ -1,7 +1,7 @@
 import type { PgslValueAddressSpace } from '../../enum/pgsl-value-address-space.enum.ts';
 import type { PgslValueFixedState } from '../../enum/pgsl-value-fixed-state.ts';
 import type { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
-import type { BasePgslType } from '../type/base-pgsl-type.ts';
+import type { BasePgslType } from '../type/definition/base-pgsl-type.ts';
 
 /**
  * PGSL base expression.

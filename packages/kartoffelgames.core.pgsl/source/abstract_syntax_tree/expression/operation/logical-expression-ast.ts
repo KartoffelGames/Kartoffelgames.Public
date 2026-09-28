@@ -4,7 +4,7 @@ import { PgslOperator } from '../../../enum/pgsl-operator.enum.ts';
 import { PgslValueAddressSpace } from '../../../enum/pgsl-value-address-space.enum.ts';
 import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
-import { PgslBooleanType } from '../../type/pgsl-boolean-type.ts';
+import { PgslBooleanType } from '../../type/definition/pgsl-boolean-type.ts';
 import { ExpressionAstBuilder } from '../expression-ast-builder.ts';
 import type { ExpressionAstData, IExpressionAst } from '../i-expression-ast.interface.ts';
 
@@ -20,7 +20,7 @@ export class LogicalExpressionAst extends AbstractSyntaxTree<LogicalExpressionCs
     protected override onProcess(pContext: AbstractSyntaxTreeContext): LogicalExpressionAstData {
         // Try to convert operator.
         let lOperator: PgslOperator | undefined = EnumUtil.cast(PgslOperator, this.cst.operator);
-        if(!lOperator) {
+        if (!lOperator) {
             pContext.pushIncident(`Operator "${this.cst.operator}" is not a valid operator.`, this);
 
             lOperator = PgslOperator.ShortCircuitOr;
@@ -42,12 +42,12 @@ export class LogicalExpressionAst extends AbstractSyntaxTree<LogicalExpressionCs
         const lRightExpression: IExpressionAst = ExpressionAstBuilder.build(this.cst.right).process(pContext);
 
         // Validate left side type.
-        if (!lLeftExpression.data.resolveType.isCastableInto(new PgslBooleanType().process(pContext))) {
+        if (lLeftExpression.data.resolveType.conversionRankTo(new PgslBooleanType()) === Number.POSITIVE_INFINITY) {
             pContext.pushIncident('Left side of logical expression needs to be a boolean', this);
         }
 
         // Validate right side type.
-        if (!lRightExpression.data.resolveType.isCastableInto(new PgslBooleanType().process(pContext))) {
+        if (lRightExpression.data.resolveType.conversionRankTo(new PgslBooleanType()) === Number.POSITIVE_INFINITY) {
             pContext.pushIncident('Right side of logical expression needs to be a boolean', this);
         }
 
@@ -60,7 +60,7 @@ export class LogicalExpressionAst extends AbstractSyntaxTree<LogicalExpressionCs
             // Expression meta data.
             fixedState: Math.min(lLeftExpression.data.fixedState, lRightExpression.data.fixedState),
             isStorage: false,
-            resolveType: new PgslBooleanType().process(pContext),
+            resolveType: new PgslBooleanType(),
             constantValue: null,
             storageAddressSpace: PgslValueAddressSpace.Inherit
         };

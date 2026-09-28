@@ -5,7 +5,7 @@ import type { BlockStatementCst } from './statement.type.ts';
 /*
  * Core.
  */
-export type DeclarationCstType = 'AliasDeclaration' | 'EnumDeclaration' | 'EnumDeclarationValue' | 'FunctionDeclaration' | 'FunctionDeclarationHeader' | 'FunctionDeclarationParameter' | 'FunctionDeclarationGeneric' | 'StructDeclaration' | 'StructPropertyDeclaration' | 'VariableDeclaration';
+export type DeclarationCstType = 'AliasDeclaration' | 'EnumDeclaration' | 'EnumDeclarationValue' | 'FunctionDeclaration' | 'FunctionOverloadDeclaration' | 'FunctionDeclarationParameter' | 'FunctionDeclarationGeneric' | 'StructDeclaration' | 'StructPropertyDeclaration' | 'VariableDeclaration';
 export type DeclarationCst<TDeclarationType extends DeclarationCstType = DeclarationCstType> = Cst<TDeclarationType> & {
     buildIn: boolean;
 };
@@ -41,18 +41,18 @@ export type EnumDeclarationValueCst = {
 
 export type FunctionDeclarationCst = {
     name: string;
-    declarations: Array<FunctionDeclarationHeaderCst>;
+    declarations: Array<FunctionOverloadDeclarationCst>;
     isConstant: boolean;
     implicitGenerics: boolean;
 } & DeclarationCst<'FunctionDeclaration'>;
 
-export type FunctionDeclarationHeaderCst = {
+export type FunctionOverloadDeclarationCst = {
     attributeList: AttributeListCst;
     generics: Array<FunctionDeclarationGenericCst>;
     parameters: Array<FunctionDeclarationParameterCst>;
     returnType: TypeDeclarationCst | string; // String indicates generic return type of the header.
     block: BlockStatementCst;
-} & DeclarationCst<'FunctionDeclarationHeader'>;
+} & DeclarationCst<'FunctionOverloadDeclaration'>;
 
 export type FunctionDeclarationParameterCst = {
     name: string;

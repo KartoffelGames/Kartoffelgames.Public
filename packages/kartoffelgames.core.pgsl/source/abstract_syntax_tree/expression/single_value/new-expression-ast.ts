@@ -5,12 +5,12 @@ import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-conte
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
 import { TypeDeclarationAst } from '../../general/type-declaration-ast.ts';
 import type { BaseType } from '../../type/base-type.ts';
-import { PgslArrayType } from '../../type/pgsl-array-type.ts';
-import { PgslBooleanType } from '../../type/pgsl-boolean-type.ts';
-import { PgslInvalidType } from '../../type/pgsl-invalid-type.ts';
-import { PgslMatrixType } from '../../type/pgsl-matrix-type.ts';
-import { PgslNumericType } from '../../type/pgsl-numeric-type.ts';
-import { PgslVectorType } from '../../type/pgsl-vector-type.ts';
+import { PgslArrayType } from '../../type/definition/pgsl-array-type.ts';
+import { PgslBooleanType } from '../../type/definition/pgsl-boolean-type.ts';
+import { PgslInvalidType } from '../../type/definition/pgsl-invalid-type.ts';
+import { PgslMatrixType } from '../../type/definition/pgsl-matrix-type.ts';
+import { PgslNumericType } from '../../type/definition/pgsl-numeric-type.ts';
+import { PgslVectorType } from '../../type/definition/pgsl-vector-type.ts';
 import { ExpressionAstBuilder } from '../expression-ast-builder.ts';
 import type { ExpressionAstData, IExpressionAst } from '../i-expression-ast.interface.ts';
 import { LiteralValueExpressionAst } from './literal-value-expression-ast.ts';
@@ -507,7 +507,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                 // Expression meta.
                 fixedState: PgslValueFixedState.Variable,
                 isStorage: false,
-                resolveType: new PgslInvalidType().process(pContext),
+                resolveType: new PgslInvalidType(),
                 constantValue: null,
                 storageAddressSpace: PgslValueAddressSpace.Inherit,
             };

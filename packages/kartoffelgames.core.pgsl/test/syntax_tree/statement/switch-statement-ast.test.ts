@@ -1,11 +1,12 @@
 import { expect } from '@kartoffelgames/core-test';
-import type { FunctionDeclarationAst, FunctionDeclarationAstDataDeclaration } from '../../../source/abstract_syntax_tree/declaration/function-declaration-ast.ts';
+import type { FunctionDeclarationAst } from '../../../source/abstract_syntax_tree/declaration/function-declaration-ast.ts';
+import { FunctionOverloadDeclarationAst } from "../../../source/abstract_syntax_tree/declaration/function-overload-declaration-ast.ts";
 import type { DocumentAst } from '../../../source/abstract_syntax_tree/document-ast.ts';
 import { SwitchStatementAst } from '../../../source/abstract_syntax_tree/statement/branch/switch-statement-ast.ts';
+import { PgslNumericType } from '../../../source/abstract_syntax_tree/type/definition/pgsl-numeric-type.ts';
 import { PgslParser } from '../../../source/parser/pgsl-parser.ts';
 import type { PgslParserResult } from '../../../source/parser_result/pgsl-parser-result.ts';
 import { WgslTranspiler } from '../../../source/transpilation/wgsl/wgsl-transpiler.ts';
-import { PgslNumericType } from '../../../source/abstract_syntax_tree/type/pgsl-numeric-type.ts';
 
 // Create parser instance.
 const gPgslParser: PgslParser = new PgslParser();
@@ -27,8 +28,8 @@ Deno.test('SwitchStatementAst - Parsing', async (pContext) => {
 
         // Evaluation. Correct type of statement node.
         const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-        const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
-        const lSwitchStatement: SwitchStatementAst = lFunctionDeclaration.block.data.statementList[0] as SwitchStatementAst;
+        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+        const lSwitchStatement: SwitchStatementAst = lFunctionDeclaration.data.block.data.statementList[0] as SwitchStatementAst;
         expect(lSwitchStatement).toBeInstanceOf(SwitchStatementAst);
         expect(lSwitchStatement.data.cases).toHaveLength(1);
         expect(lSwitchStatement.data.cases[0].cases).toHaveLength(1);
@@ -52,8 +53,8 @@ Deno.test('SwitchStatementAst - Parsing', async (pContext) => {
 
         // Evaluation. Correct type of statement node.
         const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-        const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
-        const lSwitchStatement: SwitchStatementAst = lFunctionDeclaration.block.data.statementList[0] as SwitchStatementAst;
+        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+        const lSwitchStatement: SwitchStatementAst = lFunctionDeclaration.data.block.data.statementList[0] as SwitchStatementAst;
         expect(lSwitchStatement).toBeInstanceOf(SwitchStatementAst);
         expect(lSwitchStatement.data.cases).toHaveLength(3);
         expect(lSwitchStatement.data.cases[0].cases).toHaveLength(1);
@@ -77,8 +78,8 @@ Deno.test('SwitchStatementAst - Parsing', async (pContext) => {
 
         // Evaluation. Correct type of statement node.
         const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-        const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
-        const lSwitchStatement: SwitchStatementAst = lFunctionDeclaration.block.data.statementList[0] as SwitchStatementAst;
+        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+        const lSwitchStatement: SwitchStatementAst = lFunctionDeclaration.data.block.data.statementList[0] as SwitchStatementAst;
         expect(lSwitchStatement).toBeInstanceOf(SwitchStatementAst);
         expect(lSwitchStatement.data.cases).toHaveLength(1);
         expect(lSwitchStatement.data.cases[0].cases).toHaveLength(1);
@@ -100,8 +101,8 @@ Deno.test('SwitchStatementAst - Parsing', async (pContext) => {
 
         // Evaluation. Correct type of statement node.
         const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-        const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
-        const lSwitchStatement: SwitchStatementAst = lFunctionDeclaration.block.data.statementList[0] as SwitchStatementAst;
+        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+        const lSwitchStatement: SwitchStatementAst = lFunctionDeclaration.data.block.data.statementList[0] as SwitchStatementAst;
         expect(lSwitchStatement).toBeInstanceOf(SwitchStatementAst);
         expect(lSwitchStatement.data.cases).toHaveLength(1);
         expect(lSwitchStatement.data.cases[0].cases).toHaveLength(2);

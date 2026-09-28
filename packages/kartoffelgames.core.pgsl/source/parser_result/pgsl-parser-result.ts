@@ -1,4 +1,5 @@
-import { FunctionDeclarationAst, type FunctionDeclarationAstDataDeclaration, type FunctionDeclarationAstDataEntryPointWorkgroupSize } from '../abstract_syntax_tree/declaration/function-declaration-ast.ts';
+import { FunctionDeclarationAst } from '../abstract_syntax_tree/declaration/function-declaration-ast.ts';
+import { FunctionOverloadDeclarationAst, FunctionOverloadDeclarationAstDataEntryPointWorkgroupSize } from "../abstract_syntax_tree/declaration/function-overload-declaration-ast.ts";
 import { VariableDeclarationAst } from '../abstract_syntax_tree/declaration/variable-declaration-ast.ts';
 import type { DocumentAst } from '../abstract_syntax_tree/document-ast.ts';
 import { PgslDeclarationType } from '../enum/pgsl-declaration-type.enum.ts';
@@ -167,24 +168,24 @@ export class PgslParserResult extends PgslParserResultObject {
             }
 
             // Read first function declaration and check for any entry point data.
-            const lEntryPointTypeDeclaration: FunctionDeclarationAstDataDeclaration = lValue.data.declarations[0];
-            if (!lEntryPointTypeDeclaration.entryPoint) {
+            const lEntryPointTypeDeclaration: FunctionOverloadDeclarationAst = lValue.data.declarations[0];
+            if (!lEntryPointTypeDeclaration.data.entryPoint) {
                 continue;
             }
 
-            switch (lEntryPointTypeDeclaration.entryPoint.stage) {
+            switch (lEntryPointTypeDeclaration.data.entryPoint.stage) {
                 case 'vertex': {
-                    const lVertexEntryPoint: PgslParserResultVertexEntryPoint = new PgslParserResultVertexEntryPoint(lEntryPointTypeDeclaration, lEntryPointTypeDeclaration.entryPoint.parameter, pDocument, pMeta);
+                    const lVertexEntryPoint: PgslParserResultVertexEntryPoint = new PgslParserResultVertexEntryPoint(lEntryPointTypeDeclaration, lEntryPointTypeDeclaration.data.entryPoint.parameter, pDocument, pMeta);
                     lEntryPoints.vertex.set(lValue.data.name, lVertexEntryPoint);
                     break;
                 }
                 case 'fragment': {
-                    const lFragmentEntryPoint: PgslParserResultFragmentEntryPoint = new PgslParserResultFragmentEntryPoint(lEntryPointTypeDeclaration, lEntryPointTypeDeclaration.entryPoint.returnType, pDocument, pMeta);
+                    const lFragmentEntryPoint: PgslParserResultFragmentEntryPoint = new PgslParserResultFragmentEntryPoint(lEntryPointTypeDeclaration, lEntryPointTypeDeclaration.data.entryPoint.returnType, pDocument, pMeta);
                     lEntryPoints.fragment.set(lValue.data.name, lFragmentEntryPoint);
                     break;
                 }
                 case 'compute': {
-                    const lWorkgroupSize: FunctionDeclarationAstDataEntryPointWorkgroupSize = lEntryPointTypeDeclaration.entryPoint.workgroupSize!;
+                    const lWorkgroupSize: FunctionOverloadDeclarationAstDataEntryPointWorkgroupSize = lEntryPointTypeDeclaration.data.entryPoint.workgroupSize!;
                     const lComputeEntryPoint: PgslParserResultComputeEntryPoint = new PgslParserResultComputeEntryPoint(lEntryPointTypeDeclaration, lWorkgroupSize.x ?? 0, lWorkgroupSize.y ?? 0, lWorkgroupSize.z ?? 0);
                     lEntryPoints.compute.set(lValue.data.name, lComputeEntryPoint);
                     break;

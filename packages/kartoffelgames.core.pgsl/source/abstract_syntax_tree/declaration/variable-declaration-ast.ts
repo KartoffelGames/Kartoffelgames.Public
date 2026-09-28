@@ -1,26 +1,25 @@
 import { EnumUtil, Exception } from '@kartoffelgames/core';
-import { type PgslAccessMode, PgslAccessModeEnum } from '../../buildin/enum/pgsl-access-mode-enum.ts';
+import { PgslAccessModeEnum, type PgslAccessMode } from '../../buildin/enum/pgsl-access-mode-enum.ts';
 import type { VariableDeclarationCst } from '../../concrete_syntax_tree/declaration.type.ts';
 import { PgslDeclarationType } from '../../enum/pgsl-declaration-type.enum.ts';
 import { PgslValueAddressSpace } from '../../enum/pgsl-value-address-space.enum.ts';
 import { PgslValueFixedState } from '../../enum/pgsl-value-fixed-state.ts';
-import { PgslSamplerType } from '../type/pgsl-sampler-type.ts';
-import { PgslTextureType } from '../type/pgsl-texture-type.ts';
-import type { BaseType } from '../type/base-type.ts';
 import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
-import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
-import { AttributeListAst } from '../general/attribute-list-ast.ts';
-import { TypeDeclarationAst } from '../general/type-declaration-ast.ts';
-import type { ValueStoreAstData, IValueStoreAst } from '../i-value-store-ast.interface.ts';
-import type { DeclarationAstData, IDeclarationAst } from './base-declaration-ast.ts';
 import { ExpressionAstBuilder } from '../expression/expression-ast-builder.ts';
 import type { IExpressionAst } from '../expression/i-expression-ast.interface.ts';
-import { PgslPointerType } from '../type/pgsl-pointer-type.ts';
+import { AttributeListAst } from '../general/attribute-list-ast.ts';
+import { TypeDeclarationAst } from '../general/type-declaration-ast.ts';
+import type { IValueStoreAst, ValueStoreAstData } from '../i-value-store-ast.interface.ts';
+import { BasePgslTypeKind, type BasePgslType } from '../type/definition/base-pgsl-type.ts';
+import { PgslPointerType } from '../type/definition/pgsl-pointer-type.ts';
+import { PgslSamplerType } from '../type/definition/pgsl-sampler-type.ts';
+import { PgslTextureType } from '../type/definition/pgsl-texture-type.ts';
+import { BaseDeclarationAst, type DeclarationAstData } from './base-declaration-ast.ts';
 
 /**
  * PGSL syntax tree for a alias declaration.
  */
-export class VariableDeclarationAst extends AbstractSyntaxTree<VariableDeclarationCst, VariableDeclarationAstData> implements IValueStoreAst, IDeclarationAst {
+export class VariableDeclarationAst extends BaseDeclarationAst<VariableDeclarationCst, VariableDeclarationAstData> implements IValueStoreAst {
     /**
      * All possible declaration types.
      */
@@ -37,12 +36,19 @@ export class VariableDeclarationAst extends AbstractSyntaxTree<VariableDeclarati
     }
 
     /**
+     * Variable name.
+     */
+    public get name(): string {
+        return this.cst.name;
+    }
+
+    /**
      * Register variable without registering its content.
      * Does nothing as variables are registered only in their scope during processing.
      * 
      * @param _pContext - Processing context.
      */
-    public register(_pContext: AbstractSyntaxTreeContext): this {
+    public override register(_pContext: AbstractSyntaxTreeContext): this {
         return this;
     }
 
@@ -56,7 +62,7 @@ export class VariableDeclarationAst extends AbstractSyntaxTree<VariableDeclarati
 
         // Read type of type declaration.
         const lTypeDeclaration: TypeDeclarationAst = new TypeDeclarationAst(this.cst.typeDeclaration).process(pContext);
-        const lType: BaseType = lTypeDeclaration.data.type;
+        const lType: BasePgslType = lTypeDeclaration.data.type;
 
         // Read optional expression attachment.
         let lExpression: IExpressionAst | null = null;
@@ -84,7 +90,7 @@ export class VariableDeclarationAst extends AbstractSyntaxTree<VariableDeclarati
         }
 
         // For pointer types, assign address space from expression.
-        if(lExpression && lType instanceof PgslPointerType) {
+        if (lExpression && lType instanceof PgslPointerType) {
             lType.assignAddressSpace(lExpression.data.storageAddressSpace, pContext);
         }
 
@@ -101,7 +107,7 @@ export class VariableDeclarationAst extends AbstractSyntaxTree<VariableDeclarati
         }
 
         // Register variable in current scope.
-        if(!pContext.registerValue(this.cst.name, this)) {
+        if (!pContext.registerValue(this.cst.name, this)) {
             pContext.pushIncident(`Variable with name "${this.cst.name}" already defined.`, this);
         }
 
@@ -166,7 +172,7 @@ export class VariableDeclarationAst extends AbstractSyntaxTree<VariableDeclarati
      *
      * @returns The address space.
      */
-    private getAddressSpace(pContext: AbstractSyntaxTreeContext, pDeclarationType: PgslDeclarationType, pType: BaseType): PgslValueAddressSpace {
+    private getAddressSpace(pContext: AbstractSyntaxTreeContext, pDeclarationType: PgslDeclarationType, pType: BasePgslType): PgslValueAddressSpace {
         // For texture and sampler types, we always use texture address space.
         if (pType instanceof PgslSamplerType || pType instanceof PgslTextureType) {
             return PgslValueAddressSpace.Texture;
@@ -282,15 +288,15 @@ export class VariableDeclarationAst extends AbstractSyntaxTree<VariableDeclarati
      * @param pType - Declaration type.
      * @param pExpression - Initialization expression.
      */
-    private validateDeclaration(pContext: AbstractSyntaxTreeContext, pAttributes: AttributeListAst, pDeclarationType: PgslDeclarationType, pType: BaseType, pExpression: IExpressionAst | null): void {
+    private validateDeclaration(pContext: AbstractSyntaxTreeContext, pAttributes: AttributeListAst, pDeclarationType: PgslDeclarationType, pType: BasePgslType, pExpression: IExpressionAst | null): void {
         // A bunch of specific validation function to easy build a validation for each declaration type.
         const lMustBeConstructible = () => {
-            if (!pType.data.constructible) {
+            if (!pType.isKind(BasePgslTypeKind.Constructible)) {
                 pContext.pushIncident(`The type of declaration type "${this.cst.declarationType}" must be constructible.`, this);
             }
         };
         const lMustBeScalar = () => {
-            if (!pType.data.scalar) {
+            if (!pType.isKind(BasePgslTypeKind.Scalar)) {
                 pContext.pushIncident(`The type of declaration type "${this.cst.declarationType}" must be a scalar type.`, this);
             }
         };
@@ -305,12 +311,12 @@ export class VariableDeclarationAst extends AbstractSyntaxTree<VariableDeclarati
             }
         };
         const lMustBeHostShareable = () => {
-            if (!pType.data.hostShareable) {
+            if (!pType.isKind(BasePgslTypeKind.HostShareable)) {
                 pContext.pushIncident(`The type of declaration type "${this.cst.declarationType}" must be host shareable.`, this);
             }
         };
         const lMustHaveFixedFootprint = () => {
-            if (!pType.data.fixedFootprint) {
+            if (!pType.isKind(BasePgslTypeKind.FixedFootprint)) {
                 pContext.pushIncident(`The type of declaration type "${this.cst.declarationType}" must have a fixed footprint.`, this);
             }
         };
@@ -320,7 +326,7 @@ export class VariableDeclarationAst extends AbstractSyntaxTree<VariableDeclarati
             }
         };
         const lMustBePlain = () => {
-            if (!pType.data.plain) {
+            if (!pType.isKind(BasePgslTypeKind.Plain)) {
                 pContext.pushIncident(`The type of declaration type "${this.cst.declarationType}" must be a plain type.`, this);
                 return;
             }

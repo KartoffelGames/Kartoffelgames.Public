@@ -4,8 +4,8 @@ import { StructPropertyDeclarationAst } from '../../../source/abstract_syntax_tr
 import type { DocumentAst } from '../../../source/abstract_syntax_tree/document-ast.ts';
 import { AttributeListAst } from '../../../source/abstract_syntax_tree/general/attribute-list-ast.ts';
 import { TypeDeclarationAst } from '../../../source/abstract_syntax_tree/general/type-declaration-ast.ts';
-import { PgslBuildInType } from '../../../source/abstract_syntax_tree/type/pgsl-build-in-type.ts';
-import { PgslNumericType } from '../../../source/abstract_syntax_tree/type/pgsl-numeric-type.ts';
+import { PgslBuildInType } from '../../../source/abstract_syntax_tree/type/definition/pgsl-build-in-type.ts';
+import { PgslNumericType } from '../../../source/abstract_syntax_tree/type/definition/pgsl-numeric-type.ts';
 import { PgslParser } from '../../../source/parser/pgsl-parser.ts';
 import type { PgslParserResult } from '../../../source/parser_result/pgsl-parser-result.ts';
 import { WgslTranspiler } from '../../../source/transpilation/wgsl/wgsl-transpiler.ts';

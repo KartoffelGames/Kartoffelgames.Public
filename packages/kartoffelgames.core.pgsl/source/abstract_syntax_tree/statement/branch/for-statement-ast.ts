@@ -1,14 +1,13 @@
 import type { ForStatementCst } from '../../../concrete_syntax_tree/statement.type.ts';
 import { PgslDeclarationType } from '../../../enum/pgsl-declaration-type.enum.ts';
-import { PgslBooleanType } from '../../type/pgsl-boolean-type.ts';
 import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
 import { ExpressionAstBuilder } from '../../expression/expression-ast-builder.ts';
 import type { IExpressionAst } from '../../expression/i-expression-ast.interface.ts';
+import { PgslBooleanType } from '../../type/definition/pgsl-boolean-type.ts';
 import { BlockStatementAst } from '../execution/block-statement-ast.ts';
 import { VariableDeclarationStatementAst } from '../execution/variable-declaration-statement-ast.ts';
-import type { IStatementAst } from '../i-statement-ast.interface.ts';
-import type { StatementAstData } from '../i-statement-ast.interface.ts';
+import type { IStatementAst, StatementAstData } from '../i-statement-ast.interface.ts';
 import { StatementAstBuilder } from '../statement-ast-builder.ts';
 
 /**
@@ -40,7 +39,7 @@ export class ForStatementAst extends AbstractSyntaxTree<ForStatementCst, ForStat
                 lExpression = ExpressionAstBuilder.build(this.cst.expression).process(pContext);
 
                 // Expression must be a boolean.
-                if (!lExpression.data.resolveType.isCastableInto(new PgslBooleanType().process(pContext))) {
+                if (!lExpression.data.resolveType.isCastableInto(new PgslBooleanType())) {
                     pContext.pushIncident('Expression of for loops must resolve into a boolean.', lExpression);
                 }
             }

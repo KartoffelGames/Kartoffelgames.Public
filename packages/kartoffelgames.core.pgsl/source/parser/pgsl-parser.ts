@@ -3,14 +3,14 @@ import { CodeParser, Graph, GraphNode, type LexerToken } from '@kartoffelgames/c
 import { CodeParserResult } from "../../../kartoffelgames.core.parser/source/parser/code-parser.ts";
 import { AbstractSyntaxTreeContext } from '../abstract_syntax_tree/abstract-syntax-tree-context.ts';
 import { DocumentAst } from '../abstract_syntax_tree/document-ast.ts';
-import { PgslArrayType } from '../abstract_syntax_tree/type/pgsl-array-type.ts';
-import { PgslBooleanType } from '../abstract_syntax_tree/type/pgsl-boolean-type.ts';
-import { PgslBuildInType } from '../abstract_syntax_tree/type/pgsl-build-in-type.ts';
-import { PgslMatrixType } from '../abstract_syntax_tree/type/pgsl-matrix-type.ts';
-import { PgslNumericType } from '../abstract_syntax_tree/type/pgsl-numeric-type.ts';
-import { PgslSamplerType } from '../abstract_syntax_tree/type/pgsl-sampler-type.ts';
-import { PgslTextureType } from '../abstract_syntax_tree/type/pgsl-texture-type.ts';
-import { PgslVectorType } from '../abstract_syntax_tree/type/pgsl-vector-type.ts';
+import { PgslArrayType } from '../abstract_syntax_tree/type/definition/pgsl-array-type.ts';
+import { PgslBooleanType } from '../abstract_syntax_tree/type/definition/pgsl-boolean-type.ts';
+import { PgslBuildInType } from '../abstract_syntax_tree/type/definition/pgsl-build-in-type.ts';
+import { PgslMatrixType } from '../abstract_syntax_tree/type/definition/pgsl-matrix-type.ts';
+import { PgslNumericType } from '../abstract_syntax_tree/type/definition/pgsl-numeric-type.ts';
+import { PgslSamplerType } from '../abstract_syntax_tree/type/definition/pgsl-sampler-type.ts';
+import { PgslTextureType } from '../abstract_syntax_tree/type/definition/pgsl-texture-type.ts';
+import { PgslVectorType } from '../abstract_syntax_tree/type/definition/pgsl-vector-type.ts';
 import { PgslAccessModeEnum } from '../buildin/enum/pgsl-access-mode-enum.ts';
 import { PgslInterpolateSamplingEnum } from '../buildin/enum/pgsl-interpolate-sampling-enum.ts';
 import { PgslInterpolateTypeEnum } from '../buildin/enum/pgsl-interpolate-type-enum.ts';
@@ -21,7 +21,7 @@ import { PgslSynchronisationBuildInFunction } from '../buildin/function/pgsl-syn
 import { PgslTextureBuildInFunction } from '../buildin/function/pgsl-texture-build-in-function.ts';
 import { PgslFrexpResult } from '../buildin/struct/pgsl-frexp-result.ts';
 import { PgslModfResult } from '../buildin/struct/pgsl-modf-result.ts';
-import type { AliasDeclarationCst, DeclarationCst, DeclarationCstType, EnumDeclarationCst, EnumDeclarationValueCst, FunctionDeclarationCst, FunctionDeclarationHeaderCst, FunctionDeclarationParameterCst, StructDeclarationCst, StructPropertyDeclarationCst, VariableDeclarationCst } from '../concrete_syntax_tree/declaration.type.ts';
+import type { AliasDeclarationCst, DeclarationCst, DeclarationCstType, EnumDeclarationCst, EnumDeclarationValueCst, FunctionDeclarationCst, FunctionDeclarationParameterCst, FunctionOverloadDeclarationCst, StructDeclarationCst, StructPropertyDeclarationCst, VariableDeclarationCst } from '../concrete_syntax_tree/declaration.type.ts';
 import type { AddressOfExpressionCst, ArithmeticExpressionCst, BinaryExpressionCst, ComparisonExpressionCst, ExpressionCst, ExpressionCstType, FunctionCallExpressionCst, IndexedValueExpressionCst, LiteralValueExpressionCst, LogicalExpressionCst, NewExpressionCst, ParenthesizedExpressionCst, PointerExpressionCst, StringValueExpressionCst, UnaryExpressionCst, ValueDecompositionExpressionCst, VariableNameExpressionCst } from '../concrete_syntax_tree/expression.type.ts';
 import type { AttributeCst, AttributeListCst, CstRange, DocumentCst, DocumentCstDeclarations, TypeDeclarationCst } from '../concrete_syntax_tree/general.type.ts';
 import type { AssignmentStatementCst, BlockStatementCst, BreakStatementCst, ContinueStatementCst, DiscardStatementCst, DoWhileStatementCst, ForStatementCst, FunctionCallStatementCst, IfStatementCst, IncrementDecrementStatementCst, ReturnStatementCst, StatementCst, StatementCstType, SwitchCaseCst, SwitchStatementCst, VariableDeclarationStatementCst, WhileStatementCst } from '../concrete_syntax_tree/statement.type.ts';
@@ -720,8 +720,8 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
             this.mUserDefinedTypeNames.add(pData.name);
 
             // Build function header.
-            const lFunctionHeader: FunctionDeclarationHeaderCst = {
-                type: 'FunctionDeclarationHeader',
+            const lFunctionHeader: FunctionOverloadDeclarationCst = {
+                type: 'FunctionOverloadDeclaration',
                 buildIn: false,
                 range: this.createTokenBoundParameter(pStartToken, pEndToken),
                 attributeList: pData.attributes,

@@ -1,8 +1,8 @@
 import type { BlockStatementCst } from '../../../concrete_syntax_tree/statement.type.ts';
-import type { BaseType } from '../../type/base-type.ts';
-import { PgslVoidType } from '../../type/pgsl-void-type.ts';
 import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
+import { BasePgslType } from "../../type/definition/base-pgsl-type.ts";
+import { PgslVoidType } from '../../type/definition/pgsl-void-type.ts';
 import type { IStatementAst, StatementAstData } from '../i-statement-ast.interface.ts';
 import { BreakStatementAst } from '../single/break-statement-ast.ts';
 import { ContinueStatementAst } from '../single/continue-statement-ast.ts';
@@ -24,7 +24,7 @@ export class BlockStatementAst extends AbstractSyntaxTree<BlockStatementCst, Blo
             // Prepare data containers.
             const lStatementData = {
                 statementList: Array<IStatementAst>(),
-                returnType: null as BaseType | null,
+                returnType: null as BasePgslType | null,
                 isContinuing: null as boolean | null,
                 isBreaking: null as boolean | null
             };
@@ -57,7 +57,7 @@ export class BlockStatementAst extends AbstractSyntaxTree<BlockStatementCst, Blo
 
             return {
                 statementList: lStatementData.statementList,
-                returnType: lStatementData.returnType ?? new PgslVoidType().process(pContext),
+                returnType: lStatementData.returnType ?? new PgslVoidType(),
                 isContinuing: lStatementData.isContinuing ?? false,
                 isBreaking: lStatementData.isBreaking ?? false
             } satisfies BlockStatementAstData;
@@ -67,7 +67,7 @@ export class BlockStatementAst extends AbstractSyntaxTree<BlockStatementCst, Blo
 
 export type BlockStatementAstData = {
     statementList: ReadonlyArray<IStatementAst>;
-    returnType: BaseType;
+    returnType: BasePgslType;
     isContinuing: boolean;
     isBreaking: boolean;
 } & StatementAstData;

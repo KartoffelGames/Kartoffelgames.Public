@@ -1,14 +1,15 @@
 import { expect } from '@kartoffelgames/core-test';
-import type { FunctionDeclarationAst, FunctionDeclarationAstDataDeclaration } from '../../../source/abstract_syntax_tree/declaration/function-declaration-ast.ts';
+import type { FunctionDeclarationAst } from '../../../source/abstract_syntax_tree/declaration/function-declaration-ast.ts';
+import { FunctionOverloadDeclarationAst } from "../../../source/abstract_syntax_tree/declaration/function-overload-declaration-ast.ts";
 import type { DocumentAst } from '../../../source/abstract_syntax_tree/document-ast.ts';
 import { FunctionCallExpressionAst } from '../../../source/abstract_syntax_tree/expression/single_value/function-call-expression-ast.ts';
 import { IndexedValueExpressionAst } from '../../../source/abstract_syntax_tree/expression/storage/indexed-value-expression-ast.ts';
 import { ValueDecompositionExpressionAst } from '../../../source/abstract_syntax_tree/expression/storage/value-decomposition-expression-ast.ts';
 import { VariableNameExpressionAst } from '../../../source/abstract_syntax_tree/expression/storage/variable-name-expression-ast.ts';
 import type { VariableDeclarationStatementAst } from '../../../source/abstract_syntax_tree/statement/execution/variable-declaration-statement-ast.ts';
-import { PgslArrayType } from '../../../source/abstract_syntax_tree/type/pgsl-array-type.ts';
-import { PgslNumericType } from '../../../source/abstract_syntax_tree/type/pgsl-numeric-type.ts';
-import { PgslVectorType } from '../../../source/abstract_syntax_tree/type/pgsl-vector-type.ts';
+import { PgslArrayType } from '../../../source/abstract_syntax_tree/type/definition/pgsl-array-type.ts';
+import { PgslNumericType } from '../../../source/abstract_syntax_tree/type/definition/pgsl-numeric-type.ts';
+import { PgslVectorType } from '../../../source/abstract_syntax_tree/type/definition/pgsl-vector-type.ts';
 import { PgslParser } from '../../../source/parser/pgsl-parser.ts';
 import type { PgslParserResult } from '../../../source/parser_result/pgsl-parser-result.ts';
 import { WgslTranspiler } from '../../../source/transpilation/wgsl/wgsl-transpiler.ts';
@@ -37,8 +38,8 @@ Deno.test('ValueDecompositionExpressionAst - Parsing', async (pContext) => {
 
             // Process. Assume correct parsing.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[1] as FunctionDeclarationAst;
-            const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
-            const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.block.data.statementList[1] as VariableDeclarationStatementAst;
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[1] as VariableDeclarationStatementAst;
 
             // Evaluation. Correct type of expression node.
             const lExpressionNode: ValueDecompositionExpressionAst = lVariableDeclarationNode.data.expression as ValueDecompositionExpressionAst;
@@ -75,8 +76,8 @@ Deno.test('ValueDecompositionExpressionAst - Parsing', async (pContext) => {
 
             // Process. Assume correct parsing.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[2] as FunctionDeclarationAst;
-            const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
-            const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.block.data.statementList[1] as VariableDeclarationStatementAst;
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[1] as VariableDeclarationStatementAst;
 
             // Evaluation. Correct type of expression node.
             const lExpressionNode: ValueDecompositionExpressionAst = lVariableDeclarationNode.data.expression as ValueDecompositionExpressionAst;
@@ -110,8 +111,8 @@ Deno.test('ValueDecompositionExpressionAst - Parsing', async (pContext) => {
 
             // Process. Assume correct parsing.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[1] as FunctionDeclarationAst;
-            const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
-            const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.block.data.statementList[0] as VariableDeclarationStatementAst;
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[0] as VariableDeclarationStatementAst;
 
             // Evaluation. Correct type of expression node.
             const lExpressionNode: ValueDecompositionExpressionAst = lVariableDeclarationNode.data.expression as ValueDecompositionExpressionAst;
@@ -141,8 +142,8 @@ Deno.test('ValueDecompositionExpressionAst - Parsing', async (pContext) => {
 
             // Process. Assume correct parsing.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-            const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
-            const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.block.data.statementList[1] as VariableDeclarationStatementAst;
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[1] as VariableDeclarationStatementAst;
 
             // Evaluation. Correct type of expression node.
             const lExpressionNode: ValueDecompositionExpressionAst = lVariableDeclarationNode.data.expression as ValueDecompositionExpressionAst;
@@ -170,8 +171,8 @@ Deno.test('ValueDecompositionExpressionAst - Parsing', async (pContext) => {
 
             // Process. Assume correct parsing.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-            const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
-            const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.block.data.statementList[1] as VariableDeclarationStatementAst;
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[1] as VariableDeclarationStatementAst;
 
             // Evaluation. Correct type of expression node.
             const lExpressionNode: ValueDecompositionExpressionAst = lVariableDeclarationNode.data.expression as ValueDecompositionExpressionAst;
@@ -200,8 +201,8 @@ Deno.test('ValueDecompositionExpressionAst - Parsing', async (pContext) => {
 
                 // Process. Assume correct parsing.
                 const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-                const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
-                const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.block.data.statementList[1] as VariableDeclarationStatementAst;
+                const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+                const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[1] as VariableDeclarationStatementAst;
 
                 // Evaluation. Correct type of expression node.
                 const lExpressionNode: ValueDecompositionExpressionAst = lVariableDeclarationNode.data.expression as ValueDecompositionExpressionAst;
@@ -231,8 +232,8 @@ Deno.test('ValueDecompositionExpressionAst - Parsing', async (pContext) => {
 
                 // Process. Assume correct parsing.
                 const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-                const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
-                const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.block.data.statementList[1] as VariableDeclarationStatementAst;
+                const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+                const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[1] as VariableDeclarationStatementAst;
 
                 // Evaluation. Correct type of expression node.
                 const lExpressionNode: ValueDecompositionExpressionAst = lVariableDeclarationNode.data.expression as ValueDecompositionExpressionAst;
@@ -263,8 +264,8 @@ Deno.test('ValueDecompositionExpressionAst - Parsing', async (pContext) => {
 
             // Process. Assume correct parsing.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-            const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
-            const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.block.data.statementList[1] as VariableDeclarationStatementAst;
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[1] as VariableDeclarationStatementAst;
 
             // Evaluation. The property access wraps the index, not the other way around.
             const lExpressionNode: ValueDecompositionExpressionAst = lVariableDeclarationNode.data.expression as ValueDecompositionExpressionAst;
@@ -296,8 +297,8 @@ Deno.test('ValueDecompositionExpressionAst - Parsing', async (pContext) => {
 
             // Process. Assume correct parsing.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[1] as FunctionDeclarationAst;
-            const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
-            const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.block.data.statementList[0] as VariableDeclarationStatementAst;
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[0] as VariableDeclarationStatementAst;
 
             // Evaluation. A call result can be decomposed directly.
             const lExpressionNode: ValueDecompositionExpressionAst = lVariableDeclarationNode.data.expression as ValueDecompositionExpressionAst;

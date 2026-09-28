@@ -1,8 +1,8 @@
 import type { FunctionCallExpressionCst } from '../../../concrete_syntax_tree/expression.type.ts';
 import { PgslValueAddressSpace } from '../../../enum/pgsl-value-address-space.enum.ts';
 import { PgslValueFixedState } from '../../../enum/pgsl-value-fixed-state.ts';
-import { PgslInvalidType } from '../../type/pgsl-invalid-type.ts';
-import { PgslPointerType } from '../../type/pgsl-pointer-type.ts';
+import { PgslInvalidType } from '../../type/definition/pgsl-invalid-type.ts';
+import { PgslPointerType } from '../../type/definition/pgsl-pointer-type.ts';
 import type { BaseType } from '../../type/base-type.ts';
 import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';

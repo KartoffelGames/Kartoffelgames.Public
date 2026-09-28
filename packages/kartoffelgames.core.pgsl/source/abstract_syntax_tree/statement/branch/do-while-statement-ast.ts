@@ -1,5 +1,5 @@
 import type { DoWhileStatementCst } from '../../../concrete_syntax_tree/statement.type.ts';
-import { PgslBooleanType } from '../../type/pgsl-boolean-type.ts';
+import { PgslBooleanType } from '../../type/definition/pgsl-boolean-type.ts';
 import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
 import { ExpressionAstBuilder } from '../../expression/expression-ast-builder.ts';
@@ -23,7 +23,7 @@ export class DoWhileStatementAst extends AbstractSyntaxTree<DoWhileStatementCst,
             const lExpression: IExpressionAst = ExpressionAstBuilder.build(this.cst.expression).process(pContext);
 
             // Expression must be a boolean.
-            if (!lExpression.data.resolveType.isCastableInto(new PgslBooleanType().process(pContext))) {
+            if (!lExpression.data.resolveType.isCastableInto(new PgslBooleanType())) {
                 pContext.pushIncident('Expression of do-while loops must resolve into a boolean.', lExpression);
             }
 

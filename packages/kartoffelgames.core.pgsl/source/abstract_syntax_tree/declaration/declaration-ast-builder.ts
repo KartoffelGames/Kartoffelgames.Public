@@ -1,9 +1,9 @@
 import { Exception } from '@kartoffelgames/core';
 import type { AliasDeclarationCst, DeclarationCst, EnumDeclarationCst, FunctionDeclarationCst, StructDeclarationCst, VariableDeclarationCst } from '../../concrete_syntax_tree/declaration.type.ts';
 import { AliasDeclarationAst } from './alias-declaration-ast.ts';
+import { BaseDeclarationAst } from "./base-declaration-ast.ts";
 import { EnumDeclarationAst } from './enum-declaration-ast.ts';
 import { FunctionDeclarationAst } from './function-declaration-ast.ts';
-import type { IDeclarationAst } from './base-declaration-ast.ts';
 import { StructDeclarationAst } from './struct-declaration-ast.ts';
 import { VariableDeclarationAst } from './variable-declaration-ast.ts';
 
@@ -19,7 +19,7 @@ export abstract class DeclarationAstBuilder {
      * 
      * @returns Declaration AST node or null if the type is not recognized.
      */
-    public static build(pCst: DeclarationCst): IDeclarationAst {
+    public static build(pCst: DeclarationCst): BaseDeclarationAst {
         switch (pCst.type) {
             case 'AliasDeclaration':
                 return new AliasDeclarationAst(pCst as AliasDeclarationCst);

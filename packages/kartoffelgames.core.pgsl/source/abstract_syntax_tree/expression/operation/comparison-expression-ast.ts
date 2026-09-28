@@ -2,11 +2,11 @@ import { EnumUtil } from '@kartoffelgames/core';
 import type { ComparisonExpressionCst } from '../../../concrete_syntax_tree/expression.type.ts';
 import { PgslOperator } from '../../../enum/pgsl-operator.enum.ts';
 import { PgslValueAddressSpace } from '../../../enum/pgsl-value-address-space.enum.ts';
-import { PgslBooleanType } from '../../type/pgsl-boolean-type.ts';
-import type { BaseType } from '../../type/base-type.ts';
-import { PgslVectorType } from '../../type/pgsl-vector-type.ts';
 import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
+import { BasePgslType, BasePgslTypeKind } from "../../type/definition/base-pgsl-type.ts";
+import { PgslBooleanType } from '../../type/definition/pgsl-boolean-type.ts';
+import { PgslVectorType } from '../../type/definition/pgsl-vector-type.ts';
 import { ExpressionAstBuilder } from '../expression-ast-builder.ts';
 import type { ExpressionAstData, IExpressionAst } from '../i-expression-ast.interface.ts';
 
@@ -48,12 +48,12 @@ export class ComparisonExpressionAst extends AbstractSyntaxTree<ComparisonExpres
         const lRightExpression: IExpressionAst = ExpressionAstBuilder.build(this.cst.right).process(pContext);
 
         // Comparison needs to be the same type or implicitly castable.
-        if (!lRightExpression.data.resolveType.isCastableInto(lLeftExpression.data.resolveType)) {
+        if (lRightExpression.data.resolveType.conversionRankTo(lLeftExpression.data.resolveType) === Number.POSITIVE_INFINITY) {
             pContext.pushIncident(`Comparison can only be between values of the same type.`, this);
         }
 
         // Type buffer for validating the processed types.
-        let lValueType: BaseType;
+        let lValueType: BasePgslType;
 
         // Validate vectors differently.
         if (lLeftExpression.data.resolveType instanceof PgslVectorType) {
@@ -63,7 +63,7 @@ export class ComparisonExpressionAst extends AbstractSyntaxTree<ComparisonExpres
         }
 
         // Both values need to be numeric or boolean.
-        if (!lValueType.data.scalar) {
+        if (!lValueType.isKind(BasePgslTypeKind.Scalar)) {
             pContext.pushIncident(`Comparison can only be between scalar values.`, this);
         }
 
@@ -73,12 +73,12 @@ export class ComparisonExpressionAst extends AbstractSyntaxTree<ComparisonExpres
         }
 
         // Any value is converted into a boolean type.
-        const lResolveType: BaseType = (() => {
-            const lBooleanDefinition: PgslBooleanType = new PgslBooleanType().process(pContext);
+        const lResolveType: BasePgslType = (() => {
+            const lBooleanDefinition: PgslBooleanType = new PgslBooleanType();
 
             // Wrap boolean into a vector when it is a vector expression.
             if (lLeftExpression.data.resolveType instanceof PgslVectorType) {
-                return new PgslVectorType(lLeftExpression.data.resolveType.dimension, lBooleanDefinition).process(pContext);
+                return new PgslVectorType(lLeftExpression.data.resolveType.dimension, lBooleanDefinition);
             }
 
             return lBooleanDefinition;

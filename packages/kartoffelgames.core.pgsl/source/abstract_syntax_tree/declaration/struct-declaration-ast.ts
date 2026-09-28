@@ -1,6 +1,7 @@
 import type { StructDeclarationCst } from '../../concrete_syntax_tree/declaration.type.ts';
 import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
 import { AttributeListAst } from '../general/attribute-list-ast.ts';
+import { BasePgslTypeKind } from "../type/definition/base-pgsl-type.ts";
 import { BaseDeclarationAst, type DeclarationAstData } from './base-declaration-ast.ts';
 import { StructPropertyDeclarationAst } from './struct-property-declaration-ast.ts';
 
@@ -20,7 +21,7 @@ export class StructDeclarationAst extends BaseDeclarationAst<StructDeclarationCs
      * 
      * @param pContext - Processing context.
      */
-    public register(pContext: AbstractSyntaxTreeContext): this {
+    public override register(pContext: AbstractSyntaxTreeContext): this {
         // Check if struct is already defined.
         if (pContext.getStruct(this.cst.name)) {
             pContext.pushIncident(`Struct "${this.cst.name}" is already defined.`, this);
@@ -61,7 +62,7 @@ export class StructDeclarationAst extends BaseDeclarationAst<StructDeclarationCs
             // Skip for last property. 
             if (lIndex !== this.cst.properties.length - 1) {
                 // Validate if properties dont have fixed length.
-                if (!lProperty.data.typeDeclaration.data.type.data.fixedFootprint) {
+                if (!lProperty.data.typeDeclaration.data.type.isKind(BasePgslTypeKind.FixedFootprint)) {
                     pContext.pushIncident('Only the last property of a struct can have a variable length.', lProperty);
                 }
             }

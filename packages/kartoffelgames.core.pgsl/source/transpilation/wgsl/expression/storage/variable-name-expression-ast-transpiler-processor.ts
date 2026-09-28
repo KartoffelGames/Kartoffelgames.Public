@@ -1,7 +1,7 @@
 import { Exception } from '@kartoffelgames/core';
 import { VariableNameExpressionAst } from '../../../../abstract_syntax_tree/expression/storage/variable-name-expression-ast.ts';
 import type { ITranspilerProcessor } from '../../../i-transpiler-processor.interface.ts';
-import { PgslEnumType } from '../../../../abstract_syntax_tree/type/pgsl-enum-type.ts';
+import { PgslEnumType } from '../../../../abstract_syntax_tree/type/definition/pgsl-enum-type.ts';
 
 export class VariableNameExpressionAstTranspilerProcessor implements ITranspilerProcessor<VariableNameExpressionAst> {
     /**

@@ -1,11 +1,11 @@
 import { expect } from '@kartoffelgames/core-test';
 import { AliasDeclarationAst } from '../../../source/abstract_syntax_tree/declaration/alias-declaration-ast.ts';
 import type { DocumentAst } from '../../../source/abstract_syntax_tree/document-ast.ts';
-import { PgslArrayType } from '../../../source/abstract_syntax_tree/type/pgsl-array-type.ts';
-import { PgslBooleanType } from '../../../source/abstract_syntax_tree/type/pgsl-boolean-type.ts';
-import { PgslNumericType } from '../../../source/abstract_syntax_tree/type/pgsl-numeric-type.ts';
-import { PgslStructType } from '../../../source/abstract_syntax_tree/type/pgsl-struct-type.ts';
-import { PgslVectorType } from '../../../source/abstract_syntax_tree/type/pgsl-vector-type.ts';
+import { PgslArrayType } from '../../../source/abstract_syntax_tree/type/definition/pgsl-array-type.ts';
+import { PgslBooleanType } from '../../../source/abstract_syntax_tree/type/definition/pgsl-boolean-type.ts';
+import { PgslNumericType } from '../../../source/abstract_syntax_tree/type/definition/pgsl-numeric-type.ts';
+import { PgslStructType } from '../../../source/abstract_syntax_tree/type/definition/pgsl-struct-type.ts';
+import { PgslVectorType } from '../../../source/abstract_syntax_tree/type/definition/pgsl-vector-type.ts';
 import { PgslParser } from '../../../source/parser/pgsl-parser.ts';
 import type { PgslParserResult } from '../../../source/parser_result/pgsl-parser-result.ts';
 import { WgslTranspiler } from '../../../source/transpilation/wgsl/wgsl-transpiler.ts';

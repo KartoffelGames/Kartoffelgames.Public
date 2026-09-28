@@ -1,4 +1,4 @@
-import type { FunctionDeclarationAstDataDeclaration } from '../../abstract_syntax_tree/declaration/function-declaration-ast.ts';
+import { FunctionOverloadDeclarationAst } from "../../abstract_syntax_tree/declaration/function-overload-declaration-ast.ts";
 import { PgslParserResultEntryPoint } from './pgsl-parser-result-entry-point.ts';
 
 export class PgslParserResultComputeEntryPoint extends PgslParserResultEntryPoint {
@@ -19,7 +19,7 @@ export class PgslParserResultComputeEntryPoint extends PgslParserResultEntryPoin
      * @param pSizeY - Workgroup size Y dimension.
      * @param pSizeZ - Workgroup size Z dimension.
      */
-    public constructor(pFunctionDeclaration: FunctionDeclarationAstDataDeclaration, pSizeX: number, pSizeY: number, pSizeZ: number) {
+    public constructor(pFunctionDeclaration: FunctionOverloadDeclarationAst, pSizeX: number, pSizeY: number, pSizeZ: number) {
         super('compute', pFunctionDeclaration);
         this.mWorkgroupSize = {
             x: pSizeX,

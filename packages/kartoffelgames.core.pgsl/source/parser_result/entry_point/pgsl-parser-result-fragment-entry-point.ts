@@ -1,11 +1,11 @@
 import { Exception } from '@kartoffelgames/core';
-import type { FunctionDeclarationAstDataDeclaration } from '../../abstract_syntax_tree/declaration/function-declaration-ast.ts';
+import { FunctionOverloadDeclarationAst } from "../../abstract_syntax_tree/declaration/function-overload-declaration-ast.ts";
 import { StructDeclarationAst } from '../../abstract_syntax_tree/declaration/struct-declaration-ast.ts';
 import type { DocumentAst } from '../../abstract_syntax_tree/document-ast.ts';
-import type { BaseType } from '../../abstract_syntax_tree/type/base-type.ts';
-import { PgslNumericType } from '../../abstract_syntax_tree/type/pgsl-numeric-type.ts';
-import type { PgslStructType } from '../../abstract_syntax_tree/type/pgsl-struct-type.ts';
-import { PgslVectorType } from '../../abstract_syntax_tree/type/pgsl-vector-type.ts';
+import type { BasePgslType } from '../../abstract_syntax_tree/type/definition/base-pgsl-type.ts';
+import { PgslNumericType } from '../../abstract_syntax_tree/type/definition/pgsl-numeric-type.ts';
+import type { PgslStructType } from '../../abstract_syntax_tree/type/definition/pgsl-struct-type.ts';
+import { PgslVectorType } from '../../abstract_syntax_tree/type/definition/pgsl-vector-type.ts';
 import type { TranspilationMeta } from '../../transpilation/transpilation-meta.ts';
 import { PgslParserResultNumericType } from '../type/pgsl-parser-result-numeric-type.ts';
 import type { PgslParserResultType } from '../type/pgsl-parser-result-type.ts';
@@ -30,7 +30,7 @@ export class PgslParserResultFragmentEntryPoint extends PgslParserResultEntryPoi
      * @param pDocument - Document AST.
      * @param pMeta - Transpilation meta data.
      */
-    public constructor(pFunctionDeclaration: FunctionDeclarationAstDataDeclaration, pReturnType: PgslStructType, pDocument: DocumentAst, pMeta: TranspilationMeta) {
+    public constructor(pFunctionDeclaration: FunctionOverloadDeclarationAst, pReturnType: PgslStructType, pDocument: DocumentAst, pMeta: TranspilationMeta) {
         super('fragment', pFunctionDeclaration);
 
         this.mRenderTargets = this.convertRenderTargets(pReturnType, pDocument, pMeta);
@@ -95,7 +95,7 @@ export class PgslParserResultFragmentEntryPoint extends PgslParserResultEntryPoi
      *
      * @returns The parser result type.
      */
-    private convertType(pType: BaseType): PgslParserResultType {
+    private convertType(pType: BasePgslType): PgslParserResultType {
         // Build the parser result type based on the specific traced type.
         const lType: PgslParserResultType = (() => {
             switch (true) {
@@ -140,7 +140,7 @@ export class PgslParserResultFragmentEntryPoint extends PgslParserResultEntryPoi
 }
 
 type PgslParserResultFragmentEntryPointTargets = {
-    metaValues: Map<string, string>
+    metaValues: Map<string, string>;
     name: string;
     location: number;
     type: PgslParserResultType;

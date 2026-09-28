@@ -1,8 +1,8 @@
-import { PgslBooleanType } from '../../abstract_syntax_tree/type/pgsl-boolean-type.ts';
-import { PgslMatrixType } from '../../abstract_syntax_tree/type/pgsl-matrix-type.ts';
-import { PgslNumericType, type PgslNumericTypeName } from '../../abstract_syntax_tree/type/pgsl-numeric-type.ts';
-import { PgslVectorType } from '../../abstract_syntax_tree/type/pgsl-vector-type.ts';
-import type { FunctionDeclarationCst, FunctionDeclarationGenericCst, FunctionDeclarationHeaderCst, FunctionDeclarationParameterCst } from '../../concrete_syntax_tree/declaration.type.ts';
+import { PgslBooleanType } from '../../abstract_syntax_tree/type/definition/pgsl-boolean-type.ts';
+import { PgslMatrixType } from '../../abstract_syntax_tree/type/definition/pgsl-matrix-type.ts';
+import { PgslNumericType, type PgslNumericTypeName } from '../../abstract_syntax_tree/type/definition/pgsl-numeric-type.ts';
+import { PgslVectorType } from '../../abstract_syntax_tree/type/definition/pgsl-vector-type.ts';
+import type { FunctionDeclarationCst, FunctionDeclarationGenericCst, FunctionOverloadDeclarationCst, FunctionDeclarationParameterCst } from '../../concrete_syntax_tree/declaration.type.ts';
 import type { AttributeListCst, TypeDeclarationCst } from '../../concrete_syntax_tree/general.type.ts';
 import type { BlockStatementCst } from '../../concrete_syntax_tree/statement.type.ts';
 import { PgslFrexpResult } from '../struct/pgsl-frexp-result.ts';
@@ -758,7 +758,7 @@ export class PgslNumericBuildInFunction {
      * 
      * @returns cst function declaration.
      */
-    private static create(pName: string, pImplicitGenerics: boolean, pConstant: boolean, pDeclarations: Array<FunctionDeclarationHeaderCst>): FunctionDeclarationCst {
+    private static create(pName: string, pImplicitGenerics: boolean, pConstant: boolean, pDeclarations: Array<FunctionOverloadDeclarationCst>): FunctionDeclarationCst {
         return {
             type: 'FunctionDeclaration',
             isConstant: pConstant,
@@ -779,7 +779,7 @@ export class PgslNumericBuildInFunction {
      * 
      * @returns cst function declaration header.
      */
-    private static header(pGenerics: PgslNumericBuildInFunctionGenericList, pParameter: PgslNumericBuildInFunctionParameterList, pReturnType: TypeDeclarationCst | string): FunctionDeclarationHeaderCst {
+    private static header(pGenerics: PgslNumericBuildInFunctionGenericList, pParameter: PgslNumericBuildInFunctionParameterList, pReturnType: TypeDeclarationCst | string): FunctionOverloadDeclarationCst {
         const lEmptyBlock: BlockStatementCst = {
             type: 'BlockStatement',
             statements: [],
@@ -817,7 +817,7 @@ export class PgslNumericBuildInFunction {
         }
 
         return {
-            type: 'FunctionDeclarationHeader',
+            type: 'FunctionOverloadDeclaration',
             buildIn: true,
             range: [0, 0, 0, 0],
             block: lEmptyBlock,

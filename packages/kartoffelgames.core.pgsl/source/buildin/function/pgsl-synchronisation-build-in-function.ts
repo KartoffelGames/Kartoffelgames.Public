@@ -176,7 +176,7 @@ export class PgslSynchronisationBuildInFunction {
                 buildIn: true,
                 range: [0, 0, 0, 0],
                 name: lGenericName,
-                restrictions: pGenerics[lGenericName].length === 0 ? null : pGenerics[lGenericName],
+                restrictions: pGenerics[lGenericName],
             });
         }
 
@@ -278,5 +278,5 @@ type PgslSynchronisationBuildInFunctionParameterList = {
 };
 
 type PgslSynchronisationBuildInFunctionGenericList = {
-    [name: string]: Array<string>;
+    [name: string]: Array<TypeDeclarationCst>;
 };

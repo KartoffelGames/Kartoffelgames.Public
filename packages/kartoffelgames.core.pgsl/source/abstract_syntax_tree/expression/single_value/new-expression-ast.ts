@@ -7,9 +7,8 @@ import { TypeDeclarationAst } from '../../general/type-declaration-ast.ts';
 import { BasePgslTypeKind, type BasePgslType } from '../../type/definition/base-pgsl-type.ts';
 import { PgslArrayType } from '../../type/definition/pgsl-array-type.ts';
 import { PgslBooleanType } from '../../type/definition/pgsl-boolean-type.ts';
-import { PgslGenericType } from "../../type/definition/pgsl-generic-type.ts";
 import { PgslInvalidType } from '../../type/definition/pgsl-invalid-type.ts';
-import { PgslMatrixType } from '../../type/definition/pgsl-matrix-type.ts';
+import { PgslMatrixType, type PgslMatrixTypeName } from '../../type/definition/pgsl-matrix-type.ts';
 import { PgslNumericType } from '../../type/definition/pgsl-numeric-type.ts';
 import { PgslVectorType } from '../../type/definition/pgsl-vector-type.ts';
 import { ExpressionAstBuilder } from '../expression-ast-builder.ts';
@@ -20,12 +19,38 @@ import { LiteralValueExpressionAst } from './literal-value-expression-ast.ts';
  * PGSL syntax tree of a new call expression with optional template list.
  */
 export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewExpressionAstData> implements IExpressionAst {
-    private static callDefinition(pTypeName: string): PgslNewExpressionCallDefinition | null {
+    /**
+     * Get the constructor definitions of a constructible type.
+     * 
+     * @param pContext - Build context used to create the restriction types.
+     * @param pTypeName - Constructed type name.
+     * 
+     * @returns the constructor definitions or null when the type can not be constructed.
+     */
+    private static callDefinition(pContext: AbstractSyntaxTreeContext, pTypeName: string): PgslNewExpressionCallDefinition | null {
+        // Restriction types.
+        const lBooleanType: BasePgslType = pContext.types.create(PgslBooleanType);
+        const lFloatTypes: Array<BasePgslType> = [pContext.types.create(PgslNumericType, PgslNumericType.typeName.float32), pContext.types.create(PgslNumericType, PgslNumericType.typeName.float16)];
+        const lNumericTypes: Array<BasePgslType> = [...lFloatTypes, pContext.types.create(PgslNumericType, PgslNumericType.typeName.signedInteger), pContext.types.create(PgslNumericType, PgslNumericType.typeName.unsignedInteger)];
+
+        // Vectors and matrices of each inner type.
+        const lVectorsOf = (pDimension: number, pInnerTypes: Array<BasePgslType>): Array<BasePgslType> => {
+            return pInnerTypes.map((pInnerType: BasePgslType) => {
+                return pContext.types.create(PgslVectorType, pDimension, pInnerType);
+            });
+        };
+        const lMatricesOf = (pMatrixName: PgslMatrixTypeName, pInnerTypes: Array<BasePgslType>): Array<BasePgslType> => {
+            const [lColumns, lRows] = PgslMatrixType.dimensionsOf(pMatrixName);
+            return pInnerTypes.map((pInnerType: BasePgslType) => {
+                return pContext.types.create(PgslMatrixType, lColumns, lRows, pInnerType);
+            });
+        };
+
         switch (pTypeName) {
             // Array types.
             case PgslArrayType.typeName.array: return {
                 parameters: [
-                    [{ typeRestriction: [], count: { min: 1, max: 100 } }]
+                    [{ typeRestrictions: [], count: { min: 1, max: 100 } }]
                 ],
                 returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>): BasePgslType => {
                     // Find the first concrete numeric type and check if all others match.
@@ -48,14 +73,14 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
 
             // Vector types: Vector2.
             case PgslVectorType.typeName.vector2: return {
-                generics: ['numeric', PgslBooleanType.typeName.boolean],
+                generics: [...lNumericTypes, lBooleanType],
                 parameters: [
                     // Identity
-                    [{ typeRestriction: [`${PgslVectorType.typeName.vector2}<${PgslBooleanType.typeName.boolean}>`] }],
-                    [{ typeRestriction: [`${PgslVectorType.typeName.vector2}<numeric>`] }],
+                    [{ typeRestrictions: [...lVectorsOf(2, [lBooleanType])] }],
+                    [{ typeRestrictions: [...lVectorsOf(2, lNumericTypes)] }],
 
                     // Scalar
-                    [{ typeRestriction: ['numeric', PgslBooleanType.typeName.boolean], count: { min: 2, max: 2 } }]
+                    [{ typeRestrictions: [...lNumericTypes, lBooleanType], count: { min: 2, max: 2 } }]
                 ],
                 returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pGeneric: BasePgslType | null) => {
                     // Find inner type by generic or first concrete type.
@@ -69,31 +94,31 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
 
             // Vector types: Vector3.
             case PgslVectorType.typeName.vector3: return {
-                generics: ['numeric', PgslBooleanType.typeName.boolean],
+                generics: [...lNumericTypes, lBooleanType],
                 parameters: [
                     // Identity
-                    [{ typeRestriction: [`${PgslVectorType.typeName.vector3}<${PgslBooleanType.typeName.boolean}>`] }],
-                    [{ typeRestriction: [`${PgslVectorType.typeName.vector3}<numeric>`] }],
+                    [{ typeRestrictions: [...lVectorsOf(3, [lBooleanType])] }],
+                    [{ typeRestrictions: [...lVectorsOf(3, lNumericTypes)] }],
 
                     // Scalar
-                    [{ typeRestriction: ['numeric', PgslBooleanType.typeName.boolean], count: { min: 3, max: 3 } }],
+                    [{ typeRestrictions: [...lNumericTypes, lBooleanType], count: { min: 3, max: 3 } }],
 
                     // Vector2 Scalar
                     [
-                        { typeRestriction: [`${PgslVectorType.typeName.vector2}<${PgslBooleanType.typeName.boolean}>`] },
-                        { typeRestriction: [PgslBooleanType.typeName.boolean] }
+                        { typeRestrictions: [...lVectorsOf(2, [lBooleanType])] },
+                        { typeRestrictions: [lBooleanType] }
                     ],
                     [
-                        { typeRestriction: [`${PgslVectorType.typeName.vector2}<numeric>`] },
-                        { typeRestriction: ['numeric'] }
+                        { typeRestrictions: [...lVectorsOf(2, lNumericTypes)] },
+                        { typeRestrictions: [...lNumericTypes] }
                     ],
                     [
-                        { typeRestriction: [PgslBooleanType.typeName.boolean] },
-                        { typeRestriction: [`${PgslVectorType.typeName.vector2}<${PgslBooleanType.typeName.boolean}>`] }
+                        { typeRestrictions: [lBooleanType] },
+                        { typeRestrictions: [...lVectorsOf(2, [lBooleanType])] }
                     ],
                     [
-                        { typeRestriction: ['numeric'] },
-                        { typeRestriction: [`${PgslVectorType.typeName.vector2}<numeric>`] }
+                        { typeRestrictions: [...lNumericTypes] },
+                        { typeRestrictions: [...lVectorsOf(2, lNumericTypes)] }
                     ],
                 ],
                 returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pGeneric: BasePgslType | null) => {
@@ -113,79 +138,79 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
 
             // Vector types: Vector4.
             case PgslVectorType.typeName.vector4: return {
-                generics: ['numeric', PgslBooleanType.typeName.boolean],
+                generics: [...lNumericTypes, lBooleanType],
                 parameters: [
                     // Identity
-                    [{ typeRestriction: [`${PgslVectorType.typeName.vector4}<${PgslBooleanType.typeName.boolean}>`] }],
-                    [{ typeRestriction: [`${PgslVectorType.typeName.vector4}<numeric>`] }],
+                    [{ typeRestrictions: [...lVectorsOf(4, [lBooleanType])] }],
+                    [{ typeRestrictions: [...lVectorsOf(4, lNumericTypes)] }],
 
                     // Scalar
-                    [{ typeRestriction: ['numeric', PgslBooleanType.typeName.boolean], count: { min: 4, max: 4 } }],
+                    [{ typeRestrictions: [...lNumericTypes, lBooleanType], count: { min: 4, max: 4 } }],
 
                     // Vector2 Scalar Scalar
                     [
-                        { typeRestriction: [`${PgslVectorType.typeName.vector2}<${PgslBooleanType.typeName.boolean}>`] },
-                        { typeRestriction: [PgslBooleanType.typeName.boolean] },
-                        { typeRestriction: [PgslBooleanType.typeName.boolean] }
+                        { typeRestrictions: [...lVectorsOf(2, [lBooleanType])] },
+                        { typeRestrictions: [lBooleanType] },
+                        { typeRestrictions: [lBooleanType] }
                     ],
                     [
-                        { typeRestriction: [`${PgslVectorType.typeName.vector2}<numeric>`] },
-                        { typeRestriction: ['numeric'] },
-                        { typeRestriction: ['numeric'] }
+                        { typeRestrictions: [...lVectorsOf(2, lNumericTypes)] },
+                        { typeRestrictions: [...lNumericTypes] },
+                        { typeRestrictions: [...lNumericTypes] }
                     ],
 
                     // Scalar Vector2 Scalar
                     [
-                        { typeRestriction: [PgslBooleanType.typeName.boolean] },
-                        { typeRestriction: [`${PgslVectorType.typeName.vector2}<${PgslBooleanType.typeName.boolean}>`] },
-                        { typeRestriction: [PgslBooleanType.typeName.boolean] }
+                        { typeRestrictions: [lBooleanType] },
+                        { typeRestrictions: [...lVectorsOf(2, [lBooleanType])] },
+                        { typeRestrictions: [lBooleanType] }
                     ],
                     [
-                        { typeRestriction: ['numeric'] },
-                        { typeRestriction: [`${PgslVectorType.typeName.vector2}<numeric>`] },
-                        { typeRestriction: ['numeric'] }
+                        { typeRestrictions: [...lNumericTypes] },
+                        { typeRestrictions: [...lVectorsOf(2, lNumericTypes)] },
+                        { typeRestrictions: [...lNumericTypes] }
                     ],
 
                     // Scalar Scalar Vector2
                     [
-                        { typeRestriction: [PgslBooleanType.typeName.boolean] },
-                        { typeRestriction: [PgslBooleanType.typeName.boolean] },
-                        { typeRestriction: [`${PgslVectorType.typeName.vector2}<${PgslBooleanType.typeName.boolean}>`] },
+                        { typeRestrictions: [lBooleanType] },
+                        { typeRestrictions: [lBooleanType] },
+                        { typeRestrictions: [...lVectorsOf(2, [lBooleanType])] },
                     ],
                     [
-                        { typeRestriction: ['numeric'] },
-                        { typeRestriction: ['numeric'] },
-                        { typeRestriction: [`${PgslVectorType.typeName.vector2}<numeric>`] },
+                        { typeRestrictions: [...lNumericTypes] },
+                        { typeRestrictions: [...lNumericTypes] },
+                        { typeRestrictions: [...lVectorsOf(2, lNumericTypes)] },
                     ],
 
                     // Vector2 Vector2
                     [
-                        { typeRestriction: [`${PgslVectorType.typeName.vector2}<${PgslBooleanType.typeName.boolean}>`] },
-                        { typeRestriction: [`${PgslVectorType.typeName.vector2}<${PgslBooleanType.typeName.boolean}>`] },
+                        { typeRestrictions: [...lVectorsOf(2, [lBooleanType])] },
+                        { typeRestrictions: [...lVectorsOf(2, [lBooleanType])] },
                     ],
                     [
-                        { typeRestriction: [`${PgslVectorType.typeName.vector2}<numeric>`] },
-                        { typeRestriction: [`${PgslVectorType.typeName.vector2}<numeric>`] },
+                        { typeRestrictions: [...lVectorsOf(2, lNumericTypes)] },
+                        { typeRestrictions: [...lVectorsOf(2, lNumericTypes)] },
                     ],
 
                     // Vector3 Scalar
                     [
-                        { typeRestriction: [`${PgslVectorType.typeName.vector3}<${PgslBooleanType.typeName.boolean}>`] },
-                        { typeRestriction: [PgslBooleanType.typeName.boolean] }
+                        { typeRestrictions: [...lVectorsOf(3, [lBooleanType])] },
+                        { typeRestrictions: [lBooleanType] }
                     ],
                     [
-                        { typeRestriction: [`${PgslVectorType.typeName.vector3}<numeric>`] },
-                        { typeRestriction: ['numeric'] }
+                        { typeRestrictions: [...lVectorsOf(3, lNumericTypes)] },
+                        { typeRestrictions: [...lNumericTypes] }
                     ],
 
                     // Scalar Vector3
                     [
-                        { typeRestriction: [PgslBooleanType.typeName.boolean] },
-                        { typeRestriction: [`${PgslVectorType.typeName.vector3}<${PgslBooleanType.typeName.boolean}>`] }
+                        { typeRestrictions: [lBooleanType] },
+                        { typeRestrictions: [...lVectorsOf(3, [lBooleanType])] }
                     ],
                     [
-                        { typeRestriction: ['numeric'] },
-                        { typeRestriction: [`${PgslVectorType.typeName.vector3}<numeric>`] }
+                        { typeRestrictions: [...lNumericTypes] },
+                        { typeRestrictions: [...lVectorsOf(3, lNumericTypes)] }
                     ],
                 ],
                 returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pGeneric: BasePgslType | null) => {
@@ -205,16 +230,16 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
 
             // Matrix types.
             case PgslMatrixType.typeName.matrix22: return {
-                generics: ['numeric-float'],
+                generics: [...lFloatTypes],
                 parameters: [
                     // Identity
-                    [{ typeRestriction: [`${PgslMatrixType.typeName.matrix22}<numeric-float>`] }],
+                    [{ typeRestrictions: [...lMatricesOf(PgslMatrixType.typeName.matrix22, lFloatTypes)] }],
 
                     // Scalar
-                    [{ typeRestriction: ['numeric-float'], count: { min: 4, max: 4 } }],
+                    [{ typeRestrictions: [...lFloatTypes], count: { min: 4, max: 4 } }],
 
                     // Vectors
-                    [{ typeRestriction: [`${PgslVectorType.typeName.vector2}<numeric-float>`], count: { min: 2, max: 2 } }],
+                    [{ typeRestrictions: [...lVectorsOf(2, lFloatTypes)], count: { min: 2, max: 2 } }],
                 ],
                 returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pGeneric: BasePgslType | null) => {
                     // Find inner type by generic or first concrete type.
@@ -231,16 +256,16 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                 }
             };
             case PgslMatrixType.typeName.matrix23: return {
-                generics: ['numeric-float'],
+                generics: [...lFloatTypes],
                 parameters: [
                     // Identity
-                    [{ typeRestriction: [`${PgslMatrixType.typeName.matrix23}<numeric-float>`] }],
+                    [{ typeRestrictions: [...lMatricesOf(PgslMatrixType.typeName.matrix23, lFloatTypes)] }],
 
                     // Scalar
-                    [{ typeRestriction: ['numeric-float'], count: { min: 6, max: 6 } }],
+                    [{ typeRestrictions: [...lFloatTypes], count: { min: 6, max: 6 } }],
 
                     // Vectors
-                    [{ typeRestriction: [`${PgslVectorType.typeName.vector3}<numeric-float>`], count: { min: 2, max: 2 } }],
+                    [{ typeRestrictions: [...lVectorsOf(3, lFloatTypes)], count: { min: 2, max: 2 } }],
                 ],
                 returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pGeneric: BasePgslType | null) => {
                     // Find inner type by generic or first concrete type.
@@ -257,16 +282,16 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                 }
             };
             case PgslMatrixType.typeName.matrix24: return {
-                generics: ['numeric-float'],
+                generics: [...lFloatTypes],
                 parameters: [
                     // Identity
-                    [{ typeRestriction: [`${PgslMatrixType.typeName.matrix24}<numeric-float>`] }],
+                    [{ typeRestrictions: [...lMatricesOf(PgslMatrixType.typeName.matrix24, lFloatTypes)] }],
 
                     // Scalar
-                    [{ typeRestriction: ['numeric-float'], count: { min: 8, max: 8 } }],
+                    [{ typeRestrictions: [...lFloatTypes], count: { min: 8, max: 8 } }],
 
                     // Vectors
-                    [{ typeRestriction: [`${PgslVectorType.typeName.vector4}<numeric-float>`], count: { min: 2, max: 2 } }],
+                    [{ typeRestrictions: [...lVectorsOf(4, lFloatTypes)], count: { min: 2, max: 2 } }],
                 ],
                 returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pGeneric: BasePgslType | null) => {
                     // Find inner type by generic or first concrete type.
@@ -283,16 +308,16 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                 }
             };
             case PgslMatrixType.typeName.matrix32: return {
-                generics: ['numeric-float'],
+                generics: [...lFloatTypes],
                 parameters: [
                     // Identity
-                    [{ typeRestriction: [`${PgslMatrixType.typeName.matrix32}<numeric-float>`] }],
+                    [{ typeRestrictions: [...lMatricesOf(PgslMatrixType.typeName.matrix32, lFloatTypes)] }],
 
                     // Scalar
-                    [{ typeRestriction: ['numeric-float'], count: { min: 6, max: 6 } }],
+                    [{ typeRestrictions: [...lFloatTypes], count: { min: 6, max: 6 } }],
 
                     // Vectors
-                    [{ typeRestriction: [`${PgslVectorType.typeName.vector2}<numeric-float>`], count: { min: 3, max: 3 } }],
+                    [{ typeRestrictions: [...lVectorsOf(2, lFloatTypes)], count: { min: 3, max: 3 } }],
                 ],
                 returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pGeneric: BasePgslType | null) => {
                     // Find inner type by generic or first concrete type.
@@ -309,16 +334,16 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                 }
             };
             case PgslMatrixType.typeName.matrix33: return {
-                generics: ['numeric-float'],
+                generics: [...lFloatTypes],
                 parameters: [
                     // Identity
-                    [{ typeRestriction: [`${PgslMatrixType.typeName.matrix33}<numeric-float>`] }],
+                    [{ typeRestrictions: [...lMatricesOf(PgslMatrixType.typeName.matrix33, lFloatTypes)] }],
 
                     // Scalar
-                    [{ typeRestriction: ['numeric-float'], count: { min: 9, max: 9 } }],
+                    [{ typeRestrictions: [...lFloatTypes], count: { min: 9, max: 9 } }],
 
                     // Vectors
-                    [{ typeRestriction: [`${PgslVectorType.typeName.vector3}<numeric-float>`], count: { min: 3, max: 3 } }],
+                    [{ typeRestrictions: [...lVectorsOf(3, lFloatTypes)], count: { min: 3, max: 3 } }],
                 ],
                 returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pGeneric: BasePgslType | null) => {
                     // Find inner type by generic or first concrete type.
@@ -335,16 +360,16 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                 }
             };
             case PgslMatrixType.typeName.matrix34: return {
-                generics: ['numeric-float'],
+                generics: [...lFloatTypes],
                 parameters: [
                     // Identity
-                    [{ typeRestriction: [`${PgslMatrixType.typeName.matrix34}<numeric-float>`] }],
+                    [{ typeRestrictions: [...lMatricesOf(PgslMatrixType.typeName.matrix34, lFloatTypes)] }],
 
                     // Scalar
-                    [{ typeRestriction: ['numeric-float'], count: { min: 12, max: 12 } }],
+                    [{ typeRestrictions: [...lFloatTypes], count: { min: 12, max: 12 } }],
 
                     // Vectors
-                    [{ typeRestriction: [`${PgslVectorType.typeName.vector4}<numeric-float>`], count: { min: 3, max: 3 } }],
+                    [{ typeRestrictions: [...lVectorsOf(4, lFloatTypes)], count: { min: 3, max: 3 } }],
                 ],
                 returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pGeneric: BasePgslType | null) => {
                     // Find inner type by generic or first concrete type.
@@ -361,16 +386,16 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                 }
             };
             case PgslMatrixType.typeName.matrix42: return {
-                generics: ['numeric-float'],
+                generics: [...lFloatTypes],
                 parameters: [
                     // Identity
-                    [{ typeRestriction: [`${PgslMatrixType.typeName.matrix42}<numeric-float>`] }],
+                    [{ typeRestrictions: [...lMatricesOf(PgslMatrixType.typeName.matrix42, lFloatTypes)] }],
 
                     // Scalar
-                    [{ typeRestriction: ['numeric-float'], count: { min: 8, max: 8 } }],
+                    [{ typeRestrictions: [...lFloatTypes], count: { min: 8, max: 8 } }],
 
                     // Vectors
-                    [{ typeRestriction: [`${PgslVectorType.typeName.vector2}<numeric-float>`], count: { min: 4, max: 4 } }],
+                    [{ typeRestrictions: [...lVectorsOf(2, lFloatTypes)], count: { min: 4, max: 4 } }],
                 ],
                 returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pGeneric: BasePgslType | null) => {
                     // Find inner type by generic or first concrete type.
@@ -388,16 +413,16 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
             };
 
             case PgslMatrixType.typeName.matrix43: return {
-                generics: ['numeric-float'],
+                generics: [...lFloatTypes],
                 parameters: [
                     // Identity
-                    [{ typeRestriction: [`${PgslMatrixType.typeName.matrix43}<numeric-float>`] }],
+                    [{ typeRestrictions: [...lMatricesOf(PgslMatrixType.typeName.matrix43, lFloatTypes)] }],
 
                     // Scalar
-                    [{ typeRestriction: ['numeric-float'], count: { min: 12, max: 12 } }],
+                    [{ typeRestrictions: [...lFloatTypes], count: { min: 12, max: 12 } }],
 
                     // Vectors
-                    [{ typeRestriction: [`${PgslVectorType.typeName.vector3}<numeric-float>`], count: { min: 4, max: 4 } }],
+                    [{ typeRestrictions: [...lVectorsOf(3, lFloatTypes)], count: { min: 4, max: 4 } }],
                 ],
                 returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pGeneric: BasePgslType | null) => {
                     // Find inner type by generic or first concrete type.
@@ -414,16 +439,16 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                 }
             };
             case PgslMatrixType.typeName.matrix44: return {
-                generics: ['numeric-float'],
+                generics: [...lFloatTypes],
                 parameters: [
                     // Identity
-                    [{ typeRestriction: [`${PgslMatrixType.typeName.matrix44}<numeric-float>`] }],
+                    [{ typeRestrictions: [...lMatricesOf(PgslMatrixType.typeName.matrix44, lFloatTypes)] }],
 
                     // Scalar
-                    [{ typeRestriction: ['numeric-float'], count: { min: 16, max: 16 } }],
+                    [{ typeRestrictions: [...lFloatTypes], count: { min: 16, max: 16 } }],
 
                     // Vectors
-                    [{ typeRestriction: [`${PgslVectorType.typeName.vector4}<numeric-float>`], count: { min: 4, max: 4 } }],
+                    [{ typeRestrictions: [...lVectorsOf(4, lFloatTypes)], count: { min: 4, max: 4 } }],
                 ],
                 returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pGeneric: BasePgslType | null) => {
                     // Find inner type by generic or first concrete type.
@@ -443,8 +468,8 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
             // Scalar types.
             case PgslBooleanType.typeName.boolean: return {
                 parameters: [
-                    [{ typeRestriction: ['numeric'] }],
-                    [{ typeRestriction: [PgslBooleanType.typeName.boolean] }]
+                    [{ typeRestrictions: [...lNumericTypes] }],
+                    [{ typeRestrictions: [lBooleanType] }]
                 ],
                 returnType: (pContext: AbstractSyntaxTreeContext) => {
                     return pContext.types.create(PgslBooleanType);
@@ -452,8 +477,8 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
             };
             case PgslNumericType.typeName.float16: return {
                 parameters: [
-                    [{ typeRestriction: ['numeric'] }],
-                    [{ typeRestriction: [PgslBooleanType.typeName.boolean] }]
+                    [{ typeRestrictions: [...lNumericTypes] }],
+                    [{ typeRestrictions: [lBooleanType] }]
                 ],
                 returnType: (pContext: AbstractSyntaxTreeContext) => {
                     return pContext.types.create(PgslNumericType, PgslNumericType.typeName.float16);
@@ -461,8 +486,8 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
             };
             case PgslNumericType.typeName.float32: return {
                 parameters: [
-                    [{ typeRestriction: ['numeric'] }],
-                    [{ typeRestriction: [PgslBooleanType.typeName.boolean] }]
+                    [{ typeRestrictions: [...lNumericTypes] }],
+                    [{ typeRestrictions: [lBooleanType] }]
                 ],
                 returnType: (pContext: AbstractSyntaxTreeContext) => {
                     return pContext.types.create(PgslNumericType, PgslNumericType.typeName.float32);
@@ -470,8 +495,8 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
             };
             case PgslNumericType.typeName.signedInteger: return {
                 parameters: [
-                    [{ typeRestriction: ['numeric'] }],
-                    [{ typeRestriction: [PgslBooleanType.typeName.boolean] }]
+                    [{ typeRestrictions: [...lNumericTypes] }],
+                    [{ typeRestrictions: [lBooleanType] }]
                 ],
                 returnType: (pContext: AbstractSyntaxTreeContext) => {
                     return pContext.types.create(PgslNumericType, PgslNumericType.typeName.signedInteger);
@@ -479,8 +504,8 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
             };
             case PgslNumericType.typeName.unsignedInteger: return {
                 parameters: [
-                    [{ typeRestriction: ['numeric'] }],
-                    [{ typeRestriction: [PgslBooleanType.typeName.boolean] }]
+                    [{ typeRestrictions: [...lNumericTypes] }],
+                    [{ typeRestrictions: [lBooleanType] }]
                 ],
                 returnType: (pContext: AbstractSyntaxTreeContext) => {
                     return pContext.types.create(PgslNumericType, PgslNumericType.typeName.unsignedInteger);
@@ -498,7 +523,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
      */
     protected override onProcess(pContext: AbstractSyntaxTreeContext): NewExpressionAstData {
         // Read call definitions.
-        const lCallDefinition: PgslNewExpressionCallDefinition | null = NewExpressionAst.callDefinition(this.cst.typeName);
+        const lCallDefinition: PgslNewExpressionCallDefinition | null = NewExpressionAst.callDefinition(pContext, this.cst.typeName);
         if (!lCallDefinition) {
             pContext.pushIncident(`Type '${this.cst.typeName}' cannot be constructed with 'new'.`, this);
             return {
@@ -532,7 +557,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
         }
 
         // Only types with generics can be constructed with a generic.
-        if (this.cst.genericList.length > 0 && !lCallDefinition.generic) {
+        if (this.cst.genericList.length > 0 && !lCallDefinition.generics) {
             pContext.pushIncident(`Type '${this.cst.typeName}' can not be constructed with a generic type.`, this);
         }
 
@@ -574,12 +599,15 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
 
         // Validate used generic against definition.
         (() => {
-            if (!lGenericType || !lCallDefinition.generic) {
+            if (!lGenericType || !lCallDefinition.generics) {
                 return;
             }
 
             // Check each defined generic agains the used one.
-            if (!lCallDefinition.generic.accepts(lGenericType)) {
+            const lGenericMatched: boolean = lCallDefinition.generics.some((pGeneric: BasePgslType) => {
+                return pGeneric.accepts(lGenericType);
+            });
+            if (!lGenericMatched) {
                 pContext.pushIncident(`Generic type is not valid for constructed type '${this.cst.typeName}'.`, this);
             }
         })();
@@ -592,7 +620,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
 
                 // Check parameters parts.
                 for (const lParameterDefinition of lParameterDefinitionList) {
-                    const lValidParameterType: BasePgslType = lParameterDefinition.typeRestriction;
+                    const lValidParameterTypeList: Array<BasePgslType> = lParameterDefinition.typeRestrictions;
                     const lParameterCountMin: number = lParameterDefinition.count?.min ?? 1;
                     const lParameterCountMax: number = lParameterDefinition.count?.max ?? 1;
 
@@ -610,8 +638,13 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                         // Get actual parameter type.
                         const lActualType: BasePgslType = lParameterTypeList[lParameterIndex];
 
+                        // Check type restrictions. No restrictions means always match.
+                        const lTypeMatched: boolean = lValidParameterTypeList.length === 0 || lValidParameterTypeList.some((pValidParameterType: BasePgslType) => {
+                            return pValidParameterType.accepts(lActualType);
+                        });
+
                         // Skip this definition on mismatch.
-                        if (!lActualType.accepts(lValidParameterType)) {
+                        if (!lTypeMatched) {
                             break;
                         }
                     }
@@ -650,13 +683,13 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
 }
 
 type PgslNewExpressionCallDefinition = {
-    generic?: PgslGenericType;
+    generics?: Array<BasePgslType>;
     parameters: Array<Array<PgslNewExpressionCallDefinitionParameter>>;
     returnType: (pContext: AbstractSyntaxTreeContext, pParameterTypes: Array<BasePgslType>, pGeneric: BasePgslType | null) => BasePgslType;
 };
 
 type PgslNewExpressionCallDefinitionParameter = {
-    typeRestriction: Array<string>;
+    typeRestrictions: Array<BasePgslType>;
     count?: { min: number; max: number; };
 };
 

@@ -198,7 +198,7 @@ export class PgslPackingBuildInFunction {
                 buildIn: true,
                 range: [0, 0, 0, 0],
                 name: lGenericName,
-                restrictions: pGenerics[lGenericName].length === 0 ? null : pGenerics[lGenericName],
+                restrictions: pGenerics[lGenericName],
             });
         }
 
@@ -255,5 +255,5 @@ type PgslPackingBuildInFunctionParameterList = {
 };
 
 type PgslPackingBuildInFunctionGenericList = {
-    [name: string]: Array<string>;
+    [name: string]: Array<TypeDeclarationCst>;
 };

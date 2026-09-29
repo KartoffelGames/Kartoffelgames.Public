@@ -111,7 +111,8 @@ export class PgslNumericBuildInFunction {
         const lFunctions: Array<FunctionDeclarationCst> = new Array<FunctionDeclarationCst>();
 
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.arrayLength, true, false, [
-            PgslNumericBuildInFunction.header({ 'TResult': ['Pointer<Array>'], }, { 'array': 'TResult' }, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.unsignedInteger)),
+            // TODO: Restrict to pointers of arrays with any element type once pointer types can express it. An empty restriction accepts nothing yet.
+            PgslNumericBuildInFunction.header({ 'TResult': [], }, { 'array': 'TResult' }, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.unsignedInteger)),
         ]));
 
         return lFunctions;
@@ -128,22 +129,22 @@ export class PgslNumericBuildInFunction {
         // bitcast
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.bitcast, false, true, [
             // Numerics
-            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericType.typeName.float32, PgslNumericType.typeName.signedInteger, PgslNumericType.typeName.unsignedInteger] }, { 'value': PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32) }, 'TResult'),
-            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericType.typeName.float32, PgslNumericType.typeName.signedInteger, PgslNumericType.typeName.unsignedInteger], }, { 'value': PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.signedInteger) }, 'TResult'),
-            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericType.typeName.float32, PgslNumericType.typeName.signedInteger, PgslNumericType.typeName.unsignedInteger], }, { 'value': PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.unsignedInteger) }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32), PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.signedInteger), PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.unsignedInteger)] }, { 'value': PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32) }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32), PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.signedInteger), PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.unsignedInteger)], }, { 'value': PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.signedInteger) }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32), PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.signedInteger), PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.unsignedInteger)], }, { 'value': PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.unsignedInteger) }, 'TResult'),
 
             // Numeric Vectors.
-            PgslNumericBuildInFunction.header({ 'TResult': [`Vector2<${PgslNumericType.typeName.float32}>`, `Vector2<${PgslNumericType.typeName.signedInteger}>`, `Vector2<${PgslNumericType.typeName.unsignedInteger}>`], }, { 'value': PgslNumericBuildInFunction.vectorType(2, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32)) }, 'TResult'),
-            PgslNumericBuildInFunction.header({ 'TResult': [`Vector2<${PgslNumericType.typeName.float32}>`, `Vector2<${PgslNumericType.typeName.signedInteger}>`, `Vector2<${PgslNumericType.typeName.unsignedInteger}>`], }, { 'value': PgslNumericBuildInFunction.vectorType(2, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.signedInteger)) }, 'TResult'),
-            PgslNumericBuildInFunction.header({ 'TResult': [`Vector2<${PgslNumericType.typeName.float32}>`, `Vector2<${PgslNumericType.typeName.signedInteger}>`, `Vector2<${PgslNumericType.typeName.unsignedInteger}>`], }, { 'value': PgslNumericBuildInFunction.vectorType(2, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.unsignedInteger)) }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericBuildInFunction.vectorType(2, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32)), PgslNumericBuildInFunction.vectorType(2, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.signedInteger)), PgslNumericBuildInFunction.vectorType(2, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.unsignedInteger))], }, { 'value': PgslNumericBuildInFunction.vectorType(2, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32)) }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericBuildInFunction.vectorType(2, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32)), PgslNumericBuildInFunction.vectorType(2, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.signedInteger)), PgslNumericBuildInFunction.vectorType(2, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.unsignedInteger))], }, { 'value': PgslNumericBuildInFunction.vectorType(2, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.signedInteger)) }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericBuildInFunction.vectorType(2, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32)), PgslNumericBuildInFunction.vectorType(2, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.signedInteger)), PgslNumericBuildInFunction.vectorType(2, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.unsignedInteger))], }, { 'value': PgslNumericBuildInFunction.vectorType(2, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.unsignedInteger)) }, 'TResult'),
 
-            PgslNumericBuildInFunction.header({ 'TResult': [`Vector3<${PgslNumericType.typeName.float32}>`, `Vector2<${PgslNumericType.typeName.signedInteger}>`, `Vector2<${PgslNumericType.typeName.unsignedInteger}>`], }, { 'value': PgslNumericBuildInFunction.vectorType(3, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32)) }, 'TResult'),
-            PgslNumericBuildInFunction.header({ 'TResult': [`Vector3<${PgslNumericType.typeName.float32}>`, `Vector2<${PgslNumericType.typeName.signedInteger}>`, `Vector2<${PgslNumericType.typeName.unsignedInteger}>`], }, { 'value': PgslNumericBuildInFunction.vectorType(3, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.signedInteger)) }, 'TResult'),
-            PgslNumericBuildInFunction.header({ 'TResult': [`Vector3<${PgslNumericType.typeName.float32}>`, `Vector2<${PgslNumericType.typeName.signedInteger}>`, `Vector2<${PgslNumericType.typeName.unsignedInteger}>`], }, { 'value': PgslNumericBuildInFunction.vectorType(3, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.unsignedInteger)) }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericBuildInFunction.vectorType(3, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32)), PgslNumericBuildInFunction.vectorType(3, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.signedInteger)), PgslNumericBuildInFunction.vectorType(3, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.unsignedInteger))], }, { 'value': PgslNumericBuildInFunction.vectorType(3, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32)) }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericBuildInFunction.vectorType(3, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32)), PgslNumericBuildInFunction.vectorType(3, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.signedInteger)), PgslNumericBuildInFunction.vectorType(3, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.unsignedInteger))], }, { 'value': PgslNumericBuildInFunction.vectorType(3, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.signedInteger)) }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericBuildInFunction.vectorType(3, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32)), PgslNumericBuildInFunction.vectorType(3, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.signedInteger)), PgslNumericBuildInFunction.vectorType(3, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.unsignedInteger))], }, { 'value': PgslNumericBuildInFunction.vectorType(3, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.unsignedInteger)) }, 'TResult'),
 
-            PgslNumericBuildInFunction.header({ 'TResult': [`Vector4<${PgslNumericType.typeName.float32}>`, `Vector2<${PgslNumericType.typeName.signedInteger}>`, `Vector2<${PgslNumericType.typeName.unsignedInteger}>`], }, { 'value': PgslNumericBuildInFunction.vectorType(4, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32)) }, 'TResult'),
-            PgslNumericBuildInFunction.header({ 'TResult': [`Vector4<${PgslNumericType.typeName.float32}>`, `Vector2<${PgslNumericType.typeName.signedInteger}>`, `Vector2<${PgslNumericType.typeName.unsignedInteger}>`], }, { 'value': PgslNumericBuildInFunction.vectorType(4, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.signedInteger)) }, 'TResult'),
-            PgslNumericBuildInFunction.header({ 'TResult': [`Vector4<${PgslNumericType.typeName.float32}>`, `Vector2<${PgslNumericType.typeName.signedInteger}>`, `Vector2<${PgslNumericType.typeName.unsignedInteger}>`], }, { 'value': PgslNumericBuildInFunction.vectorType(4, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.unsignedInteger)) }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericBuildInFunction.vectorType(4, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32)), PgslNumericBuildInFunction.vectorType(4, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.signedInteger)), PgslNumericBuildInFunction.vectorType(4, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.unsignedInteger))], }, { 'value': PgslNumericBuildInFunction.vectorType(4, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32)) }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericBuildInFunction.vectorType(4, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32)), PgslNumericBuildInFunction.vectorType(4, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.signedInteger)), PgslNumericBuildInFunction.vectorType(4, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.unsignedInteger))], }, { 'value': PgslNumericBuildInFunction.vectorType(4, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.signedInteger)) }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericBuildInFunction.vectorType(4, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32)), PgslNumericBuildInFunction.vectorType(4, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.signedInteger)), PgslNumericBuildInFunction.vectorType(4, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.unsignedInteger))], }, { 'value': PgslNumericBuildInFunction.vectorType(4, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.unsignedInteger)) }, 'TResult'),
         ]));
 
         return lFunctions;
@@ -159,47 +160,47 @@ export class PgslNumericBuildInFunction {
 
         // dpdx
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.dpdx, true, false, [
-            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericType.typeName.float32, `Vector<${PgslNumericType.typeName.float32}>`], }, { 'e': 'TResult' }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32), ...PgslNumericBuildInFunction.vectorTypes([PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32)])], }, { 'e': 'TResult' }, 'TResult'),
         ]));
 
         // dpdxCoarse
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.dpdxCoarse, true, false, [
-            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericType.typeName.float32, `Vector<${PgslNumericType.typeName.float32}>`], }, { 'e': 'TResult' }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32), ...PgslNumericBuildInFunction.vectorTypes([PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32)])], }, { 'e': 'TResult' }, 'TResult'),
         ]));
 
         // dpdxFine
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.dpdxFine, true, false, [
-            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericType.typeName.float32, `Vector<${PgslNumericType.typeName.float32}>`], }, { 'e': 'TResult' }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32), ...PgslNumericBuildInFunction.vectorTypes([PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32)])], }, { 'e': 'TResult' }, 'TResult'),
         ]));
 
         // dpdy
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.dpdy, true, false, [
-            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericType.typeName.float32, `Vector<${PgslNumericType.typeName.float32}>`], }, { 'e': 'TResult' }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32), ...PgslNumericBuildInFunction.vectorTypes([PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32)])], }, { 'e': 'TResult' }, 'TResult'),
         ]));
 
         // dpdyCoarse
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.dpdyCoarse, true, false, [
-            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericType.typeName.float32, `Vector<${PgslNumericType.typeName.float32}>`], }, { 'e': 'TResult' }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32), ...PgslNumericBuildInFunction.vectorTypes([PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32)])], }, { 'e': 'TResult' }, 'TResult'),
         ]));
 
         // dpdyFine
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.dpdyFine, true, false, [
-            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericType.typeName.float32, `Vector<${PgslNumericType.typeName.float32}>`], }, { 'e': 'TResult' }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32), ...PgslNumericBuildInFunction.vectorTypes([PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32)])], }, { 'e': 'TResult' }, 'TResult'),
         ]));
 
         // fwidth
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.fwidth, true, false, [
-            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericType.typeName.float32, `Vector<${PgslNumericType.typeName.float32}>`], }, { 'e': 'TResult' }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32), ...PgslNumericBuildInFunction.vectorTypes([PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32)])], }, { 'e': 'TResult' }, 'TResult'),
         ]));
 
         // fwidthCoarse
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.fwidthCoarse, true, false, [
-            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericType.typeName.float32, `Vector<${PgslNumericType.typeName.float32}>`], }, { 'e': 'TResult' }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32), ...PgslNumericBuildInFunction.vectorTypes([PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32)])], }, { 'e': 'TResult' }, 'TResult'),
         ]));
 
         // fwidthFine
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.fwidthFine, true, false, [
-            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericType.typeName.float32, `Vector<${PgslNumericType.typeName.float32}>`], }, { 'e': 'TResult' }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32), ...PgslNumericBuildInFunction.vectorTypes([PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32)])], }, { 'e': 'TResult' }, 'TResult'),
         ]));
 
         return lFunctions;
@@ -231,10 +232,10 @@ export class PgslNumericBuildInFunction {
 
         // select
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.select, true, true, [
-            PgslNumericBuildInFunction.header({ 'TResult': [], }, { 'trueValue': 'TResult', 'falseValue': 'TResult', 'condition': PgslNumericBuildInFunction.booleanType() }, 'TResult'),
-            PgslNumericBuildInFunction.header({ 'TResult': ['Vector2'], }, { 'trueValue': 'TResult', 'falseValue': 'TResult', 'condition': PgslNumericBuildInFunction.vectorType(2, PgslNumericBuildInFunction.booleanType()) }, 'TResult'),
-            PgslNumericBuildInFunction.header({ 'TResult': ['Vector3'], }, { 'trueValue': 'TResult', 'falseValue': 'TResult', 'condition': PgslNumericBuildInFunction.vectorType(3, PgslNumericBuildInFunction.booleanType()) }, 'TResult'),
-            PgslNumericBuildInFunction.header({ 'TResult': ['Vector4'], }, { 'trueValue': 'TResult', 'falseValue': 'TResult', 'condition': PgslNumericBuildInFunction.vectorType(4, PgslNumericBuildInFunction.booleanType()) }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [...PgslNumericBuildInFunction.scalarTypes(), ...PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.scalarTypes())], }, { 'trueValue': 'TResult', 'falseValue': 'TResult', 'condition': PgslNumericBuildInFunction.booleanType() }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.scalarTypes(), [2]), }, { 'trueValue': 'TResult', 'falseValue': 'TResult', 'condition': PgslNumericBuildInFunction.vectorType(2, PgslNumericBuildInFunction.booleanType()) }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.scalarTypes(), [3]), }, { 'trueValue': 'TResult', 'falseValue': 'TResult', 'condition': PgslNumericBuildInFunction.vectorType(3, PgslNumericBuildInFunction.booleanType()) }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.scalarTypes(), [4]), }, { 'trueValue': 'TResult', 'falseValue': 'TResult', 'condition': PgslNumericBuildInFunction.vectorType(4, PgslNumericBuildInFunction.booleanType()) }, 'TResult'),
         ]));
 
         return lFunctions;
@@ -250,78 +251,78 @@ export class PgslNumericBuildInFunction {
 
         // abs
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.abs, true, true, [
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric', 'Vector<numeric>'], }, { 'e': 'TResult' }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [...PgslNumericBuildInFunction.numericTypes(), ...PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.numericTypes())], }, { 'e': 'TResult' }, 'TResult'),
         ]));
 
         // acos
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.acos, true, true, [
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric-float', 'Vector<numeric-float>'], }, { 'e': 'TResult' }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [...PgslNumericBuildInFunction.floatTypes(), ...PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.floatTypes())], }, { 'e': 'TResult' }, 'TResult'),
         ]));
 
         // acosh
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.acosh, true, true, [
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric-float', 'Vector<numeric-float>'], }, { 'x': 'TResult' }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [...PgslNumericBuildInFunction.floatTypes(), ...PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.floatTypes())], }, { 'x': 'TResult' }, 'TResult'),
         ]));
 
         // asin
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.asin, true, true, [
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric-float', 'Vector<numeric-float>'], }, { 'e': 'TResult' }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [...PgslNumericBuildInFunction.floatTypes(), ...PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.floatTypes())], }, { 'e': 'TResult' }, 'TResult'),
         ]));
 
         // asinh
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.asinh, true, true, [
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric-float', 'Vector<numeric-float>'], }, { 'y': 'TResult' }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [...PgslNumericBuildInFunction.floatTypes(), ...PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.floatTypes())], }, { 'y': 'TResult' }, 'TResult'),
         ]));
 
         // atan
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.atan, true, true, [
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric-float', 'Vector<numeric-float>'], }, { 'e': 'TResult' }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [...PgslNumericBuildInFunction.floatTypes(), ...PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.floatTypes())], }, { 'e': 'TResult' }, 'TResult'),
             PgslNumericBuildInFunction.header({ 'TResult': [], }, { 'e': 'TResult' }, 'TResult')
         ]));
 
         // atanh
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.atanh, true, true, [
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric-float', 'Vector<numeric-float>'], }, { 't': 'TResult' }, 'TResult')
+            PgslNumericBuildInFunction.header({ 'TResult': [...PgslNumericBuildInFunction.floatTypes(), ...PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.floatTypes())], }, { 't': 'TResult' }, 'TResult')
         ]));
 
         // --atan2
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.atan2, true, true, [
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric-float', 'Vector<numeric-float>'], }, { 'y': 'TResult', 'x': 'TResult' }, 'TResult')
+            PgslNumericBuildInFunction.header({ 'TResult': [...PgslNumericBuildInFunction.floatTypes(), ...PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.floatTypes())], }, { 'y': 'TResult', 'x': 'TResult' }, 'TResult')
         ]));
 
         // ceil
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.ceil, true, true, [
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric-float', 'Vector<numeric-float>'], }, { 'e': 'TResult' }, 'TResult')
+            PgslNumericBuildInFunction.header({ 'TResult': [...PgslNumericBuildInFunction.floatTypes(), ...PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.floatTypes())], }, { 'e': 'TResult' }, 'TResult')
         ]));
 
         // clamp
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.clamp, true, true, [
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric', 'Vector<numeric>'], }, { 'e': 'TResult', 'low': 'TResult', 'high': 'TResult' }, 'TResult')
+            PgslNumericBuildInFunction.header({ 'TResult': [...PgslNumericBuildInFunction.numericTypes(), ...PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.numericTypes())], }, { 'e': 'TResult', 'low': 'TResult', 'high': 'TResult' }, 'TResult')
         ]));
 
         // cos
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.cos, true, true, [
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric-float', 'Vector<numeric-float>'], }, { 'e': 'TResult' }, 'TResult')
+            PgslNumericBuildInFunction.header({ 'TResult': [...PgslNumericBuildInFunction.floatTypes(), ...PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.floatTypes())], }, { 'e': 'TResult' }, 'TResult')
         ]));
 
         // cosh
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.cosh, true, true, [
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric-float', 'Vector<numeric-float>'], }, { 'a': 'TResult' }, 'TResult')
+            PgslNumericBuildInFunction.header({ 'TResult': [...PgslNumericBuildInFunction.floatTypes(), ...PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.floatTypes())], }, { 'a': 'TResult' }, 'TResult')
         ]));
 
         // countLeadingZeros
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.countLeadingZeros, true, true, [
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric-integer', 'Vector<numeric-integer>'], }, { 'e': 'TResult' }, 'TResult')
+            PgslNumericBuildInFunction.header({ 'TResult': [...PgslNumericBuildInFunction.integerTypes(), ...PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.integerTypes())], }, { 'e': 'TResult' }, 'TResult')
         ]));
 
         // countOneBits
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.countOneBits, true, true, [
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric-integer', 'Vector<numeric-integer>'], }, { 'e': 'TResult' }, 'TResult')
+            PgslNumericBuildInFunction.header({ 'TResult': [...PgslNumericBuildInFunction.integerTypes(), ...PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.integerTypes())], }, { 'e': 'TResult' }, 'TResult')
         ]));
 
         // countTrailingZeros
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.countTrailingZeros, true, true, [
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric-integer', 'Vector<numeric-integer>'], }, { 'e': 'TResult' }, 'TResult')
+            PgslNumericBuildInFunction.header({ 'TResult': [...PgslNumericBuildInFunction.integerTypes(), ...PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.integerTypes())], }, { 'e': 'TResult' }, 'TResult')
         ]));
 
         // cross
@@ -333,20 +334,20 @@ export class PgslNumericBuildInFunction {
 
         // degrees
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.degrees, true, true, [
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric-float', 'Vector<numeric-float>'], }, { 'e1': 'TResult' }, 'TResult')
+            PgslNumericBuildInFunction.header({ 'TResult': [...PgslNumericBuildInFunction.floatTypes(), ...PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.floatTypes())], }, { 'e1': 'TResult' }, 'TResult')
         ]));
 
         // determinant
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.determinant, true, true, [
-            PgslNumericBuildInFunction.header({ 'T': [`Matrix<${PgslNumericType.typeName.float32}>`], }, { 'e': 'T' }, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32)),
-            PgslNumericBuildInFunction.header({ 'T': [`Matrix<${PgslNumericType.typeName.float16}>`], }, { 'e': 'T' }, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float16)),
-            PgslNumericBuildInFunction.header({ 'T': [`Matrix<${PgslNumericType.typeName.abstractFloat}>`], }, { 'e': 'T' }, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.abstractFloat)),
+            PgslNumericBuildInFunction.header({ 'T': PgslNumericBuildInFunction.squareMatrixTypes(PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32)), }, { 'e': 'T' }, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32)),
+            PgslNumericBuildInFunction.header({ 'T': PgslNumericBuildInFunction.squareMatrixTypes(PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float16)), }, { 'e': 'T' }, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float16)),
+            PgslNumericBuildInFunction.header({ 'T': PgslNumericBuildInFunction.squareMatrixTypes(PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.abstractFloat)), }, { 'e': 'T' }, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.abstractFloat)),
         ]));
 
         // distance
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.distance, true, true, [
             // Scalar
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric-float'], }, { 'e1': 'TResult', 'e2': 'TResult' }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': PgslNumericBuildInFunction.floatTypes(), }, { 'e1': 'TResult', 'e2': 'TResult' }, 'TResult'),
 
             // Vector2
             PgslNumericBuildInFunction.header({}, { 'e1': PgslNumericBuildInFunction.vectorType(2, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32)), 'e2': PgslNumericBuildInFunction.vectorType(2, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32)) }, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32)),
@@ -403,48 +404,48 @@ export class PgslNumericBuildInFunction {
 
         // exp
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.exp, true, true, [
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric-float', 'Vector<numeric-float>'], }, { 'e1': 'TResult' }, 'TResult')
+            PgslNumericBuildInFunction.header({ 'TResult': [...PgslNumericBuildInFunction.floatTypes(), ...PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.floatTypes())], }, { 'e1': 'TResult' }, 'TResult')
         ]));
 
         // exp2
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.exp2, true, true, [
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric-float', 'Vector<numeric-float>'], }, { 'e': 'TResult' }, 'TResult')
+            PgslNumericBuildInFunction.header({ 'TResult': [...PgslNumericBuildInFunction.floatTypes(), ...PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.floatTypes())], }, { 'e': 'TResult' }, 'TResult')
         ]));
 
         // extractBits
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.extractBits, true, true, [
-            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericType.typeName.signedInteger, `Vector<${PgslNumericType.typeName.signedInteger}>`], }, { 'e': 'TResult', 'offset': PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.unsignedInteger), 'count': PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.unsignedInteger) }, 'TResult'),
-            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericType.typeName.unsignedInteger, `Vector<${PgslNumericType.typeName.unsignedInteger}>`], }, { 'e': 'TResult', 'offset': PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.unsignedInteger), 'count': PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.unsignedInteger) }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.signedInteger), ...PgslNumericBuildInFunction.vectorTypes([PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.signedInteger)])], }, { 'e': 'TResult', 'offset': PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.unsignedInteger), 'count': PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.unsignedInteger) }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.unsignedInteger), ...PgslNumericBuildInFunction.vectorTypes([PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.unsignedInteger)])], }, { 'e': 'TResult', 'offset': PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.unsignedInteger), 'count': PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.unsignedInteger) }, 'TResult'),
         ]));
 
         // faceForward
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.faceForward, true, true, [
-            PgslNumericBuildInFunction.header({ 'T': ['Vector<numeric-float>'] }, { 'e1': 'T', 'e2': 'T', 'e3': 'T' }, 'T'),
+            PgslNumericBuildInFunction.header({ 'T': PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.floatTypes()) }, { 'e1': 'T', 'e2': 'T', 'e3': 'T' }, 'T'),
         ]));
 
         // firstLeadingBit
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.firstLeadingBit, true, true, [
-            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericType.typeName.signedInteger, `Vector<${PgslNumericType.typeName.signedInteger}>`, PgslNumericType.typeName.unsignedInteger, `Vector<${PgslNumericType.typeName.unsignedInteger}>`], }, { 'e': 'TResult' }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [...PgslNumericBuildInFunction.integerTypes(), ...PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.integerTypes())], }, { 'e': 'TResult' }, 'TResult'),
         ]));
 
         // firstTrailingBit
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.firstTrailingBit, true, true, [
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric-integer', 'Vector<numeric-integer>'], }, { 'e': 'TResult' }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [...PgslNumericBuildInFunction.integerTypes(), ...PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.integerTypes())], }, { 'e': 'TResult' }, 'TResult'),
         ]));
 
         // floor
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.floor, true, true, [
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric-float', 'Vector<numeric-float>'], }, { 'e': 'TResult' }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [...PgslNumericBuildInFunction.floatTypes(), ...PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.floatTypes())], }, { 'e': 'TResult' }, 'TResult'),
         ]));
 
         // fma
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.fma, true, true, [
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric-float', 'Vector<numeric-float>'], }, { 'e1': 'TResult', 'e2': 'TResult', 'e3': 'TResult' }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [...PgslNumericBuildInFunction.floatTypes(), ...PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.floatTypes())], }, { 'e1': 'TResult', 'e2': 'TResult', 'e3': 'TResult' }, 'TResult'),
         ]));
 
         // fract
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.fract, true, true, [
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric-float', 'Vector<numeric-float>'], }, { 'e': 'TResult' }, 'TResult')
+            PgslNumericBuildInFunction.header({ 'TResult': [...PgslNumericBuildInFunction.floatTypes(), ...PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.floatTypes())], }, { 'e': 'TResult' }, 'TResult')
         ]));
 
         // frexp
@@ -472,37 +473,37 @@ export class PgslNumericBuildInFunction {
 
         // insertBits
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.insertBits, true, true, [
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric-integer', 'Vector<numeric-integer>'], }, { 'e': 'TResult', 'newbits': 'TResult', 'offset': PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.unsignedInteger), 'count': PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.unsignedInteger) }, 'TResult')
+            PgslNumericBuildInFunction.header({ 'TResult': [...PgslNumericBuildInFunction.integerTypes(), ...PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.integerTypes())], }, { 'e': 'TResult', 'newbits': 'TResult', 'offset': PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.unsignedInteger), 'count': PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.unsignedInteger) }, 'TResult')
         ]));
 
         // inverseSqrt
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.inverseSqrt, true, true, [
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric-float', 'Vector<numeric-float>'], }, { 'e': 'TResult' }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [...PgslNumericBuildInFunction.floatTypes(), ...PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.floatTypes())], }, { 'e': 'TResult' }, 'TResult'),
         ]));
 
         // ldexp
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.ldexp, true, true, [
             // Scalar
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric-float', 'Vector<numeric-float>'], }, { 'e1': 'TResult', 'e2': PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.signedInteger) }, 'TResult'),
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric-float', 'Vector<numeric-float>'], }, { 'e1': 'TResult', 'e2': PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.abstractInteger) }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [...PgslNumericBuildInFunction.floatTypes(), ...PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.floatTypes())], }, { 'e1': 'TResult', 'e2': PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.signedInteger) }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [...PgslNumericBuildInFunction.floatTypes(), ...PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.floatTypes())], }, { 'e1': 'TResult', 'e2': PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.abstractInteger) }, 'TResult'),
 
             // Vector2
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric-float', 'Vector<numeric-float>'], }, { 'e1': 'TResult', 'e2': PgslNumericBuildInFunction.vectorType(2, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.signedInteger)) }, 'TResult'),
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric-float', 'Vector<numeric-float>'], }, { 'e1': 'TResult', 'e2': PgslNumericBuildInFunction.vectorType(2, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.abstractInteger)) }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [...PgslNumericBuildInFunction.floatTypes(), ...PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.floatTypes())], }, { 'e1': 'TResult', 'e2': PgslNumericBuildInFunction.vectorType(2, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.signedInteger)) }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [...PgslNumericBuildInFunction.floatTypes(), ...PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.floatTypes())], }, { 'e1': 'TResult', 'e2': PgslNumericBuildInFunction.vectorType(2, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.abstractInteger)) }, 'TResult'),
 
             // Vector3
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric-float', 'Vector<numeric-float>'], }, { 'e1': 'TResult', 'e2': PgslNumericBuildInFunction.vectorType(3, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.signedInteger)) }, 'TResult'),
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric-float', 'Vector<numeric-float>'], }, { 'e1': 'TResult', 'e2': PgslNumericBuildInFunction.vectorType(3, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.abstractInteger)) }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [...PgslNumericBuildInFunction.floatTypes(), ...PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.floatTypes())], }, { 'e1': 'TResult', 'e2': PgslNumericBuildInFunction.vectorType(3, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.signedInteger)) }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [...PgslNumericBuildInFunction.floatTypes(), ...PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.floatTypes())], }, { 'e1': 'TResult', 'e2': PgslNumericBuildInFunction.vectorType(3, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.abstractInteger)) }, 'TResult'),
 
             // Vector4
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric-float', 'Vector<numeric-float>'], }, { 'e1': 'TResult', 'e2': PgslNumericBuildInFunction.vectorType(4, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.signedInteger)) }, 'TResult'),
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric-float', 'Vector<numeric-float>'], }, { 'e1': 'TResult', 'e2': PgslNumericBuildInFunction.vectorType(4, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.abstractInteger)) }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [...PgslNumericBuildInFunction.floatTypes(), ...PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.floatTypes())], }, { 'e1': 'TResult', 'e2': PgslNumericBuildInFunction.vectorType(4, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.signedInteger)) }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [...PgslNumericBuildInFunction.floatTypes(), ...PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.floatTypes())], }, { 'e1': 'TResult', 'e2': PgslNumericBuildInFunction.vectorType(4, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.abstractInteger)) }, 'TResult'),
         ]));
 
         // length
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.length, true, true, [
             // Scalar
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric-float'], }, { 'e': 'TResult' }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': PgslNumericBuildInFunction.floatTypes(), }, { 'e': 'TResult' }, 'TResult'),
 
             // Vector2
             PgslNumericBuildInFunction.header({}, { 'e': PgslNumericBuildInFunction.vectorType(2, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32)) }, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32)),
@@ -522,27 +523,27 @@ export class PgslNumericBuildInFunction {
 
         // log
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.log, true, true, [
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric-float', 'Vector<numeric-float>'], }, { 'e': 'TResult' }, 'TResult')
+            PgslNumericBuildInFunction.header({ 'TResult': [...PgslNumericBuildInFunction.floatTypes(), ...PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.floatTypes())], }, { 'e': 'TResult' }, 'TResult')
         ]));
 
         // log2
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.log2, true, true, [
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric-float', 'Vector<numeric-float>'], }, { 'e': 'TResult' }, 'TResult')
+            PgslNumericBuildInFunction.header({ 'TResult': [...PgslNumericBuildInFunction.floatTypes(), ...PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.floatTypes())], }, { 'e': 'TResult' }, 'TResult')
         ]));
 
         // max
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.max, true, true, [
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric', 'Vector<numeric>'], }, { 'e1': 'TResult', 'e2': 'TResult' }, 'TResult')
+            PgslNumericBuildInFunction.header({ 'TResult': [...PgslNumericBuildInFunction.numericTypes(), ...PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.numericTypes())], }, { 'e1': 'TResult', 'e2': 'TResult' }, 'TResult')
         ]));
 
         // min
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.min, true, true, [
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric', 'Vector<numeric>'], }, { 'e1': 'TResult', 'e2': 'TResult' }, 'TResult')
+            PgslNumericBuildInFunction.header({ 'TResult': [...PgslNumericBuildInFunction.numericTypes(), ...PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.numericTypes())], }, { 'e1': 'TResult', 'e2': 'TResult' }, 'TResult')
         ]));
 
         // mix
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.mix, true, true, [
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric-float', 'Vector<numeric-float>'], }, { 'e1': 'TResult', 'e2': 'TResult', 'e3': 'TResult' }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [...PgslNumericBuildInFunction.floatTypes(), ...PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.floatTypes())], }, { 'e1': 'TResult', 'e2': 'TResult', 'e3': 'TResult' }, 'TResult'),
 
             // Vector 2
             PgslNumericBuildInFunction.header({}, { 'e1': PgslNumericBuildInFunction.vectorType(2, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32)), 'e2': PgslNumericBuildInFunction.vectorType(2, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32)), 'e3': PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32) }, PgslNumericBuildInFunction.vectorType(2, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32))),
@@ -585,27 +586,27 @@ export class PgslNumericBuildInFunction {
 
         // normalize
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.normalize, true, true, [
-            PgslNumericBuildInFunction.header({ 'TVector': ['Vector<numeric-float>'], }, { 'e': 'TVector' }, 'TVector'),
+            PgslNumericBuildInFunction.header({ 'TVector': PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.floatTypes()), }, { 'e': 'TVector' }, 'TVector'),
         ]));
 
         // pow
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.pow, true, true, [
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric-float', 'Vector<numeric-float>'], }, { 'e1': 'TResult', 'e2': 'TResult' }, 'TResult')
+            PgslNumericBuildInFunction.header({ 'TResult': [...PgslNumericBuildInFunction.floatTypes(), ...PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.floatTypes())], }, { 'e1': 'TResult', 'e2': 'TResult' }, 'TResult')
         ]));
 
         // quantizeToF16
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.quantizeToF16, true, true, [
-            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericType.typeName.float32, `Vector<${PgslNumericType.typeName.float32}>`], }, { 'e': 'TResult' }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32), ...PgslNumericBuildInFunction.vectorTypes([PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32)])], }, { 'e': 'TResult' }, 'TResult'),
         ]));
 
         // radians
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.radians, true, true, [
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric-float', 'Vector<numeric-float>'], }, { 'e1': 'TResult' }, 'TResult')
+            PgslNumericBuildInFunction.header({ 'TResult': [...PgslNumericBuildInFunction.floatTypes(), ...PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.floatTypes())], }, { 'e1': 'TResult' }, 'TResult')
         ]));
 
         // reflect
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.reflect, true, true, [
-            PgslNumericBuildInFunction.header({ 'TVector': ['Vector<numeric-float>'], }, { 'e1': 'TVector', 'e2': 'TVector' }, 'TVector'),
+            PgslNumericBuildInFunction.header({ 'TVector': PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.floatTypes()), }, { 'e1': 'TVector', 'e2': 'TVector' }, 'TVector'),
         ]));
 
         // refract
@@ -625,57 +626,57 @@ export class PgslNumericBuildInFunction {
 
         // reverseBits
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.reverseBits, true, true, [
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric-integer', 'Vector<numeric-integer>'], }, { 'e': 'TResult' }, 'TResult')
+            PgslNumericBuildInFunction.header({ 'TResult': [...PgslNumericBuildInFunction.integerTypes(), ...PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.integerTypes())], }, { 'e': 'TResult' }, 'TResult')
         ]));
 
         // round
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.round, true, true, [
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric-float', 'Vector<numeric-float>'], }, { 'e': 'TResult' }, 'TResult')
+            PgslNumericBuildInFunction.header({ 'TResult': [...PgslNumericBuildInFunction.floatTypes(), ...PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.floatTypes())], }, { 'e': 'TResult' }, 'TResult')
         ]));
 
         // saturate
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.saturate, true, true, [
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric-float', 'Vector<numeric-float>'], }, { 'e': 'TResult' }, 'TResult')
+            PgslNumericBuildInFunction.header({ 'TResult': [...PgslNumericBuildInFunction.floatTypes(), ...PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.floatTypes())], }, { 'e': 'TResult' }, 'TResult')
         ]));
 
         // sign
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.sign, true, true, [
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric', 'Vector<numeric>'], }, { 'e': 'TResult' }, 'TResult')
+            PgslNumericBuildInFunction.header({ 'TResult': [...PgslNumericBuildInFunction.numericTypes(), ...PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.numericTypes())], }, { 'e': 'TResult' }, 'TResult')
         ]));
 
         // sin
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.sin, true, true, [
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric-float', 'Vector<numeric-float>'], }, { 'e': 'TResult' }, 'TResult')
+            PgslNumericBuildInFunction.header({ 'TResult': [...PgslNumericBuildInFunction.floatTypes(), ...PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.floatTypes())], }, { 'e': 'TResult' }, 'TResult')
         ]));
 
         // sinh
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.sinh, true, true, [
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric-float', 'Vector<numeric-float>'], }, { 'a': 'TResult' }, 'TResult')
+            PgslNumericBuildInFunction.header({ 'TResult': [...PgslNumericBuildInFunction.floatTypes(), ...PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.floatTypes())], }, { 'a': 'TResult' }, 'TResult')
         ]));
 
         // smoothstep
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.smoothstep, true, true, [
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric-float', 'Vector<numeric-float>'], }, { 'edge0': 'TResult', 'edge1': 'TResult', 'x': 'TResult' }, 'TResult')
+            PgslNumericBuildInFunction.header({ 'TResult': [...PgslNumericBuildInFunction.floatTypes(), ...PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.floatTypes())], }, { 'edge0': 'TResult', 'edge1': 'TResult', 'x': 'TResult' }, 'TResult')
         ]));
 
         // sqrt
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.sqrt, true, true, [
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric-float', 'Vector<numeric-float>'], }, { 'e': 'TResult' }, 'TResult')
+            PgslNumericBuildInFunction.header({ 'TResult': [...PgslNumericBuildInFunction.floatTypes(), ...PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.floatTypes())], }, { 'e': 'TResult' }, 'TResult')
         ]));
 
         // step
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.step, true, true, [
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric-float', 'Vector<numeric-float>'], }, { 'edge': 'TResult', 'x': 'TResult' }, 'TResult')
+            PgslNumericBuildInFunction.header({ 'TResult': [...PgslNumericBuildInFunction.floatTypes(), ...PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.floatTypes())], }, { 'edge': 'TResult', 'x': 'TResult' }, 'TResult')
         ]));
 
         // tan
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.tan, true, true, [
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric-float', 'Vector<numeric-float>'], }, { 'e': 'TResult' }, 'TResult')
+            PgslNumericBuildInFunction.header({ 'TResult': [...PgslNumericBuildInFunction.floatTypes(), ...PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.floatTypes())], }, { 'e': 'TResult' }, 'TResult')
         ]));
 
         // tanh
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.tanh, true, true, [
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric-float', 'Vector<numeric-float>'], }, { 'a': 'TResult' }, 'TResult')
+            PgslNumericBuildInFunction.header({ 'TResult': [...PgslNumericBuildInFunction.floatTypes(), ...PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.floatTypes())], }, { 'a': 'TResult' }, 'TResult')
         ]));
 
         // transpose
@@ -728,7 +729,7 @@ export class PgslNumericBuildInFunction {
 
         // trunc
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.trunc, true, true, [
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric-float', 'Vector<numeric-float>'], }, { 'e': 'TResult' }, 'TResult')
+            PgslNumericBuildInFunction.header({ 'TResult': [...PgslNumericBuildInFunction.floatTypes(), ...PgslNumericBuildInFunction.vectorTypes(PgslNumericBuildInFunction.floatTypes())], }, { 'e': 'TResult' }, 'TResult')
         ]));
 
         return lFunctions;
@@ -771,8 +772,21 @@ export class PgslNumericBuildInFunction {
     }
 
     /**
+     * Create cst type declarations of all concrete float types.
+     * Abstract floats are accepted by converting into them.
+     *
+     * @returns cst type declarations of all concrete float types.
+     */
+    private static floatTypes(): Array<TypeDeclarationCst> {
+        return [
+            PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32),
+            PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float16)
+        ];
+    }
+
+    /**
      * Create a cst function declaration header.
-     * 
+     *
      * @param pGenerics - Function generics.
      * @param pParameter - Function parameters.
      * @param pReturnType - Function return type.
@@ -812,7 +826,7 @@ export class PgslNumericBuildInFunction {
                 buildIn: true,
                 range: [0, 0, 0, 0],
                 name: lGenericName,
-                restrictions: pGenerics[lGenericName].length === 0 ? null : pGenerics[lGenericName],
+                restrictions: pGenerics[lGenericName],
             });
         }
 
@@ -826,6 +840,19 @@ export class PgslNumericBuildInFunction {
             generics: lGenerics,
             returnType: pReturnType,
         };
+    }
+
+    /**
+     * Create cst type declarations of all concrete integer types.
+     * Abstract integers are accepted by converting into them.
+     *
+     * @returns cst type declarations of all concrete integer types.
+     */
+    private static integerTypes(): Array<TypeDeclarationCst> {
+        return [
+            PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.signedInteger),
+            PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.unsignedInteger)
+        ];
     }
 
     /**
@@ -865,8 +892,39 @@ export class PgslNumericBuildInFunction {
     }
 
     /**
+     * Create cst type declarations of all concrete numeric types.
+     *
+     * @returns cst type declarations of all concrete float and integer types.
+     */
+    private static numericTypes(): Array<TypeDeclarationCst> {
+        return [...PgslNumericBuildInFunction.floatTypes(), ...PgslNumericBuildInFunction.integerTypes()];
+    }
+
+    /**
+     * Create cst type declarations of all concrete scalar types.
+     *
+     * @returns cst type declarations of the boolean and all concrete numeric types.
+     */
+    private static scalarTypes(): Array<TypeDeclarationCst> {
+        return [PgslNumericBuildInFunction.booleanType(), ...PgslNumericBuildInFunction.numericTypes()];
+    }
+
+    /**
+     * Create cst type declarations of all square matrix types.
+     *
+     * @param pInnerType - Inner type of the matrices.
+     *
+     * @returns cst type declarations of the 2x2, 3x3 and 4x4 matrix types.
+     */
+    private static squareMatrixTypes(pInnerType: TypeDeclarationCst): Array<TypeDeclarationCst> {
+        return [2, 3, 4].map((pDimension: number) => {
+            return PgslNumericBuildInFunction.matrixType(pDimension, pDimension, pInnerType);
+        });
+    }
+
+    /**
      * Create a cst type declaration of a struct type.
-     * 
+     *
      * @param pName - Struct name.
      * 
      * @returns cst type declaration of struct type.
@@ -898,6 +956,22 @@ export class PgslNumericBuildInFunction {
             template: [pInnerType]
         };
     }
+
+    /**
+     * Create cst type declarations of vectors for every inner type and dimension.
+     *
+     * @param pInnerTypes - Inner types of the vectors.
+     * @param pDimensions - Vector dimensions. Defaults to all dimensions.
+     *
+     * @returns cst type declarations of all vector types.
+     */
+    private static vectorTypes(pInnerTypes: Array<TypeDeclarationCst>, pDimensions: Array<number> = [2, 3, 4]): Array<TypeDeclarationCst> {
+        return pDimensions.flatMap((pDimension: number) => {
+            return pInnerTypes.map((pInnerType: TypeDeclarationCst) => {
+                return PgslNumericBuildInFunction.vectorType(pDimension, pInnerType);
+            });
+        });
+    }
 }
 
 type PgslNumericBuildInFunctionParameterList = {
@@ -905,5 +979,5 @@ type PgslNumericBuildInFunctionParameterList = {
 };
 
 type PgslNumericBuildInFunctionGenericList = {
-    [name: string]: Array<string>;
+    [name: string]: Array<TypeDeclarationCst>;
 };

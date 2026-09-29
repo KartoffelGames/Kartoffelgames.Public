@@ -502,7 +502,9 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
             pContext.pushIncident(`Type '${this.cst.typeName}' cannot be constructed with 'new'.`, this);
             return {
                 // Expression data.
+                typeName: this.cst.typeName,
                 parameterList: new Array<IExpressionAst>(),
+                generic: null,
 
                 // Expression meta.
                 fixedState: PgslValueFixedState.Variable,
@@ -528,14 +530,20 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
             pContext.pushIncident(`Only one generic type is supported in 'new' expressions.`, this);
         }
 
-        // Build first generic type if available.
-        const lGenericType: BasePgslType | null = (() => {
+        // Only types with generics can be constructed with a generic.
+        if (this.cst.genericList.length > 0 && (!lCallDefinition.generics || lCallDefinition.generics.length === 0)) {
+            pContext.pushIncident(`Type '${this.cst.typeName}' can not be constructed with a generic type.`, this);
+        }
+
+        // Build first generic declaration if available.
+        const lGenericDeclaration: TypeDeclarationAst | null = (() => {
             if (this.cst.genericList.length > 0) {
-                return new TypeDeclarationAst(this.cst.genericList[0]).process(pContext).data.type;
+                return new TypeDeclarationAst(this.cst.genericList[0]).process(pContext);
             }
 
             return null;
         })();
+        const lGenericType: BasePgslType | null = lGenericDeclaration?.data.type ?? null;
 
         // Find the lowest fixed state of all parameters while validating the expression types
         const lFixedState: PgslValueFixedState = (() => {
@@ -647,7 +655,9 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
 
         return {
             // Expression data.
+            typeName: this.cst.typeName,
             parameterList: lParameterExpressionList,
+            generic: lGenericDeclaration,
 
             // Expression meta.
             fixedState: lFixedState,
@@ -671,5 +681,7 @@ type PgslNewExpressionCallDefinitionParameter = {
 };
 
 export type NewExpressionAstData = {
+    typeName: string;
     parameterList: Array<IExpressionAst>;
+    generic: TypeDeclarationAst | null;
 } & ExpressionAstData;

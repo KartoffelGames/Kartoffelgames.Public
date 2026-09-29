@@ -33,7 +33,6 @@ import { BreakStatementAstTranspilerProcessor } from './statement/single/break-s
 import { ContinueStatementAstTranspilerProcessor } from './statement/single/continue-statement-ast-transpiler-processor.ts';
 import { DiscardStatementAstTranspilerProcessor } from './statement/single/discard-statement-ast-transpiler-processor.ts';
 import { ReturnStatementAstTranspilerProcessor } from './statement/single/return-statement-ast-transpiler-processor.ts';
-import { TypeAstTranspilerProcessor } from './type/type-ast-transpiler-processor.ts';
 import { TypeDeclarationAstTranspilerProcessor } from './type/type-declaration-ast-transpiler-processor.ts';
 
 /**
@@ -60,7 +59,6 @@ export class WgslTranspiler extends Transpiler {
 
         // General. Attributes have no transpilation processor, they are only used during trace.
         this.addProcessor(new TypeDeclarationAstTranspilerProcessor());
-        this.addProcessor(new TypeAstTranspilerProcessor());
 
         // Expressions - Operations
         this.addProcessor(new ArithmeticExpressionAstTranspilerProcessor());

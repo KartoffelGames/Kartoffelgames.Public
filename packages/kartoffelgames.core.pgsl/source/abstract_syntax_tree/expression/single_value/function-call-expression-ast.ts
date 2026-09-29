@@ -33,7 +33,7 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
                 // Expression data.
                 name: this.cst.functionName,
                 parameters: new Array<IExpressionAst>(),
-                generics: new Array<BasePgslType>(),
+                generics: new Array<TypeDeclarationAst>(),
                 functionDeclaration: null as unknown as FunctionDeclarationAst,
 
                 // Expression meta data.
@@ -70,13 +70,14 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
             return lFixedState;
         })();
 
-        // Convert function call generic parameters.
-        const lGenericParameterList: Array<BasePgslType> = this.cst.genericList.map((pGenericTypeDeclarationCst) => {
-            return new TypeDeclarationAst(pGenericTypeDeclarationCst).process(pContext).data.type;
+        // Build function call generic declarations.
+        const lGenericList: Array<TypeDeclarationAst> = this.cst.genericList.map((pGenericTypeDeclarationCst) => {
+            return new TypeDeclarationAst(pGenericTypeDeclarationCst).process(pContext);
         });
 
+
         // Try to match function header.
-        const lMatchedFunctionHeader: FunctionHeaderMatchResult | null = this.matchFunctionHeader(pContext, lFunctionDeclaration, lGenericParameterList, lParameterList);
+        const lMatchedFunctionHeader: FunctionHeaderMatchResult | null = this.matchFunctionHeader(pContext, lFunctionDeclaration, lGenericList, lParameterList);
         if (!lMatchedFunctionHeader) {
             pContext.pushIncident(`No matching function header found for function '${this.cst.functionName}'.`, this);
         }
@@ -127,20 +128,6 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
             }
         }
 
-        // Build ordered generic type list.
-        const lGenericList: Array<BasePgslType> = new Array<BasePgslType>();
-        if (lMatchedFunctionHeader) {
-            for (const lGeneric of lMatchedFunctionHeader.header.data.generics) {
-                // When generic type is not infered, assign invalid type.
-                if (!lMatchedFunctionHeader.genericTypes.has(lGeneric.name)) {
-                    lGenericList.push(new PgslInvalidType());
-                    continue;
-                }
-
-                lGenericList.push(lMatchedFunctionHeader.genericTypes.get(lGeneric.name)!);
-            }
-        }
-
         return {
             // Expression data.
             name: this.cst.functionName,
@@ -167,7 +154,7 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
      *
      * @returns Matched function header and infered generics or null when no match is found.
      */
-    private matchFunctionHeader(pContext: AbstractSyntaxTreeContext, pFunctionDeclaration: FunctionDeclarationAst, pGenericList: Array<BasePgslType>, pParameterList: Array<IExpressionAst>): FunctionHeaderMatchResult | null {
+    private matchFunctionHeader(pContext: AbstractSyntaxTreeContext, pFunctionDeclaration: FunctionDeclarationAst, pGenericList: Array<TypeDeclarationAst>, pParameterList: Array<IExpressionAst>): FunctionHeaderMatchResult | null {
         // Check each function header for a match.
         FUNCTION_HEADER_LOOP: for (const lFunctionHeader of pFunctionDeclaration.data.declarations) {
             // Parameter count needs to match.
@@ -189,7 +176,7 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
             // Map static provided generic types.
             const lStaticGenericTypes: Map<string, BasePgslType> = new Map<string, BasePgslType>();
             for (let lGenericIndex = 0; lGenericIndex < pGenericList.length; lGenericIndex++) {
-                lStaticGenericTypes.set(lFunctionHeader.data.generics[lGenericIndex].name, pGenericList[lGenericIndex]);
+                lStaticGenericTypes.set(lFunctionHeader.data.generics[lGenericIndex].name, pGenericList[lGenericIndex].data.type);
             }
 
             // Collect candidate types for each generic that needs inference.
@@ -299,6 +286,6 @@ type FunctionHeaderMatchResult = {
 export type FunctionCallExpressionAstData = {
     name: string;
     parameters: Array<IExpressionAst>;
-    generics: Array<BasePgslType>;
+    generics: Array<TypeDeclarationAst>;
     functionDeclaration: FunctionDeclarationAst;
 } & ExpressionAstData;

@@ -27,6 +27,15 @@ export class PgslGenericType extends BasePgslType {
         return PgslGenericType.typeName.generic + '[' + pOwner.name + ',' + pGenericName + ']';
     }
 
+    private readonly mGenericName: string;
+
+    /**
+     * Generic name.
+     */
+    public get name(): string {
+        return this.mGenericName;
+    }
+
     /**
      * Generic type restrictions that can be empty.
      */
@@ -60,6 +69,8 @@ export class PgslGenericType extends BasePgslType {
             typeName: PgslGenericType.identifierOf(pOwner, pGenericName),
             generics: pRestrictions
         });
+
+        this.mGenericName = pGenericName;
     }
 
     /**

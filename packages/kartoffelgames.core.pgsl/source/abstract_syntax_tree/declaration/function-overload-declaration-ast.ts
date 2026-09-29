@@ -9,6 +9,7 @@ import { TypeDeclarationAst } from "../general/type-declaration-ast.ts";
 import { IValueStoreAst } from "../i-value-store-ast.interface.ts";
 import { BlockStatementAst } from "../statement/execution/block-statement-ast.ts";
 import { BasePgslType } from "../type/definition/base-pgsl-type.ts";
+import { PgslGenericType } from "../type/definition/pgsl-generic-type.ts";
 import { PgslInvalidType } from "../type/definition/pgsl-invalid-type.ts";
 import { PgslStructType } from "../type/definition/pgsl-struct-type.ts";
 import { PgslVoidType } from "../type/definition/pgsl-void-type.ts";
@@ -55,14 +56,14 @@ export class FunctionOverloadDeclarationAst extends BaseDeclarationAst<FunctionO
         const lAttributes: AttributeListAst = new AttributeListAst(this.cst.attributeList, this).process(pContext);
 
         // Create generic mapping for this declaration.
-        const lGenericMapping: Map<string, Array<string> | null> = new Map<string, Array<string> | null>();
+        const lGenericMapping: Set<string> = new Set<string>();
         for (const lGeneric of this.cst.generics) {
             // Check for duplicate generic names.
             if (lGenericMapping.has(lGeneric.name)) {
                 pContext.pushIncident(`Generic type name "${lGeneric.name}" is already defined for this function header.`, this);
             }
 
-            lGenericMapping.set(lGeneric.name, lGeneric.restrictions);
+            lGenericMapping.add(lGeneric.name);
         }
 
         return pContext.pushScope('function', () => {
@@ -147,11 +148,13 @@ export class FunctionOverloadDeclarationAst extends BaseDeclarationAst<FunctionO
             })();
 
             // Convert all generics to types. O(n²) fuck it.
-            const lGenericList: Array<FunctionOverloadDeclarationAstDataGeneric> = this.cst.generics.map((pGenericType) => {
-                return {
-                    name: pGenericType.name,
-                    restrictions: pGenericType.restrictions
-                };
+            const lGenericList: Array<PgslGenericType> = this.cst.generics.map((pGenericType) => {
+                // Build each type restriction ast and get its types.
+                const lGenericRestrictions: Array<BasePgslType> = pGenericType.restrictions.map((pGenericRestrictionTypeDeclaration) => {
+                    return new TypeDeclarationAst(pGenericRestrictionTypeDeclaration).process(pContext).data.type;
+                });
+
+                return new PgslGenericType(this, pGenericType.name, lGenericRestrictions);
             });
 
             const lDeclarationResult: FunctionOverloadDeclarationAstData = {
@@ -333,7 +336,7 @@ export type FunctionOverloadDeclarationAstData = {
     /**
      * Function generic types.
      */
-    generics: Array<FunctionOverloadDeclarationAstDataGeneric>;
+    generics: Array<PgslGenericType>;
 
     /**
      * Function parameter list.
@@ -356,21 +359,6 @@ export type FunctionOverloadDeclarationAstData = {
      */
     entryPoint?: FunctionOverloadDeclarationAstDataEntryPoint;
 } & DeclarationAstData;
-
-/**
- * Function declaration generic type.
- */
-export type FunctionOverloadDeclarationAstDataGeneric = {
-    /**
-     * Generic name.
-     */
-    name: string;
-
-    /**
-     * Restrictions for the generic type.
-     */
-    restrictions: null | Array<string>;
-};
 
 /**
  * Workgroup size specification for compute shaders.

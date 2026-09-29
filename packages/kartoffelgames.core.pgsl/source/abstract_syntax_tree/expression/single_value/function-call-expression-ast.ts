@@ -7,6 +7,7 @@ import type { FunctionDeclarationAst, FunctionDeclarationAstDataParameter } from
 import { FunctionOverloadDeclarationAst } from "../../declaration/function-overload-declaration-ast.ts";
 import { TypeDeclarationAst } from '../../general/type-declaration-ast.ts';
 import { BasePgslType } from "../../type/definition/base-pgsl-type.ts";
+import { PgslGenericType } from "../../type/definition/pgsl-generic-type.ts";
 import { PgslInvalidType } from '../../type/definition/pgsl-invalid-type.ts';
 import { PgslPointerType } from '../../type/definition/pgsl-pointer-type.ts';
 import { ExpressionAstBuilder } from '../expression-ast-builder.ts';
@@ -168,9 +169,9 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
             }
 
             // Build generic restrictions map from header definition.
-            const lGenericRestrictions: Map<string, Array<string> | null> = new Map<string, Array<string> | null>();
+            const lGenericRestrictions: Map<string, PgslGenericType> = new Map<string, PgslGenericType>();
             for (const lGeneric of lFunctionHeader.data.generics) {
-                lGenericRestrictions.set(lGeneric.name, lGeneric.restrictions);
+                lGenericRestrictions.set(lGeneric.name, lGeneric);
             }
 
             // Map static provided generic types.
@@ -220,15 +221,8 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
                 }
 
                 // Validate parameter type satisfies the generic restrictions.
-                const lRestrictions: Array<string> | null = lGenericRestrictions.get(lGenericName)!;
-                if (lRestrictions !== null) {
-                    const lSatisfiesRestriction: boolean = lRestrictions.some((pRestriction) => {
-                        return lParameterType.data.metaTypes.includes(pRestriction);
-                    });
-
-                    if (!lSatisfiesRestriction) {
-                        continue FUNCTION_HEADER_LOOP;
-                    }
+                if (!lGenericRestrictions.get(lGenericName)!.accepts(lParameterType)) {
+                    continue FUNCTION_HEADER_LOOP;
                 }
 
                 // Collect candidate type for generic inference.

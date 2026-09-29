@@ -61,7 +61,7 @@ export type FunctionDeclarationParameterCst = {
 
 export type FunctionDeclarationGenericCst = {
     name: string;
-    restrictions: null | Array<string>; // List of Types MetaTypes names that are allowed.
+    restrictions: Array<TypeDeclarationCst>; // List of Types MetaTypes names that are allowed.
 } & DeclarationCst<'FunctionDeclarationGeneric'>;
 
 /*

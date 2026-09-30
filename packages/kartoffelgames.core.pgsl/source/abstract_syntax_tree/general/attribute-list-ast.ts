@@ -8,7 +8,7 @@ import { PgslValueFixedState } from '../../enum/pgsl-value-fixed-state.ts';
 import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree, type AbstractSyntaxTreeConstructor } from '../abstract-syntax-tree.ts';
 import { BaseDeclarationAst } from "../declaration/base-declaration-ast.ts";
-import { FunctionDeclarationAst } from '../declaration/function-declaration-ast.ts';
+import { FunctionOverloadDeclarationAst } from '../declaration/function-overload-declaration-ast.ts';
 import { StructPropertyDeclarationAst } from '../declaration/struct-property-declaration-ast.ts';
 import { VariableDeclarationAst } from '../declaration/variable-declaration-ast.ts';
 import { ExpressionAstBuilder } from '../expression/expression-ast-builder.ts';
@@ -245,15 +245,15 @@ export class AttributeListAst extends AbstractSyntaxTree<AttributeListCst, Attri
 
         // Entry points.
         lAttributes.set(AttributeListAst.attributeNames.vertex, {
-            enforcedParentType: FunctionDeclarationAst,
+            enforcedParentType: FunctionOverloadDeclarationAst,
             parameterTypes: []
         });
         lAttributes.set(AttributeListAst.attributeNames.fragment, {
-            enforcedParentType: FunctionDeclarationAst,
+            enforcedParentType: FunctionOverloadDeclarationAst,
             parameterTypes: []
         });
         lAttributes.set(AttributeListAst.attributeNames.compute, {
-            enforcedParentType: FunctionDeclarationAst,
+            enforcedParentType: FunctionOverloadDeclarationAst,
             parameterTypes: [ // Parameters for workgroup size.
                 [
                     { type: PgslNumericType.typeName.signedInteger, state: PgslValueFixedState.Constant },

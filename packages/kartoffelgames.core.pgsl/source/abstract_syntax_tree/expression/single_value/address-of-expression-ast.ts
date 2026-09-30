@@ -1,4 +1,5 @@
 import type { AddressOfExpressionCst } from '../../../concrete_syntax_tree/expression.type.ts';
+import { PgslValueAddressSpace } from '../../../enum/pgsl-value-address-space.enum.ts';
 import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
 import { BasePgslTypeKind, type BasePgslType } from '../../type/definition/base-pgsl-type.ts';
@@ -31,6 +32,11 @@ export class AddressOfExpressionAst extends AbstractSyntaxTree<AddressOfExpressi
         // Type of expression needs to be storable.
         if (!lVariableResolveType.isKind(BasePgslTypeKind.Storable)) {
             pContext.pushIncident(`Target of address needs to storable`, this);
+        }
+
+        // Textures and samplers are stored in the handle address space, which can not be addressed.
+        if (lVariable.data.storageAddressSpace === PgslValueAddressSpace.Texture) {
+            pContext.pushIncident(`Target of address can not be a texture or sampler value`, this);
         }
 
         return {

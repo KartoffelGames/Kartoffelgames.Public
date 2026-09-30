@@ -24,7 +24,7 @@ export class FunctionDeclarationAst extends BaseDeclarationAst<FunctionDeclarati
     public override register(pContext: AbstractSyntaxTreeContext): this {
         // Check if function is already defined in current scope.
         if (pContext.getFunction(this.name)) {
-            pContext.pushIncident(`Function "${this}" is already defined.`, this);
+            pContext.pushIncident(`Function "${this.name}" is already defined.`, this);
         }
 
         // Register function in current scope.

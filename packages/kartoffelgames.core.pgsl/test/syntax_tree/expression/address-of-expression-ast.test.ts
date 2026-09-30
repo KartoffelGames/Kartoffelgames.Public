@@ -381,7 +381,7 @@ Deno.test('AddressOfExpressionAst - Error', async (pContext) => {
         )).toBe(true);
     });
 
-    await pContext.step('Non-storable type target', () => {
+    await pContext.step('Texture or sampler target', () => {
         // Setup.
         const lCodeText: string = `
             [${AttributeListAst.attributeNames.groupBinding}("groupOne", "groupTwo")]
@@ -397,9 +397,9 @@ Deno.test('AddressOfExpressionAst - Error', async (pContext) => {
         // Evaluation. Should have errors.
         expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
 
-        // Evaluation. Error should mention storable requirement.
+        // Evaluation. Error should mention the texture or sampler restriction.
         expect(lTranspilationResult.incidents.some(pIncident =>
-            pIncident.message.includes('Target of address needs to storable')
+            pIncident.message.includes('Target of address can not be a texture or sampler value')
         )).toBe(true);
     });
 });

@@ -1756,7 +1756,7 @@ Deno.test('NewExpressionAst - Transpilation', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `var testVariable:vec2<bool>=vec2<bool>(true,false);` +
+            `var testVariable:vec2<bool>=vec2(true,false);` +
             `}`
         );
     });
@@ -1824,7 +1824,7 @@ Deno.test('NewExpressionAst - Transpilation', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `var testVariable:vec3<bool>=vec3<bool>(true,false,true);` +
+            `var testVariable:vec3<bool>=vec3(true,false,true);` +
             `}`
         );
     });
@@ -1874,7 +1874,7 @@ Deno.test('NewExpressionAst - Transpilation', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `var testVariable:vec3<bool>=vec3<bool>(vec2<bool>(true,false),true);` +
+            `var testVariable:vec3<bool>=vec3(vec2(true,false),true);` +
             `}`
         );
     });
@@ -1924,7 +1924,7 @@ Deno.test('NewExpressionAst - Transpilation', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `var testVariable:vec3<bool>=vec3<bool>(true,vec2<bool>(false,true));` +
+            `var testVariable:vec3<bool>=vec3(true,vec2(false,true));` +
             `}`
         );
     });
@@ -2042,7 +2042,7 @@ Deno.test('NewExpressionAst - Transpilation', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `var testVariable:vec4<bool>=vec4<bool>(vec2<bool>(true,false),true,false);` +
+            `var testVariable:vec4<bool>=vec4(vec2(true,false),true,false);` +
             `}`
         );
     });
@@ -2094,7 +2094,7 @@ Deno.test('NewExpressionAst - Transpilation', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `var testVariable:vec4<bool>=vec4<bool>(true,vec2<bool>(false,true),false);` +
+            `var testVariable:vec4<bool>=vec4(true,vec2(false,true),false);` +
             `}`
         );
     });
@@ -2144,7 +2144,7 @@ Deno.test('NewExpressionAst - Transpilation', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `var testVariable:vec4<bool>=vec4<bool>(true,false,vec2<bool>(true,false));` +
+            `var testVariable:vec4<bool>=vec4(true,false,vec2(true,false));` +
             `}`
         );
     });
@@ -2194,7 +2194,7 @@ Deno.test('NewExpressionAst - Transpilation', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `var testVariable:vec4<bool>=vec4<bool>(vec2<bool>(true,false),vec2<bool>(true,false));` +
+            `var testVariable:vec4<bool>=vec4(vec2(true,false),vec2(true,false));` +
             `}`
         );
     });
@@ -2244,7 +2244,7 @@ Deno.test('NewExpressionAst - Transpilation', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `var testVariable:vec4<bool>=vec4<bool>(vec3<bool>(true,false,true),false);` +
+            `var testVariable:vec4<bool>=vec4(vec3(true,false,true),false);` +
             `}`
         );
     });
@@ -2294,7 +2294,7 @@ Deno.test('NewExpressionAst - Transpilation', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `var testVariable:vec4<bool>=vec4<bool>(true,vec3<bool>(false,true,false));` +
+            `var testVariable:vec4<bool>=vec4(true,vec3(false,true,false));` +
             `}`
         );
     });

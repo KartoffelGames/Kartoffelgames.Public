@@ -79,7 +79,7 @@ Deno.test('PgslPackingBuildInFunction-pack4xI8', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `var eValue:vec4<i32>=vec4<i32>(10i,20i,30i,40i);` +
+            `var eValue:vec4<i32>=vec4(10i,20i,30i,40i);` +
             `var resultValue:u32=pack4xI8(eValue);` +
             `}`
         );
@@ -105,7 +105,7 @@ Deno.test('PgslPackingBuildInFunction-pack4xU8', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `var eValue:vec4<u32>=vec4<u32>(10u,20u,30u,40u);` +
+            `var eValue:vec4<u32>=vec4(10u,20u,30u,40u);` +
             `var resultValue:u32=pack4xU8(eValue);` +
             `}`
         );
@@ -131,7 +131,7 @@ Deno.test('PgslPackingBuildInFunction-pack4xI8Clamp', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `var eValue:vec4<i32>=vec4<i32>(10i,20i,30i,40i);` +
+            `var eValue:vec4<i32>=vec4(10i,20i,30i,40i);` +
             `var resultValue:u32=pack4xI8Clamp(eValue);` +
             `}`
         );
@@ -157,7 +157,7 @@ Deno.test('PgslPackingBuildInFunction-pack4xU8Clamp', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `var eValue:vec4<u32>=vec4<u32>(10u,20u,30u,40u);` +
+            `var eValue:vec4<u32>=vec4(10u,20u,30u,40u);` +
             `var resultValue:u32=pack4xU8Clamp(eValue);` +
             `}`
         );

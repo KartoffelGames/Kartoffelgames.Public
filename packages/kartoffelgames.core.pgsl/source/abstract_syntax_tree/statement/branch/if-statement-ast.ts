@@ -15,25 +15,26 @@ export class IfStatementAst extends AbstractSyntaxTree<IfStatementCst, IfStateme
      * Validate data of current structure.
      * 
      * @param pContext - Validation context.
+     * @param pCst - Cst data.
      */
-    protected onProcess(pContext: AbstractSyntaxTreeContext): IfStatementAstData {
+    protected onProcess(pContext: AbstractSyntaxTreeContext, pCst: IfStatementCst): IfStatementAstData {
         // Validate expression.
-        const lExpression: IExpressionAst | null = ExpressionAstBuilder.build(this.cst.expression).process(pContext);
+        const lExpression: IExpressionAst | null = ExpressionAstBuilder.build(pCst.expression).process(pContext);
         if (!lExpression) {
             throw new Error('Expression could not be build.');
         }
 
         // Validate block.
-        const lBlock: BlockStatementAst = new BlockStatementAst(this.cst.block).process(pContext);
+        const lBlock: BlockStatementAst = new BlockStatementAst(pCst.block).process(pContext);
 
         // Validate else block.
         let lElse: BlockStatementAst | IfStatementAst | null = null;
-        if (this.cst.else) {
+        if (pCst.else) {
             // Check if else is another if statement or a block
-            if (this.cst.else.type === 'IfStatement') {
-                lElse = new IfStatementAst(this.cst.else as any).process(pContext);
+            if (pCst.else.type === 'IfStatement') {
+                lElse = new IfStatementAst(pCst.else as any).process(pContext);
             } else {
-                lElse = new BlockStatementAst(this.cst.else as any).process(pContext);
+                lElse = new BlockStatementAst(pCst.else as any).process(pContext);
             }
         }
 

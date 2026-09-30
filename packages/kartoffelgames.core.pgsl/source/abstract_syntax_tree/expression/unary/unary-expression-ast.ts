@@ -19,15 +19,16 @@ export class UnaryExpressionAst extends AbstractSyntaxTree<UnaryExpressionCst, U
      * Validate data of current structure.
      * 
      * @param pContext - Validation context.
+     * @param pCst - Cst data.
      */
-    protected override onProcess(pContext: AbstractSyntaxTreeContext): UnaryExpressionAstData {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext, pCst: UnaryExpressionCst): UnaryExpressionAstData {
         // Build expression.
-        const lExpression: IExpressionAst = ExpressionAstBuilder.build(this.cst.expression).process(pContext);
+        const lExpression: IExpressionAst = ExpressionAstBuilder.build(pCst.expression).process(pContext);
 
         // Try to convert operator.
-        let lOperator: PgslOperator | undefined = EnumUtil.cast(PgslOperator, this.cst.operator);
+        let lOperator: PgslOperator | undefined = EnumUtil.cast(PgslOperator, pCst.operator);
         if (!lOperator) {
-            pContext.pushIncident(`Operator "${this.cst.operator}" is not a valid operator.`, this);
+            pContext.pushIncident(`Operator "${pCst.operator}" is not a valid operator.`, this);
 
             lOperator = PgslOperator.BinaryNegate;
         }

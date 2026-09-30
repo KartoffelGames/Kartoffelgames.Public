@@ -22,18 +22,19 @@ export class VariableDeclarationStatementAst extends AbstractSyntaxTree<Variable
      * Validate data of current structure.
      * 
      * @param pContext - Validation context.
+     * @param pCst - Cst data.
      */
-    protected onProcess(pContext: AbstractSyntaxTreeContext): VariableDeclarationStatementAstData {
+    protected onProcess(pContext: AbstractSyntaxTreeContext, pCst: VariableDeclarationStatementCst): VariableDeclarationStatementAstData {
         // Parse declaration type.
-        let lDeclarationType: PgslDeclarationType | undefined = EnumUtil.cast(PgslDeclarationType, this.cst.declarationType);
+        let lDeclarationType: PgslDeclarationType | undefined = EnumUtil.cast(PgslDeclarationType, pCst.declarationType);
         if (!lDeclarationType) {
-            pContext.pushIncident(`Declaration type "${this.cst.declarationType}" not defined.`, this);
+            pContext.pushIncident(`Declaration type "${pCst.declarationType}" not defined.`, this);
 
             lDeclarationType = PgslDeclarationType.Let;
         }
 
         // Create type declaration.
-        const lTypeDeclaration: TypeDeclarationAst = new TypeDeclarationAst(this.cst.typeDeclaration).process(pContext);
+        const lTypeDeclaration: TypeDeclarationAst = new TypeDeclarationAst(pCst.typeDeclaration).process(pContext);
         const lType: BasePgslType = lTypeDeclaration.data.type;
 
         // Expression value has a fixed byte size.
@@ -42,8 +43,8 @@ export class VariableDeclarationStatementAst extends AbstractSyntaxTree<Variable
         let lExpression: IExpressionAst | null = null;
 
         // Read expression attachment when a expression is present.
-        if (this.cst.expression) {
-            lExpression = ExpressionAstBuilder.build(this.cst.expression).process(pContext);
+        if (pCst.expression) {
+            lExpression = ExpressionAstBuilder.build(pCst.expression).process(pContext);
             lConstantValue = lExpression.data.constantValue;
 
             // Validate same type.
@@ -97,13 +98,13 @@ export class VariableDeclarationStatementAst extends AbstractSyntaxTree<Variable
         }
 
         // Validate const value need to have a initialization.
-        if (this.cst.declarationType === PgslDeclarationType.Const && !this.cst.expression) {
+        if (pCst.declarationType === PgslDeclarationType.Const && !pCst.expression) {
             pContext.pushIncident(`Constants need a initializer value.`, this);
         }
 
         // Push variable to current scope.
-        if (!pContext.registerValue(this.cst.name, this)) {
-            pContext.pushIncident(`Variable with name "${this.cst.name}" already defined.`, this);
+        if (!pContext.registerValue(pCst.name, this)) {
+            pContext.pushIncident(`Variable with name "${pCst.name}" already defined.`, this);
         }
 
         return {
@@ -116,7 +117,7 @@ export class VariableDeclarationStatementAst extends AbstractSyntaxTree<Variable
             declarationType: lDeclarationType,
             addressSpace: PgslValueAddressSpace.Function,
             type: lType,
-            name: this.cst.name,
+            name: pCst.name,
             constantValue: typeof lConstantValue === 'number' ? lConstantValue : null,
             accessMode: PgslAccessModeEnum.VALUES.ReadWrite,
         };

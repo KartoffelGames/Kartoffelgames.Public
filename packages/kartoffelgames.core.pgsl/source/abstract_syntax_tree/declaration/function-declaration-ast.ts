@@ -13,7 +13,7 @@ export class FunctionDeclarationAst extends BaseDeclarationAst<FunctionDeclarati
      * Variable name.
      */
     public get name(): string {
-        return this.cst.name;
+        return this.data.name;
     }
 
     /**
@@ -23,12 +23,12 @@ export class FunctionDeclarationAst extends BaseDeclarationAst<FunctionDeclarati
      */
     public override register(pContext: AbstractSyntaxTreeContext): this {
         // Check if function is already defined in current scope.
-        if (pContext.getFunction(this.cst.name)) {
-            pContext.pushIncident(`Function "${this.cst.name}" is already defined.`, this);
+        if (pContext.getFunction(this.name)) {
+            pContext.pushIncident(`Function "${this}" is already defined.`, this);
         }
 
         // Register function in current scope.
-        pContext.registerFunction(this.cst.name, this);
+        pContext.registerFunction(this.name, this);
 
         return this;
     }
@@ -37,11 +37,12 @@ export class FunctionDeclarationAst extends BaseDeclarationAst<FunctionDeclarati
      * Process and build data of current structure.
      * 
      * @param pContext - Build context.
+     * @param pCst - Cst data.
      */
-    protected override onProcess(pContext: AbstractSyntaxTreeContext): FunctionDeclarationAstData {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext, pCst: FunctionDeclarationCst): FunctionDeclarationAstData {
         // If it is a function with multiple headers no attributelist is allowed.
-        if (this.cst.declarations.length > 1) {
-            for (const lDeclarations of this.cst.declarations) {
+        if (pCst.declarations.length > 1) {
+            for (const lDeclarations of pCst.declarations) {
                 if (lDeclarations.attributeList.attributes.length > 0) {
                     pContext.pushIncident(`Functions with multiple headers cannot have generic parameters.`, this);
                     break;
@@ -51,20 +52,20 @@ export class FunctionDeclarationAst extends BaseDeclarationAst<FunctionDeclarati
 
         // Build return data.
         return {
-            isConstant: this.cst.isConstant,
-            name: this.cst.name,
-            implicitGenerics: this.cst.implicitGenerics,
+            isConstant: pCst.isConstant,
+            name: pCst.name,
+            implicitGenerics: pCst.implicitGenerics,
 
             // Create empty attributes list to satisfy type.
             attributes: new AttributeListAst({
                 type: 'AttributeList',
                 attributes: [],
-                range: this.cst.range,
+                range: pCst.range,
             }, this).process(pContext),
 
             // Map each declaration into a new overload ast.
-            declarations: this.cst.declarations.map((pOverloadDeclarationCst) => {
-                return new FunctionOverloadDeclarationAst(this.cst.name, pOverloadDeclarationCst).process(pContext);
+            declarations: pCst.declarations.map((pOverloadDeclarationCst) => {
+                return new FunctionOverloadDeclarationAst(pCst.name, pOverloadDeclarationCst).process(pContext);
             }),
         } satisfies FunctionDeclarationAstData;
     }

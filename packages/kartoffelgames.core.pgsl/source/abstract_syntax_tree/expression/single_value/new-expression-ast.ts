@@ -520,15 +520,16 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
      * Validate data of current structure.
      * 
      * @param pContext - Build context.
+     * @param pCst - Cst data.
      */
-    protected override onProcess(pContext: AbstractSyntaxTreeContext): NewExpressionAstData {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext, pCst: NewExpressionCst): NewExpressionAstData {
         // Read call definitions.
-        const lCallDefinition: PgslNewExpressionCallDefinition | null = NewExpressionAst.callDefinition(pContext, this.cst.typeName);
+        const lCallDefinition: PgslNewExpressionCallDefinition | null = NewExpressionAst.callDefinition(pContext, pCst.typeName);
         if (!lCallDefinition) {
-            pContext.pushIncident(`Type '${this.cst.typeName}' cannot be constructed with 'new'.`, this);
+            pContext.pushIncident(`Type '${pCst.typeName}' cannot be constructed with 'new'.`, this);
             return {
                 // Expression data.
-                typeName: this.cst.typeName,
+                typeName: pCst.typeName,
                 parameterList: new Array<IExpressionAst>(),
                 generic: null,
 
@@ -542,7 +543,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
         }
 
         // Build parameter expression list.
-        const lParameterExpressionList: Array<IExpressionAst> = this.cst.parameterList.map((pParameterCst) => {
+        const lParameterExpressionList: Array<IExpressionAst> = pCst.parameterList.map((pParameterCst) => {
             return ExpressionAstBuilder.build(pParameterCst).process(pContext);
         });
 
@@ -552,19 +553,19 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
         });
 
         // Only once generic is supported.
-        if (this.cst.genericList.length > 1) {
+        if (pCst.genericList.length > 1) {
             pContext.pushIncident(`Only one generic type is supported in 'new' expressions.`, this);
         }
 
         // Only types with generics can be constructed with a generic.
-        if (this.cst.genericList.length > 0 && !lCallDefinition.generics) {
-            pContext.pushIncident(`Type '${this.cst.typeName}' can not be constructed with a generic type.`, this);
+        if (pCst.genericList.length > 0 && !lCallDefinition.generics) {
+            pContext.pushIncident(`Type '${pCst.typeName}' can not be constructed with a generic type.`, this);
         }
 
         // Build first generic declaration if available.
         const lGenericDeclaration: TypeDeclarationAst | null = (() => {
-            if (this.cst.genericList.length > 0) {
-                return new TypeDeclarationAst(this.cst.genericList[0]).process(pContext);
+            if (pCst.genericList.length > 0) {
+                return new TypeDeclarationAst(pCst.genericList[0]).process(pContext);
             }
 
             return null;
@@ -608,7 +609,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                 return pGeneric.accepts(lGenericType);
             });
             if (!lGenericMatched) {
-                pContext.pushIncident(`Generic type is not valid for constructed type '${this.cst.typeName}'.`, this);
+                pContext.pushIncident(`Generic type is not valid for constructed type '${pCst.typeName}'.`, this);
             }
         })();
 
@@ -660,7 +661,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
             }
 
             // No matching definition found.
-            pContext.pushIncident(`No matching constructor found for type '${this.cst.typeName}' with ${this.cst.parameterList.length} parameter(s).`, this);
+            pContext.pushIncident(`No matching constructor found for type '${pCst.typeName}' with ${pCst.parameterList.length} parameter(s).`, this);
         })();
 
         // Resolve result type.
@@ -668,7 +669,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
 
         return {
             // Expression data.
-            typeName: this.cst.typeName,
+            typeName: pCst.typeName,
             parameterList: lParameterExpressionList,
             generic: lGenericDeclaration,
 

@@ -16,9 +16,10 @@ export class VariableNameExpressionAst extends AbstractSyntaxTree<VariableNameEx
      * Validate data of current structure.
      * 
      * @param pContext - Validation context.
+     * @param pCst - Cst data.
      */
-    protected override onProcess(pContext: AbstractSyntaxTreeContext): VariableNameExpressionAstData {
-        const lVariableName: string = this.cst.variableName;
+    protected override onProcess(pContext: AbstractSyntaxTreeContext, pCst: VariableNameExpressionCst): VariableNameExpressionAstData {
+        const lVariableName: string = pCst.variableName;
 
         // Check if variable is defined.
         const lVariableDefinition: IValueStoreAst | null = pContext.getValue(lVariableName);

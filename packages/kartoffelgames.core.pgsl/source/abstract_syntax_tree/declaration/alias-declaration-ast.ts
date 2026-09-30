@@ -13,7 +13,7 @@ export class AliasDeclarationAst extends BaseDeclarationAst<AliasDeclarationCst,
      * Alias name.
      */
     public get name(): string {
-        return this.cst.name;
+        return this.data.aliasName;
     }
 
     /**
@@ -23,12 +23,12 @@ export class AliasDeclarationAst extends BaseDeclarationAst<AliasDeclarationCst,
      */
     public override register(pContext: AbstractSyntaxTreeContext): this {
         // Check if alias with same name already exists.
-        if (pContext.getAlias(this.cst.name)) {
-            pContext.pushIncident(`Alias with name "${this.cst.name}" already defined.`, this);
+        if (pContext.getAlias(this.name)) {
+            pContext.pushIncident(`Alias with name "${this.name}" already defined.`, this);
         }
 
         // Set alias in context.
-        pContext.registerAlias(this.cst.name, this);
+        pContext.registerAlias(this.name, this);
 
         return this;
     }
@@ -37,16 +37,17 @@ export class AliasDeclarationAst extends BaseDeclarationAst<AliasDeclarationCst,
      * Process the declaration.
      * 
      * @param pContext - Context.
+     * @param pCst - Cst data.
      */
-    protected override onProcess(pContext: AbstractSyntaxTreeContext): AliasDeclarationAstData {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext, pCst: AliasDeclarationCst): AliasDeclarationAstData {
         // Create attribute list.
-        const lAttributes: AttributeListAst = new AttributeListAst(this.cst.attributeList, this).process(pContext);
+        const lAttributes: AttributeListAst = new AttributeListAst(pCst.attributeList, this).process(pContext);
 
         // Read type of type declaration.
-        const lTypeDeclaration: TypeDeclarationAst = new TypeDeclarationAst(this.cst.typeDefinition).process(pContext);
+        const lTypeDeclaration: TypeDeclarationAst = new TypeDeclarationAst(pCst.typeDefinition).process(pContext);
 
         return {
-            aliasName: this.cst.name,
+            aliasName: pCst.name,
             attributes: lAttributes,
             underlyingType: lTypeDeclaration.data.type
         };

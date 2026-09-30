@@ -1,4 +1,16 @@
 import { Exception } from '@kartoffelgames/core';
+import { type PgslAccessMode, PgslAccessModeEnum } from '../../buildin/enum/pgsl-access-mode-enum.ts';
+import { type PgslTexelFormat, PgslTexelFormatEnum } from '../../buildin/enum/pgsl-texel-format-enum.ts';
+import type { ExpressionCst } from '../../concrete_syntax_tree/expression.type.ts';
+import type { Cst, TypeDeclarationCst } from '../../concrete_syntax_tree/general.type.ts';
+import { PgslValueFixedState } from "../../enum/pgsl-value-fixed-state.ts";
+import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
+import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
+import type { AliasDeclarationAst } from '../declaration/alias-declaration-ast.ts';
+import type { StructDeclarationAst } from '../declaration/struct-declaration-ast.ts';
+import { ExpressionAstBuilder } from '../expression/expression-ast-builder.ts';
+import type { IExpressionAst } from '../expression/i-expression-ast.interface.ts';
+import { BasePgslType, BasePgslTypeKind } from '../type/definition/base-pgsl-type.ts';
 import { PgslArrayType } from '../type/definition/pgsl-array-type.ts';
 import { PgslBooleanType } from '../type/definition/pgsl-boolean-type.ts';
 import { PgslBuildInType, PgslBuildInTypeName } from '../type/definition/pgsl-build-in-type.ts';
@@ -10,20 +22,8 @@ import { PgslSamplerType } from '../type/definition/pgsl-sampler-type.ts';
 import { PgslStringType } from '../type/definition/pgsl-string-type.ts';
 import { PgslStructType } from '../type/definition/pgsl-struct-type.ts';
 import { PgslTextureType, type PgslTextureTypeName } from '../type/definition/pgsl-texture-type.ts';
-import { BasePgslType, BasePgslTypeKind } from '../type/definition/base-pgsl-type.ts';
 import { PgslVectorType } from '../type/definition/pgsl-vector-type.ts';
 import { PgslVoidType } from '../type/definition/pgsl-void-type.ts';
-import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
-import type { IExpressionAst } from '../expression/i-expression-ast.interface.ts';
-import type { Cst, TypeDeclarationCst } from '../../concrete_syntax_tree/general.type.ts';
-import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
-import type { StructDeclarationAst } from '../declaration/struct-declaration-ast.ts';
-import type { AliasDeclarationAst } from '../declaration/alias-declaration-ast.ts';
-import type { ExpressionCst } from '../../concrete_syntax_tree/expression.type.ts';
-import { ExpressionAstBuilder } from '../expression/expression-ast-builder.ts';
-import { PgslValueFixedState } from "../../enum/pgsl-value-fixed-state.ts";
-import { type PgslAccessMode, PgslAccessModeEnum } from '../../buildin/enum/pgsl-access-mode-enum.ts';
-import { type PgslTexelFormat, PgslTexelFormatEnum } from '../../buildin/enum/pgsl-texel-format-enum.ts';
 
 /**
  * PGSL base type definition.
@@ -34,13 +34,14 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
      * Only traces the templates as they are the only children.
      * 
      * @param pContext - Ast build context.
+     * @param pCst - Cst data.
      */
-    protected override onProcess(pContext: AbstractSyntaxTreeContext): TypeDeclarationAstData {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext, pCst: TypeDeclarationCst): TypeDeclarationAstData {
         // Register type name useage.
-        pContext.registerSymbolUsage(this.cst.typeName);
+        pContext.registerSymbolUsage(pCst.typeName);
 
         // Build-in types are declared with their underlying type and only keep their name for the declaration.
-        const lType: BasePgslType = this.resolveType(pContext);
+        const lType: BasePgslType = this.resolveType(pContext, pCst);
         if (lType instanceof PgslBuildInType) {
             return {
                 type: lType.underlyingType,
@@ -315,14 +316,15 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
      * Try to resolve raw type as pointer value.
      * 
      * @param pRawName - Type raw name.
+     * @param pCst - Cst data of type declaration.
      * @param pRawTemplate - Type template.
      * @param pMeta - Type definition meta data.
      */
-    private resolvePointer(pContext: AbstractSyntaxTreeContext, pRawName: string, pRawTemplate: TypeDeclarationAstTemplateList): BasePgslType {
+    private resolvePointer(pContext: AbstractSyntaxTreeContext, pCst: TypeDeclarationCst, pRawName: string, pRawTemplate: TypeDeclarationAstTemplateList): BasePgslType {
         // Create none pointer type definition.
         const lConcreteTypeDeclaration: TypeDeclarationCst = {
             type: 'TypeDeclaration',
-            range: this.cst.range,
+            range: pCst.range,
             typeName: pRawName,
             template: pRawTemplate,
             isPointer: false
@@ -524,81 +526,81 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
      * 
      * @returns Resolved type.
      */
-    private resolveType(pContext: AbstractSyntaxTreeContext): BasePgslType {
+    private resolveType(pContext: AbstractSyntaxTreeContext, pCst: TypeDeclarationCst): BasePgslType {
         // Type to pointer.
-        if (this.cst.isPointer) {
-            return this.resolvePointer(pContext, this.cst.typeName, this.cst.template);
+        if (pCst.isPointer) {
+            return this.resolvePointer(pContext, pCst, pCst.typeName, pCst.template);
         }
 
         let lType: BasePgslType | null = null;
 
         // Try to parse to void type.
-        if ((lType = this.resolveVoid(pContext, this.cst.typeName, this.cst.template)) !== null) {
+        if ((lType = this.resolveVoid(pContext, pCst.typeName, pCst.template)) !== null) {
             return lType;
         }
 
         // Try to parse to struct type.
-        if ((lType = this.resolveStruct(pContext, this.cst.typeName, this.cst.template)) !== null) {
+        if ((lType = this.resolveStruct(pContext, pCst.typeName, pCst.template)) !== null) {
             return lType;
         }
 
         // Try to parse alias type.
-        if ((lType = this.resolveAlias(pContext, this.cst.typeName, this.cst.template)) !== null) {
+        if ((lType = this.resolveAlias(pContext, pCst.typeName, pCst.template)) !== null) {
             return lType;
         }
 
         // Try to parse enum type.
-        if ((lType = this.resolveEnum(pContext, this.cst.typeName, this.cst.template)) !== null) {
+        if ((lType = this.resolveEnum(pContext, pCst.typeName, pCst.template)) !== null) {
             return lType;
         }
 
         // Try to parse build in type.
-        if ((lType = this.resolveBuildIn(pContext, this.cst.typeName, this.cst.template)) !== null) {
+        if ((lType = this.resolveBuildIn(pContext, pCst.typeName, pCst.template)) !== null) {
             return lType;
         }
 
         // Try to parse numeric type.
-        if ((lType = this.resolveNumeric(pContext, this.cst.typeName, this.cst.template)) !== null) {
+        if ((lType = this.resolveNumeric(pContext, pCst.typeName, pCst.template)) !== null) {
             return lType;
         }
 
         // Try to parse boolean type.
-        if ((lType = this.resolveBoolean(pContext, this.cst.typeName, this.cst.template)) !== null) {
+        if ((lType = this.resolveBoolean(pContext, pCst.typeName, pCst.template)) !== null) {
             return lType;
         }
 
         // Try to parse string type.
-        if ((lType = this.resolveString(pContext, this.cst.typeName, this.cst.template)) !== null) {
+        if ((lType = this.resolveString(pContext, pCst.typeName, pCst.template)) !== null) {
             return lType;
         }
 
         // Try to parse vector type.
-        if ((lType = this.resolveVector(pContext, this.cst.typeName, this.cst.template)) !== null) {
+        if ((lType = this.resolveVector(pContext, pCst.typeName, pCst.template)) !== null) {
             return lType;
         }
 
         // Try to parse matrix type.
-        if ((lType = this.resolveMatrix(pContext, this.cst.typeName, this.cst.template)) !== null) {
+        if ((lType = this.resolveMatrix(pContext, pCst.typeName, pCst.template)) !== null) {
             return lType;
         }
 
         // Try to parse sampler type.
-        if ((lType = this.resolveSampler(pContext, this.cst.typeName, this.cst.template)) !== null) {
+        if ((lType = this.resolveSampler(pContext, pCst.typeName, pCst.template)) !== null) {
             return lType;
         }
 
         // Try to parse array type.
-        if ((lType = this.resolveArray(pContext, this.cst.typeName, this.cst.template)) !== null) {
+        if ((lType = this.resolveArray(pContext, pCst.typeName, pCst.template)) !== null) {
             return lType;
         }
 
         // Try to parse texture type.
-        if ((lType = this.resolveTexture(pContext, this.cst.typeName, this.cst.template)) !== null) {
+        if ((lType = this.resolveTexture(pContext, pCst.typeName, pCst.template)) !== null) {
             return lType;
         }
 
         // Type not found.
-        pContext.pushIncident(`Typename "${this.cst.typeName}" not defined.`, this);
+        pContext.pushIncident(`Typename "${pCst.typeName}" not defined.`, this);
         return new PgslInvalidType();
     }
 

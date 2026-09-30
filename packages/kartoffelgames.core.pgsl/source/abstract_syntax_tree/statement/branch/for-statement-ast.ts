@@ -18,14 +18,15 @@ export class ForStatementAst extends AbstractSyntaxTree<ForStatementCst, ForStat
      * Validate data of current structure.
      * 
      * @param pContext - Validation context.
+     * @param pCst - Cst data.
      */
-    protected onProcess(pContext: AbstractSyntaxTreeContext): ForStatementAstData {
+    protected onProcess(pContext: AbstractSyntaxTreeContext, pCst: ForStatementCst): ForStatementAstData {
         // Trace block in own loop scope and trace child trees.
         return pContext.pushScope('loop', () => {
             // Trace optional init declaration. Do it first to make variable available in expression and update traces.
             let lInit: VariableDeclarationStatementAst | null = null;
-            if (this.cst.init) {
-                lInit = new VariableDeclarationStatementAst(this.cst.init).process(pContext);
+            if (pCst.init) {
+                lInit = new VariableDeclarationStatementAst(pCst.init).process(pContext);
 
                 // Variable must be a let
                 if (lInit.data.declarationType !== PgslDeclarationType.Let) {
@@ -35,8 +36,8 @@ export class ForStatementAst extends AbstractSyntaxTree<ForStatementCst, ForStat
 
             // Validate optional expression.
             let lExpression: IExpressionAst | null = null;
-            if (this.cst.expression) {
-                lExpression = ExpressionAstBuilder.build(this.cst.expression).process(pContext);
+            if (pCst.expression) {
+                lExpression = ExpressionAstBuilder.build(pCst.expression).process(pContext);
 
                 // Expression must be a boolean.
                 if (lExpression.data.resolveType.conversionRankTo(new PgslBooleanType()) === Number.POSITIVE_INFINITY) {
@@ -46,18 +47,18 @@ export class ForStatementAst extends AbstractSyntaxTree<ForStatementCst, ForStat
 
             // Validate optional update statement.
             let lUpdate: IStatementAst | null = null;
-            if (this.cst.update) {
-                lUpdate = StatementAstBuilder.build(this.cst.update).process(pContext);
+            if (pCst.update) {
+                lUpdate = StatementAstBuilder.build(pCst.update).process(pContext);
 
                 // Parse update statement type
-                const lUpdateType = this.cst.update.type;
+                const lUpdateType = pCst.update.type;
                 if (lUpdateType !== 'AssignmentStatement' && lUpdateType !== 'IncrementDecrementStatement' && lUpdateType !== 'FunctionCallStatement') {
                     pContext.pushIncident('For update statement must be either an assignment, increment or function statement.', lUpdate);
                 }
             }
 
             // Trace block.
-            const lBlock: BlockStatementAst = new BlockStatementAst(this.cst.block).process(pContext);
+            const lBlock: BlockStatementAst = new BlockStatementAst(pCst.block).process(pContext);
 
             return {
                 init: lInit,

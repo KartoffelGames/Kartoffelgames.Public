@@ -14,10 +14,11 @@ export class AddressOfExpressionAst extends AbstractSyntaxTree<AddressOfExpressi
      * Validate data of current structure.
      * 
      * @param pContext - Validation context.
+     * @param pCst - Cst data.
      */
-    protected override onProcess(pContext: AbstractSyntaxTreeContext): AddressOfExpressionAstData {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext, pCst: AddressOfExpressionCst): AddressOfExpressionAstData {
         // Read attachment of inner expression.
-        const lVariable: IExpressionAst = ExpressionAstBuilder.build(this.cst.expression).process(pContext);
+        const lVariable: IExpressionAst = ExpressionAstBuilder.build(pCst.expression).process(pContext);
 
         // Type of expression needs to be storable.
         if (!lVariable.data.isStorage) {

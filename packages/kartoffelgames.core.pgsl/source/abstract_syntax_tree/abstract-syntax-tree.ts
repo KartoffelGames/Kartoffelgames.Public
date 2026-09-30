@@ -1,3 +1,4 @@
+import { Exception } from "@kartoffelgames/core";
 import type { IAnyParameterConstructor } from '../../../kartoffelgames.core/source/interface/i-constructor.ts';
 import type { Cst } from '../concrete_syntax_tree/general.type.ts';
 import type { AbstractSyntaxTreeContext } from './abstract-syntax-tree-context.ts';
@@ -6,16 +7,9 @@ import type { AbstractSyntaxTreeContext } from './abstract-syntax-tree-context.t
  * Base pgsl syntax tree object.
  */
 export abstract class AbstractSyntaxTree<TCst extends Cst<string> = Cst<string>, TData extends object = object> {
-    private readonly mConcreteSyntaxTree: TCst;
+    private readonly mConcreteSyntaxTree: TCst | null;
     private mData: TData | null;
     private readonly mMeta: AbstractSyntaxTreeMeta;
-
-    /**
-     * Get concrete syntax tree node.
-     */
-    public get cst(): Readonly<TCst> {
-        return this.mConcreteSyntaxTree;
-    }
 
     /**
      * Get syntax tree data.
@@ -45,21 +39,30 @@ export abstract class AbstractSyntaxTree<TCst extends Cst<string> = Cst<string>,
     /**
      * Constructor.
      * 
-     * @param pConcreteSyntaxTree - Concrete syntax tree node.
+     * @param pTreeData - Concrete syntax tree node.
      */
-    public constructor(pConcreteSyntaxTree: TCst,) {
-        // Save meta information.
-        this.mMeta = [
-            pConcreteSyntaxTree.range[0],
-            pConcreteSyntaxTree.range[1],
-            pConcreteSyntaxTree.range[2],
-            pConcreteSyntaxTree.range[3]
-        ];
+    public constructor(pTreeData: TCst | TData) {
+        // Tree data is a CST
+        if ('type' in pTreeData && 'range' in pTreeData) {
+            // Save meta information.
+            this.mMeta = [
+                pTreeData.range[0],
+                pTreeData.range[1],
+                pTreeData.range[2],
+                pTreeData.range[3]
+            ];
 
-        this.mConcreteSyntaxTree = pConcreteSyntaxTree;
+            this.mConcreteSyntaxTree = pTreeData;
 
-        // Set empty initial data.
-        this.mData = null;
+            // Set empty initial data.
+            this.mData = null;
+            return;
+        }
+
+        // Init this AST with full processed data.
+        this.mMeta = [0, 0, 0, 0];
+        this.mConcreteSyntaxTree = null;
+        this.mData = pTreeData;
     }
 
     /**
@@ -71,8 +74,15 @@ export abstract class AbstractSyntaxTree<TCst extends Cst<string> = Cst<string>,
      * @returns This syntax tree node. 
      */
     public process(pContext: AbstractSyntaxTreeContext): this {
+        // Prevent double process.
+        if(this.mData){
+            throw new Exception('Tree is already processed.', this);
+        }
+
+        // Checking for data also guards unset CST. As the data is set cst is unset.
+
         // Process syntax tree to build up data.
-        this.mData = this.onProcess(pContext);
+        this.mData = this.onProcess(pContext, this.mConcreteSyntaxTree!);
 
         return this;
     }
@@ -83,7 +93,7 @@ export abstract class AbstractSyntaxTree<TCst extends Cst<string> = Cst<string>,
      * 
      * @param pContext - Processing context.
      */
-    protected abstract onProcess(pContext: AbstractSyntaxTreeContext): TData;
+    protected abstract onProcess(pContext: AbstractSyntaxTreeContext, pCst: TCst): TData;
 }
 
 /**

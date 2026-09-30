@@ -15,12 +15,13 @@ export class BinaryExpressionAst extends AbstractSyntaxTree<BinaryExpressionCst,
      * Validate data of current structure.
      * 
      * @param pContext - Validation context.
+     * @param pCst - Cst data.
      */
-    protected override onProcess(pContext: AbstractSyntaxTreeContext): BinaryExpressionAstData {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext, pCst: BinaryExpressionCst): BinaryExpressionAstData {
         // Try to convert operator.
-        let lOperator: PgslOperator | undefined = EnumUtil.cast(PgslOperator, this.cst.operator);
+        let lOperator: PgslOperator | undefined = EnumUtil.cast(PgslOperator, pCst.operator);
         if (!lOperator) {
-            pContext.pushIncident(`Operator "${this.cst.operator}" is not a valid operator.`, this);
+            pContext.pushIncident(`Operator "${pCst.operator}" is not a valid operator.`, this);
 
             lOperator = PgslOperator.BinaryOr;
         }
@@ -36,12 +37,12 @@ export class BinaryExpressionAst extends AbstractSyntaxTree<BinaryExpressionCst,
 
         // Validate operator usable for bit operations.
         if (!lComparisonList.includes(lOperator as PgslOperator)) {
-            pContext.pushIncident(`Operator "${this.cst.operator}" can not used for bit operations.`, this);
+            pContext.pushIncident(`Operator "${pCst.operator}" can not used for bit operations.`, this);
         }
 
         // Read left and right expression attachments.
-        const lLeftExpression: IExpressionAst = ExpressionAstBuilder.build(this.cst.left).process(pContext);
-        const lRightExpression: IExpressionAst = ExpressionAstBuilder.build(this.cst.right).process(pContext);
+        const lLeftExpression: IExpressionAst = ExpressionAstBuilder.build(pCst.left).process(pContext);
+        const lRightExpression: IExpressionAst = ExpressionAstBuilder.build(pCst.right).process(pContext);
 
         // Type buffer for validating the processed types.
         let lLeftValueType: BasePgslType;

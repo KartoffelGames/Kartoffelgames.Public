@@ -50,14 +50,15 @@ export class FunctionOverloadDeclarationAst extends BaseDeclarationAst<FunctionO
      * Process and build data of current structure.
      * 
      * @param pContext - Build context.
+     * @param pCst - Cst data.
      */
-    protected override onProcess(pContext: AbstractSyntaxTreeContext): FunctionOverloadDeclarationAstData {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext, pCst: FunctionOverloadDeclarationCst): FunctionOverloadDeclarationAstData {
         // Create attribute list for this declaration.
-        const lAttributes: AttributeListAst = new AttributeListAst(this.cst.attributeList, this).process(pContext);
+        const lAttributes: AttributeListAst = new AttributeListAst(pCst.attributeList, this).process(pContext);
 
         // Create generic mapping for this declaration.
         const lGenericMapping: Set<string> = new Set<string>();
-        for (const lGeneric of this.cst.generics) {
+        for (const lGeneric of pCst.generics) {
             // Check for duplicate generic names.
             if (lGenericMapping.has(lGeneric.name)) {
                 pContext.pushIncident(`Generic type name "${lGeneric.name}" is already defined for this function header.`, this);
@@ -69,7 +70,7 @@ export class FunctionOverloadDeclarationAst extends BaseDeclarationAst<FunctionO
         return pContext.pushScope('function', () => {
             // Create parameter list.
             const lParameterList: Array<FunctionDeclarationAstDataParameter> = new Array<FunctionDeclarationAstDataParameter>();
-            for (const lParameter of this.cst.parameters) {
+            for (const lParameter of pCst.parameters) {
                 let lParameterData: FunctionDeclarationAstDataParameter;
 
                 // Check for generic parameter.
@@ -117,24 +118,24 @@ export class FunctionOverloadDeclarationAst extends BaseDeclarationAst<FunctionO
             }
 
             // Create block for each header.
-            const lBlock: BlockStatementAst = new BlockStatementAst(this.cst.block).process(pContext);
+            const lBlock: BlockStatementAst = new BlockStatementAst(pCst.block).process(pContext);
 
             // Build return type.
             const lReturnTypeDeclaration: TypeDeclarationAst | string = (() => {
                 // Check for generic return type. Generic types arent validated for the block return type.
-                if (typeof this.cst.returnType === 'string') {
+                if (typeof pCst.returnType === 'string') {
                     // Validate generic return type index.
-                    const lGenericName: string = this.cst.returnType;
+                    const lGenericName: string = pCst.returnType;
                     if (!lGenericMapping.has(lGenericName)) {
                         pContext.pushIncident(`Generic return type name "${lGenericName}" is not defined for this function header.`, this);
                     }
                     return lGenericName;
                 }
 
-                const lReturnType: TypeDeclarationAst = new TypeDeclarationAst(this.cst.returnType).process(pContext);
+                const lReturnType: TypeDeclarationAst = new TypeDeclarationAst(pCst.returnType).process(pContext);
 
                 // If function is not built-in check for correct return type in function block.
-                if (!this.cst.buildIn) {
+                if (!pCst.buildIn) {
                     // Read block return type.
                     const lBlockReturnType: BasePgslType = lBlock.data.returnType;
 
@@ -148,7 +149,7 @@ export class FunctionOverloadDeclarationAst extends BaseDeclarationAst<FunctionO
             })();
 
             // Convert all generics to types. O(n²) fuck it.
-            const lGenericList: Array<PgslGenericType> = this.cst.generics.map((pGenericType) => {
+            const lGenericList: Array<PgslGenericType> = pCst.generics.map((pGenericType) => {
                 // Build each type restriction ast and get its types.
                 const lGenericRestrictions: Array<BasePgslType> = pGenericType.restrictions.map((pGenericRestrictionTypeDeclaration) => {
                     return new TypeDeclarationAst(pGenericRestrictionTypeDeclaration).process(pContext).data.type;

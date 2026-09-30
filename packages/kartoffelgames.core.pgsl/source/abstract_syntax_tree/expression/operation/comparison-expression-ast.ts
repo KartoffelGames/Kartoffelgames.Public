@@ -18,12 +18,13 @@ export class ComparisonExpressionAst extends AbstractSyntaxTree<ComparisonExpres
      * Validate data of current structure.
      * 
      * @param pContext - Validation context.
+     * @param pCst - Cst data.
      */
-    protected override onProcess(pContext: AbstractSyntaxTreeContext): ComparisonExpressionAstData {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext, pCst: ComparisonExpressionCst): ComparisonExpressionAstData {
         // Try to convert operator.
-        let lOperator: PgslOperator | undefined = EnumUtil.cast(PgslOperator, this.cst.operator);
+        let lOperator: PgslOperator | undefined = EnumUtil.cast(PgslOperator, pCst.operator);
         if (!lOperator) {
-            pContext.pushIncident(`Operator "${this.cst.operator}" is not a valid operator.`, this);
+            pContext.pushIncident(`Operator "${pCst.operator}" is not a valid operator.`, this);
 
             lOperator = PgslOperator.Equal;
         }
@@ -40,12 +41,12 @@ export class ComparisonExpressionAst extends AbstractSyntaxTree<ComparisonExpres
 
         // Validate operator usable for comparisons.
         if (!lComparisonList.includes(lOperator as PgslOperator)) {
-            pContext.pushIncident(`Operator "${this.cst.operator}" can not used for comparisons.`, this);
+            pContext.pushIncident(`Operator "${pCst.operator}" can not used for comparisons.`, this);
         }
 
         // Read left and right expression attachments.
-        const lLeftExpression: IExpressionAst = ExpressionAstBuilder.build(this.cst.left).process(pContext);
-        const lRightExpression: IExpressionAst = ExpressionAstBuilder.build(this.cst.right).process(pContext);
+        const lLeftExpression: IExpressionAst = ExpressionAstBuilder.build(pCst.left).process(pContext);
+        const lRightExpression: IExpressionAst = ExpressionAstBuilder.build(pCst.right).process(pContext);
 
         // Comparison needs to be the same type or implicitly castable.
         if (lRightExpression.data.resolveType.conversionRankTo(lLeftExpression.data.resolveType) === Number.POSITIVE_INFINITY) {

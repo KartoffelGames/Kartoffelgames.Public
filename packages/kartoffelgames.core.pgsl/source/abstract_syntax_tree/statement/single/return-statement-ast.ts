@@ -13,12 +13,15 @@ import type { IStatementAst } from '../i-statement-ast.interface.ts';
 export class ReturnStatementAst extends AbstractSyntaxTree<ReturnStatementCst, ReturnStatementAstData> implements IStatementAst {
     /**
      * Validate data of current structure.
+     * 
+     * @param pContext - Validation context.
+     * @param pCst - Cst data.
      */
-    protected override onProcess(pContext: AbstractSyntaxTreeContext): ReturnStatementAstData {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext, pCst: ReturnStatementCst): ReturnStatementAstData {
         // Build child expression.
         let lExpression: IExpressionAst | null = null;
-        if (this.cst.expression) {
-            lExpression = ExpressionAstBuilder.build(this.cst.expression).process(pContext);
+        if (pCst.expression) {
+            lExpression = ExpressionAstBuilder.build(pCst.expression).process(pContext);
         }
 
         return {

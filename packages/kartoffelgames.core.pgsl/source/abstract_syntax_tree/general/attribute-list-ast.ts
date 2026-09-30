@@ -106,8 +106,11 @@ export class AttributeListAst extends AbstractSyntaxTree<AttributeListCst, Attri
 
     /**
      * Validate data of current structure.
+     * 
+     * @param pContext - Validation context.
+     * @param pCst - Cst data.
      */
-    protected override onProcess(pContext: AbstractSyntaxTreeContext): AttributeListAstData {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext, pCst: AttributeListCst): AttributeListAstData {
         // Create attribute list data.
         const lAttributeListData: AttributeListAstData = {
             attributes: new Map<PgslAttributeName, Array<IExpressionAst>>(),
@@ -123,7 +126,7 @@ export class AttributeListAst extends AbstractSyntaxTree<AttributeListCst, Attri
         }
 
         // Validate each attribute.
-        for (const lAttributeCst of this.cst.attributes) {
+        for (const lAttributeCst of pCst.attributes) {
             // Check if attribute has a definition.
             if (!AttributeListAst.validAttributes.has(lAttributeCst.name as PgslAttributeName)) {
                 pContext.pushIncident(`Attribute "${lAttributeCst.name}" is not a valid attribute.`, this);

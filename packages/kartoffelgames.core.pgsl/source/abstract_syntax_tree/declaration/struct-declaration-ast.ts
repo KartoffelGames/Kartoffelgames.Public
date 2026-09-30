@@ -13,7 +13,7 @@ export class StructDeclarationAst extends BaseDeclarationAst<StructDeclarationCs
      * Struct name.
      */
     public get name(): string {
-        return this.cst.name;
+        return this.data.name;
     }
 
     /**
@@ -23,35 +23,38 @@ export class StructDeclarationAst extends BaseDeclarationAst<StructDeclarationCs
      */
     public override register(pContext: AbstractSyntaxTreeContext): this {
         // Check if struct is already defined.
-        if (pContext.getStruct(this.cst.name)) {
-            pContext.pushIncident(`Struct "${this.cst.name}" is already defined.`, this);
+        if (pContext.getStruct(this.name)) {
+            pContext.pushIncident(`Struct "${this.name}" is already defined.`, this);
         }
 
         // Register struct to the current context.
-        pContext.registerStruct(this.cst.name, this);
+        pContext.registerStruct(this.name, this);
 
         return this;
     }
 
     /**
      * Trace data of current structure.
+     * 
+     * @param pContext - Processing context.
+     * @param pCst - Cst data.
      */
-    protected override onProcess(pContext: AbstractSyntaxTreeContext): StructDeclarationAstData {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext, pCst: StructDeclarationCst): StructDeclarationAstData {
         // Create attribute list.
-        const lAttributes: AttributeListAst = new AttributeListAst(this.cst.attributeList, this).process(pContext);
+        const lAttributes: AttributeListAst = new AttributeListAst(pCst.attributeList, this).process(pContext);
 
         // Save properties as map. Luck for us, properties are still kept in order like in a array.
         const lProperties: Map<string, StructPropertyDeclarationAst> = new Map<string, StructPropertyDeclarationAst>();
         const lLocationNames: Set<string> = new Set<string>();
 
         // Validate properties.
-        for (let lIndex: number = 0; lIndex < this.cst.properties.length; lIndex++) {
+        for (let lIndex: number = 0; lIndex < pCst.properties.length; lIndex++) {
             // Read property.
-            const lProperty: StructPropertyDeclarationAst = new StructPropertyDeclarationAst(this.cst.properties[lIndex], this).process(pContext);
+            const lProperty: StructPropertyDeclarationAst = new StructPropertyDeclarationAst(pCst.properties[lIndex], this).process(pContext);
 
             // Validate property name.
             if (lProperties.has(lProperty.data.name)) {
-                pContext.pushIncident(`Property name '${lProperty.data.name}' is already used in struct '${this.cst.name}'.`, lProperty);
+                pContext.pushIncident(`Property name '${lProperty.data.name}' is already used in struct '${pCst.name}'.`, lProperty);
             }
 
             // Add property name to buffer.
@@ -60,7 +63,7 @@ export class StructDeclarationAst extends BaseDeclarationAst<StructDeclarationCs
 
             // Only last property is allowed to be variable but then the struct is no longer fixed.
             // Skip for last property. 
-            if (lIndex !== this.cst.properties.length - 1) {
+            if (lIndex !== pCst.properties.length - 1) {
                 // Validate if properties dont have fixed length.
                 if (!lProperty.data.typeDeclaration.data.type.isKind(BasePgslTypeKind.FixedFootprint)) {
                     pContext.pushIncident('Only the last property of a struct can have a variable length.', lProperty);
@@ -70,7 +73,7 @@ export class StructDeclarationAst extends BaseDeclarationAst<StructDeclarationCs
             // Validate if property unique location attribute.
             if (lProperty.data.meta.locationName) {
                 if (lLocationNames.has(lProperty.data.meta.locationName)) {
-                    pContext.pushIncident(`Location name '${lProperty.data.meta.locationName}' is already used in struct '${this.cst.name}'.`, lProperty);
+                    pContext.pushIncident(`Location name '${lProperty.data.meta.locationName}' is already used in struct '${pCst.name}'.`, lProperty);
                 }
 
                 lLocationNames.add(lProperty.data.meta.locationName);
@@ -84,7 +87,7 @@ export class StructDeclarationAst extends BaseDeclarationAst<StructDeclarationCs
 
         return {
             attributes: lAttributes,
-            name: this.cst.name,
+            name: pCst.name,
             properties: Array.from(lProperties.values())
         };
     }

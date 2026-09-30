@@ -14,15 +14,16 @@ export class FunctionCallStatementAst extends AbstractSyntaxTree<FunctionCallSta
      * Validate data of current structure.
      * 
      * @param pContext - Validation context.
+     * @param pCst - Cst data.
      */
-    protected onProcess(pContext: AbstractSyntaxTreeContext): FunctionCallStatementAstData {
+    protected onProcess(pContext: AbstractSyntaxTreeContext, pCst: FunctionCallStatementCst): FunctionCallStatementAstData {
         // Build a function call expression cst.
         const lFunctionCallCst: FunctionCallExpressionCst = {
             type: 'FunctionCallExpression',
-            functionName: this.cst.functionName,
-            parameterList: this.cst.parameterList,
-            genericList: this.cst.genericList,
-            range: this.cst.range
+            functionName: pCst.functionName,
+            parameterList: pCst.parameterList,
+            genericList: pCst.genericList,
+            range: pCst.range
         };
 
         // Build function call expression.

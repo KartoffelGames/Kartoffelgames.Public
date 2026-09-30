@@ -15,10 +15,11 @@ export class WhileStatementAst extends AbstractSyntaxTree<WhileStatementCst, Whi
      * Validate data of current structure.
      * 
      * @param pContext - Validation context.
+     * @param pCst - Cst data.
      */
-    protected onProcess(pContext: AbstractSyntaxTreeContext): WhileStatementAstData {
+    protected onProcess(pContext: AbstractSyntaxTreeContext, pCst: WhileStatementCst): WhileStatementAstData {
         // Trace expression.
-        const lExpression: IExpressionAst | null = ExpressionAstBuilder.build(this.cst.expression).process(pContext);
+        const lExpression: IExpressionAst | null = ExpressionAstBuilder.build(pCst.expression).process(pContext);
         if (!lExpression) {
             throw new Error('Expression could not be build.');
         }
@@ -26,7 +27,7 @@ export class WhileStatementAst extends AbstractSyntaxTree<WhileStatementCst, Whi
         // Trace block in own loop scope.
         return pContext.pushScope('loop', () => {
             // Create block statement.
-            const lBlock: BlockStatementAst = new BlockStatementAst(this.cst.block).process(pContext);
+            const lBlock: BlockStatementAst = new BlockStatementAst(pCst.block).process(pContext);
 
             // Expression must be a boolean.
             if (lExpression.data.resolveType.conversionRankTo(new PgslBooleanType()) === Number.POSITIVE_INFINITY) {

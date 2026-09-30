@@ -9,10 +9,11 @@ export class DocumentAst extends AbstractSyntaxTree<DocumentCst, DocumentAstData
      * Process document data.
      * 
      * @param pContext - The syntax tree context.
+     * @param pCst - Cst data.
      * 
      * @returns Processed document data.
      */
-    protected override onProcess(pContext: AbstractSyntaxTreeContext): DocumentAstData {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext, pCst: DocumentCst): DocumentAstData {
         // Document is the only ast that create its own context object.
         pContext.setDocument(this);
 
@@ -21,26 +22,26 @@ export class DocumentAst extends AbstractSyntaxTree<DocumentCst, DocumentAstData
             incidents: new Array<AbstractSyntaxTreeIncident>(),
             content: new Array<BaseDeclarationAst>(),
             symbolUsages: new Set<AbstractSyntaxTreeSymbolUsageName>(),
-            metaValues: new Map<string, string>(this.cst.metaValues)
+            metaValues: new Map<string, string>(pCst.metaValues)
         };
 
         // Build documents build-ins first outside any scope.
         pContext.pushScope('build-in', () => {
-            for (const lBuildInCst of this.cst.buildInDeclarations) {
+            for (const lBuildInCst of pCst.buildInDeclarations) {
                 // Try to build content node.
                 // Build in content can be ignored as it has no affect on the document structure and only on the validation process.
                 // Processing is deferred to later stages, when the function is requested by name.
-                DeclarationAstBuilder.build(lBuildInCst).register(pContext);
+                DeclarationAstBuilder.build(lBuildInCst).process(pContext).register(pContext);
             }
         }, this);
 
         // Push global scope for document processing.
         return pContext.pushScope('global', () => {
             // Process all declarations in order.
-            for (const lDeclarationCst of this.cst.declarations) {
+            for (const lDeclarationCst of pCst.declarations) {
                 for (const lDeclarationItem of lDeclarationCst.declarations) {
                     // Try to build content node.
-                    lDocumentData.content.push(DeclarationAstBuilder.build(lDeclarationItem).register(pContext).process(pContext));
+                    lDocumentData.content.push(DeclarationAstBuilder.build(lDeclarationItem).process(pContext).register(pContext));
                 }
             }
 

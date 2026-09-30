@@ -14,17 +14,18 @@ export class StringValueExpressionAst extends AbstractSyntaxTree<StringValueExpr
      * Validate data of current structure.
      * 
      * @param pContext - Validation context.
+     * @param pCst - Cst data.
      */
-    protected override onProcess(_pContext: AbstractSyntaxTreeContext): StringValueExpressionAstData {
+    protected override onProcess(_pContext: AbstractSyntaxTreeContext, pCst: StringValueExpressionCst): StringValueExpressionAstData {
         return {
             // Expression data.
-            value: this.cst.textValue,
+            value: pCst.textValue,
 
             // Expression meta data.
             fixedState: PgslValueFixedState.Constant,
             isStorage: false,
             resolveType: new PgslStringType(),
-            constantValue: this.cst.textValue,
+            constantValue: pCst.textValue,
             storageAddressSpace: PgslValueAddressSpace.Inherit
         };
     }

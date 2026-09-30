@@ -16,8 +16,9 @@ export class IncrementDecrementStatementAst extends AbstractSyntaxTree<Increment
      * Validate data of current structure.
      * 
      * @param pContext - Validation context.
+     * @param pCst - Cst data.
      */
-    protected onProcess(pContext: AbstractSyntaxTreeContext): IncrementDecrementStatementAstData {
+    protected onProcess(pContext: AbstractSyntaxTreeContext, pCst: IncrementDecrementStatementCst): IncrementDecrementStatementAstData {
         // Create list of all bit operations.
         const lIncrementDecrementOperatorList: Array<PgslOperator> = [
             PgslOperator.Increment,
@@ -25,13 +26,13 @@ export class IncrementDecrementStatementAst extends AbstractSyntaxTree<Increment
         ];
 
         // Try to parse operator and validate operator.
-        const lOperator: PgslOperator | undefined = EnumUtil.cast(PgslOperator, this.cst.operator);
+        const lOperator: PgslOperator | undefined = EnumUtil.cast(PgslOperator, pCst.operator);
         if (!lIncrementDecrementOperatorList.includes(lOperator!)) {
-            pContext.pushIncident(`Invalid increment or decrement operator "${this.cst.operator}".`, this);
+            pContext.pushIncident(`Invalid increment or decrement operator "${pCst.operator}".`, this);
         }
 
         // Build expression.
-        const lExpression: IExpressionAst = ExpressionAstBuilder.build(this.cst.expression).process(pContext);
+        const lExpression: IExpressionAst = ExpressionAstBuilder.build(pCst.expression).process(pContext);
 
         // Must be a storage.
         if (!lExpression.data.isStorage) {

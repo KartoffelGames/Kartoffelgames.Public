@@ -18,11 +18,12 @@ export class IndexedValueExpressionAst extends AbstractSyntaxTree<IndexedValueEx
      * Validate data of current structure.
      * 
      * @param pContext - Validation context.
+     * @param pCst - Cst data.
      */
-    protected override onProcess(pContext: AbstractSyntaxTreeContext): IndexedValueExpressionAstData {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext, pCst: IndexedValueExpressionCst): IndexedValueExpressionAstData {
         // Build value and index expressions.
-        const lValue: IExpressionAst = ExpressionAstBuilder.build(this.cst.value).process(pContext);
-        const lIndex: IExpressionAst = ExpressionAstBuilder.build(this.cst.index).process(pContext);
+        const lValue: IExpressionAst = ExpressionAstBuilder.build(pCst.value).process(pContext);
+        const lIndex: IExpressionAst = ExpressionAstBuilder.build(pCst.index).process(pContext);
 
         // Value needs to be indexable.
         if (!lValue.data.resolveType.isKind(BasePgslTypeKind.Indexable)) {

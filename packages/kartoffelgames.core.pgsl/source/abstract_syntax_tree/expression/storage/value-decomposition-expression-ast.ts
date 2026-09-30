@@ -20,12 +20,13 @@ export class ValueDecompositionExpressionAst extends AbstractSyntaxTree<ValueDec
      * Validate data of current structure.
      * 
      * @param pContext - Validation context.
+     * @param pCst - Cst data.
      */
-    protected override onProcess(pContext: AbstractSyntaxTreeContext): ValueDecompositionExpressionAstData {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext, pCst: ValueDecompositionExpressionCst): ValueDecompositionExpressionAstData {
         // Build value expression.
-        const lValue: IExpressionAst = ExpressionAstBuilder.build(this.cst.value).process(pContext);
+        const lValue: IExpressionAst = ExpressionAstBuilder.build(pCst.value).process(pContext);
 
-        const lPropertyName: string = this.cst.property;
+        const lPropertyName: string = pCst.property;
 
         // Read attachment from resolve type.
         const lExpressionType: BasePgslType = lValue.data.resolveType;

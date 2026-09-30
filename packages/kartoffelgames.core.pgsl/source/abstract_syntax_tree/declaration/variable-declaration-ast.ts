@@ -39,7 +39,7 @@ export class VariableDeclarationAst extends BaseDeclarationAst<VariableDeclarati
      * Variable name.
      */
     public get name(): string {
-        return this.cst.name;
+        return this.data.name;
     }
 
     /**
@@ -55,25 +55,28 @@ export class VariableDeclarationAst extends BaseDeclarationAst<VariableDeclarati
     /**
      * Validate data of current structure.
      * https://www.w3.org/TR/WGSL/#var-and-value
+     * 
+     * @param pContext - Validation context.
+     * @param pCst - Cst data.
      */
-    protected override onProcess(pContext: AbstractSyntaxTreeContext): VariableDeclarationAstData {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext, pCst: VariableDeclarationCst): VariableDeclarationAstData {
         // Create attribute list.
-        const lAttributes: AttributeListAst = new AttributeListAst(this.cst.attributeList, this).process(pContext);
+        const lAttributes: AttributeListAst = new AttributeListAst(pCst.attributeList, this).process(pContext);
 
         // Read type of type declaration.
-        const lTypeDeclaration: TypeDeclarationAst = new TypeDeclarationAst(this.cst.typeDeclaration).process(pContext);
+        const lTypeDeclaration: TypeDeclarationAst = new TypeDeclarationAst(pCst.typeDeclaration).process(pContext);
         const lType: BasePgslType = lTypeDeclaration.data.type;
 
         // Read optional expression attachment.
         let lExpression: IExpressionAst | null = null;
-        if (this.cst.expression) {
-            lExpression = ExpressionAstBuilder.build(this.cst.expression).process(pContext);
+        if (pCst.expression) {
+            lExpression = ExpressionAstBuilder.build(pCst.expression).process(pContext);
         }
 
         // Try to parse declaration type.
-        let lDeclarationType: PgslDeclarationType | undefined = EnumUtil.cast(PgslDeclarationType, this.cst.declarationType);
+        let lDeclarationType: PgslDeclarationType | undefined = EnumUtil.cast(PgslDeclarationType, pCst.declarationType);
         if (!lDeclarationType) {
-            pContext.pushIncident(`Declaration type "${this.cst.declarationType}" can not be used for module scope variable declarations.`, this);
+            pContext.pushIncident(`Declaration type "${pCst.declarationType}" can not be used for module scope variable declarations.`, this);
 
             // Set default declaration type to avoid further errors.
             // Private is a good default as it has the least restrictions.
@@ -81,7 +84,7 @@ export class VariableDeclarationAst extends BaseDeclarationAst<VariableDeclarati
         }
 
         // Validate attributes.
-        this.validateDeclaration(pContext, lAttributes, lDeclarationType, lType, lExpression);
+        this.validateDeclaration(pContext, pCst, lAttributes, lDeclarationType, lType, lExpression);
 
         // Validate if expression fits declaration type.
         if (lExpression && lExpression.data.resolveType.conversionRankTo(lType) === Number.POSITIVE_INFINITY) {
@@ -97,18 +100,18 @@ export class VariableDeclarationAst extends BaseDeclarationAst<VariableDeclarati
         // Read meta data.
         const lFixedState: PgslValueFixedState = this.getValueFixedState(lDeclarationType);
         const lAccessMode: PgslAccessMode = this.getAccessMode(lAttributes);
-        const lAddressSpace: PgslValueAddressSpace = this.getAddressSpace(pContext, lDeclarationType, lType);
+        const lAddressSpace: PgslValueAddressSpace = this.getAddressSpace(pContext, pCst, lDeclarationType, lType);
         const lConstantValue: number | null = this.getConstantValue(lExpression);
         const lBindingInformation: { bindGroupName: string; bindLocationName: string; } | null = this.getBindingInformation(pContext, lAttributes);
 
         // Check if variable with same name already exists in scope.
-        if (pContext.getValue(this.cst.name)) {
-            pContext.pushIncident(`Variable with name "${this.cst.name}" already defined.`, this);
+        if (pContext.getValue(pCst.name)) {
+            pContext.pushIncident(`Variable with name "${pCst.name}" already defined.`, this);
         }
 
         // Register variable in current scope.
-        if (!pContext.registerValue(this.cst.name, this)) {
-            pContext.pushIncident(`Variable with name "${this.cst.name}" already defined.`, this);
+        if (!pContext.registerValue(pCst.name, this)) {
+            pContext.pushIncident(`Variable with name "${pCst.name}" already defined.`, this);
         }
 
         // Return built data.
@@ -121,7 +124,7 @@ export class VariableDeclarationAst extends BaseDeclarationAst<VariableDeclarati
             declarationType: lDeclarationType,
             expression: lExpression,
             fixedState: lFixedState,
-            name: this.cst.name,
+            name: pCst.name,
             type: lType,
             typeDeclaration: lTypeDeclaration
         };
@@ -167,12 +170,13 @@ export class VariableDeclarationAst extends BaseDeclarationAst<VariableDeclarati
      * Gets the address space based on declaration type and value type.
      *
      * @param pContext - Abstract syntax tree context.
+     * @param pCst - Cst data.
      * @param pDeclarationType - Declaration type.
      * @param pType - Value type.
      *
      * @returns The address space.
      */
-    private getAddressSpace(pContext: AbstractSyntaxTreeContext, pDeclarationType: PgslDeclarationType, pType: BasePgslType): PgslValueAddressSpace {
+    private getAddressSpace(pContext: AbstractSyntaxTreeContext, pCst: VariableDeclarationCst, pDeclarationType: PgslDeclarationType, pType: BasePgslType): PgslValueAddressSpace {
         // For texture and sampler types, we always use texture address space.
         if (pType instanceof PgslSamplerType || pType instanceof PgslTextureType) {
             return PgslValueAddressSpace.Texture;
@@ -191,7 +195,7 @@ export class VariableDeclarationAst extends BaseDeclarationAst<VariableDeclarati
                 return PgslValueAddressSpace.Module;
         }
 
-        pContext.pushIncident(`Unable to determine address space for declaration type "${this.cst.declarationType}".`, this);
+        pContext.pushIncident(`Unable to determine address space for declaration type "${pCst.declarationType}".`, this);
 
         return PgslValueAddressSpace.Module;
     }
@@ -283,51 +287,52 @@ export class VariableDeclarationAst extends BaseDeclarationAst<VariableDeclarati
      * Validate declaration based on its components.
      * 
      * @param pContext - Abstract syntax tree context.
+     * @param pCst - Cst data.
      * @param pAttributes - Attribute list.
      * @param pDeclarationType - Declaration type.
      * @param pType - Declaration type.
      * @param pExpression - Initialization expression.
      */
-    private validateDeclaration(pContext: AbstractSyntaxTreeContext, pAttributes: AttributeListAst, pDeclarationType: PgslDeclarationType, pType: BasePgslType, pExpression: IExpressionAst | null): void {
+    private validateDeclaration(pContext: AbstractSyntaxTreeContext, pCst: VariableDeclarationCst, pAttributes: AttributeListAst, pDeclarationType: PgslDeclarationType, pType: BasePgslType, pExpression: IExpressionAst | null): void {
         // A bunch of specific validation function to easy build a validation for each declaration type.
         const lMustBeConstructible = () => {
             if (!pType.isKind(BasePgslTypeKind.Constructible)) {
-                pContext.pushIncident(`The type of declaration type "${this.cst.declarationType}" must be constructible.`, this);
+                pContext.pushIncident(`The type of declaration type "${pCst.declarationType}" must be constructible.`, this);
             }
         };
         const lMustBeScalar = () => {
             if (!pType.isKind(BasePgslTypeKind.Scalar)) {
-                pContext.pushIncident(`The type of declaration type "${this.cst.declarationType}" must be a scalar type.`, this);
+                pContext.pushIncident(`The type of declaration type "${pCst.declarationType}" must be a scalar type.`, this);
             }
         };
         const lMustHaveAnInitializer = () => {
-            if (!this.cst.expression) {
-                pContext.pushIncident(`Declaration type "${this.cst.declarationType}" must have an initializer.`, this);
+            if (!pCst.expression) {
+                pContext.pushIncident(`Declaration type "${pCst.declarationType}" must have an initializer.`, this);
             }
         };
         const lMustNotHaveAnInitializer = () => {
-            if (this.cst.expression) {
-                pContext.pushIncident(`Declaration type "${this.cst.declarationType}" must not have an initializer.`, this);
+            if (pCst.expression) {
+                pContext.pushIncident(`Declaration type "${pCst.declarationType}" must not have an initializer.`, this);
             }
         };
         const lMustBeHostShareable = () => {
             if (!pType.isKind(BasePgslTypeKind.HostShareable)) {
-                pContext.pushIncident(`The type of declaration type "${this.cst.declarationType}" must be host shareable.`, this);
+                pContext.pushIncident(`The type of declaration type "${pCst.declarationType}" must be host shareable.`, this);
             }
         };
         const lMustHaveFixedFootprint = () => {
             if (!pType.isKind(BasePgslTypeKind.FixedFootprint)) {
-                pContext.pushIncident(`The type of declaration type "${this.cst.declarationType}" must have a fixed footprint.`, this);
+                pContext.pushIncident(`The type of declaration type "${pCst.declarationType}" must have a fixed footprint.`, this);
             }
         };
         const lExpressionMustBeConst = () => {
             if (pExpression && pExpression.data.fixedState !== PgslValueFixedState.Constant) {
-                pContext.pushIncident(`The expression of declaration type "${this.cst.declarationType}" must be a constant expression.`, this);
+                pContext.pushIncident(`The expression of declaration type "${pCst.declarationType}" must be a constant expression.`, this);
             }
         };
         const lMustBePlain = () => {
             if (!pType.isKind(BasePgslTypeKind.Plain)) {
-                pContext.pushIncident(`The type of declaration type "${this.cst.declarationType}" must be a plain type.`, this);
+                pContext.pushIncident(`The type of declaration type "${pCst.declarationType}" must be a plain type.`, this);
                 return;
             }
         };
@@ -352,13 +357,13 @@ export class VariableDeclarationAst extends BaseDeclarationAst<VariableDeclarati
                     continue;
                 } else {
                     // Unknown attribute is present.
-                    pContext.pushIncident(`Declaration type "${this.cst.declarationType}" does not allow attribute "${lAttributeName}".`, this);
+                    pContext.pushIncident(`Declaration type "${pCst.declarationType}" does not allow attribute "${lAttributeName}".`, this);
                 }
             }
 
             // Check if all required attributes are present.
             for (const lRequiredAttributeName of lRequiredAttributes) {
-                pContext.pushIncident(`Declaration type "${this.cst.declarationType}" requires attribute "${lRequiredAttributeName}".`, this);
+                pContext.pushIncident(`Declaration type "${pCst.declarationType}" requires attribute "${lRequiredAttributeName}".`, this);
             }
         };
 
@@ -378,7 +383,7 @@ export class VariableDeclarationAst extends BaseDeclarationAst<VariableDeclarati
                     case pType instanceof PgslTextureType: {
                         // Must be a storage texture.
                         if (!PgslTextureType.isStorageTextureType(pType.textureType)) {
-                            pContext.pushIncident(`The type of declaration type "${this.cst.declarationType}" must be a storage texture type.`, this);
+                            pContext.pushIncident(`The type of declaration type "${pCst.declarationType}" must be a storage texture type.`, this);
                         }
                         break;
                     }
@@ -443,7 +448,7 @@ export class VariableDeclarationAst extends BaseDeclarationAst<VariableDeclarati
             }
             default: {
                 // Unknown declaration type.
-                pContext.pushIncident(`Declaration type "${this.cst.declarationType}" can not be used for module scope variable declarations.`, this);
+                pContext.pushIncident(`Declaration type "${pCst.declarationType}" can not be used for module scope variable declarations.`, this);
             }
         }
     }

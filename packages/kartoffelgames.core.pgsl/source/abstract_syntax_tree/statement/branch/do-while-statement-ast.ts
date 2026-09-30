@@ -15,12 +15,13 @@ export class DoWhileStatementAst extends AbstractSyntaxTree<DoWhileStatementCst,
      * Validate data of current structure.
      * 
      * @param pContext - Validation trace.
+     * @param pCst - Cst data.
      */
-    protected onProcess(pContext: AbstractSyntaxTreeContext): DoWhileStatementAstData {
+    protected onProcess(pContext: AbstractSyntaxTreeContext, pCst: DoWhileStatementCst): DoWhileStatementAstData {
         // Trace block in own loop scope.
         return pContext.pushScope('loop', () => {
             // Read attachments of expression.
-            const lExpression: IExpressionAst = ExpressionAstBuilder.build(this.cst.expression).process(pContext);
+            const lExpression: IExpressionAst = ExpressionAstBuilder.build(pCst.expression).process(pContext);
 
             // Expression must be a boolean.
             if (lExpression.data.resolveType.conversionRankTo(new PgslBooleanType()) === Number.POSITIVE_INFINITY) {
@@ -28,7 +29,7 @@ export class DoWhileStatementAst extends AbstractSyntaxTree<DoWhileStatementCst,
             }
 
             // Create block statement.
-            const lBlock: BlockStatementAst = new BlockStatementAst(this.cst.block).process(pContext);
+            const lBlock: BlockStatementAst = new BlockStatementAst(pCst.block).process(pContext);
 
             return {
                 expression: lExpression,

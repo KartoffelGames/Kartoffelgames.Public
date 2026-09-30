@@ -21,7 +21,7 @@ export class StructPropertyDeclarationAst extends BaseDeclarationAst<StructPrope
      * Struct property name.
      */
     public get name(): string {
-        return this.cst.name;
+        return this.data.name;
     }
 
     /**
@@ -53,17 +53,20 @@ export class StructPropertyDeclarationAst extends BaseDeclarationAst<StructPrope
 
     /**
      * Validate data of current structure.
+     * 
+     * @param pContext - Validation context.
+     * @param pCst - Cst data.
      */
-    protected override onProcess(pContext: AbstractSyntaxTreeContext): StructPropertyDeclarationAstData {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext, pCst: StructPropertyDeclarationCst): StructPropertyDeclarationAstData {
         // Create attribute list.
-        const lAttributes: AttributeListAst = new AttributeListAst(this.cst.attributeList, this).process(pContext);
+        const lAttributes: AttributeListAst = new AttributeListAst(pCst.attributeList, this).process(pContext);
 
         // Get property type.
-        const lTypeDeclaration: TypeDeclarationAst = new TypeDeclarationAst(this.cst.typeDeclaration).process(pContext);
+        const lTypeDeclaration: TypeDeclarationAst = new TypeDeclarationAst(pCst.typeDeclaration).process(pContext);
         const lType: BasePgslType = lTypeDeclaration.data.type;
 
         // Validate property type.
-        if (!lType.isKind(BasePgslTypeKind.Concrete) && !this.cst.buildIn) {
+        if (!lType.isKind(BasePgslTypeKind.Concrete) && !pCst.buildIn) {
             pContext.pushIncident(`Property type must be concrete.`, this);
         }
         if (!lType.isKind(BasePgslTypeKind.Plain)) {
@@ -72,7 +75,7 @@ export class StructPropertyDeclarationAst extends BaseDeclarationAst<StructPrope
 
         return {
             attributes: lAttributes,
-            name: this.cst.name,
+            name: pCst.name,
             typeDeclaration: lTypeDeclaration,
             meta: this.getMeta(lAttributes, pContext, lType)
         };

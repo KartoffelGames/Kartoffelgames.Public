@@ -16,12 +16,13 @@ export class LogicalExpressionAst extends AbstractSyntaxTree<LogicalExpressionCs
      * Validate data of current structure.
      * 
      * @param pContext - Validation context.
+     * @param pCst - Cst data.
      */
-    protected override onProcess(pContext: AbstractSyntaxTreeContext): LogicalExpressionAstData {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext, pCst: LogicalExpressionCst): LogicalExpressionAstData {
         // Try to convert operator.
-        let lOperator: PgslOperator | undefined = EnumUtil.cast(PgslOperator, this.cst.operator);
+        let lOperator: PgslOperator | undefined = EnumUtil.cast(PgslOperator, pCst.operator);
         if (!lOperator) {
-            pContext.pushIncident(`Operator "${this.cst.operator}" is not a valid operator.`, this);
+            pContext.pushIncident(`Operator "${pCst.operator}" is not a valid operator.`, this);
 
             lOperator = PgslOperator.ShortCircuitOr;
         }
@@ -34,12 +35,12 @@ export class LogicalExpressionAst extends AbstractSyntaxTree<LogicalExpressionCs
 
         // Validate operator usable for logical expressions.
         if (!lShortCircuitOperationList.includes(lOperator as PgslOperator)) {
-            pContext.pushIncident(`Operator "${this.cst.operator}" can not used for logical expressions.`, this);
+            pContext.pushIncident(`Operator "${pCst.operator}" can not used for logical expressions.`, this);
         }
 
         // Read left and right expression attachments.
-        const lLeftExpression: IExpressionAst = ExpressionAstBuilder.build(this.cst.left).process(pContext);
-        const lRightExpression: IExpressionAst = ExpressionAstBuilder.build(this.cst.right).process(pContext);
+        const lLeftExpression: IExpressionAst = ExpressionAstBuilder.build(pCst.left).process(pContext);
+        const lRightExpression: IExpressionAst = ExpressionAstBuilder.build(pCst.right).process(pContext);
 
         // Validate left side type.
         if (lLeftExpression.data.resolveType.conversionRankTo(new PgslBooleanType()) === Number.POSITIVE_INFINITY) {

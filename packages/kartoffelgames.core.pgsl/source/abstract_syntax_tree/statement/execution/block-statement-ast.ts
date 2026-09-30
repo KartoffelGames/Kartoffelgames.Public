@@ -17,8 +17,9 @@ export class BlockStatementAst extends AbstractSyntaxTree<BlockStatementCst, Blo
      * Build tree of current structure.
      * 
      * @param pContext - Context.
+     * @param pCst - Cst data.
      */
-    protected override onProcess(pContext: AbstractSyntaxTreeContext): BlockStatementAstData {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext, pCst: BlockStatementCst): BlockStatementAstData {
         // Create new scope and validate all statements.
         return pContext.pushScope('inherit', () => {
             // Prepare data containers.
@@ -29,7 +30,7 @@ export class BlockStatementAst extends AbstractSyntaxTree<BlockStatementCst, Blo
                 isBreaking: null as boolean | null
             };
 
-            for (const lStatement of this.cst.statements) {
+            for (const lStatement of pCst.statements) {
                 // Build statement.
                 const lStatementAst: IStatementAst = StatementAstBuilder.build(lStatement).process(pContext);
 

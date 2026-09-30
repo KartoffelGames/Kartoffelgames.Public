@@ -17,8 +17,9 @@ export class ArithmeticExpressionAst extends AbstractSyntaxTree<ArithmeticExpres
      * Validate data of current structure.
      * 
      * @param pContext - Validation trace.
+     * @param pCst - Cst data.
      */
-    protected override onProcess(pContext: AbstractSyntaxTreeContext): ArithmeticExpressionAstData {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext, pCst: ArithmeticExpressionCst): ArithmeticExpressionAstData {
         // Create list of all arithmetic operations.
         const lComparisonList: Array<PgslOperator> = [
             PgslOperator.Plus,
@@ -29,16 +30,16 @@ export class ArithmeticExpressionAst extends AbstractSyntaxTree<ArithmeticExpres
         ];
 
         // Try to convert operator.
-        let lOperator: PgslOperator | undefined = EnumUtil.cast(PgslOperator, this.cst.operator);
+        let lOperator: PgslOperator | undefined = EnumUtil.cast(PgslOperator, pCst.operator);
         if (!lComparisonList.includes(lOperator as PgslOperator)) {
-            pContext.pushIncident(`Operator "${this.cst.operator}" can not used for arithmetic operations.`, this);
+            pContext.pushIncident(`Operator "${pCst.operator}" can not used for arithmetic operations.`, this);
 
             lOperator = PgslOperator.Plus;
         }
 
         // Read left and right expression attachments.
-        const lLeftExpression: IExpressionAst = ExpressionAstBuilder.build(this.cst.left).process(pContext);
-        const lRightExpression: IExpressionAst = ExpressionAstBuilder.build(this.cst.right).process(pContext);
+        const lLeftExpression: IExpressionAst = ExpressionAstBuilder.build(pCst.left).process(pContext);
+        const lRightExpression: IExpressionAst = ExpressionAstBuilder.build(pCst.right).process(pContext);
 
         // Determine result type based on left and right expression types.
         const lResultType: BasePgslType = (() => {

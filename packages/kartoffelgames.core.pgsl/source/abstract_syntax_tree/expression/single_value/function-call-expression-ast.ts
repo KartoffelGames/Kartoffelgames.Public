@@ -19,20 +19,23 @@ import type { ExpressionAstData, IExpressionAst } from '../i-expression-ast.inte
 export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallExpressionCst, FunctionCallExpressionAstData> implements IExpressionAst {
     /**
      * Validate data of current structure.
+     * 
+     * @param pContext - Validation context.
+     * @param pCst - Cst data.
      */
-    protected override onProcess(pContext: AbstractSyntaxTreeContext): FunctionCallExpressionAstData {
-        const lFunctionDeclaration: FunctionDeclarationAst | undefined = pContext.getFunction(this.cst.functionName);
+    protected override onProcess(pContext: AbstractSyntaxTreeContext, pCst: FunctionCallExpressionCst): FunctionCallExpressionAstData {
+        const lFunctionDeclaration: FunctionDeclarationAst | undefined = pContext.getFunction(pCst.functionName);
 
         // Register function name as used symbol.
-        pContext.registerSymbolUsage(this.cst.functionName);
+        pContext.registerSymbolUsage(pCst.functionName);
 
         // Should be a function declaration otherwise it cant be validated further.
         if (!lFunctionDeclaration) {
-            pContext.pushIncident(`Function '${this.cst.functionName}' is not defined.`, this);
+            pContext.pushIncident(`Function '${pCst.functionName}' is not defined.`, this);
 
             return {
                 // Expression data.
-                name: this.cst.functionName,
+                name: pCst.functionName,
                 parameters: new Array<IExpressionAst>(),
                 generics: new Array<TypeDeclarationAst>(),
                 functionDeclaration: null as unknown as FunctionDeclarationAst,
@@ -47,7 +50,7 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
         }
 
         // Build parameter expressions.
-        const lParameterList: Array<IExpressionAst> = this.cst.parameterList.map((pParameterCst) => {
+        const lParameterList: Array<IExpressionAst> = pCst.parameterList.map((pParameterCst) => {
             return ExpressionAstBuilder.build(pParameterCst).process(pContext);
         });
 
@@ -72,15 +75,15 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
         })();
 
         // Build function call generic declarations.
-        const lGenericList: Array<TypeDeclarationAst> = this.cst.genericList.map((pGenericTypeDeclarationCst) => {
+        const lGenericList: Array<TypeDeclarationAst> = pCst.genericList.map((pGenericTypeDeclarationCst) => {
             return new TypeDeclarationAst(pGenericTypeDeclarationCst).process(pContext);
         });
 
 
         // Try to match function header.
-        const lMatchedFunctionHeader: FunctionHeaderMatchResult | null = this.matchFunctionHeader(pContext, lFunctionDeclaration, lGenericList, lParameterList);
+        const lMatchedFunctionHeader: FunctionHeaderMatchResult | null = this.matchFunctionHeader(pContext, pCst, lFunctionDeclaration, lGenericList, lParameterList);
         if (!lMatchedFunctionHeader) {
-            pContext.pushIncident(`No matching function header found for function '${this.cst.functionName}'.`, this);
+            pContext.pushIncident(`No matching function header found for function '${pCst.functionName}'.`, this);
         }
 
         // Get the return type from the matched function header.
@@ -99,7 +102,7 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
             // When return type is generic, return the infered type.
             const lInferedReturnType: BasePgslType | null = lMatchedFunctionHeader.genericTypes.get(lGenericIndex) ?? null;
             if (!lInferedReturnType) {
-                pContext.pushIncident(`Function return type ${lGenericIndex} of function '${this.cst.functionName}' can not be inferred.`, this);
+                pContext.pushIncident(`Function return type ${lGenericIndex} of function '${pCst.functionName}' can not be inferred.`, this);
                 return new PgslInvalidType();
             }
 
@@ -131,7 +134,7 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
 
         return {
             // Expression data.
-            name: this.cst.functionName,
+            name: pCst.functionName,
             parameters: lParameterList,
             generics: lGenericList,
             functionDeclaration: lFunctionDeclaration,
@@ -149,13 +152,14 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
      * Match function declaration headers against provided generics and parameters.
      *
      * @param pContext - Process context.
+     * @param pCst - Cst data.
      * @param pFunctionDeclaration - Function declaation of call.
      * @param pGenericList - Generic types used for this call.
      * @param pParameterList - Parameter expressions used for this call.
      *
      * @returns Matched function header and infered generics or null when no match is found.
      */
-    private matchFunctionHeader(pContext: AbstractSyntaxTreeContext, pFunctionDeclaration: FunctionDeclarationAst, pGenericList: Array<TypeDeclarationAst>, pParameterList: Array<IExpressionAst>): FunctionHeaderMatchResult | null {
+    private matchFunctionHeader(pContext: AbstractSyntaxTreeContext, pCst: FunctionCallExpressionCst, pFunctionDeclaration: FunctionDeclarationAst, pGenericList: Array<TypeDeclarationAst>, pParameterList: Array<IExpressionAst>): FunctionHeaderMatchResult | null {
         // Check each function header for a match.
         FUNCTION_HEADER_LOOP: for (const lFunctionHeader of pFunctionDeclaration.data.declarations) {
             // Parameter count needs to match.
@@ -191,7 +195,7 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
 
                 // Validate parameter declaration exists.
                 if (!lParameterDeclaration) {
-                    pContext.pushIncident(`Parameter ${lParameterIndex} of function '${this.cst.functionName}' is not defined.`, this);
+                    pContext.pushIncident(`Parameter ${lParameterIndex} of function '${pCst.functionName}' is not defined.`, this);
                     continue FUNCTION_HEADER_LOOP;
                 }
 
@@ -216,7 +220,7 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
 
                 // Validate generic name exists in header definition.
                 if (!lGenericRestrictions.has(lGenericName)) {
-                    pContext.pushIncident(`Generic name ${lGenericName} of function '${this.cst.functionName}' is out of bounds.`, this);
+                    pContext.pushIncident(`Generic name ${lGenericName} of function '${pCst.functionName}' is out of bounds.`, this);
                     continue FUNCTION_HEADER_LOOP;
                 }
 

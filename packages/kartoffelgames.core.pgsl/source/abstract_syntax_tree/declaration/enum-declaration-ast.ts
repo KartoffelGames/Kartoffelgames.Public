@@ -17,7 +17,7 @@ export class EnumDeclarationAst extends BaseDeclarationAst<EnumDeclarationCst, E
      * Enum name.
      */
     public get name(): string {
-        return this.cst.name;
+        return this.data.name;
     }
 
     /**
@@ -27,30 +27,33 @@ export class EnumDeclarationAst extends BaseDeclarationAst<EnumDeclarationCst, E
      */
     public override register(pContext: AbstractSyntaxTreeContext): this {
         // Check if enum is already defined.
-        if (pContext.getEnum(this.cst.name)) {
-            pContext.pushIncident(`Enum "${this.cst.name}" is already defined.`, this);
+        if (pContext.getEnum(this.name)) {
+            pContext.pushIncident(`Enum "${this.name}" is already defined.`, this);
         }
 
         // Register enum.
-        pContext.registerEnum(this.cst.name, this);
+        pContext.registerEnum(this.name, this);
 
         return this;
     }
 
     /**
      * Validate data of current structure.
+     * 
+     * @param pContext - Build context.
+     * @param pCst - Cst data.
      */
-    protected override onProcess(pContext: AbstractSyntaxTreeContext): EnumDeclarationAstData {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext, pCst: EnumDeclarationCst): EnumDeclarationAstData {
         // Create attribute list.
-        const lAttributes: AttributeListAst = new AttributeListAst(this.cst.attributeList, this).process(pContext);
+        const lAttributes: AttributeListAst = new AttributeListAst(pCst.attributeList, this).process(pContext);
 
-        const lProperties: ReadonlyMap<string, IExpressionAst> = this.processProperties(pContext);
+        const lProperties: ReadonlyMap<string, IExpressionAst> = this.processProperties(pContext, pCst);
 
         let lFirstPropertyType: BasePgslType;
 
         // Fallback to invalid type.
         if (lProperties.size === 0) {
-            pContext.pushIncident(`Enum ${this.cst.name} has no values`, this);
+            pContext.pushIncident(`Enum ${pCst.name} has no values`, this);
             lFirstPropertyType = new PgslInvalidType();
         } else {
             // Get first property type.
@@ -59,29 +62,32 @@ export class EnumDeclarationAst extends BaseDeclarationAst<EnumDeclarationCst, E
 
         return {
             attributes: lAttributes,
-            name: this.cst.name,
+            name: pCst.name,
             values: lProperties,
             underlyingType: lFirstPropertyType
         };
     }
 
     /**
+     * Process all properties of the enum.
      * 
-     * @param pContext - 
-     * @returns 
+     * @param pContext - Build context.
+     * @param pCst - Cst data.
+     * 
+     * @returns Map of all build properties. 
      */
-    private processProperties(pContext: AbstractSyntaxTreeContext): Map<string, IExpressionAst> {
+    private processProperties(pContext: AbstractSyntaxTreeContext, pCst: EnumDeclarationCst): Map<string, IExpressionAst> {
         // Validate that the enum has no dublicate names.
         const lPropertyList: Map<string, IExpressionAst> = new Map<string, IExpressionAst>();
 
         let lFirstPropertyType: BasePgslType | null = null;
-        for (const lProperty of this.cst.values) {
+        for (const lProperty of pCst.values) {
             // Create expression ast.
             const lExpressionAst: IExpressionAst = ExpressionAstBuilder.build(lProperty.value).process(pContext);
 
             // Validate dublicates.
             if (lPropertyList.has(lProperty.name)) {
-                pContext.pushIncident(`Value "${lProperty.name}" was already added to enum "${this.cst.name}"`, this);
+                pContext.pushIncident(`Value "${lProperty.name}" was already added to enum "${pCst.name}"`, this);
             }
 
             // Add property.
@@ -93,7 +99,7 @@ export class EnumDeclarationAst extends BaseDeclarationAst<EnumDeclarationCst, E
 
             // All values need to be string or integer.
             if (!lIsNumeric && !lIsString) {
-                pContext.pushIncident(`Enum "${this.cst.name}" can only hold unsigned integer values.`, this);
+                pContext.pushIncident(`Enum "${pCst.name}" can only hold unsigned integer values.`, this);
             }
 
             // Init on first value.
@@ -103,7 +109,7 @@ export class EnumDeclarationAst extends BaseDeclarationAst<EnumDeclarationCst, E
 
             // Property is the same type as the others.
             if (!lExpressionAst.data.resolveType.equals(lFirstPropertyType)) {
-                pContext.pushIncident(`Enum "${this.cst.name}" has mixed value types. Expected all values to be of the same type.`, this);
+                pContext.pushIncident(`Enum "${pCst.name}" has mixed value types. Expected all values to be of the same type.`, this);
             }
         }
 

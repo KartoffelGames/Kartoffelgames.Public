@@ -18,16 +18,17 @@ export class AssignmentStatementAst extends AbstractSyntaxTree<AssignmentStateme
      * Validate data of current structure.
      * 
      * @param pContext - Validation context.
+     * @param pCst - Cst data.
      */
-    protected onProcess(pContext: AbstractSyntaxTreeContext): AssignmentStatementAstData {
+    protected onProcess(pContext: AbstractSyntaxTreeContext, pCst: AssignmentStatementCst): AssignmentStatementAstData {
         // Try to parse assignment.
-        const lAssignment: PgslAssignment | undefined = EnumUtil.cast(PgslAssignment, this.cst.assignment);
+        const lAssignment: PgslAssignment | undefined = EnumUtil.cast(PgslAssignment, pCst.assignment);
         if (!lAssignment) {
-            pContext.pushIncident(`Operation "${this.cst.assignment}" can not used for assignment statements.`, this);
+            pContext.pushIncident(`Operation "${pCst.assignment}" can not used for assignment statements.`, this);
         }
 
         // Build variable expression.
-        const lVariable: IExpressionAst = ExpressionAstBuilder.build(this.cst.variable).process(pContext);
+        const lVariable: IExpressionAst = ExpressionAstBuilder.build(pCst.variable).process(pContext);
 
         // Must be a storage.
         if (!lVariable.data.isStorage) {
@@ -45,21 +46,21 @@ export class AssignmentStatementAst extends AbstractSyntaxTree<AssignmentStateme
         if (lOperatorType === 'arithmetic') {
             lExpressionCst = {
                 type: 'ArithmeticExpression',
-                range: this.cst.range,
-                left: lVariable.cst,
+                range: pCst.range,
+                left: pCst.variable,
                 operator: lCoreOperator,
-                right: this.cst.expression
+                right: pCst.expression
             } as ExpressionCst<'ArithmeticExpression'>;
         } else if (lOperatorType === 'bitwise') {
             lExpressionCst = {
                 type: 'BinaryExpression',
-                range: this.cst.range,
-                left: lVariable.cst,
+                range: pCst.range,
+                left: pCst.variable,
                 operator: lCoreOperator,
-                right: this.cst.expression
+                right: pCst.expression
             } as ExpressionCst<'BinaryExpression'>;
         } else {
-            lExpressionCst = this.cst.expression;
+            lExpressionCst = pCst.expression;
         }
 
         // Build expression expression.
@@ -76,7 +77,7 @@ export class AssignmentStatementAst extends AbstractSyntaxTree<AssignmentStateme
             variable: lVariable,
 
             // Build the real expression that should be assigned.
-            expression: ExpressionAstBuilder.build(this.cst.expression).process(pContext)
+            expression: ExpressionAstBuilder.build(pCst.expression).process(pContext)
         };
     }
 

@@ -476,6 +476,7 @@ export type CodeParserConfiguration = {
     caching: {
         /**
          * Enablle failure caching to limits backtracking of redundant graphs.
+         * A graph that failed on a token is not tried on that token again within the same parse call.
          */
         failureCache: boolean;
     };

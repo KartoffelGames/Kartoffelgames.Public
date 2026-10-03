@@ -298,7 +298,7 @@ export class CodeParserProcessState<TTokenType extends string> {
         }
 
         // On enabled analitics, count as circular.
-        if (!this.mConfiguration.debug.analitics) {
+        if (this.mConfiguration.debug.analitics) {
             this.graphAnaliticsOf(pGraph).circular++;
         }
 
@@ -331,7 +331,7 @@ export class CodeParserProcessState<TTokenType extends string> {
         }
 
         // On enabled analitics, count as cached.
-        if (!this.mConfiguration.debug.analitics) {
+        if (this.mConfiguration.debug.analitics) {
             this.graphAnaliticsOf(pGraph).cached++;
         }
 

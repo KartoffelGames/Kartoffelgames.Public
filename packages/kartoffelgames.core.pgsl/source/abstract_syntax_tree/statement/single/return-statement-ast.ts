@@ -3,7 +3,7 @@ import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-conte
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
 import { ExpressionAstBuilder } from '../../expression/expression-ast-builder.ts';
 import type { IExpressionAst } from '../../expression/i-expression-ast.interface.ts';
-import { BasePgslType } from "../../type/definition/base-pgsl-type.ts";
+import type { BasePgslType } from '../../type/definition/base-pgsl-type.ts';
 import { PgslVoidType } from '../../type/definition/pgsl-void-type.ts';
 import type { IStatementAst } from '../i-statement-ast.interface.ts';
 

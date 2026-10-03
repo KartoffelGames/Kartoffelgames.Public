@@ -1,7 +1,7 @@
 import { Exception } from '@kartoffelgames/core';
 import type { BaseDeclarationAst } from '../abstract_syntax_tree/declaration/base-declaration-ast.ts';
 import { PgslTypeCache } from '../abstract_syntax_tree/type/pgsl-type-cache.ts';
-import { PgslFeatureSetProcessor, PgslFeatureSetProcessorConstructor } from "./pgsl-feature-set-processor.ts";
+import type { PgslFeatureSetProcessor, PgslFeatureSetProcessorConstructor } from './pgsl-feature-set-processor.ts';
 
 /**
  * Set of build-in declarations of a pgsl feature.
@@ -38,7 +38,7 @@ export abstract class PgslFeatureSet {
         this.mTypes = new PgslTypeCache();
 
         // Init declaration containers.
-        this.mDeclaration = new Map<string, BaseDeclarationAst>;
+        this.mDeclaration = new Map<string, BaseDeclarationAst>();
     }
 
     /**

@@ -1,4 +1,4 @@
-import { FunctionOverloadDeclarationAst } from "../../abstract_syntax_tree/declaration/function-overload-declaration-ast.ts";
+import type { FunctionOverloadDeclarationAst } from '../../abstract_syntax_tree/declaration/function-overload-declaration-ast.ts';
 import { PgslParserResultObject } from '../pgsl-parser-result-object.ts';
 
 /**

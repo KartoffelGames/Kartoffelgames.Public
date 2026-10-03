@@ -1,8 +1,8 @@
-import { PgslAccessModeEnum } from "../../enum/pgsl-access-mode-enum.ts";
-import { PgslInterpolateSamplingEnum } from "../../enum/pgsl-interpolate-sampling-enum.ts";
-import { PgslInterpolateTypeEnum } from "../../enum/pgsl-interpolate-type-enum.ts";
-import { PgslTexelFormatEnum } from "../../enum/pgsl-texel-format-enum.ts";
-import { PgslFeatureSetProcessor } from "../../pgsl-feature-set-processor.ts";
+import { PgslAccessModeEnum } from '../../enum/pgsl-access-mode-enum.ts';
+import { PgslInterpolateSamplingEnum } from '../../enum/pgsl-interpolate-sampling-enum.ts';
+import { PgslInterpolateTypeEnum } from '../../enum/pgsl-interpolate-type-enum.ts';
+import { PgslTexelFormatEnum } from '../../enum/pgsl-texel-format-enum.ts';
+import { PgslFeatureSetProcessor } from '../../pgsl-feature-set-processor.ts';
 
 /**
  * Core enums of PGSL.

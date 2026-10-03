@@ -1,7 +1,7 @@
 import type { StructDeclarationCst } from '../../concrete_syntax_tree/declaration.type.ts';
 import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
 import { AttributeListAst } from '../general/attribute-list-ast.ts';
-import { BasePgslTypeKind } from "../type/definition/base-pgsl-type.ts";
+import { BasePgslTypeKind } from '../type/definition/base-pgsl-type.ts';
 import { BaseDeclarationAst, type DeclarationAstData } from './base-declaration-ast.ts';
 import { StructPropertyDeclarationAst } from './struct-property-declaration-ast.ts';
 

@@ -3,7 +3,7 @@ import { FunctionDeclarationAst } from '../../../abstract_syntax_tree/declaratio
 import type { BasePgslType } from '../../../abstract_syntax_tree/type/definition/base-pgsl-type.ts';
 import { PgslVoidType } from '../../../abstract_syntax_tree/type/definition/pgsl-void-type.ts';
 import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../i-transpiler-processor.interface.ts';
-import { FunctionOverloadDeclarationAst } from "../../../abstract_syntax_tree/declaration/function-overload-declaration-ast.ts";
+import type { FunctionOverloadDeclarationAst } from '../../../abstract_syntax_tree/declaration/function-overload-declaration-ast.ts';
 
 export class FunctionDeclarationAstTranspilerProcessor implements ITranspilerProcessor<FunctionDeclarationAst> {
     /**

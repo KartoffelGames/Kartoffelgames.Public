@@ -1,10 +1,10 @@
-import { DeepPartial, Exception, Stack } from '@kartoffelgames/core';
+import { type DeepPartial, Exception, Stack } from '@kartoffelgames/core';
 import { LexerException } from '../lexer/lexer-exception.ts';
 import type { LexerToken } from '../lexer/lexer-token.ts';
 import type { Lexer } from '../lexer/lexer.ts';
 import { CodeParserException, type CodeParserErrorSymbol } from './code-parser-exception.ts';
 import { CodeParserProcessState, type CodeParserProcessCursorPosition, type CodeParserProcessStateGraphAnalitics, type CodeParserProcessStateStackItem } from './code-parser-process-state.ts';
-import { CodeParserTraceIncident } from "./code-parser-trace.ts";
+import type { CodeParserTraceIncident } from './code-parser-trace.ts';
 import type { GraphNode, GraphNodeConnections } from './graph/graph-node.ts';
 import type { Graph } from './graph/graph.ts';
 
@@ -360,6 +360,8 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         // Read node connections.
         const lNodeConnections: GraphNodeConnections<TTokenType> = pNode.connections;
 
+        // "for" for performance. 
+        // eslint-disable-next-line @typescript-eslint/prefer-for-of
         for (let lValueIndex: number = 0; lValueIndex < lNodeConnections.values.length; lValueIndex++) {
             // Read and parse node value based on type.
             const lNodeValue = lNodeConnections.values[lValueIndex];

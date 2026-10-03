@@ -2,7 +2,7 @@ import type { IndexedValueExpressionCst } from '../../../concrete_syntax_tree/ex
 import { PgslValueFixedState } from '../../../enum/pgsl-value-fixed-state.ts';
 import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
-import { BasePgslType, BasePgslTypeKind } from "../../type/definition/base-pgsl-type.ts";
+import { type BasePgslType, BasePgslTypeKind } from '../../type/definition/base-pgsl-type.ts';
 import { PgslArrayType } from '../../type/definition/pgsl-array-type.ts';
 import { PgslMatrixType } from '../../type/definition/pgsl-matrix-type.ts';
 import { PgslNumericType } from '../../type/definition/pgsl-numeric-type.ts';

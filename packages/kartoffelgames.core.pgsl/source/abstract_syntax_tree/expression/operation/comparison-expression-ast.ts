@@ -4,7 +4,7 @@ import { PgslOperator } from '../../../enum/pgsl-operator.enum.ts';
 import { PgslValueAddressSpace } from '../../../enum/pgsl-value-address-space.enum.ts';
 import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
-import { BasePgslType, BasePgslTypeKind } from "../../type/definition/base-pgsl-type.ts";
+import { type BasePgslType, BasePgslTypeKind } from '../../type/definition/base-pgsl-type.ts';
 import { PgslBooleanType } from '../../type/definition/pgsl-boolean-type.ts';
 import { PgslVectorType } from '../../type/definition/pgsl-vector-type.ts';
 import { ExpressionAstBuilder } from '../expression-ast-builder.ts';

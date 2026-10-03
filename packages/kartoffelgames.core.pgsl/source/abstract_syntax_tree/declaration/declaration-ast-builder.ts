@@ -1,7 +1,7 @@
 import { Exception } from '@kartoffelgames/core';
 import type { AliasDeclarationCst, DeclarationCst, EnumDeclarationCst, FunctionDeclarationCst, StructDeclarationCst, VariableDeclarationCst } from '../../concrete_syntax_tree/declaration.type.ts';
 import { AliasDeclarationAst } from './alias-declaration-ast.ts';
-import { BaseDeclarationAst } from "./base-declaration-ast.ts";
+import type { BaseDeclarationAst } from './base-declaration-ast.ts';
 import { EnumDeclarationAst } from './enum-declaration-ast.ts';
 import { FunctionDeclarationAst } from './function-declaration-ast.ts';
 import { StructDeclarationAst } from './struct-declaration-ast.ts';

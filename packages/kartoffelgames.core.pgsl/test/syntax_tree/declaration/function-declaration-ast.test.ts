@@ -1,6 +1,6 @@
 import { expect } from '@kartoffelgames/core-test';
 import { FunctionDeclarationAst } from '../../../source/abstract_syntax_tree/declaration/function-declaration-ast.ts';
-import { FunctionOverloadDeclarationAstDataEntryPointWorkgroupSize } from "../../../source/abstract_syntax_tree/declaration/function-overload-declaration-ast.ts";
+import type { FunctionOverloadDeclarationAstDataEntryPointWorkgroupSize } from '../../../source/abstract_syntax_tree/declaration/function-overload-declaration-ast.ts';
 import type { DocumentAst } from '../../../source/abstract_syntax_tree/document-ast.ts';
 import { AttributeListAst } from '../../../source/abstract_syntax_tree/general/attribute-list-ast.ts';
 import { TypeDeclarationAst } from '../../../source/abstract_syntax_tree/general/type-declaration-ast.ts';

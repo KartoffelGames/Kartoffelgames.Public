@@ -3,7 +3,7 @@ import { PgslValueAddressSpace } from '../../../enum/pgsl-value-address-space.en
 import { PgslValueFixedState } from '../../../enum/pgsl-value-fixed-state.ts';
 import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
-import { BasePgslType } from "../../type/definition/base-pgsl-type.ts";
+import type { BasePgslType } from '../../type/definition/base-pgsl-type.ts';
 import { PgslBooleanType } from '../../type/definition/pgsl-boolean-type.ts';
 import { PgslInvalidType } from '../../type/definition/pgsl-invalid-type.ts';
 import { PgslNumericType, type PgslNumericTypeName } from '../../type/definition/pgsl-numeric-type.ts';

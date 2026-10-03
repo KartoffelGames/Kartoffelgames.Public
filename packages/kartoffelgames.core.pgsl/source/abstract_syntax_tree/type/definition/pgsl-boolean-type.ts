@@ -1,4 +1,4 @@
-import { BasePgslType, BasePgslTypeKind, type BasePgslTypeMeta } from './base-pgsl-type.ts';
+import { BasePgslType, BasePgslTypeKind } from './base-pgsl-type.ts';
 
 /**
  * Boolean type definition.

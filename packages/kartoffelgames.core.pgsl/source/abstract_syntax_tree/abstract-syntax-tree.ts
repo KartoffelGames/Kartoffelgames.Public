@@ -1,4 +1,4 @@
-import { Exception } from "@kartoffelgames/core";
+import { Exception } from '@kartoffelgames/core';
 import type { IAnyParameterConstructor } from '../../../kartoffelgames.core/source/interface/i-constructor.ts';
 import type { Cst } from '../concrete_syntax_tree/general.type.ts';
 import type { AbstractSyntaxTreeContext } from './abstract-syntax-tree-context.ts';

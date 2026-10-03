@@ -2,8 +2,8 @@
  * Provides common functionality for type comparison, casting, and property management.
  */
 export abstract class BasePgslType {
-    private mTypeKind: BasePgslTypeKind;
-    private mTypeMeta: BasePgslTypeMeta;
+    private readonly mTypeKind: BasePgslTypeKind;
+    private readonly mTypeMeta: BasePgslTypeMeta;
 
     /**
      * Fast compareable type compatibility.

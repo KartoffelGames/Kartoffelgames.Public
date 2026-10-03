@@ -7,14 +7,14 @@ import type { AttributeListCst } from '../../concrete_syntax_tree/general.type.t
 import { PgslValueFixedState } from '../../enum/pgsl-value-fixed-state.ts';
 import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree, type AbstractSyntaxTreeConstructor } from '../abstract-syntax-tree.ts';
-import { BaseDeclarationAst } from "../declaration/base-declaration-ast.ts";
+import type { BaseDeclarationAst } from '../declaration/base-declaration-ast.ts';
 import { FunctionOverloadDeclarationAst } from '../declaration/function-overload-declaration-ast.ts';
 import { StructPropertyDeclarationAst } from '../declaration/struct-property-declaration-ast.ts';
 import { VariableDeclarationAst } from '../declaration/variable-declaration-ast.ts';
 import { ExpressionAstBuilder } from '../expression/expression-ast-builder.ts';
 import type { IExpressionAst } from '../expression/i-expression-ast.interface.ts';
 import { StringValueExpressionAst } from '../expression/single_value/string-value-expression-ast.ts';
-import { BasePgslType } from "../type/definition/base-pgsl-type.ts";
+import type { BasePgslType } from '../type/definition/base-pgsl-type.ts';
 import { PgslNumericType, type PgslNumericTypeName } from '../type/definition/pgsl-numeric-type.ts';
 import { PgslStringType } from '../type/definition/pgsl-string-type.ts';
 

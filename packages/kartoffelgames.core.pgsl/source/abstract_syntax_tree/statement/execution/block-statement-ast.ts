@@ -1,7 +1,7 @@
 import type { BlockStatementCst } from '../../../concrete_syntax_tree/statement.type.ts';
 import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
-import { BasePgslType } from "../../type/definition/base-pgsl-type.ts";
+import type { BasePgslType } from '../../type/definition/base-pgsl-type.ts';
 import { PgslVoidType } from '../../type/definition/pgsl-void-type.ts';
 import type { IStatementAst, StatementAstData } from '../i-statement-ast.interface.ts';
 import { BreakStatementAst } from '../single/break-statement-ast.ts';

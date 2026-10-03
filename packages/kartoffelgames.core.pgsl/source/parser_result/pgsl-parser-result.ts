@@ -1,5 +1,5 @@
 import { FunctionDeclarationAst } from '../abstract_syntax_tree/declaration/function-declaration-ast.ts';
-import { FunctionOverloadDeclarationAst, FunctionOverloadDeclarationAstDataEntryPointWorkgroupSize } from "../abstract_syntax_tree/declaration/function-overload-declaration-ast.ts";
+import type { FunctionOverloadDeclarationAst, FunctionOverloadDeclarationAstDataEntryPointWorkgroupSize } from '../abstract_syntax_tree/declaration/function-overload-declaration-ast.ts';
 import { VariableDeclarationAst } from '../abstract_syntax_tree/declaration/variable-declaration-ast.ts';
 import type { DocumentAst } from '../abstract_syntax_tree/document-ast.ts';
 import { PgslDeclarationType } from '../enum/pgsl-declaration-type.enum.ts';

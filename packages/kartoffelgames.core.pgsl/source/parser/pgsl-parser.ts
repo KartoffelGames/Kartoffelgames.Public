@@ -1,6 +1,6 @@
 import { Exception, Stack } from '@kartoffelgames/core';
 import { CodeParser, Graph, GraphNode, type LexerToken } from '@kartoffelgames/core-parser';
-import { CodeParserResult } from "../../../kartoffelgames.core.parser/source/parser/code-parser.ts";
+import type { CodeParserResult } from '../../../kartoffelgames.core.parser/source/parser/code-parser.ts';
 import { AbstractSyntaxTreeContext } from '../abstract_syntax_tree/abstract-syntax-tree-context.ts';
 import { DocumentAst } from '../abstract_syntax_tree/document-ast.ts';
 import type { AliasDeclarationCst, DeclarationCst, DeclarationCstType, EnumDeclarationCst, EnumDeclarationValueCst, FunctionDeclarationCst, FunctionDeclarationParameterCst, FunctionOverloadDeclarationCst, StructDeclarationCst, StructPropertyDeclarationCst, VariableDeclarationCst } from '../concrete_syntax_tree/declaration.type.ts';

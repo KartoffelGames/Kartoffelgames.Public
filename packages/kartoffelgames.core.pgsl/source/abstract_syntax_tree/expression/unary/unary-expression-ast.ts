@@ -4,7 +4,7 @@ import { PgslOperator } from '../../../enum/pgsl-operator.enum.ts';
 import { PgslValueFixedState } from '../../../enum/pgsl-value-fixed-state.ts';
 import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
-import { BasePgslType } from "../../type/definition/base-pgsl-type.ts";
+import type { BasePgslType } from '../../type/definition/base-pgsl-type.ts';
 import { PgslBooleanType } from '../../type/definition/pgsl-boolean-type.ts';
 import { PgslNumericType } from '../../type/definition/pgsl-numeric-type.ts';
 import { PgslVectorType } from '../../type/definition/pgsl-vector-type.ts';

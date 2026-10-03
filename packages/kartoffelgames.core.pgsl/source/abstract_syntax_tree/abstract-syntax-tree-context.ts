@@ -10,7 +10,7 @@ import type { DoWhileStatementAst } from './statement/branch/do-while-statement-
 import type { ForStatementAst } from './statement/branch/for-statement-ast.ts';
 import type { SwitchStatementAst } from './statement/branch/switch-statement-ast.ts';
 import type { WhileStatementAst } from './statement/branch/while-statement-ast.ts';
-import { PgslTypeCache } from "./type/pgsl-type-cache.ts";
+import { PgslTypeCache } from './type/pgsl-type-cache.ts';
 
 /**
  * Represents a syntax tree context for building abstract syntax trees.

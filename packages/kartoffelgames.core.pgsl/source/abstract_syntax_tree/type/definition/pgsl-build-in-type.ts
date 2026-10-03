@@ -1,5 +1,5 @@
 import type { IExpressionAst } from '../../expression/i-expression-ast.interface.ts';
-import { BasePgslType } from "./base-pgsl-type.ts";
+import { BasePgslType } from './base-pgsl-type.ts';
 import { PgslArrayType } from './pgsl-array-type.ts';
 import { PgslBooleanType } from './pgsl-boolean-type.ts';
 import { PgslInvalidType } from './pgsl-invalid-type.ts';
@@ -105,7 +105,7 @@ export class PgslBuildInType extends BasePgslType {
         }
     }
 
-    private mUnderlyingType: BasePgslType;
+    private readonly mUnderlyingType: BasePgslType;
 
     /**
      * Gets the built-in type variant name.

@@ -1,5 +1,5 @@
 import { PgslFeatureSet } from '../pgsl-feature-set.ts';
-import { PgslCoreEnumFeatureSetProcessor } from "./enum/pgsl-core-enum-feature-set-processor.ts";
+import { PgslCoreEnumFeatureSetProcessor } from './enum/pgsl-core-enum-feature-set-processor.ts';
 import { PgslNumericFunctionFeatureSetProcessor } from './function/pgsl-numeric-function-feature-set-processor.ts';
 import { PgslPackingFunctionFeatureSetProcessor } from './function/pgsl-pack-function-feature-set-processor.ts';
 import { PgslSynchronisationFunctionFeatureSetProcessor } from './function/pgsl-synchronisation-function-feature-set-processor.ts';

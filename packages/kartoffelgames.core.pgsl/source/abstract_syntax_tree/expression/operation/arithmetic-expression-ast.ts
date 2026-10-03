@@ -4,7 +4,7 @@ import { PgslOperator } from '../../../enum/pgsl-operator.enum.ts';
 import { PgslValueAddressSpace } from '../../../enum/pgsl-value-address-space.enum.ts';
 import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
-import { BasePgslType } from "../../type/definition/base-pgsl-type.ts";
+import type { BasePgslType } from '../../type/definition/base-pgsl-type.ts';
 import { PgslInvalidType } from '../../type/definition/pgsl-invalid-type.ts';
 import { PgslMatrixType } from '../../type/definition/pgsl-matrix-type.ts';
 import { PgslNumericType } from '../../type/definition/pgsl-numeric-type.ts';

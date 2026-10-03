@@ -2,7 +2,7 @@ import type { AliasDeclarationCst } from '../../concrete_syntax_tree/declaration
 import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
 import { AttributeListAst } from '../general/attribute-list-ast.ts';
 import { TypeDeclarationAst } from '../general/type-declaration-ast.ts';
-import { BasePgslType } from "../type/definition/base-pgsl-type.ts";
+import type { BasePgslType } from '../type/definition/base-pgsl-type.ts';
 import { BaseDeclarationAst, type DeclarationAstData } from './base-declaration-ast.ts';
 
 /**

@@ -1,4 +1,4 @@
-import { BasePgslType, BasePgslTypeKind, BasePgslTypeMeta } from "./base-pgsl-type.ts";
+import { BasePgslType, BasePgslTypeKind } from './base-pgsl-type.ts';
 
 /**
  * Numeric type definition.

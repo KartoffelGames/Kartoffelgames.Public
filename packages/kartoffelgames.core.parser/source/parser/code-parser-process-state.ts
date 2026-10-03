@@ -1,4 +1,4 @@
-import { DeepPartial, Exception } from '@kartoffelgames/core';
+import { Exception } from '@kartoffelgames/core';
 import type { LexerToken } from '../lexer/lexer-token.ts';
 import { CodeParserTrace } from './code-parser-trace.ts';
 import type { GraphNode } from './graph/graph-node.ts';
@@ -299,7 +299,7 @@ export class CodeParserProcessState<TTokenType extends string> {
 
         // On enabled analitics, count as circular.
         if (!this.mConfiguration.debug.analitics) {
-            this.graphAnaliticsOf(pGraph).circular++
+            this.graphAnaliticsOf(pGraph).circular++;
         }
 
         return true;
@@ -332,7 +332,7 @@ export class CodeParserProcessState<TTokenType extends string> {
 
         // On enabled analitics, count as cached.
         if (!this.mConfiguration.debug.analitics) {
-            this.graphAnaliticsOf(pGraph).cached++
+            this.graphAnaliticsOf(pGraph).cached++;
         }
 
         return true;

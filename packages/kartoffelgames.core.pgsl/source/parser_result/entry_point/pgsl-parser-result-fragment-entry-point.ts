@@ -1,5 +1,5 @@
 import { Exception } from '@kartoffelgames/core';
-import { FunctionOverloadDeclarationAst } from "../../abstract_syntax_tree/declaration/function-overload-declaration-ast.ts";
+import type { FunctionOverloadDeclarationAst } from '../../abstract_syntax_tree/declaration/function-overload-declaration-ast.ts';
 import { StructDeclarationAst } from '../../abstract_syntax_tree/declaration/struct-declaration-ast.ts';
 import type { DocumentAst } from '../../abstract_syntax_tree/document-ast.ts';
 import type { BasePgslType } from '../../abstract_syntax_tree/type/definition/base-pgsl-type.ts';

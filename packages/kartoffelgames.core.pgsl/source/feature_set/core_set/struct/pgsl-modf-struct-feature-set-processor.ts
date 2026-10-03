@@ -1,8 +1,8 @@
 import type { StructDeclarationAst } from '../../../abstract_syntax_tree/declaration/struct-declaration-ast.ts';
 import type { BasePgslType } from '../../../abstract_syntax_tree/type/definition/base-pgsl-type.ts';
 import { PgslNumericType } from '../../../abstract_syntax_tree/type/definition/pgsl-numeric-type.ts';
-import { PgslVectorType } from "../../../abstract_syntax_tree/type/definition/pgsl-vector-type.ts";
-import { PgslFeatureSetProcessor } from "../../pgsl-feature-set-processor.ts";
+import { PgslVectorType } from '../../../abstract_syntax_tree/type/definition/pgsl-vector-type.ts';
+import { PgslFeatureSetProcessor } from '../../pgsl-feature-set-processor.ts';
 
 export class PgslModfStructFeatureSetProcessor extends PgslFeatureSetProcessor {
     /**

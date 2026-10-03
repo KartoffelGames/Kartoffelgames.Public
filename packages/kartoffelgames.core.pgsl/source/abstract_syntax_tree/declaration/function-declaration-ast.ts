@@ -2,7 +2,7 @@ import type { FunctionDeclarationCst } from '../../concrete_syntax_tree/declarat
 import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
 import { AttributeListAst } from '../general/attribute-list-ast.ts';
 import { BaseDeclarationAst, type DeclarationAstData } from './base-declaration-ast.ts';
-import { FunctionOverloadDeclarationAst } from "./function-overload-declaration-ast.ts";
+import { FunctionOverloadDeclarationAst } from './function-overload-declaration-ast.ts';
 
 /**
  * PGSL syntax tree for a alias declaration.

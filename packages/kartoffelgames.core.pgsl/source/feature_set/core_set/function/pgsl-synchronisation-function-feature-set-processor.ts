@@ -1,12 +1,12 @@
 import type { FunctionDeclarationAst } from '../../../abstract_syntax_tree/declaration/function-declaration-ast.ts';
 import type { BasePgslType } from '../../../abstract_syntax_tree/type/definition/base-pgsl-type.ts';
-import { PgslBooleanType } from "../../../abstract_syntax_tree/type/definition/pgsl-boolean-type.ts";
-import { PgslMatrixType } from "../../../abstract_syntax_tree/type/definition/pgsl-matrix-type.ts";
+import { PgslBooleanType } from '../../../abstract_syntax_tree/type/definition/pgsl-boolean-type.ts';
+import { PgslMatrixType } from '../../../abstract_syntax_tree/type/definition/pgsl-matrix-type.ts';
 import { PgslNumericType } from '../../../abstract_syntax_tree/type/definition/pgsl-numeric-type.ts';
-import { PgslPointerType } from "../../../abstract_syntax_tree/type/definition/pgsl-pointer-type.ts";
-import { PgslVectorType } from "../../../abstract_syntax_tree/type/definition/pgsl-vector-type.ts";
-import { PgslVoidType } from "../../../abstract_syntax_tree/type/definition/pgsl-void-type.ts";
-import { PgslFeatureSetProcessor } from "../../pgsl-feature-set-processor.ts";
+import { PgslPointerType } from '../../../abstract_syntax_tree/type/definition/pgsl-pointer-type.ts';
+import { PgslVectorType } from '../../../abstract_syntax_tree/type/definition/pgsl-vector-type.ts';
+import { PgslVoidType } from '../../../abstract_syntax_tree/type/definition/pgsl-void-type.ts';
+import { PgslFeatureSetProcessor } from '../../pgsl-feature-set-processor.ts';
 
 export class PgslSynchronisationFunctionFeatureSetProcessor extends PgslFeatureSetProcessor {
     /**

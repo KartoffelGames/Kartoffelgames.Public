@@ -1,19 +1,19 @@
-import { FunctionOverloadDeclarationCst } from "../../concrete_syntax_tree/declaration.type.ts";
-import { PgslDeclarationType } from "../../enum/pgsl-declaration-type.enum.ts";
-import { PgslValueAddressSpace } from "../../enum/pgsl-value-address-space.enum.ts";
-import { PgslValueFixedState } from "../../enum/pgsl-value-fixed-state.ts";
-import { AbstractSyntaxTreeContext } from "../abstract-syntax-tree-context.ts";
-import { IExpressionAst } from "../expression/i-expression-ast.interface.ts";
-import { AttributeListAst } from "../general/attribute-list-ast.ts";
-import { TypeDeclarationAst } from "../general/type-declaration-ast.ts";
-import { IValueStoreAst } from "../i-value-store-ast.interface.ts";
-import { BlockStatementAst } from "../statement/execution/block-statement-ast.ts";
-import { BasePgslType } from "../type/definition/base-pgsl-type.ts";
-import { PgslGenericType } from "../type/definition/pgsl-generic-type.ts";
-import { PgslInvalidType } from "../type/definition/pgsl-invalid-type.ts";
-import { PgslStructType } from "../type/definition/pgsl-struct-type.ts";
-import { PgslVoidType } from "../type/definition/pgsl-void-type.ts";
-import { BaseDeclarationAst, DeclarationAstData } from "./base-declaration-ast.ts";
+import type { FunctionOverloadDeclarationCst } from '../../concrete_syntax_tree/declaration.type.ts';
+import { PgslDeclarationType } from '../../enum/pgsl-declaration-type.enum.ts';
+import { PgslValueAddressSpace } from '../../enum/pgsl-value-address-space.enum.ts';
+import { PgslValueFixedState } from '../../enum/pgsl-value-fixed-state.ts';
+import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
+import type { IExpressionAst } from '../expression/i-expression-ast.interface.ts';
+import { AttributeListAst } from '../general/attribute-list-ast.ts';
+import { TypeDeclarationAst } from '../general/type-declaration-ast.ts';
+import type { IValueStoreAst } from '../i-value-store-ast.interface.ts';
+import { BlockStatementAst } from '../statement/execution/block-statement-ast.ts';
+import type { BasePgslType } from '../type/definition/base-pgsl-type.ts';
+import { PgslGenericType } from '../type/definition/pgsl-generic-type.ts';
+import { PgslInvalidType } from '../type/definition/pgsl-invalid-type.ts';
+import { PgslStructType } from '../type/definition/pgsl-struct-type.ts';
+import { PgslVoidType } from '../type/definition/pgsl-void-type.ts';
+import { BaseDeclarationAst, type DeclarationAstData } from './base-declaration-ast.ts';
 
 export class FunctionOverloadDeclarationAst extends BaseDeclarationAst<FunctionOverloadDeclarationCst, FunctionOverloadDeclarationAstData> {
     private readonly mFunctionName: string;

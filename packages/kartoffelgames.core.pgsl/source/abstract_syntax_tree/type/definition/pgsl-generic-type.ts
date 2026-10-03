@@ -84,6 +84,11 @@ export class PgslGenericType extends BasePgslType {
             return true;
         }
 
+        // Without a restriction, all generics are wildcards.
+        if(this.restrictions.length === 0){
+            return true;
+        }
+
         // Check if any restriction can assign the target type.
         for (const lRestriction of this.restrictions) {
             if (pType.conversionRankTo(lRestriction) < Number.POSITIVE_INFINITY) {

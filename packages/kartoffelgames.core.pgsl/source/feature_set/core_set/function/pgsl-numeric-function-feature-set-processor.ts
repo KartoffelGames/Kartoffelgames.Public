@@ -321,7 +321,6 @@ export class PgslNumericFunctionFeatureSetProcessor extends PgslFeatureSetProces
         // atan
         this.registerDeclaration(this.createFunction(PgslNumericFunctionFeatureSetProcessor.names.atan, { constant: true }, [
             this.createOverload({ 'TResult': [...this.floatTypes(), ...this.vectorTypes(this.floatTypes())], }, { 'e': 'TResult' }, 'TResult'),
-            this.createOverload({ 'TResult': [], }, { 'e': 'TResult' }, 'TResult')
         ]));
 
         // atanh

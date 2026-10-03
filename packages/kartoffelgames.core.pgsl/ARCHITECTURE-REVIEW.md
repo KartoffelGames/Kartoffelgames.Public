@@ -1264,9 +1264,17 @@ buys ceremony.
 
 ---
 
-## 9. Side note: drop the type name tracking in the parser
+## 9. Side note: drop the type name tracking in the parser — ✅ done
 
-Parked for later, after the feature set restructure has settled.
+**Landed** as described below, which also resolves D9. Only one test expectation changed:
+`Array<InvalidType, NotANumber>` now reports `Typename "InvalidType" not defined.` instead of
+`First array template parameter must be a type.`, since an unknown plain name in a type slot is now
+read as a type.
+
+Two things this does not cover: a struct used in a template above its declaration now parses, but
+the AST still reports it as undefined, because declarations are not hoisted for type resolution
+(§2, ordering pass). And an array length without a folded constant (`Array<float, SIZE + 1>`) is
+still emitted as a runtime-sized array.
 
 `PgslParser.STATIC_TYPE_NAMES` and `mUserDefinedTypeNames` exist for one reason only: the
 name-restricted type graph in the type template list. A template item is `[type, expression]`, and

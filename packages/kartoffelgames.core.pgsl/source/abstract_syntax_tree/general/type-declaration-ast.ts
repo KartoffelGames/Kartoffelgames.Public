@@ -1,7 +1,7 @@
 import { Exception } from '@kartoffelgames/core';
 import { type PgslAccessMode, PgslAccessModeEnum } from '../../feature_set/enum/pgsl-access-mode-enum.ts';
 import { type PgslTexelFormat, PgslTexelFormatEnum } from '../../feature_set/enum/pgsl-texel-format-enum.ts';
-import type { ExpressionCst } from '../../concrete_syntax_tree/expression.type.ts';
+import type { ExpressionCst, VariableNameExpressionCst } from '../../concrete_syntax_tree/expression.type.ts';
 import type { Cst, TypeDeclarationCst } from '../../concrete_syntax_tree/general.type.ts';
 import { PgslValueFixedState } from "../../enum/pgsl-value-fixed-state.ts";
 import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
@@ -113,9 +113,8 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
         // Second length parameter.
         const lLengthParameter: IExpressionAst | null = (() => {
             if (pRawTemplate.length > 1) {
-                const lLengthTemplate: TypeDeclarationAstTemplate | undefined = pRawTemplate[1];
-
-                if (!lLengthTemplate || lLengthTemplate.type === 'TypeDeclaration') {
+                const lLengthTemplate: ExpressionCst | null = this.resolveTemplateAsExpression(pRawTemplate[1]);
+                if (!lLengthTemplate) {
                     pContext.pushIncident(`Array length template must be a expression.`, this);
                     return null;
                 }
@@ -192,8 +191,8 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
                 }
 
                 // Build in types support only a single expression parameter.
-                const lTemplateExpression: TypeDeclarationAstTemplate = pRawTemplate[0];
-                if (!lTemplateExpression || lTemplateExpression.type === 'TypeDeclaration') {
+                const lTemplateExpression: ExpressionCst | null = this.resolveTemplateAsExpression(pRawTemplate[0]);
+                if (!lTemplateExpression) {
                     pContext.pushIncident(`Build-in type  template must be a expression.`, this);
                     return null;
                 }
@@ -464,11 +463,12 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
 
             // Read a template value from a constant string expression. A missing template is already reported.
             const lReadStringTemplate = (pTemplateIndex: number): string | null => {
-                const lTemplate: TypeDeclarationAstTemplate | undefined = pRawTemplate[pTemplateIndex];
-                if (!lTemplate) {
+                if (!pRawTemplate[pTemplateIndex]) {
                     return null;
                 }
-                if (lTemplate.type === 'TypeDeclaration') {
+
+                const lTemplate: ExpressionCst | null = this.resolveTemplateAsExpression(pRawTemplate[pTemplateIndex]);
+                if (!lTemplate) {
                     pContext.pushIncident(`Texture template parameter ${pTemplateIndex + 1} must be a string value expression.`, this);
                     return null;
                 }
@@ -669,6 +669,41 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
         }
 
         return new PgslVoidType();
+    }
+
+    /**
+     * Read a template value that should be an expression.
+     * If it cant be read or converted to an expression, null is returned. 
+     *
+     * @param pTemplate - Template value.
+     *
+     * @returns the template value as expression, or null when it can only be a type.
+     */
+    private resolveTemplateAsExpression(pTemplate: TypeDeclarationAstTemplate | undefined): ExpressionCst | null {
+        // Missing template values are no expression.
+        if (!pTemplate) {
+            return null;
+        }
+
+        // Expressions are used as they are.
+        if (pTemplate.type !== 'TypeDeclaration') {
+            return pTemplate;
+        }
+
+        // Variable name is also read like a plain type declaration, try to convert it.
+
+        // Only a plain name can also be the name of a value.
+        if (pTemplate.isPointer || pTemplate.template.length > 0) {
+            return null;
+        }
+
+        const lVariableName: VariableNameExpressionCst = {
+            type: 'VariableNameExpression',
+            range: pTemplate.range,
+            variableName: pTemplate.typeName
+        };
+
+        return lVariableName;
     }
 }
 

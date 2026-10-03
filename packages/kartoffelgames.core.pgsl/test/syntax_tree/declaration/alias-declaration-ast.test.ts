@@ -389,7 +389,7 @@ Deno.test('AliasDeclarationAst - Error', async (pContext) => {
 
         // Evaluation. Error should mention invalid template parameters.
         expect(lTranspilationResult.incidents.some(pIncident =>
-            pIncident.message.includes(`First array template parameter must be a type.`)
+            pIncident.message.includes(`Typename "${lInvalidTemplateParameter}" not defined.`)
         )).toBe(true);
         expect(lTranspilationResult.incidents.some(pIncident =>
             pIncident.message.includes('Variable "NotANumber" not defined.')

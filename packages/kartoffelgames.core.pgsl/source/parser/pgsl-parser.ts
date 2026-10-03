@@ -3,14 +3,6 @@ import { CodeParser, Graph, GraphNode, type LexerToken } from '@kartoffelgames/c
 import { CodeParserResult } from "../../../kartoffelgames.core.parser/source/parser/code-parser.ts";
 import { AbstractSyntaxTreeContext } from '../abstract_syntax_tree/abstract-syntax-tree-context.ts';
 import { DocumentAst } from '../abstract_syntax_tree/document-ast.ts';
-import { PgslArrayType } from '../abstract_syntax_tree/type/definition/pgsl-array-type.ts';
-import { PgslBooleanType } from '../abstract_syntax_tree/type/definition/pgsl-boolean-type.ts';
-import { PgslBuildInType } from '../abstract_syntax_tree/type/definition/pgsl-build-in-type.ts';
-import { PgslMatrixType } from '../abstract_syntax_tree/type/definition/pgsl-matrix-type.ts';
-import { PgslNumericType } from '../abstract_syntax_tree/type/definition/pgsl-numeric-type.ts';
-import { PgslSamplerType } from '../abstract_syntax_tree/type/definition/pgsl-sampler-type.ts';
-import { PgslTextureType } from '../abstract_syntax_tree/type/definition/pgsl-texture-type.ts';
-import { PgslVectorType } from '../abstract_syntax_tree/type/definition/pgsl-vector-type.ts';
 import type { AliasDeclarationCst, DeclarationCst, DeclarationCstType, EnumDeclarationCst, EnumDeclarationValueCst, FunctionDeclarationCst, FunctionDeclarationParameterCst, FunctionOverloadDeclarationCst, StructDeclarationCst, StructPropertyDeclarationCst, VariableDeclarationCst } from '../concrete_syntax_tree/declaration.type.ts';
 import type { AddressOfExpressionCst, ArithmeticExpressionCst, BinaryExpressionCst, ComparisonExpressionCst, ExpressionCst, ExpressionCstType, FunctionCallExpressionCst, IndexedValueExpressionCst, LiteralValueExpressionCst, LogicalExpressionCst, NewExpressionCst, ParenthesizedExpressionCst, PointerExpressionCst, StringValueExpressionCst, UnaryExpressionCst, ValueDecompositionExpressionCst, VariableNameExpressionCst } from '../concrete_syntax_tree/expression.type.ts';
 import type { AttributeCst, AttributeListCst, CstRange, DocumentCst, DocumentCstDeclarations, TypeDeclarationCst } from '../concrete_syntax_tree/general.type.ts';
@@ -24,74 +16,9 @@ import { PgslLexer } from './pgsl-lexer.ts';
 import { PgslToken } from './pgsl-token.enum.ts';
 
 export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
-    private static readonly STATIC_TYPE_NAMES: Set<string> = new Set<string>([
-        // Scalar types.
-        PgslNumericType.typeName.float16,
-        PgslNumericType.typeName.float32,
-        PgslNumericType.typeName.signedInteger,
-        PgslNumericType.typeName.unsignedInteger,
-        PgslBooleanType.typeName.boolean,
-
-        // Vector and matrix types.
-        PgslVectorType.typeName.vector2,
-        PgslVectorType.typeName.vector3,
-        PgslVectorType.typeName.vector4,
-        PgslMatrixType.typeName.matrix22,
-        PgslMatrixType.typeName.matrix23,
-        PgslMatrixType.typeName.matrix24,
-        PgslMatrixType.typeName.matrix32,
-        PgslMatrixType.typeName.matrix33,
-        PgslMatrixType.typeName.matrix34,
-        PgslMatrixType.typeName.matrix42,
-        PgslMatrixType.typeName.matrix43,
-        PgslMatrixType.typeName.matrix44,
-
-        // Array type.
-        PgslArrayType.typeName.array,
-
-        // Build in types.
-        PgslBuildInType.typeName.vertexIndex,
-        PgslBuildInType.typeName.instanceIndex,
-        PgslBuildInType.typeName.position,
-        PgslBuildInType.typeName.frontFacing,
-        PgslBuildInType.typeName.fragDepth,
-        PgslBuildInType.typeName.sampleIndex,
-        PgslBuildInType.typeName.sampleMask,
-        PgslBuildInType.typeName.localInvocationId,
-        PgslBuildInType.typeName.localInvocationIndex,
-        PgslBuildInType.typeName.globalInvocationId,
-        PgslBuildInType.typeName.workgroupId,
-        PgslBuildInType.typeName.numWorkgroups,
-        PgslBuildInType.typeName.clipDistances,
-
-        // Sampler types.
-        PgslSamplerType.typeName.sampler,
-        PgslSamplerType.typeName.samplerComparison,
-
-        // Texture types.
-        PgslTextureType.typeName.texture1d,
-        PgslTextureType.typeName.texture2d,
-        PgslTextureType.typeName.texture2dArray,
-        PgslTextureType.typeName.texture3d,
-        PgslTextureType.typeName.textureCube,
-        PgslTextureType.typeName.textureCubeArray,
-        PgslTextureType.typeName.textureMultisampled2d,
-        PgslTextureType.typeName.textureExternal,
-        PgslTextureType.typeName.textureDepth2d,
-        PgslTextureType.typeName.textureDepth2dArray,
-        PgslTextureType.typeName.textureDepthCube,
-        PgslTextureType.typeName.textureDepthCubeArray,
-        PgslTextureType.typeName.textureDepthMultisampled2d,
-        PgslTextureType.typeName.textureStorage1d,
-        PgslTextureType.typeName.textureStorage2d,
-        PgslTextureType.typeName.textureStorage2dArray,
-        PgslTextureType.typeName.textureStorage3d,
-    ]);
-
     private readonly mEnvironmentValues: Map<string, string> = new Map<string, string>();
     private readonly mFeatureSets: Array<PgslFeatureSet>;
     private readonly mImports: Map<string, string> = new Map<string, string>();
-    private mUserDefinedTypeNames: Set<string>;
 
     /**
      * Constructor.
@@ -104,8 +31,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
             }
         });
 
-        // Initialize user defined type name set.
-        this.mUserDefinedTypeNames = new Set<string>();
+        // Initialize import and environment value mapper.
         this.mImports = new Map<string, string>();
         this.mEnvironmentValues = new Map<string, string>();
 
@@ -358,61 +284,53 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
         });
 
         /**
-         * Template list for a type declaration seperated by comma.
+         * Template list values of a type declaration, seperated by comma and closed by the template list end.
+         * A value is only a type declaration when a comma or the template list end follows it, otherwise it is an expression.
+         * A plain name stays a type declaration, as only the type declaration knows if it expects a type or a value.
          * ```
-         * - "<EXPRESSION|TYPE_DECLARATION>"
-         * - "<EXPRESSION|TYPE_DECLARATION>, <EXPRESSION|TYPE_DECLARATION>"
-         * - "<EXPRESSION|TYPE_DECLARATION>, <EXPRESSION|TYPE_DECLARATION>, <EXPRESSION|TYPE_DECLARATION>"
+         * - "<EXPRESSION|TYPE_DECLARATION>>"
+         * - "<EXPRESSION|TYPE_DECLARATION>, <EXPRESSION|TYPE_DECLARATION>>"
+         * - "<EXPRESSION|TYPE_DECLARATION>, <EXPRESSION|TYPE_DECLARATION>, <EXPRESSION|TYPE_DECLARATION>>"
          * ```
          */
-        const lTypeDeclarationTemplateListGraph: Graph<PgslToken, object, { list: Array<ExpressionCst<ExpressionCstType> | TypeDeclarationCst>; }> = Graph.define(() => {
+        const lTypeDeclarationTemplateListGraph: Graph<PgslToken, object, PgslParserTypeDeclarationTemplateList> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
-                .required('list[]', [
-                    lNameRestrictedTypeDeclarationSyntaxTreeGraph,
-                    pExpressionGraphs.expression,
-                ]).optional('list<-list', GraphNode.new<PgslToken>()
-                    .required(PgslToken.Comma)
-                    .required('list<-list', lTypeDeclarationTemplateListGraph) // Self reference.
-                );
+                .required('item', [
+                    GraphNode.new<PgslToken>()
+                        .required('value', lTypeDeclarationSyntaxTreeGraph)
+                        .required('rest', lTypeDeclarationTemplateListRestGraph),
+                    GraphNode.new<PgslToken>()
+                        .required('value', pExpressionGraphs.expression)
+                        .required('rest', lTypeDeclarationTemplateListRestGraph)
+                ]);
+        }).converter((pData): PgslParserTypeDeclarationTemplateList => {
+            return {
+                list: [pData.item.value, ...pData.item.rest.list]
+            };
         });
 
         /**
-         * Type declaration with a optional pointer icon and optional type template list.
-         * Restricts type name to known types only.
+         * Rest of a template list after a single value. Either the template list end or the following values.
          * ```
-         * - "<IDENTIFIER>"
-         * - "<IDENTIFIER><<TEMPLATE_LIST>>"
-         * - "*<IDENTIFIER>"
-         * - "*<IDENTIFIER><<TEMPLATE_LIST>>"
+         * - ">"
+         * - ", <TEMPLATE_LIST>"
          * ```
          */
-        const lNameRestrictedTypeDeclarationSyntaxTreeGraph: Graph<PgslToken, object, TypeDeclarationCst> = Graph.define(() => {
+        const lTypeDeclarationTemplateListRestGraph: Graph<PgslToken, object, PgslParserTypeDeclarationTemplateList> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
-                .optional('pointer', PgslToken.OperatorMultiply)
-                .required('name', PgslToken.Identifier)
-                .optional('templateList<-list', GraphNode.new<PgslToken>()
-                    .required(PgslToken.TemplateListStart)
-                    .required('list<-list', lTypeDeclarationTemplateListGraph)
-                    .required(PgslToken.TemplateListEnd)
-                );
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): TypeDeclarationCst => {
-            // Check of type name is valid.
-            // Identifier must be a defined type. If we dont check this here, a normal variable name could be parsed as type.
-            if (!PgslParser.STATIC_TYPE_NAMES.has(pData.name) && !this.mUserDefinedTypeNames.has(pData.name)) {
-                return Symbol(`Identifier '${pData.name}' not recognized as a type.`) as any;
+                .required('rest', [
+                    PgslToken.TemplateListEnd,
+                    GraphNode.new<PgslToken>()
+                        .required(PgslToken.Comma)
+                        .required('list<-list', lTypeDeclarationTemplateListGraph) // Self reference.
+                ]);
+        }).converter((pData): PgslParserTypeDeclarationTemplateList => {
+            // The template list end closes the list without any further value.
+            if (typeof pData.rest === 'string') {
+                return { list: [] };
             }
 
-            // Define root structure of type definition syntax tree structure data and apply type name.
-            const lTemplateList: Array<ExpressionCst<ExpressionCstType> | TypeDeclarationCst> = pData.templateList ?? [];
-
-            // Create type definition syntax tree.
-            return {
-                type: 'TypeDeclaration',
-                range: this.createTokenBoundParameter(pStartToken, pEndToken),
-                typeName: pData.name,
-                template: lTemplateList,
-                isPointer: !!pData.pointer
-            } satisfies TypeDeclarationCst;
+            return { list: pData.rest.list };
         });
 
         /**
@@ -430,8 +348,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
                 .required('name', PgslToken.Identifier)
                 .optional('templateList<-list', GraphNode.new<PgslToken>()
                     .required(PgslToken.TemplateListStart)
-                    .required('list<-list', lTypeDeclarationTemplateListGraph)
-                    .required(PgslToken.TemplateListEnd)
+                    .required('list<-list', lTypeDeclarationTemplateListGraph) // Closes the template list itself.
                 );
         }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): TypeDeclarationCst => {
             // Define root structure of type definition syntax tree structure data and apply type name.
@@ -525,9 +442,6 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
                 .required('type', pCoreGraphs.typeDeclaration)
                 .required(PgslToken.Semicolon);
         }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): AliasDeclarationCst => {
-            // Save alias as a user defined type.
-            this.mUserDefinedTypeNames.add(pData.name);
-
             return {
                 type: 'AliasDeclaration',
                 buildIn: false,
@@ -589,9 +503,6 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
                 .optional('properties<-list', lStructPropertyListGraph)
                 .required(PgslToken.BlockEnd);
         }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): StructDeclarationCst => {
-            // Save struct as a user defined type.
-            this.mUserDefinedTypeNames.add(pData.name);
-
             return {
                 type: 'StructDeclaration',
                 buildIn: false,
@@ -650,9 +561,6 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
                 .optional('values<-list', lEnumValueListGraph)
                 .required(PgslToken.BlockEnd);
         }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): EnumDeclarationCst => {
-            // Save enum as a user defined type.
-            this.mUserDefinedTypeNames.add(pData.name);
-
             return {
                 type: 'EnumDeclaration',
                 buildIn: false,
@@ -713,9 +621,6 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
                 .required('block', pStatementGraphs.blockStatement);
 
         }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): FunctionDeclarationCst => {
-            // Save function as a user defined type.
-            this.mUserDefinedTypeNames.add(pData.name);
-
             // Build function header.
             const lFunctionHeader: FunctionOverloadDeclarationCst = {
                 type: 'FunctionOverloadDeclaration',
@@ -1635,9 +1540,6 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
             metaValues: new Map<string, string>()
         } satisfies DocumentCst;
 
-        // Define bucket for all user defined type names used in this document and its imports.
-        const lUserDefinedNames: Set<string> = new Set<string>();
-
         // Parse each code part with its potential import and fill in declarations and meta values to the document.
         for (let lCodePartIndex = 0; lCodePartIndex < lProcessedCode.codeParts.length; lCodePartIndex++) {
             const lCodePart: PgslParserPreprocessResultCodePart = lProcessedCode.codeParts[lCodePartIndex];
@@ -1655,11 +1557,6 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
 
                 // Fill in declarations.
                 lParsedDocument.declarations.push(...lCodePartParse.declarations);
-
-                // Collect user defined type names from code part.
-                for (const lUserDefinedTypeName of this.mUserDefinedTypeNames) {
-                    lUserDefinedNames.add(lUserDefinedTypeName);
-                }
             }
 
             // Parse import when set and has not been imported already.
@@ -1685,16 +1582,8 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
                 for (const [lKey, lValue] of lImportDocumentCst.metaValues) {
                     lParsedDocument.metaValues.set(lKey, lValue);
                 }
-
-                // Collect user defined type names from import.
-                for (const lUserDefinedTypeName of this.mUserDefinedTypeNames) {
-                    lUserDefinedNames.add(lUserDefinedTypeName);
-                }
             }
         }
-
-        // Clear user defined type names.
-        this.mUserDefinedTypeNames = lUserDefinedNames;
 
         return {
             result: lParsedDocument
@@ -1862,6 +1751,13 @@ type PgslParserExpressionGraphs = {
 
 type PgslParserStatementGraphs = {
     blockStatement: Graph<PgslToken, object, BlockStatementCst>;
+};
+
+/**
+ * Template list values of a type declaration.
+ */
+type PgslParserTypeDeclarationTemplateList = {
+    list: Array<ExpressionCst<ExpressionCstType> | TypeDeclarationCst>;
 };
 
 type PgslParserDeclarationGraphs = {

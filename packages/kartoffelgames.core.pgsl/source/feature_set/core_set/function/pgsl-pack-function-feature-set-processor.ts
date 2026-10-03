@@ -32,19 +32,11 @@ export class PgslPackingFunctionFeatureSetProcessor extends PgslFeatureSetProces
     }
 
     /**
-     * Process declaration creations.
-     */
-    protected override onProcess(): void {
-        this.registerpackFunctions();
-        this.registerUnpackFunctions();
-    }
-
-    /**
      * Create pack functions.
      * 
      * @returns list of function declarations for pack functions. 
      */
-    public registerpackFunctions(): void {
+    public registerPackFunctions(): void {
         // pack4x8snorm
         this.registerDeclaration(this.createFunction(PgslPackingFunctionFeatureSetProcessor.names.pack4x8snorm, { constant: true }, [
             this.createOverload({}, { 'e': this.types.create(PgslVectorType, 4, this.types.create(PgslNumericType, PgslNumericType.typeName.float32)) }, this.types.create(PgslNumericType, PgslNumericType.typeName.unsignedInteger))
@@ -131,5 +123,13 @@ export class PgslPackingFunctionFeatureSetProcessor extends PgslFeatureSetProces
         this.registerDeclaration(this.createFunction(PgslPackingFunctionFeatureSetProcessor.names.unpack2x16float, { constant: true }, [
             this.createOverload({}, { 'e': this.types.create(PgslNumericType, PgslNumericType.typeName.unsignedInteger) }, this.types.create(PgslVectorType, 2, this.types.create(PgslNumericType, PgslNumericType.typeName.float32)))
         ]));
+    }
+
+    /**
+     * Process declaration creations.
+     */
+    protected override onProcess(): void {
+        this.registerPackFunctions();
+        this.registerUnpackFunctions();
     }
 }

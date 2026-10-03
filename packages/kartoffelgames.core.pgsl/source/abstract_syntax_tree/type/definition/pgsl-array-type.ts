@@ -95,6 +95,28 @@ export class PgslArrayType extends BasePgslType {
     }
 
     /**
+     * Get this types convertion rank to another type.
+     * 
+     * @param pTarget - Conversion target type.
+     * 
+     * @returns the conversation rank from this type to the specified.
+     */
+    public conversionRankTo(pTarget: BasePgslType): number {
+        // Must both be the same kind.
+        if (!this.isSameTypeClass(pTarget)) {
+            return Number.POSITIVE_INFINITY;
+        }
+
+        // Must both be the same length or both be null.
+        if (this.length !== pTarget.length) {
+            return Number.POSITIVE_INFINITY;
+        }
+
+        // When the type and length match, the conversion rank matches the inner type.      
+        return this.innerType.conversionRankTo(pTarget.innerType);
+    }
+
+    /**
      * Compare this array type with a target type for equality.
      * Two array types are equal if they have the same inner type and length.
      * Runtime-sized arrays are equal regardless of their actual runtime size.
@@ -116,27 +138,5 @@ export class PgslArrayType extends BasePgslType {
 
         // Must both be the same length or both be null.
         return this.length === pTarget.length;
-    }
-
-    /**
-     * Get this types convertion rank to another type.
-     * 
-     * @param pTarget - Conversion target type.
-     * 
-     * @returns the conversation rank from this type to the specified.
-     */
-    public conversionRankTo(pTarget: BasePgslType): number {
-        // Must both be the same kind.
-        if (!this.isSameTypeClass(pTarget)) {
-            return Number.POSITIVE_INFINITY;
-        }
-
-        // Must both be the same length or both be null.
-        if (this.length !== pTarget.length) {
-            return Number.POSITIVE_INFINITY;
-        }
-
-        // When the type and length match, the conversion rank matches the inner type.      
-        return this.innerType.conversionRankTo(pTarget.innerType);
     }
 }

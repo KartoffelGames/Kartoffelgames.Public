@@ -51,33 +51,6 @@ export abstract class PgslFeatureSetProcessor {
     }
 
     /**
-     * Process declaration registration.
-     * 
-     * @returns this instance.
-     */
-    public process(): this {
-        this.onProcess();
-
-        return this;
-    }
-
-    /**
-     * Register a new global declaration.
-     * 
-     * @param pDeclaration - Declaration. 
-     */
-    protected registerDeclaration(pDeclaration: BaseDeclarationAst): void {
-        // Check for dublicate names.
-        if (this.mDeclaredNames.has(pDeclaration.name)) {
-            throw new Exception(`Feature set declaration "${pDeclaration.name}" is already declared in this feature set.`, this);
-        }
-
-        // Add new declaration name and declaration.
-        this.mDeclaredNames.add(pDeclaration.name);
-        this.mDeclaredDeclaration.push(pDeclaration);
-    }
-
-    /**
      * Create an enum declaration with string values.
      *
      * @param pName - Enum name.
@@ -173,6 +146,34 @@ export abstract class PgslFeatureSetProcessor {
     }
 
     /**
+     * Define a function overload.
+     *
+     * @param pGenerics - Overload generics with their type restrictions.
+     * @param pParameters - Overload parameters. A string references a generic by its name.
+     * @param pReturnType - Overload return type. A string references a generic by its name.
+     *
+     * @returns the overload definition.
+     */
+    public createOverload(pGenerics: PgslFeatureSetProcessorOverloadGenerics, pParameters: PgslFeatureSetProcessorOverloadParameters, pReturnType: BasePgslType | string): PgslFeatureSetProcessorOverload {
+        return {
+            generics: pGenerics,
+            parameters: pParameters,
+            returnType: pReturnType
+        };
+    }
+
+    /**
+     * Process declaration registration.
+     * 
+     * @returns this instance.
+     */
+    public process(): this {
+        this.onProcess();
+
+        return this;
+    }
+
+    /**
      * Create a struct declaration.
      *
      * @param pName - Struct name.
@@ -224,36 +225,19 @@ export abstract class PgslFeatureSetProcessor {
     }
 
     /**
-     * Define a function overload.
-     *
-     * @param pGenerics - Overload generics with their type restrictions.
-     * @param pParameters - Overload parameters. A string references a generic by its name.
-     * @param pReturnType - Overload return type. A string references a generic by its name.
-     *
-     * @returns the overload definition.
+     * Register a new global declaration.
+     * 
+     * @param pDeclaration - Declaration. 
      */
-    public createOverload(pGenerics: PgslFeatureSetProcessorOverloadGenerics, pParameters: PgslFeatureSetProcessorOverloadParameters, pReturnType: BasePgslType | string): PgslFeatureSetProcessorOverload {
-        return {
-            generics: pGenerics,
-            parameters: pParameters,
-            returnType: pReturnType
-        };
-    }
+    protected registerDeclaration(pDeclaration: BaseDeclarationAst): void {
+        // Check for dublicate names.
+        if (this.mDeclaredNames.has(pDeclaration.name)) {
+            throw new Exception(`Feature set declaration "${pDeclaration.name}" is already declared in this feature set.`, this);
+        }
 
-    /**
-     * Process declaration creations.
-     */
-    protected abstract onProcess(): void;
-
-    /**
-     * Create a type declaration of a type. Generic names are kept as they are.
-     *
-     * @param pType - Type or generic name.
-     *
-     * @returns the processed type declaration or the generic name.
-     */
-    private createTypeDeclaration(pType: BasePgslType): TypeDeclarationAst {
-        return new TypeDeclarationAst({ type: pType });
+        // Add new declaration name and declaration.
+        this.mDeclaredNames.add(pDeclaration.name);
+        this.mDeclaredDeclaration.push(pDeclaration);
     }
 
     /**
@@ -269,6 +253,22 @@ export abstract class PgslFeatureSetProcessor {
             isBreaking: false
         });
     }
+
+    /**
+     * Create a type declaration of a type. Generic names are kept as they are.
+     *
+     * @param pType - Type or generic name.
+     *
+     * @returns the processed type declaration or the generic name.
+     */
+    private createTypeDeclaration(pType: BasePgslType): TypeDeclarationAst {
+        return new TypeDeclarationAst({ type: pType });
+    }
+
+    /**
+     * Process declaration creations.
+     */
+    protected abstract onProcess(): void;
 }
 
 /**

@@ -161,24 +161,6 @@ export class CodeParser<TTokenType extends string, TParseResult> {
     }
 
     /**
-     * Creates analitic data when analitics are enabled.
-     *
-     * @param pParsingProcessState - Parse process state.
-     *
-     * @returns The analitic data or null when analitics are disabled.
-     */
-    private createAnalitics(pParsingProcessState: CodeParserProcessState<TTokenType>): CodeParserAnalitics<TTokenType> | null {
-        if (!this.mConfiguration.debug.analitics) {
-            return null;
-        }
-
-        return {
-            incidents: pParsingProcessState.incidentTrace.incidents,
-            graphs: pParsingProcessState.graphAnalitics
-        };
-    }
-
-    /**
      * Begins the parsing process for the given cursor and root graph.
      * 
      * The parsing process involves managing a stack of parsing tasks, each represented by a `CodeParserProcessStackItem`.
@@ -223,6 +205,24 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         }
 
         return lStackResult;
+    }
+
+    /**
+     * Creates analitic data when analitics are enabled.
+     *
+     * @param pParsingProcessState - Parse process state.
+     *
+     * @returns The analitic data or null when analitics are disabled.
+     */
+    private createAnalitics(pParsingProcessState: CodeParserProcessState<TTokenType>): CodeParserAnalitics<TTokenType> | null {
+        if (!this.mConfiguration.debug.analitics) {
+            return null;
+        }
+
+        return {
+            incidents: pParsingProcessState.incidentTrace.incidents,
+            graphs: pParsingProcessState.graphAnalitics
+        };
     }
 
     /**

@@ -17,14 +17,6 @@ export class CodeParserProcessState<TTokenType extends string> {
     private readonly mTokenGenerator: Generator<LexerToken<TTokenType>, any, any>;
 
     /**
-     * get the analitics data for each graph used in the parsing process.
-     * Is empty when analitics are disabled.
-     */
-    public get graphAnalitics(): Map<Graph<TTokenType>, CodeParserProcessStateGraphAnalitics<TTokenType>> {
-        return this.mGraphAnalitics;
-    }
-
-    /**
      * Get the current graph the cursor is in.
      * Graph can be null. But in normal cases it should not be null.
      */
@@ -41,6 +33,14 @@ export class CodeParserProcessState<TTokenType extends string> {
     public get currentToken(): LexerToken<TTokenType> | null {
         // Read token from cache.
         return this.mTokenCache[this.mCurrentGraph.token.cursor];
+    }
+
+    /**
+     * get the analitics data for each graph used in the parsing process.
+     * Is empty when analitics are disabled.
+     */
+    public get graphAnalitics(): Map<Graph<TTokenType>, CodeParserProcessStateGraphAnalitics<TTokenType>> {
+        return this.mGraphAnalitics;
     }
 
     /**

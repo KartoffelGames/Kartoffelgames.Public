@@ -26,10 +26,10 @@ export class Transpiler {
      */
     public addProcessor<T extends AbstractSyntaxTree>(pProcessorConstructor: TranspilerProcessorConstructor<T>): void {
         // Construct processor.
-        const pProcessor: ITranspilerProcessor<T> = new pProcessorConstructor();
+        const lProcessor: ITranspilerProcessor<T> = new pProcessorConstructor();
 
         // Register for processor target.
-        this.mTranspilationProcessors.set(pProcessor.target, pProcessor as ITranspilerProcessor<AbstractSyntaxTree>);
+        this.mTranspilationProcessors.set(lProcessor.target, lProcessor as ITranspilerProcessor<AbstractSyntaxTree>);
     }
 
     /**

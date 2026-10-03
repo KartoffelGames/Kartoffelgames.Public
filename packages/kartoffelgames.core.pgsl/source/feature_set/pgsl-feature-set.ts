@@ -42,25 +42,6 @@ export abstract class PgslFeatureSet {
     }
 
     /**
-     * Register all declarations of processor.
-     * 
-     * @param pFeatureSetProcessor - Processor constructor.
-     */
-    protected registerProcessor(pFeatureSetProcessor: PgslFeatureSetProcessorConstructor) {
-        const lProcessor: PgslFeatureSetProcessor = new pFeatureSetProcessor(this).process();
-
-        // Add and validate names.
-        for (const lDeclaration of lProcessor.declarations) {
-            if (this.mDeclaration.has(lDeclaration.name)) {
-                throw new Exception(`Feature set declaration "${lDeclaration.name}" is already declared in this feature set.`, this);
-            }
-
-            // Add new declaration name and declaration.
-            this.mDeclaration.set(lDeclaration.name, lDeclaration);
-        }
-    }
-
-    /**
      * Get declaration by name scoped to this feature set.
      * 
      * @param pDeclarationName - Declaration name.
@@ -73,6 +54,25 @@ export abstract class PgslFeatureSet {
         }
 
         return this.mDeclaration.get(pDeclarationName)!;
+    }
+
+    /**
+     * Register all declarations of processor.
+     * 
+     * @param pFeatureSetProcessor - Processor constructor.
+     */
+    protected registerProcessor(pFeatureSetProcessor: PgslFeatureSetProcessorConstructor): void {
+        const lProcessor: PgslFeatureSetProcessor = new pFeatureSetProcessor(this).process();
+
+        // Add and validate names.
+        for (const lDeclaration of lProcessor.declarations) {
+            if (this.mDeclaration.has(lDeclaration.name)) {
+                throw new Exception(`Feature set declaration "${lDeclaration.name}" is already declared in this feature set.`, this);
+            }
+
+            // Add new declaration name and declaration.
+            this.mDeclaration.set(lDeclaration.name, lDeclaration);
+        }
     }
 }
 

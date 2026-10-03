@@ -100,18 +100,6 @@ export class PgslGenericType extends BasePgslType {
     }
 
     /**
-     * Checks if this type is equal to the target type.
-     * 
-     * @param pTarget - The target type to compare against.
-     * 
-     * @returns True when both types describe the same type, false otherwise.
-     */
-    public override equals(pTarget: BasePgslType): pTarget is this {
-        // A generic is only fully equal if its the same cached reference. Otherwise its just a passthrough to another (different) generic.
-        return pTarget === this;
-    }
-
-    /**
      * Get this types convertion rank to another type.
      * 
      * @param pTarget - Conversion target type.
@@ -140,6 +128,18 @@ export class PgslGenericType extends BasePgslType {
         }
 
         return lConversionRank;
+    }
+
+    /**
+     * Checks if this type is equal to the target type.
+     * 
+     * @param pTarget - The target type to compare against.
+     * 
+     * @returns True when both types describe the same type, false otherwise.
+     */
+    public override equals(pTarget: BasePgslType): pTarget is this {
+        // A generic is only fully equal if its the same cached reference. Otherwise its just a passthrough to another (different) generic.
+        return pTarget === this;
     }
 
 }

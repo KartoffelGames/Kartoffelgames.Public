@@ -145,6 +145,18 @@ export class PgslBuildInType extends BasePgslType {
     }
 
     /**
+     * Get this types convertion rank to another type.
+     * 
+     * @param pTarget - Conversion target type.
+     * 
+     * @returns the conversation rank from this type to the specified.
+     */
+    public conversionRankTo(pTarget: BasePgslType): number {
+        // Check if aliased type is implicit castable into target type.
+        return this.underlyingType.conversionRankTo(pTarget);
+    }
+
+    /**
      * Compare this built-in type with a target type for equality.
      * Built-in types are equal if their underlying types and the typename of the buildin are equal.
      * 
@@ -163,18 +175,6 @@ export class PgslBuildInType extends BasePgslType {
 
         // Check if the underlying type equals the target type.
         return this.mUnderlyingType.equals(lTarget.underlyingType);
-    }
-
-    /**
-     * Get this types convertion rank to another type.
-     * 
-     * @param pTarget - Conversion target type.
-     * 
-     * @returns the conversation rank from this type to the specified.
-     */
-    public conversionRankTo(pTarget: BasePgslType): number {
-        // Check if aliased type is implicit castable into target type.
-        return this.underlyingType.conversionRankTo(pTarget);
     }
 }
 

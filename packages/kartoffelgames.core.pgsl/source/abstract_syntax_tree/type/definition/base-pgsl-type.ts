@@ -70,15 +70,6 @@ export abstract class BasePgslType {
     }
 
     /**
-     * Checks if this type is equal to the target type.
-     * 
-     * @param pTarget - The target type to compare against.
-     * 
-     * @returns True when both types describe the same type, false otherwise.
-     */
-    public abstract equals(pTarget: BasePgslType): pTarget is this;
-
-    /**
      * Get this types convertion rank to another type.
      * Implicit casting should happen automatically without explicit cast operations.
      * A convertion rank of zero means they the same type, a conversion rank of infinity means there is no valid conversation.
@@ -88,6 +79,15 @@ export abstract class BasePgslType {
      * @returns the conversation rank from this type to the specified.
      */
     public abstract conversionRankTo(pTarget: BasePgslType): number;
+
+    /**
+     * Checks if this type is equal to the target type.
+     * 
+     * @param pTarget - The target type to compare against.
+     * 
+     * @returns True when both types describe the same type, false otherwise.
+     */
+    public abstract equals(pTarget: BasePgslType): pTarget is this;
 }
 
 /**

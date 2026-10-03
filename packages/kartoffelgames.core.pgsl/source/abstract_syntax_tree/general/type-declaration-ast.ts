@@ -411,6 +411,41 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
     }
 
     /**
+     * Read a template value that should be an expression.
+     * If it cant be read or converted to an expression, null is returned. 
+     *
+     * @param pTemplate - Template value.
+     *
+     * @returns the template value as expression, or null when it can only be a type.
+     */
+    private resolveTemplateAsExpression(pTemplate: TypeDeclarationAstTemplate | undefined): ExpressionCst | null {
+        // Missing template values are no expression.
+        if (!pTemplate) {
+            return null;
+        }
+
+        // Expressions are used as they are.
+        if (pTemplate.type !== 'TypeDeclaration') {
+            return pTemplate;
+        }
+
+        // Variable name is also read like a plain type declaration, try to convert it.
+
+        // Only a plain name can also be the name of a value.
+        if (pTemplate.isPointer || pTemplate.template.length > 0) {
+            return null;
+        }
+
+        const lVariableName: VariableNameExpressionCst = {
+            type: 'VariableNameExpression',
+            range: pTemplate.range,
+            variableName: pTemplate.typeName
+        };
+
+        return lVariableName;
+    }
+
+    /**
      * Try to resolve raw type as texture value.
      * 
      * @param pRawName - Type raw name.
@@ -669,41 +704,6 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
         }
 
         return new PgslVoidType();
-    }
-
-    /**
-     * Read a template value that should be an expression.
-     * If it cant be read or converted to an expression, null is returned. 
-     *
-     * @param pTemplate - Template value.
-     *
-     * @returns the template value as expression, or null when it can only be a type.
-     */
-    private resolveTemplateAsExpression(pTemplate: TypeDeclarationAstTemplate | undefined): ExpressionCst | null {
-        // Missing template values are no expression.
-        if (!pTemplate) {
-            return null;
-        }
-
-        // Expressions are used as they are.
-        if (pTemplate.type !== 'TypeDeclaration') {
-            return pTemplate;
-        }
-
-        // Variable name is also read like a plain type declaration, try to convert it.
-
-        // Only a plain name can also be the name of a value.
-        if (pTemplate.isPointer || pTemplate.template.length > 0) {
-            return null;
-        }
-
-        const lVariableName: VariableNameExpressionCst = {
-            type: 'VariableNameExpression',
-            range: pTemplate.range,
-            variableName: pTemplate.typeName
-        };
-
-        return lVariableName;
     }
 }
 

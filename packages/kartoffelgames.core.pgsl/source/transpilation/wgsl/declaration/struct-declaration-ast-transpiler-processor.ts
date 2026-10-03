@@ -6,7 +6,7 @@ export class StructDeclarationAstTranspilerProcessor implements ITranspilerProce
     /**
      * Returns the target type for this processor.
      */
-    public get target(): typeof StructDeclarationAst {
+    public get target():typeof StructDeclarationAst {
         return StructDeclarationAst;
     }
 

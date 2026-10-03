@@ -49,58 +49,58 @@ export class WgslTranspiler extends Transpiler {
         super();
 
         // Define transpilation processors for all node types.
-        this.addProcessor(new DocumentAstTranspilerProcessor());
+        this.addProcessor(DocumentAstTranspilerProcessor);
 
         // Declarations. Alias has no transpilation processor, it is only used during trace.
-        this.addProcessor(new VariableDeclarationAstTranspilerProcessor());
-        this.addProcessor(new FunctionDeclarationAstTranspilerProcessor());
-        this.addProcessor(new StructDeclarationAstTranspilerProcessor());
-        this.addProcessor(new StructPropertyDeclarationAstTranspilerProcessor());
+        this.addProcessor(VariableDeclarationAstTranspilerProcessor);
+        this.addProcessor(FunctionDeclarationAstTranspilerProcessor);
+        this.addProcessor(StructDeclarationAstTranspilerProcessor);
+        this.addProcessor(StructPropertyDeclarationAstTranspilerProcessor);
 
         // General. Attributes have no transpilation processor, they are only used during trace.
-        this.addProcessor(new TypeDeclarationAstTranspilerProcessor());
+        this.addProcessor(TypeDeclarationAstTranspilerProcessor);
 
         // Expressions - Operations
-        this.addProcessor(new ArithmeticExpressionAstTranspilerProcessor());
-        this.addProcessor(new BinaryExpressionAstTranspilerProcessor());
-        this.addProcessor(new ComparisonExpressionAstTranspilerProcessor());
-        this.addProcessor(new LogicalExpressionAstTranspilerProcessor());
+        this.addProcessor(ArithmeticExpressionAstTranspilerProcessor);
+        this.addProcessor(BinaryExpressionAstTranspilerProcessor);
+        this.addProcessor(ComparisonExpressionAstTranspilerProcessor);
+        this.addProcessor(LogicalExpressionAstTranspilerProcessor);
 
         // Expressions - Single Values
-        this.addProcessor(new AddressOfExpressionAstTranspilerProcessor());
-        this.addProcessor(new FunctionCallExpressionAstTranspilerProcessor());
-        this.addProcessor(new LiteralValueExpressionAstTranspilerProcessor());
-        this.addProcessor(new NewCallExpressionAstTranspilerProcessor());
-        this.addProcessor(new ParenthesizedExpressionAstTranspilerProcessor());
-        this.addProcessor(new StringValueExpressionAstTranspilerProcessor());
+        this.addProcessor(AddressOfExpressionAstTranspilerProcessor);
+        this.addProcessor(FunctionCallExpressionAstTranspilerProcessor);
+        this.addProcessor(LiteralValueExpressionAstTranspilerProcessor);
+        this.addProcessor(NewCallExpressionAstTranspilerProcessor);
+        this.addProcessor(ParenthesizedExpressionAstTranspilerProcessor);
+        this.addProcessor(StringValueExpressionAstTranspilerProcessor);
 
         // Expressions - Storage
-        this.addProcessor(new IndexedValueExpressionAstTranspilerProcessor());
-        this.addProcessor(new PointerExpressionAstTranspilerProcessor());
-        this.addProcessor(new ValueDecompositionExpressionAstTranspilerProcessor());
-        this.addProcessor(new VariableNameExpressionAstTranspilerProcessor());
+        this.addProcessor(IndexedValueExpressionAstTranspilerProcessor);
+        this.addProcessor(PointerExpressionAstTranspilerProcessor);
+        this.addProcessor(ValueDecompositionExpressionAstTranspilerProcessor);
+        this.addProcessor(VariableNameExpressionAstTranspilerProcessor);
 
         // Expressions - Unary
-        this.addProcessor(new UnaryExpressionAstTranspilerProcessor());
+        this.addProcessor(UnaryExpressionAstTranspilerProcessor);
 
         // Statements - Execution
-        this.addProcessor(new AssignmentStatementAstTranspilerProcessor());
-        this.addProcessor(new BlockStatementAstTranspilerProcessor());
-        this.addProcessor(new FunctionCallStatementAstTranspilerProcessor());
-        this.addProcessor(new IncrementDecrementStatementAstTranspilerProcessor());
-        this.addProcessor(new VariableDeclarationStatementAstTranspilerProcessor());
+        this.addProcessor(AssignmentStatementAstTranspilerProcessor);
+        this.addProcessor(BlockStatementAstTranspilerProcessor);
+        this.addProcessor(FunctionCallStatementAstTranspilerProcessor);
+        this.addProcessor(IncrementDecrementStatementAstTranspilerProcessor);
+        this.addProcessor(VariableDeclarationStatementAstTranspilerProcessor);
 
         // Statements - Branch
-        this.addProcessor(new DoWhileStatementAstTranspilerProcessor());
-        this.addProcessor(new ForStatementAstTranspilerProcessor());
-        this.addProcessor(new IfStatementAstTranspilerProcessor());
-        this.addProcessor(new SwitchStatementAstTranspilerProcessor());
-        this.addProcessor(new WhileStatementAstTranspilerProcessor());
+        this.addProcessor(DoWhileStatementAstTranspilerProcessor);
+        this.addProcessor(ForStatementAstTranspilerProcessor);
+        this.addProcessor(IfStatementAstTranspilerProcessor);
+        this.addProcessor(SwitchStatementAstTranspilerProcessor);
+        this.addProcessor(WhileStatementAstTranspilerProcessor);
 
         // Statements - Single
-        this.addProcessor(new BreakStatementAstTranspilerProcessor());
-        this.addProcessor(new ContinueStatementAstTranspilerProcessor());
-        this.addProcessor(new DiscardStatementAstTranspilerProcessor());
-        this.addProcessor(new ReturnStatementAstTranspilerProcessor());
+        this.addProcessor(BreakStatementAstTranspilerProcessor);
+        this.addProcessor(ContinueStatementAstTranspilerProcessor);
+        this.addProcessor(DiscardStatementAstTranspilerProcessor);
+        this.addProcessor(ReturnStatementAstTranspilerProcessor);
     }
 }

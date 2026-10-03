@@ -6,7 +6,7 @@ export interface ITranspilerProcessor<TTarget extends AbstractSyntaxTree> {
     /**
      * The target abstract syntax tree constructor that this processor handles.
      */
-    readonly target: IAnyParameterConstructor<TTarget> | Array<IAnyParameterConstructor<TTarget>>;
+    readonly target: IAnyParameterConstructor<TTarget>;
 
     /**
      * Function type for transpilation processors that convert specific syntax tree node types
@@ -27,3 +27,7 @@ export interface ITranspilerProcessor<TTarget extends AbstractSyntaxTree> {
  * Provided to processors to allow recursive transpilation of child nodes.
  */
 export type PgslTranspilerProcessorTranspile = (pInstance: AbstractSyntaxTree) => string;
+
+export type TranspilerProcessorConstructor<T extends AbstractSyntaxTree> = {
+    new(): ITranspilerProcessor<T>;
+};

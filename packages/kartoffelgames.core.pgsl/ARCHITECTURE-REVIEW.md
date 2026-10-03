@@ -1264,6 +1264,57 @@ buys ceremony.
 
 ---
 
+## 9. Side note: drop the type name tracking in the parser
+
+Parked for later, after the feature set restructure has settled.
+
+`PgslParser.STATIC_TYPE_NAMES` and `mUserDefinedTypeNames` exist for one reason only: the
+name-restricted type graph in the type template list. A template item is `[type, expression]`, and
+the core parser commits to the first alternative that matches without coming back when a later node
+fails. Without the name check, the type alternative would take every identifier — `SIZE` in
+`array<f32, SIZE>` would become a type, and `SIZE + 1` or `TexelFormat.Rgba8unorm` would fail
+outright on the following token.
+
+Besides D9, the tracking has three more problems: it depends on declaration order (a struct used in
+a template above its declaration is not known yet), it records function names that are not types,
+and every type a feature set adds later would need an entry in `STATIC_TYPE_NAMES` too.
+
+**Fix: syntax in the graph, meaning in the AST.**
+
+1. **Graph.** Replace the name check with a delimiter check. A template item only counts as a type
+   when it is followed by `,` or `>`. Each alternative carries its delimiter, so a failing delimiter
+   falls back to the expression alternative within the same node — the same trick the statement
+   graph uses with the `Semicolon` inside each alternative. The closing `>` moves into the list
+   graph:
+
+   ```
+   TEMPLATE_LIST  := "<" TEMPLATE_ITEMS
+   TEMPLATE_ITEMS := <TYPE_DECLARATION> TEMPLATE_TAIL
+                   | <EXPRESSION> TEMPLATE_TAIL
+   TEMPLATE_TAIL  := ">" | "," TEMPLATE_ITEMS
+   ```
+
+   `vec3<f32>` and `*Foo` become types. `SIZE + 1`, `TexelFormat.Rgba8unorm` and `foo<u32>()` fail
+   on the delimiter and become expressions. Only a bare identifier (`Foo`, `SIZE`) still comes out
+   as a `TypeDeclarationCst`, and that case cannot be decided without scope knowledge.
+
+2. **AST.** `TypeDeclarationAst` already knows per slot whether it expects a type or a value (array
+   slot 0 vs. 1, clip distances, storage texture parameters). In the expression slots, a small
+   private helper turns a bare `TypeDeclarationCst` (no template, no pointer) into a
+   `VariableNameExpressionCst` before `ExpressionAstBuilder.build`. At that point the context knows
+   every declaration of the document, its imports and the feature sets, independent of order.
+
+This is what WGSL does as well: template arguments are plain expressions in its grammar, and whether
+an identifier names a type is decided during resolution.
+
+Removed with it: `STATIC_TYPE_NAMES` and its type imports in the parser, `mUserDefinedTypeNames`
+with its `add` calls and the collecting loops in `internalParse`, and
+`lNameRestrictedTypeDeclarationSyntaxTreeGraph`. This replaces the D9 fix (item 7) and removes the
+converter side effects §5.6 warns about. Variable types, parameters, return types and generic lists
+already use the unrestricted type graph and stay as they are.
+
+---
+
 *Measurements: Deno 2.9.6, Windows, `benchmark/` inputs (`small` 23 tok, `medium` 1 585 tok,
 `full` 8 025 tok). Suite: 223 passed, 1 331 steps, 0 failed. Every defect in §6 and every number in §0 and §5 was
 produced by execution against the current tree, not by reading.*

@@ -1,3 +1,4 @@
+import type { PgslFeatureSet } from '../feature_set/pgsl-feature-set.ts';
 import type { DocumentCst } from '../concrete_syntax_tree/general.type.ts';
 import type { AbstractSyntaxTreeContext, AbstractSyntaxTreeIncident, AbstractSyntaxTreeSymbolUsageName } from './abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from './abstract-syntax-tree.ts';
@@ -5,6 +6,20 @@ import type { BaseDeclarationAst } from './declaration/base-declaration-ast.ts';
 import { DeclarationAstBuilder } from './declaration/declaration-ast-builder.ts';
 
 export class DocumentAst extends AbstractSyntaxTree<DocumentCst, DocumentAstData> {
+    private readonly mFeatureSets: ReadonlyArray<PgslFeatureSet>;
+
+    /**
+     * Constructor.
+     *
+     * @param pConcreteSyntaxTree - Document cst.
+     * @param pFeatureSets - Feature sets with build in declarations.
+     */
+    public constructor(pConcreteSyntaxTree: DocumentCst, pFeatureSets: ReadonlyArray<PgslFeatureSet>) {
+        super(pConcreteSyntaxTree);
+        
+        this.mFeatureSets = pFeatureSets;
+    }
+
     /**
      * Process document data.
      * 
@@ -25,13 +40,12 @@ export class DocumentAst extends AbstractSyntaxTree<DocumentCst, DocumentAstData
             metaValues: new Map<string, string>(pCst.metaValues)
         };
 
-        // Build documents build-ins first outside any scope.
+        // Register the declarations of every feature set first outside any scope.
         pContext.pushScope('build-in', () => {
-            for (const lBuildInCst of pCst.buildInDeclarations) {
-                // Try to build content node.
-                // Build in content can be ignored as it has no affect on the document structure and only on the validation process.
-                // Processing is deferred to later stages, when the function is requested by name.
-                DeclarationAstBuilder.build(lBuildInCst).process(pContext).register(pContext);
+            for (const lFeatureSet of this.mFeatureSets) {
+                for (const lDeclaration of lFeatureSet.declarations) {
+                    lDeclaration.register(pContext);
+                }
             }
         }, this);
 

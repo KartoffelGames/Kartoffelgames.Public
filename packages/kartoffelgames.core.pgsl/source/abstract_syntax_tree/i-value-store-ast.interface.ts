@@ -1,4 +1,4 @@
-import type { PgslAccessMode } from '../buildin/enum/pgsl-access-mode-enum.ts';
+import type { PgslAccessMode } from '../feature_set/enum/pgsl-access-mode-enum.ts';
 import type { PgslDeclarationType } from '../enum/pgsl-declaration-type.enum.ts';
 import type { PgslValueAddressSpace } from '../enum/pgsl-value-address-space.enum.ts';
 import type { PgslValueFixedState } from '../enum/pgsl-value-fixed-state.ts';

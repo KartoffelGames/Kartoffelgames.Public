@@ -1,7 +1,5 @@
 import { Exception } from '@kartoffelgames/core';
 import type { PgslNumericTypeName } from '../../abstract_syntax_tree/type/definition/pgsl-numeric-type.ts';
-import type { EnumDeclarationCst, EnumDeclarationValueCst } from '../../concrete_syntax_tree/declaration.type.ts';
-import type { StringValueExpressionCst } from '../../concrete_syntax_tree/expression.type.ts';
 
 export class PgslTexelFormatEnum {
     /**
@@ -49,39 +47,6 @@ export class PgslTexelFormatEnum {
         Rgb10a2uint: 'rgb10a2uint',
         Rg11b10ufloat: 'rg11b10ufloat'
     } as const;
-
-    /**
-     * Concrete syntax tree representation.
-     * MUST BE kept under VALUES declaration to avoid initialization order issues.
-     */
-    // eslint-disable-next-line @typescript-eslint/member-ordering
-    public static readonly CST: EnumDeclarationCst = (() => {
-        return {
-            type: 'EnumDeclaration',
-            buildIn: true,
-            range: [0, 0, 0, 0],
-            name: 'TexelFormat',
-            attributeList: {
-                type: 'AttributeList',
-                range: [0, 0, 0, 0],
-                attributes: []
-            },
-            values: Object.entries(PgslTexelFormatEnum.VALUES).map<EnumDeclarationValueCst>(([pName, pValue]) => {
-                return {
-                    type: 'EnumDeclarationValue',
-                    buildIn: true,
-                    range: [0, 0, 0, 0],
-                    name: pName,
-                    value: {
-                        type: 'StringValueExpression',
-                        range: [0, 0, 0, 0],
-                        textValue: pValue
-                    } satisfies StringValueExpressionCst
-                };
-            })
-        };
-    })();
-
 
     private static mValidValues: Set<string> | null = null;
 

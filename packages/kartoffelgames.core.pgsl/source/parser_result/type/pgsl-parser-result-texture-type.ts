@@ -1,4 +1,4 @@
-import type { PgslTexelFormat } from '../../buildin/enum/pgsl-texel-format-enum.ts';
+import type { PgslTexelFormat } from '../../feature_set/enum/pgsl-texel-format-enum.ts';
 import type { PgslParserResultNumericType } from './pgsl-parser-result-numeric-type.ts';
 import { PgslParserResultType } from './pgsl-parser-result-type.ts';
 

@@ -1,5 +1,5 @@
 import { EnumUtil } from '@kartoffelgames/core';
-import { PgslAccessModeEnum } from '../../../buildin/enum/pgsl-access-mode-enum.ts';
+import { PgslAccessModeEnum } from '../../../feature_set/enum/pgsl-access-mode-enum.ts';
 import type { VariableDeclarationStatementCst } from '../../../concrete_syntax_tree/statement.type.ts';
 import { PgslDeclarationType } from '../../../enum/pgsl-declaration-type.enum.ts';
 import { PgslValueAddressSpace } from '../../../enum/pgsl-value-address-space.enum.ts';

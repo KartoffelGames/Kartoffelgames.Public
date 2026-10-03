@@ -24,5 +24,5 @@ export type DeclarationAstData = {
     /**
      * Declaration attributes.
      */
-    attributes: AttributeListAst;
+    attributes?: AttributeListAst;
 };

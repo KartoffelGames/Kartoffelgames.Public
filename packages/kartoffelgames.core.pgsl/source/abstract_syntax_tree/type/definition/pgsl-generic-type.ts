@@ -1,4 +1,3 @@
-import { BaseDeclarationAst } from "../../declaration/base-declaration-ast.ts";
 import { BasePgslType, BasePgslTypeKind } from './base-pgsl-type.ts';
 
 /**
@@ -17,14 +16,14 @@ export class PgslGenericType extends BasePgslType {
 
     /**
      * Get a string identification for the type.
+     * The identification is not unique between generics of the same name, so generic types must never be cached.
      *
-     * @param pOwner - Owner/initiator ot the generic type.
      * @param pGenericName - Name of the generic.
      *
      * @returns The type identification.
      */
-    public static identifierOf(pOwner: BaseDeclarationAst, pGenericName: string): string {
-        return PgslGenericType.typeName.generic + '[' + pOwner.name + ',' + pGenericName + ']';
+    public static identifierOf(pGenericName: string): string {
+        return PgslGenericType.typeName.generic + '[' + pGenericName + ']';
     }
 
     private readonly mGenericName: string;
@@ -47,11 +46,10 @@ export class PgslGenericType extends BasePgslType {
     /**
      * Construct a generic type.
      *
-     * @param pOwner - Owner/initiator ot the generic type.
      * @param pGenericName - Name of the generic.
      * @param pRestrictions - Generic type restrictions.
      */
-    public constructor(pOwner: BaseDeclarationAst, pGenericName: string, pRestrictions: Array<BasePgslType>) {
+    public constructor(pGenericName: string, pRestrictions: Array<BasePgslType>) {
         // Combining all type kinds by ANDing them.
         const lTypeKind: BasePgslTypeKind = (() => {
             // If its a wildcard restriction it naturally doesnt fit any real type unless it get gated somewhere.
@@ -66,7 +64,7 @@ export class PgslGenericType extends BasePgslType {
 
         // Create and use meta.
         super(lTypeKind, {
-            typeName: PgslGenericType.identifierOf(pOwner, pGenericName),
+            typeName: PgslGenericType.identifierOf(pGenericName),
             generics: pRestrictions
         });
 

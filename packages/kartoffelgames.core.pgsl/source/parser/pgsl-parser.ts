@@ -11,20 +11,12 @@ import { PgslNumericType } from '../abstract_syntax_tree/type/definition/pgsl-nu
 import { PgslSamplerType } from '../abstract_syntax_tree/type/definition/pgsl-sampler-type.ts';
 import { PgslTextureType } from '../abstract_syntax_tree/type/definition/pgsl-texture-type.ts';
 import { PgslVectorType } from '../abstract_syntax_tree/type/definition/pgsl-vector-type.ts';
-import { PgslAccessModeEnum } from '../buildin/enum/pgsl-access-mode-enum.ts';
-import { PgslInterpolateSamplingEnum } from '../buildin/enum/pgsl-interpolate-sampling-enum.ts';
-import { PgslInterpolateTypeEnum } from '../buildin/enum/pgsl-interpolate-type-enum.ts';
-import { PgslTexelFormatEnum } from '../buildin/enum/pgsl-texel-format-enum.ts';
-import { PgslNumericBuildInFunction } from '../buildin/function/pgsl-numeric-build-in-function.ts';
-import { PgslPackingBuildInFunction } from '../buildin/function/pgsl-pack-build-in-function.ts';
-import { PgslSynchronisationBuildInFunction } from '../buildin/function/pgsl-synchronisation-build-in-function.ts';
-import { PgslTextureBuildInFunction } from '../buildin/function/pgsl-texture-build-in-function.ts';
-import { PgslFrexpResult } from '../buildin/struct/pgsl-frexp-result.ts';
-import { PgslModfResult } from '../buildin/struct/pgsl-modf-result.ts';
 import type { AliasDeclarationCst, DeclarationCst, DeclarationCstType, EnumDeclarationCst, EnumDeclarationValueCst, FunctionDeclarationCst, FunctionDeclarationParameterCst, FunctionOverloadDeclarationCst, StructDeclarationCst, StructPropertyDeclarationCst, VariableDeclarationCst } from '../concrete_syntax_tree/declaration.type.ts';
 import type { AddressOfExpressionCst, ArithmeticExpressionCst, BinaryExpressionCst, ComparisonExpressionCst, ExpressionCst, ExpressionCstType, FunctionCallExpressionCst, IndexedValueExpressionCst, LiteralValueExpressionCst, LogicalExpressionCst, NewExpressionCst, ParenthesizedExpressionCst, PointerExpressionCst, StringValueExpressionCst, UnaryExpressionCst, ValueDecompositionExpressionCst, VariableNameExpressionCst } from '../concrete_syntax_tree/expression.type.ts';
 import type { AttributeCst, AttributeListCst, CstRange, DocumentCst, DocumentCstDeclarations, TypeDeclarationCst } from '../concrete_syntax_tree/general.type.ts';
 import type { AssignmentStatementCst, BlockStatementCst, BreakStatementCst, ContinueStatementCst, DiscardStatementCst, DoWhileStatementCst, ForStatementCst, FunctionCallStatementCst, IfStatementCst, IncrementDecrementStatementCst, ReturnStatementCst, StatementCst, StatementCstType, SwitchCaseCst, SwitchStatementCst, VariableDeclarationStatementCst, WhileStatementCst } from '../concrete_syntax_tree/statement.type.ts';
+import { PgslCoreFeatureSet } from '../feature_set/core_set/pgsl-core-feature-set.ts';
+import type { PgslFeatureSet, PgslFeatureSetConstructor } from '../feature_set/pgsl-feature-set.ts';
 import { PgslParserResult } from '../parser_result/pgsl-parser-result.ts';
 import { TranspilationMeta } from '../transpilation/transpilation-meta.ts';
 import type { PgslTranspilationResult, Transpiler } from '../transpilation/transpiler.ts';
@@ -97,6 +89,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
     ]);
 
     private readonly mEnvironmentValues: Map<string, string> = new Map<string, string>();
+    private readonly mFeatureSets: Array<PgslFeatureSet>;
     private readonly mImports: Map<string, string> = new Map<string, string>();
     private mUserDefinedTypeNames: Set<string>;
 
@@ -115,6 +108,10 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
         this.mUserDefinedTypeNames = new Set<string>();
         this.mImports = new Map<string, string>();
         this.mEnvironmentValues = new Map<string, string>();
+
+        // Create the feature sets once. They are shared by every parsed document.
+        this.mFeatureSets = new Array<PgslFeatureSet>();
+        this.addFeatureSet(PgslCoreFeatureSet);
 
         // Create a mimic core graph object to pass to statement and declaration graph definitions.
         const lCoreGraphs: PgslParserCoreGraphs = {
@@ -201,38 +198,11 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
         // Parse document structure into a concrete syntax tree.
         const lDocumentCst: DocumentCst = this.parse(pCodeText).result;
 
-        // Define buildin enums.
-        const lBuildInEnumList: Array<DeclarationCst<DeclarationCstType>> = [
-            PgslAccessModeEnum.CST,
-            PgslInterpolateSamplingEnum.CST,
-            PgslInterpolateTypeEnum.CST,
-            PgslTexelFormatEnum.CST
-        ];
-
-        // Append buildin declarations to the document.
-
-        // Enum
-        lDocumentCst.buildInDeclarations.push(...lBuildInEnumList);
-
-        // Struct
-        lDocumentCst.buildInDeclarations.push(...PgslModfResult.structs());
-        lDocumentCst.buildInDeclarations.push(...PgslFrexpResult.structs());
-
-        // Function
-        lDocumentCst.buildInDeclarations.push(...PgslNumericBuildInFunction.bitReinterpretation());
-        lDocumentCst.buildInDeclarations.push(...PgslNumericBuildInFunction.logical());
-        lDocumentCst.buildInDeclarations.push(...PgslNumericBuildInFunction.array());
-        lDocumentCst.buildInDeclarations.push(...PgslNumericBuildInFunction.numeric());
-        lDocumentCst.buildInDeclarations.push(...PgslNumericBuildInFunction.derivative());
-        lDocumentCst.buildInDeclarations.push(...PgslTextureBuildInFunction.texture());
-        lDocumentCst.buildInDeclarations.push(...PgslPackingBuildInFunction.pack());
-        lDocumentCst.buildInDeclarations.push(...PgslPackingBuildInFunction.unpack());
-        lDocumentCst.buildInDeclarations.push(...PgslSynchronisationBuildInFunction.synchronisation());
-
+        // Create a new context for the document.
         const lContext: AbstractSyntaxTreeContext = new AbstractSyntaxTreeContext();
 
         // Build and return PgslParserResult.
-        return new DocumentAst(lDocumentCst).process(lContext);
+        return new DocumentAst(lDocumentCst, this.mFeatureSets).process(lContext);
     }
 
     /**
@@ -263,6 +233,33 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
 
         // Build and return PgslParserResult.
         return new PgslParserResult(lTranspilationResult.code, lTranspilationResult.sourceMap, lDocument, lTranspilationResult.meta);
+    }
+
+    /**
+     * Add a feature set whose declarations are registered into every parsed document.
+     *
+     * @param pFeatureSet - Feature set constructor.
+     *
+     * @throws {Exception} When declarations are already declared by another feature set.
+     */
+    protected addFeatureSet(pFeatureSet: PgslFeatureSetConstructor): void {
+        // Collect every declaration name of the already added feature sets.
+        const lDeclaredNames: Set<string> = new Set<string>(this.mFeatureSets.flatMap((pFeatureSet) => {
+            return [...pFeatureSet.declaredNames];
+        }));
+
+        // Create a new instance of featureset.
+        const lFeatureSet: PgslFeatureSet = new pFeatureSet();
+
+        // Validate that a feature set dont include dublicate declared names
+        for (const lDeclarationName of lFeatureSet.declaredNames) {
+            if (lDeclaredNames.has(lDeclarationName)) {
+                throw new Exception(`Feature set declaration "${lDeclarationName}" is already declared by another feature set.`, this);
+            }
+        }
+
+        // Anythings fine add feature set. 
+        this.mFeatureSets.push(lFeatureSet);
     }
 
     /**
@@ -735,7 +732,6 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
                 type: 'FunctionDeclaration',
                 isConstant: false,
                 buildIn: false,
-                implicitGenerics: false,
                 range: this.createTokenBoundParameter(pStartToken, pEndToken),
                 name: pData.name,
                 declarations: [lFunctionHeader]
@@ -1179,7 +1175,6 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
             return {
                 type: 'Document',
                 range: this.createTokenBoundParameter(pStartToken, pEndToken),
-                buildInDeclarations: new Array<DeclarationCst>(),
                 declarations: lDeclarations,
                 metaValues: new Map<string, string>()
             } satisfies DocumentCst;
@@ -1636,7 +1631,6 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
         const lParsedDocument: DocumentCst = {
             type: 'Document',
             range: [0, 0, 0, 0],
-            buildInDeclarations: new Array<DeclarationCst>(),
             declarations: new Array<DocumentCstDeclarations>(),
             metaValues: new Map<string, string>()
         } satisfies DocumentCst;

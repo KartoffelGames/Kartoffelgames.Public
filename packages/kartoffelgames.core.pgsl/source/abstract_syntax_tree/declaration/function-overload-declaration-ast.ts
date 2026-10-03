@@ -14,7 +14,6 @@ import { PgslInvalidType } from "../type/definition/pgsl-invalid-type.ts";
 import { PgslStructType } from "../type/definition/pgsl-struct-type.ts";
 import { PgslVoidType } from "../type/definition/pgsl-void-type.ts";
 import { BaseDeclarationAst, DeclarationAstData } from "./base-declaration-ast.ts";
-import { FunctionDeclarationAstDataParameter } from "./function-declaration-ast.ts";
 
 export class FunctionOverloadDeclarationAst extends BaseDeclarationAst<FunctionOverloadDeclarationCst, FunctionOverloadDeclarationAstData> {
     private readonly mFunctionName: string;
@@ -28,12 +27,12 @@ export class FunctionOverloadDeclarationAst extends BaseDeclarationAst<FunctionO
 
     /**
      * Constructor.
-     * 
+     *
      * @param pFunctionName - Function name.
-     * @param pConcreteSyntaxTree - Function overload cst.
+     * @param pTreeData - Function overload cst or already processed overload data.
      */
-    public constructor(pFunctionName: string, pConcreteSyntaxTree: FunctionOverloadDeclarationCst) {
-        super(pConcreteSyntaxTree);
+    public constructor(pFunctionName: string, pTreeData: FunctionOverloadDeclarationCst | FunctionOverloadDeclarationAstData) {
+        super(pTreeData);
         this.mFunctionName = pFunctionName;
     }
 
@@ -57,21 +56,32 @@ export class FunctionOverloadDeclarationAst extends BaseDeclarationAst<FunctionO
         const lAttributes: AttributeListAst = new AttributeListAst(pCst.attributeList, this).process(pContext);
 
         // Create generic mapping for this declaration.
-        const lGenericMapping: Set<string> = new Set<string>();
+        const lGenericMapping: Map<string, TypeDeclarationAst> = new Map<string, TypeDeclarationAst>();
         for (const lGeneric of pCst.generics) {
             // Check for duplicate generic names.
             if (lGenericMapping.has(lGeneric.name)) {
                 pContext.pushIncident(`Generic type name "${lGeneric.name}" is already defined for this function header.`, this);
             }
 
-            lGenericMapping.add(lGeneric.name);
+            // Create generic restrictions as type definition and get the raw type.
+            const lGenericRestrictions: Array<BasePgslType> = lGeneric.restrictions.map((pRestricionTypeDeclarationCst) => {
+                return new TypeDeclarationAst(pRestricionTypeDeclarationCst).process(pContext).data.type;
+            });
+
+            // Create the core generic type.
+            const lGenericType: PgslGenericType = new PgslGenericType(lGeneric.name, lGenericRestrictions);
+
+            // And from that core type, create the type declarationand register it by name.
+            lGenericMapping.set(lGenericType.name, new TypeDeclarationAst({
+                type: lGenericType
+            }));
         }
 
         return pContext.pushScope('function', () => {
             // Create parameter list.
-            const lParameterList: Array<FunctionDeclarationAstDataParameter> = new Array<FunctionDeclarationAstDataParameter>();
+            const lParameterList: Array<FunctionOverloadDeclarationAstDataParameter> = new Array<FunctionOverloadDeclarationAstDataParameter>();
             for (const lParameter of pCst.parameters) {
-                let lParameterData: FunctionDeclarationAstDataParameter;
+                let lParameterData: FunctionOverloadDeclarationAstDataParameter;
 
                 // Check for generic parameter.
                 if (typeof lParameter.typeDeclaration === 'string') {
@@ -83,7 +93,7 @@ export class FunctionOverloadDeclarationAst extends BaseDeclarationAst<FunctionO
 
                     lParameterData = {
                         name: lParameter.name,
-                        type: lGenericName
+                        type: lGenericMapping.get(lGenericName)!
                     };
                 } else {
                     lParameterData = {
@@ -121,17 +131,7 @@ export class FunctionOverloadDeclarationAst extends BaseDeclarationAst<FunctionO
             const lBlock: BlockStatementAst = new BlockStatementAst(pCst.block).process(pContext);
 
             // Build return type.
-            const lReturnTypeDeclaration: TypeDeclarationAst | string = (() => {
-                // Check for generic return type. Generic types arent validated for the block return type.
-                if (typeof pCst.returnType === 'string') {
-                    // Validate generic return type index.
-                    const lGenericName: string = pCst.returnType;
-                    if (!lGenericMapping.has(lGenericName)) {
-                        pContext.pushIncident(`Generic return type name "${lGenericName}" is not defined for this function header.`, this);
-                    }
-                    return lGenericName;
-                }
-
+            const lReturnTypeDeclaration: TypeDeclarationAst = (() => {
                 const lReturnType: TypeDeclarationAst = new TypeDeclarationAst(pCst.returnType).process(pContext);
 
                 // If function is not built-in check for correct return type in function block.
@@ -155,7 +155,7 @@ export class FunctionOverloadDeclarationAst extends BaseDeclarationAst<FunctionO
                     return new TypeDeclarationAst(pGenericRestrictionTypeDeclaration).process(pContext).data.type;
                 });
 
-                return new PgslGenericType(this, pGenericType.name, lGenericRestrictions);
+                return new PgslGenericType(pGenericType.name, lGenericRestrictions);
             });
 
             const lDeclarationResult: FunctionOverloadDeclarationAstData = {
@@ -187,7 +187,7 @@ export class FunctionOverloadDeclarationAst extends BaseDeclarationAst<FunctionO
      * @returns Entry point data or null if function is not an entry point. 
      */
     private readEntryPoint(pAttributes: AttributeListAst, pDeclaration: FunctionOverloadDeclarationAstData, pContext: AbstractSyntaxTreeContext): FunctionOverloadDeclarationAstDataEntryPoint | null {
-        const lValidateVertexFragmentParameterType = (pParameter: Array<FunctionDeclarationAstDataParameter>, pEntryPointName: string): PgslStructType | null => {
+        const lValidateVertexFragmentParameterType = (pParameter: Array<FunctionOverloadDeclarationAstDataParameter>, pEntryPointName: string): PgslStructType | null => {
             // Vertex entry point must have a struct type parameter.
             if (pParameter.length !== 1) {
                 pContext.pushIncident(`The ${pEntryPointName} entry points must have exactly one parameter defining the ${pEntryPointName} input structure.`, this);
@@ -342,13 +342,12 @@ export type FunctionOverloadDeclarationAstData = {
     /**
      * Function parameter list.
      */
-    parameter: Array<FunctionDeclarationAstDataParameter>;
+    parameter: Array<FunctionOverloadDeclarationAstDataParameter>;
 
     /**
      * Function result type.
-     * When a number, the function uses the defined generic type as result type.
      */
-    returnType: TypeDeclarationAst | string;
+    returnType: TypeDeclarationAst;
 
     /**
      * Function block.
@@ -360,6 +359,21 @@ export type FunctionOverloadDeclarationAstData = {
      */
     entryPoint?: FunctionOverloadDeclarationAstDataEntryPoint;
 } & DeclarationAstData;
+
+/**
+ * Function declaration parameter containing type and name.
+ */
+export type FunctionOverloadDeclarationAstDataParameter = {
+    /**
+     * Function parameter type.
+     */
+    readonly type: TypeDeclarationAst;
+
+    /**
+     * Function parameter name.
+     */
+    readonly name: string;
+};
 
 /**
  * Workgroup size specification for compute shaders.

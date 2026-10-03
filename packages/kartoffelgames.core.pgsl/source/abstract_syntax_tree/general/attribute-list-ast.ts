@@ -1,7 +1,7 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { PgslAccessModeEnum } from '../../buildin/enum/pgsl-access-mode-enum.ts';
-import { PgslInterpolateSamplingEnum } from '../../buildin/enum/pgsl-interpolate-sampling-enum.ts';
-import { PgslInterpolateTypeEnum } from '../../buildin/enum/pgsl-interpolate-type-enum.ts';
+import { PgslAccessModeEnum } from '../../feature_set/enum/pgsl-access-mode-enum.ts';
+import { PgslInterpolateSamplingEnum } from '../../feature_set/enum/pgsl-interpolate-sampling-enum.ts';
+import { PgslInterpolateTypeEnum } from '../../feature_set/enum/pgsl-interpolate-type-enum.ts';
 import type { ExpressionCst } from '../../concrete_syntax_tree/expression.type.ts';
 import type { AttributeListCst } from '../../concrete_syntax_tree/general.type.ts';
 import { PgslValueFixedState } from '../../enum/pgsl-value-fixed-state.ts';
@@ -56,16 +56,16 @@ export class AttributeListAst extends AbstractSyntaxTree<AttributeListCst, Attri
         return AttributeListAst.mValidAttributes;
     }
 
-    private readonly mAttachedDeclaration: BaseDeclarationAst | null;
+    private readonly mAttachedDeclaration: BaseDeclarationAst;
 
     /**
      * Constructor.
-     * 
-     * @param pMeta - Syntax tree meta data.
-     * @param pAttributes - Attribute list.
+     *
+     * @param pTreeData - Attribute list cst or already processed attribute list data.
+     * @param pAttachedDeclaration - Declaration the attribute list is attached to. Only needed to validate a cst.
      */
-    public constructor(pCst: AttributeListCst, pAttachedDeclaration: BaseDeclarationAst) {
-        super(pCst);
+    public constructor(pTreeData: AttributeListCst | AttributeListAstData, pAttachedDeclaration: BaseDeclarationAst) {
+        super(pTreeData);
 
         // Init empty attribute list.
         this.mAttachedDeclaration = pAttachedDeclaration;
@@ -376,7 +376,7 @@ type AttributeDefinitionInformation = {
     >;
 };
 
-type AttributeListAstData = {
+export type AttributeListAstData = {
     attributes: Map<PgslAttributeName, Array<IExpressionAst>>;
     metaValues: Map<string, string>;
 };

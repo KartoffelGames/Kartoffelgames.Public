@@ -1,4 +1,4 @@
-import type { BasePgslType } from "./definition/base-pgsl-type.ts";
+import type { BasePgslType } from './definition/base-pgsl-type.ts';
 
 /**
  * PGSL type cache. Create a single instance for every type variant.
@@ -8,11 +8,11 @@ export class PgslTypeCache {
 
     /**
      * Create a pgsl type. If its already used somewhere else, a cached instance is returned.
-     * 
+     *
      * @param pType - Type constructor.
      * @param pParameter - Type construction parameter.
-     * 
-     * @returns a new or a cached type. 
+     *
+     * @returns a new or a cached type.
      */
     public create<TType extends BasePgslType, TParameter extends Array<unknown>>(pType: PgslTypeCachePgslTypeConstructor<TType, TParameter>, ...pParameter: TParameter): TType {
         // Create types identifier.

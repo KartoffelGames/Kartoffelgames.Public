@@ -1,5 +1,5 @@
-import { type PgslInterpolateSampling, PgslInterpolateSamplingEnum } from '../../buildin/enum/pgsl-interpolate-sampling-enum.ts';
-import { type PgslInterpolateType, PgslInterpolateTypeEnum } from '../../buildin/enum/pgsl-interpolate-type-enum.ts';
+import { type PgslInterpolateSampling, PgslInterpolateSamplingEnum } from '../../feature_set/enum/pgsl-interpolate-sampling-enum.ts';
+import { type PgslInterpolateType, PgslInterpolateTypeEnum } from '../../feature_set/enum/pgsl-interpolate-type-enum.ts';
 import type { StructPropertyDeclarationCst } from '../../concrete_syntax_tree/declaration.type.ts';
 import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
 import type { IExpressionAst } from '../expression/i-expression-ast.interface.ts';
@@ -33,12 +33,12 @@ export class StructPropertyDeclarationAst extends BaseDeclarationAst<StructPrope
 
     /**
      * Creates an instance of StructPropertyDeclarationAst.
-     * 
-     * @param pConcreteSyntaxTree - Concrete syntax tree node.
+     *
+     * @param pTreeData - Concrete syntax tree node or already processed property data.
      * @param pStruct - The struct this property belongs to.
      */
-    public constructor(pConcreteSyntaxTree: StructPropertyDeclarationCst, pStruct: StructDeclarationAst) {
-        super(pConcreteSyntaxTree);
+    public constructor(pTreeData: StructPropertyDeclarationCst | StructPropertyDeclarationAstData, pStruct: StructDeclarationAst) {
+        super(pTreeData);
         this.mStruct = pStruct;
     }
 

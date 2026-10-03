@@ -43,14 +43,14 @@ export type FunctionDeclarationCst = {
     name: string;
     declarations: Array<FunctionOverloadDeclarationCst>;
     isConstant: boolean;
-    implicitGenerics: boolean;
+    explicitGenerics?: true;
 } & DeclarationCst<'FunctionDeclaration'>;
 
 export type FunctionOverloadDeclarationCst = {
     attributeList: AttributeListCst;
     generics: Array<FunctionDeclarationGenericCst>;
     parameters: Array<FunctionDeclarationParameterCst>;
-    returnType: TypeDeclarationCst | string; // String indicates generic return type of the header.
+    returnType: TypeDeclarationCst;
     block: BlockStatementCst;
 } & DeclarationCst<'FunctionOverloadDeclaration'>;
 

@@ -11,8 +11,8 @@ import { PgslSamplerType } from '../abstract_syntax_tree/type/definition/pgsl-sa
 import { PgslStructType } from '../abstract_syntax_tree/type/definition/pgsl-struct-type.ts';
 import { PgslTextureType } from '../abstract_syntax_tree/type/definition/pgsl-texture-type.ts';
 import { PgslVectorType } from '../abstract_syntax_tree/type/definition/pgsl-vector-type.ts';
-import { PgslAccessModeEnum } from '../buildin/enum/pgsl-access-mode-enum.ts';
-import { type PgslTexelFormat, PgslTexelFormatEnum } from '../buildin/enum/pgsl-texel-format-enum.ts';
+import { PgslAccessModeEnum } from '../feature_set/enum/pgsl-access-mode-enum.ts';
+import { type PgslTexelFormat, PgslTexelFormatEnum } from '../feature_set/enum/pgsl-texel-format-enum.ts';
 import { PgslDeclarationType } from '../enum/pgsl-declaration-type.enum.ts';
 import type { TranspilationMeta, TranspilationMetaBinding } from '../transpilation/transpilation-meta.ts';
 import { PgslParserResultObject } from './pgsl-parser-result-object.ts';
@@ -104,7 +104,7 @@ export class PgslParserResultBinding extends PgslParserResultObject {
      * @param pParameters - The constructor parameters containing all binding information.
      */
     public constructor(pValue: VariableDeclarationAst, pDocument: DocumentAst, pMeta: TranspilationMeta) {
-        super(pValue.data.attributes.data.metaValues);
+        super(pValue.data.attributes?.data.metaValues);
 
         // Convert binding type from trace.
         this.mBindingType = (() => {

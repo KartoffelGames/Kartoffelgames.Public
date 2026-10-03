@@ -39,7 +39,7 @@ export class PgslParserResultParameter extends PgslParserResultObject {
      * @param pValue - The variable declaration AST containing parameter information.
      */
     public constructor(pValue: VariableDeclarationAst) {
-        super(pValue.data.attributes.data.metaValues);
+        super(pValue.data.attributes?.data.metaValues);
 
         this.mName = pValue.data.name;
         this.mType = this.convertType(pValue.data.type);

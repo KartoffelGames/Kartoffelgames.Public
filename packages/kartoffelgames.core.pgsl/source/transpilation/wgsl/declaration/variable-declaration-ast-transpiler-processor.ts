@@ -1,7 +1,7 @@
 import { VariableDeclarationAst } from '../../../abstract_syntax_tree/declaration/variable-declaration-ast.ts';
 import { PgslSamplerType } from '../../../abstract_syntax_tree/type/definition/pgsl-sampler-type.ts';
 import { PgslTextureType } from '../../../abstract_syntax_tree/type/definition/pgsl-texture-type.ts';
-import { PgslAccessModeEnum } from '../../../buildin/enum/pgsl-access-mode-enum.ts';
+import { PgslAccessModeEnum } from '../../../feature_set/enum/pgsl-access-mode-enum.ts';
 import { PgslDeclarationType } from '../../../enum/pgsl-declaration-type.enum.ts';
 import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../i-transpiler-processor.interface.ts';
 import type { TranspilationMeta, TranspilationMetaBinding } from '../../transpilation-meta.ts';

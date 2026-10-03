@@ -27,4 +27,4 @@ export { PgslParserResultVectorType } from './parser_result/type/pgsl-parser-res
 export type { PgslParserResultNumberTypeType } from './parser_result/type/pgsl-parser-result-numeric-type.ts';
 
 // Build-in enums.
-export type { PgslTexelFormat } from './buildin/enum/pgsl-texel-format-enum.ts';
+export type { PgslTexelFormat } from './feature_set/enum/pgsl-texel-format-enum.ts';

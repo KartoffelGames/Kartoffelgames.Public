@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
-import { type PgslAccessMode, PgslAccessModeEnum } from '../../buildin/enum/pgsl-access-mode-enum.ts';
-import { type PgslTexelFormat, PgslTexelFormatEnum } from '../../buildin/enum/pgsl-texel-format-enum.ts';
+import { type PgslAccessMode, PgslAccessModeEnum } from '../../feature_set/enum/pgsl-access-mode-enum.ts';
+import { type PgslTexelFormat, PgslTexelFormatEnum } from '../../feature_set/enum/pgsl-texel-format-enum.ts';
 import type { ExpressionCst } from '../../concrete_syntax_tree/expression.type.ts';
 import type { Cst, TypeDeclarationCst } from '../../concrete_syntax_tree/general.type.ts';
 import { PgslValueFixedState } from "../../enum/pgsl-value-fixed-state.ts";
@@ -50,8 +50,7 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
         }
 
         return {
-            type: lType,
-            buildIn: null
+            type: lType
         };
     }
 
@@ -678,5 +677,5 @@ type TypeDeclarationAstTemplateList = Array<TypeDeclarationAstTemplate>;
 
 export type TypeDeclarationAstData = {
     type: BasePgslType;
-    buildIn: PgslBuildInTypeName | null;
+    buildIn?: PgslBuildInTypeName;
 };

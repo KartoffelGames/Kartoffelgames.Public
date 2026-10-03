@@ -1,7 +1,6 @@
 import type { FunctionDeclarationCst } from '../../concrete_syntax_tree/declaration.type.ts';
 import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
 import { AttributeListAst } from '../general/attribute-list-ast.ts';
-import { TypeDeclarationAst } from '../general/type-declaration-ast.ts';
 import { BaseDeclarationAst, type DeclarationAstData } from './base-declaration-ast.ts';
 import { FunctionOverloadDeclarationAst } from "./function-overload-declaration-ast.ts";
 
@@ -54,7 +53,7 @@ export class FunctionDeclarationAst extends BaseDeclarationAst<FunctionDeclarati
         return {
             isConstant: pCst.isConstant,
             name: pCst.name,
-            implicitGenerics: pCst.implicitGenerics,
+            explicitGenerics: pCst.explicitGenerics ?? false,
 
             // Create empty attributes list to satisfy type.
             attributes: new AttributeListAst({
@@ -71,22 +70,6 @@ export class FunctionDeclarationAst extends BaseDeclarationAst<FunctionDeclarati
     }
 }
 
-/**
- * Function declaration parameter containing type and name.
- */
-export type FunctionDeclarationAstDataParameter = {
-    /**
-     * Function parameter type.
-     * Number indicates generic parameter type of the header.
-     */
-    readonly type: TypeDeclarationAst | string;
-
-    /**
-     * Function parameter name.
-     */
-    readonly name: string;
-};
-
 export type FunctionDeclarationAstData = {
     /**
      * Function declaration can be used to create constant expressions.
@@ -99,9 +82,9 @@ export type FunctionDeclarationAstData = {
     name: string;
 
     /**
-     * Whether generic types are implicitly defined.
+     * Whether generic types are explicit defined and should not be infered.
      */
-    implicitGenerics: boolean;
+    explicitGenerics: boolean;
 
     /**
      * Function parameter list.

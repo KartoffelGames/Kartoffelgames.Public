@@ -1,7 +1,7 @@
 import { StructPropertyDeclarationAst } from '../../../abstract_syntax_tree/declaration/struct-property-declaration-ast.ts';
 import { PgslBuildInType } from '../../../abstract_syntax_tree/type/definition/pgsl-build-in-type.ts';
-import { PgslInterpolateSamplingEnum } from '../../../buildin/enum/pgsl-interpolate-sampling-enum.ts';
-import { PgslInterpolateTypeEnum } from '../../../buildin/enum/pgsl-interpolate-type-enum.ts';
+import { PgslInterpolateSamplingEnum } from '../../../feature_set/enum/pgsl-interpolate-sampling-enum.ts';
+import { PgslInterpolateTypeEnum } from '../../../feature_set/enum/pgsl-interpolate-type-enum.ts';
 import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../i-transpiler-processor.interface.ts';
 import type { TranspilationMeta } from '../../transpilation-meta.ts';
 
@@ -29,7 +29,7 @@ export class StructPropertyDeclarationAstTranspilerProcessor implements ITranspi
         const lResultParts: Array<string> = new Array<string>();
 
         // Builtin types handling. Adding required attribute metadata.
-        if (pInstance.data.typeDeclaration.data.buildIn !== null) {
+        if (pInstance.data.typeDeclaration.data.buildIn) {
             switch (pInstance.data.typeDeclaration.data.buildIn) {
                 case PgslBuildInType.typeName.vertexIndex: lResultParts.push(`@builtin(vertex_index)`); break;
                 case PgslBuildInType.typeName.instanceIndex: lResultParts.push(`@builtin(instance_index)`); break;

@@ -29,7 +29,7 @@ export class PgslParserResultEntryPoint extends PgslParserResultObject {
      * @param pFunctionDeclaration - The function declaration AST containing entry point information.
      */
     public constructor(pType: PgslParserResultEntryPointType, pFunctionDeclaration: FunctionOverloadDeclarationAst) {
-        super(pFunctionDeclaration.data.attributes.data.metaValues);
+        super(pFunctionDeclaration.data.attributes?.data.metaValues);
 
         this.mType = pType;
         this.mName = pFunctionDeclaration.name;

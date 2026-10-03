@@ -14,8 +14,8 @@ import { PgslStructType } from '../../../abstract_syntax_tree/type/definition/pg
 import { PgslTextureType, type PgslTextureTypeName, type PgslTextureTypeStorage } from '../../../abstract_syntax_tree/type/definition/pgsl-texture-type.ts';
 import { PgslVectorType } from '../../../abstract_syntax_tree/type/definition/pgsl-vector-type.ts';
 import { PgslVoidType } from '../../../abstract_syntax_tree/type/definition/pgsl-void-type.ts';
-import { PgslAccessModeEnum } from '../../../buildin/enum/pgsl-access-mode-enum.ts';
-import { PgslTexelFormatEnum } from '../../../buildin/enum/pgsl-texel-format-enum.ts';
+import { PgslAccessModeEnum } from '../../../feature_set/enum/pgsl-access-mode-enum.ts';
+import { PgslTexelFormatEnum } from '../../../feature_set/enum/pgsl-texel-format-enum.ts';
 import { PgslValueAddressSpace } from '../../../enum/pgsl-value-address-space.enum.ts';
 import type { ITranspilerProcessor } from '../../i-transpiler-processor.interface.ts';
 

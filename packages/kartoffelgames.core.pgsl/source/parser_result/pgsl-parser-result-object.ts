@@ -16,7 +16,7 @@ export class PgslParserResultObject {
     /**
      * Creates a new PGSL parser result object.
      */
-    public constructor(pMetaValues: Map<string, string>) {
+    public constructor(pMetaValues?: Map<string, string>) {
         this.mMetaValues = new Map<string, string>(pMetaValues);
     }
 }

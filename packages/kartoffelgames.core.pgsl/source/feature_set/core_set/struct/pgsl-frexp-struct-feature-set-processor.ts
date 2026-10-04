@@ -75,7 +75,7 @@ export class PgslFrexpStructFeatureSetConstructor extends PgslFeatureSetProcesso
     private createFrexpStruct(pName: string, pType: BasePgslType): StructDeclarationAst {
         return this.createStruct(pName, {
             fract: pType,
-            exp: pType
+            exp: this.types.create(PgslNumericType, PgslNumericType.typeName.signedInteger)
         });
     }
 }

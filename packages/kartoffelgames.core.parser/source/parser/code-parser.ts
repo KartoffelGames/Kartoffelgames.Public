@@ -1,11 +1,11 @@
-import { type DeepPartial, Exception, Stack } from '@kartoffelgames/core';
+import { Exception, Stack, type DeepPartial } from '@kartoffelgames/core';
 import { LexerException } from '../lexer/lexer-exception.ts';
 import type { LexerToken } from '../lexer/lexer-token.ts';
 import type { Lexer } from '../lexer/lexer.ts';
 import { CodeParserException, type CodeParserErrorSymbol } from './code-parser-exception.ts';
 import { CodeParserProcessState, type CodeParserProcessCursorPosition, type CodeParserProcessStateGraphAnalitics, type CodeParserProcessStateStackItem } from './code-parser-process-state.ts';
 import type { CodeParserTraceIncident } from './code-parser-trace.ts';
-import type { GraphNode, GraphNodeConnections } from './graph/graph-node.ts';
+import { GraphNodeValueSelector, type GraphNode, type GraphNodeConnections } from './graph/graph-node.ts';
 import type { Graph } from './graph/graph.ts';
 
 /**
@@ -362,8 +362,12 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                 // Move cursor to next token.
                 pParsingProcessState.moveNextToken();
 
-                // Set token value as result.
-                return lCurrentToken.value;
+                // When a modifier is applied, return the modifier value.
+                switch (pNode.valueSelector) {
+                    case GraphNodeValueSelector.Value: return lCurrentToken.value;
+                    case GraphNodeValueSelector.RawToken: return lCurrentToken;
+                    case GraphNodeValueSelector.TokenType: return lCurrentToken.type;
+                }
             } else {
                 // Push parser process for graph value.
                 const lGraphParseResult: object | typeof CodeParserException.PARSER_ERROR = yield { type: 'graphParse', parameter: { graph: lNodeValue } };

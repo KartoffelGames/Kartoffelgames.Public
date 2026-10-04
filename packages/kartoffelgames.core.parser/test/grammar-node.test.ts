@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import { expect } from '@kartoffelgames/core-test';
-import { GraphNode, type GraphNodeConnections } from '../source/parser/graph/graph-node.ts';
+import { GraphNode, GraphNodeValueSelector, type GraphNodeConnections } from '../source/parser/graph/graph-node.ts';
 
 Deno.test('GraphNode.new()', async (pContext) => {
     await pContext.step('Anonymous root node', () => {
@@ -44,6 +44,7 @@ Deno.test('GraphNode.configuration', async (pContext) => {
         expect(lGraph.configuration.isList).toBeFalsy();
         expect(lGraph.configuration.isBranch).toBeFalsy();
         expect(lGraph.configuration.dataKey).toBe('Name');
+        expect(lGraph.configuration.valueSelector).toBe(GraphNodeValueSelector.Value);
     });
 
     await pContext.step('Required single value, no next', () => {
@@ -567,6 +568,7 @@ Deno.test('GraphNode.required()', async (pContext) => {
         expect(lGraph.configuration.isList).toBeFalsy();
         expect(lGraph.configuration.isBranch).toBeFalsy();
         expect(lGraph.configuration.dataKey).toBe('');
+        expect(lGraph.configuration.valueSelector).toBe(GraphNodeValueSelector.Value);
     });
 
     await pContext.step('Create linear named', () => {
@@ -582,6 +584,7 @@ Deno.test('GraphNode.required()', async (pContext) => {
         expect(lGraph.configuration.isList).toBeFalsy();
         expect(lGraph.configuration.isBranch).toBeFalsy();
         expect(lGraph.configuration.dataKey).toBe('Name');
+        expect(lGraph.configuration.valueSelector).toBe(GraphNodeValueSelector.Value);
     });
 
     await pContext.step('Create linear list', () => {
@@ -597,6 +600,7 @@ Deno.test('GraphNode.required()', async (pContext) => {
         expect(lGraph.configuration.isList).toBeTruthy();
         expect(lGraph.configuration.isBranch).toBeFalsy();
         expect(lGraph.configuration.dataKey).toBe('Name');
+        expect(lGraph.configuration.valueSelector).toBe(GraphNodeValueSelector.Value);
     });
 
     await pContext.step('Create linear merge', () => {
@@ -614,6 +618,7 @@ Deno.test('GraphNode.required()', async (pContext) => {
         expect(lGraph.configuration.isList).toBeFalsy();
         expect(lGraph.configuration.isBranch).toBeFalsy();
         expect(lGraph.configuration.dataKey).toBe('Name');
+        expect(lGraph.configuration.valueSelector).toBe(GraphNodeValueSelector.Value);
     });
 
     await pContext.step('Create branch unnamed', () => {
@@ -629,6 +634,7 @@ Deno.test('GraphNode.required()', async (pContext) => {
         expect(lGraph.configuration.isList).toBeFalsy();
         expect(lGraph.configuration.isBranch).toBeTruthy();
         expect(lGraph.configuration.dataKey).toBe('');
+        expect(lGraph.configuration.valueSelector).toBe(GraphNodeValueSelector.Value);
     });
 
     await pContext.step('Create branch named', () => {
@@ -644,6 +650,7 @@ Deno.test('GraphNode.required()', async (pContext) => {
         expect(lGraph.configuration.isList).toBeFalsy();
         expect(lGraph.configuration.isBranch).toBeTruthy();
         expect(lGraph.configuration.dataKey).toBe('Name');
+        expect(lGraph.configuration.valueSelector).toBe(GraphNodeValueSelector.Value);
     });
 
     await pContext.step('Create branch list', () => {
@@ -659,6 +666,184 @@ Deno.test('GraphNode.required()', async (pContext) => {
         expect(lGraph.configuration.isList).toBeTruthy();
         expect(lGraph.configuration.isBranch).toBeTruthy();
         expect(lGraph.configuration.dataKey).toBe('Name');
+        expect(lGraph.configuration.valueSelector).toBe(GraphNodeValueSelector.Value);
+    });
+
+    await pContext.step('Create linear named with token modifier', () => {
+        // Setup.
+        const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
+
+        // Process.
+        const lGraph: GraphNode<string> = lRequiredNode.required('Name::TOKEN', 'Value');
+
+        // Evaluation.
+        expect(lGraph.root).toBe(lRequiredNode);
+        expect(lGraph.configuration.isRequired).toBeTruthy();
+        expect(lGraph.configuration.isList).toBeFalsy();
+        expect(lGraph.configuration.isBranch).toBeFalsy();
+        expect(lGraph.configuration.dataKey).toBe('Name');
+        expect(lGraph.configuration.valueSelector).toBe(GraphNodeValueSelector.RawToken);
+    });
+
+    await pContext.step('Create linear list with token modifier', () => {
+        // Setup.
+        const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
+
+        // Process.
+        const lGraph: GraphNode<string> = lRequiredNode.required('Name[]::TOKEN', 'Value');
+
+        // Evaluation.
+        expect(lGraph.root).toBe(lRequiredNode);
+        expect(lGraph.configuration.isRequired).toBeTruthy();
+        expect(lGraph.configuration.isList).toBeTruthy();
+        expect(lGraph.configuration.isBranch).toBeFalsy();
+        expect(lGraph.configuration.dataKey).toBe('Name');
+        expect(lGraph.configuration.valueSelector).toBe(GraphNodeValueSelector.RawToken);
+    });
+
+    await pContext.step('Create branch named with token modifier', () => {
+        // Setup.
+        const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
+
+        // Process.
+        const lGraph: GraphNode<string> = lRequiredNode.required('Name::TOKEN', ['Value', 'Value2']);
+
+        // Evaluation.
+        expect(lGraph.root).toBe(lRequiredNode);
+        expect(lGraph.configuration.isRequired).toBeTruthy();
+        expect(lGraph.configuration.isList).toBeFalsy();
+        expect(lGraph.configuration.isBranch).toBeTruthy();
+        expect(lGraph.configuration.dataKey).toBe('Name');
+        expect(lGraph.configuration.valueSelector).toBe(GraphNodeValueSelector.RawToken);
+    });
+
+    await pContext.step('Create branch list with token modifier', () => {
+        // Setup.
+        const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
+
+        // Process.
+        const lGraph: GraphNode<string> = lRequiredNode.required('Name[]::TOKEN', ['Value', 'Value2']);
+
+        // Evaluation.
+        expect(lGraph.root).toBe(lRequiredNode);
+        expect(lGraph.configuration.isRequired).toBeTruthy();
+        expect(lGraph.configuration.isList).toBeTruthy();
+        expect(lGraph.configuration.isBranch).toBeTruthy();
+        expect(lGraph.configuration.dataKey).toBe('Name');
+        expect(lGraph.configuration.valueSelector).toBe(GraphNodeValueSelector.RawToken);
+    });
+
+    await pContext.step('Create linear named with value modifier', () => {
+        // Setup.
+        const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
+
+        // Process.
+        const lGraph: GraphNode<string> = lRequiredNode.required('Name::VALUE', 'Value');
+
+        // Evaluation.
+        expect(lGraph.root).toBe(lRequiredNode);
+        expect(lGraph.configuration.isRequired).toBeTruthy();
+        expect(lGraph.configuration.isList).toBeFalsy();
+        expect(lGraph.configuration.isBranch).toBeFalsy();
+        expect(lGraph.configuration.dataKey).toBe('Name');
+        expect(lGraph.configuration.valueSelector).toBe(GraphNodeValueSelector.Value);
+    });
+
+    await pContext.step('Create linear named with type modifier', () => {
+        // Setup.
+        const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
+
+        // Process.
+        const lGraph: GraphNode<string> = lRequiredNode.required('Name::TYPE', 'Value');
+
+        // Evaluation.
+        expect(lGraph.root).toBe(lRequiredNode);
+        expect(lGraph.configuration.isRequired).toBeTruthy();
+        expect(lGraph.configuration.isList).toBeFalsy();
+        expect(lGraph.configuration.isBranch).toBeFalsy();
+        expect(lGraph.configuration.dataKey).toBe('Name');
+        expect(lGraph.configuration.valueSelector).toBe(GraphNodeValueSelector.TokenType);
+    });
+
+    await pContext.step('Create linear list with type modifier', () => {
+        // Setup.
+        const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
+
+        // Process.
+        const lGraph: GraphNode<string> = lRequiredNode.required('Name[]::TYPE', 'Value');
+
+        // Evaluation.
+        expect(lGraph.root).toBe(lRequiredNode);
+        expect(lGraph.configuration.isRequired).toBeTruthy();
+        expect(lGraph.configuration.isList).toBeTruthy();
+        expect(lGraph.configuration.isBranch).toBeFalsy();
+        expect(lGraph.configuration.dataKey).toBe('Name');
+        expect(lGraph.configuration.valueSelector).toBe(GraphNodeValueSelector.TokenType);
+    });
+
+    await pContext.step('Error merge with value modifier', () => {
+        // Setup.
+        const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
+
+        // Process.
+        const lErrorFunction = () => {
+            lRequiredNode.required('Name<-InnerName::VALUE', GraphNode.new().required('InnerName', 'InnerValue'));
+        };
+
+        // Evaluation.
+        expect(lErrorFunction).toThrow('Merge identifier "Name<-InnerName::VALUE" can not have a modifier.');
+    });
+
+    await pContext.step('Error merge with token modifier', () => {
+        // Setup.
+        const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
+
+        // Process.
+        const lErrorFunction = () => {
+            lRequiredNode.required('Name<-InnerName::TOKEN', GraphNode.new().required('InnerName', 'InnerValue'));
+        };
+
+        // Evaluation.
+        expect(lErrorFunction).toThrow('Merge identifier "Name<-InnerName::TOKEN" can not have a modifier.');
+    });
+
+    await pContext.step('Error token modifier before merge', () => {
+        // Setup.
+        const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
+
+        // Process.
+        const lErrorFunction = () => {
+            lRequiredNode.required('Name::TOKEN<-InnerName', GraphNode.new().required('InnerName', 'InnerValue'));
+        };
+
+        // Evaluation.
+        expect(lErrorFunction).toThrow('Unknown identifier modifier "TOKEN<-InnerName". Modifiers must be the last part of the identifier.');
+    });
+
+    await pContext.step('Error token modifier before list', () => {
+        // Setup.
+        const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
+
+        // Process.
+        const lErrorFunction = () => {
+            lRequiredNode.required('Name::TOKEN[]', 'Value');
+        };
+
+        // Evaluation.
+        expect(lErrorFunction).toThrow('Unknown identifier modifier "TOKEN[]". Modifiers must be the last part of the identifier.');
+    });
+
+    await pContext.step('Error unknown modifier', () => {
+        // Setup.
+        const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
+
+        // Process.
+        const lErrorFunction = () => {
+            lRequiredNode.required('Name::UNKNOWN', 'Value');
+        };
+
+        // Evaluation.
+        expect(lErrorFunction).toThrow('Unknown identifier modifier "UNKNOWN". Modifiers must be the last part of the identifier.');
     });
 
     await pContext.step('Error double chaining', () => {
@@ -690,6 +875,7 @@ Deno.test('GraphNode.optional()', async (pContext) => {
         expect(lGraph.configuration.isList).toBeFalsy();
         expect(lGraph.configuration.isBranch).toBeFalsy();
         expect(lGraph.configuration.dataKey).toBe('');
+        expect(lGraph.configuration.valueSelector).toBe(GraphNodeValueSelector.Value);
     });
 
     await pContext.step('Create linear named', () => {
@@ -705,6 +891,7 @@ Deno.test('GraphNode.optional()', async (pContext) => {
         expect(lGraph.configuration.isList).toBeFalsy();
         expect(lGraph.configuration.isBranch).toBeFalsy();
         expect(lGraph.configuration.dataKey).toBe('Name');
+        expect(lGraph.configuration.valueSelector).toBe(GraphNodeValueSelector.Value);
     });
 
     await pContext.step('Create linear list', () => {
@@ -720,6 +907,7 @@ Deno.test('GraphNode.optional()', async (pContext) => {
         expect(lGraph.configuration.isList).toBeTruthy();
         expect(lGraph.configuration.isBranch).toBeFalsy();
         expect(lGraph.configuration.dataKey).toBe('Name');
+        expect(lGraph.configuration.valueSelector).toBe(GraphNodeValueSelector.Value);
     });
 
     await pContext.step('Create linear merge', () => {
@@ -737,6 +925,7 @@ Deno.test('GraphNode.optional()', async (pContext) => {
         expect(lGraph.configuration.isList).toBeFalsy();
         expect(lGraph.configuration.isBranch).toBeFalsy();
         expect(lGraph.configuration.dataKey).toBe('Name');
+        expect(lGraph.configuration.valueSelector).toBe(GraphNodeValueSelector.Value);
     });
 
     await pContext.step('Create branch unnamed', () => {
@@ -752,6 +941,7 @@ Deno.test('GraphNode.optional()', async (pContext) => {
         expect(lGraph.configuration.isList).toBeFalsy();
         expect(lGraph.configuration.isBranch).toBeTruthy();
         expect(lGraph.configuration.dataKey).toBe('');
+        expect(lGraph.configuration.valueSelector).toBe(GraphNodeValueSelector.Value);
     });
 
     await pContext.step('Create branch named', () => {
@@ -767,6 +957,7 @@ Deno.test('GraphNode.optional()', async (pContext) => {
         expect(lGraph.configuration.isList).toBeFalsy();
         expect(lGraph.configuration.isBranch).toBeTruthy();
         expect(lGraph.configuration.dataKey).toBe('Name');
+        expect(lGraph.configuration.valueSelector).toBe(GraphNodeValueSelector.Value);
     });
 
     await pContext.step('Create branch list', () => {
@@ -782,6 +973,184 @@ Deno.test('GraphNode.optional()', async (pContext) => {
         expect(lGraph.configuration.isList).toBeTruthy();
         expect(lGraph.configuration.isBranch).toBeTruthy();
         expect(lGraph.configuration.dataKey).toBe('Name');
+        expect(lGraph.configuration.valueSelector).toBe(GraphNodeValueSelector.Value);
+    });
+
+    await pContext.step('Create linear named with token modifier', () => {
+        // Setup.
+        const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
+
+        // Process.
+        const lGraph: GraphNode<string> = lRequiredNode.optional('Name::TOKEN', 'Value');
+
+        // Evaluation.
+        expect(lGraph.root).toBe(lRequiredNode);
+        expect(lGraph.configuration.isRequired).toBeFalsy();
+        expect(lGraph.configuration.isList).toBeFalsy();
+        expect(lGraph.configuration.isBranch).toBeFalsy();
+        expect(lGraph.configuration.dataKey).toBe('Name');
+        expect(lGraph.configuration.valueSelector).toBe(GraphNodeValueSelector.RawToken);
+    });
+
+    await pContext.step('Create linear list with token modifier', () => {
+        // Setup.
+        const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
+
+        // Process.
+        const lGraph: GraphNode<string> = lRequiredNode.optional('Name[]::TOKEN', 'Value');
+
+        // Evaluation.
+        expect(lGraph.root).toBe(lRequiredNode);
+        expect(lGraph.configuration.isRequired).toBeFalsy();
+        expect(lGraph.configuration.isList).toBeTruthy();
+        expect(lGraph.configuration.isBranch).toBeFalsy();
+        expect(lGraph.configuration.dataKey).toBe('Name');
+        expect(lGraph.configuration.valueSelector).toBe(GraphNodeValueSelector.RawToken);
+    });
+
+    await pContext.step('Create branch named with token modifier', () => {
+        // Setup.
+        const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
+
+        // Process.
+        const lGraph: GraphNode<string> = lRequiredNode.optional('Name::TOKEN', ['Value', 'Value2']);
+
+        // Evaluation.
+        expect(lGraph.root).toBe(lRequiredNode);
+        expect(lGraph.configuration.isRequired).toBeFalsy();
+        expect(lGraph.configuration.isList).toBeFalsy();
+        expect(lGraph.configuration.isBranch).toBeTruthy();
+        expect(lGraph.configuration.dataKey).toBe('Name');
+        expect(lGraph.configuration.valueSelector).toBe(GraphNodeValueSelector.RawToken);
+    });
+
+    await pContext.step('Create branch list with token modifier', () => {
+        // Setup.
+        const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
+
+        // Process.
+        const lGraph: GraphNode<string> = lRequiredNode.optional('Name[]::TOKEN', ['Value', 'Value2']);
+
+        // Evaluation.
+        expect(lGraph.root).toBe(lRequiredNode);
+        expect(lGraph.configuration.isRequired).toBeFalsy();
+        expect(lGraph.configuration.isList).toBeTruthy();
+        expect(lGraph.configuration.isBranch).toBeTruthy();
+        expect(lGraph.configuration.dataKey).toBe('Name');
+        expect(lGraph.configuration.valueSelector).toBe(GraphNodeValueSelector.RawToken);
+    });
+
+    await pContext.step('Create linear named with value modifier', () => {
+        // Setup.
+        const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
+
+        // Process.
+        const lGraph: GraphNode<string> = lRequiredNode.optional('Name::VALUE', 'Value');
+
+        // Evaluation.
+        expect(lGraph.root).toBe(lRequiredNode);
+        expect(lGraph.configuration.isRequired).toBeFalsy();
+        expect(lGraph.configuration.isList).toBeFalsy();
+        expect(lGraph.configuration.isBranch).toBeFalsy();
+        expect(lGraph.configuration.dataKey).toBe('Name');
+        expect(lGraph.configuration.valueSelector).toBe(GraphNodeValueSelector.Value);
+    });
+
+    await pContext.step('Create linear named with type modifier', () => {
+        // Setup.
+        const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
+
+        // Process.
+        const lGraph: GraphNode<string> = lRequiredNode.optional('Name::TYPE', 'Value');
+
+        // Evaluation.
+        expect(lGraph.root).toBe(lRequiredNode);
+        expect(lGraph.configuration.isRequired).toBeFalsy();
+        expect(lGraph.configuration.isList).toBeFalsy();
+        expect(lGraph.configuration.isBranch).toBeFalsy();
+        expect(lGraph.configuration.dataKey).toBe('Name');
+        expect(lGraph.configuration.valueSelector).toBe(GraphNodeValueSelector.TokenType);
+    });
+
+    await pContext.step('Create linear list with type modifier', () => {
+        // Setup.
+        const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
+
+        // Process.
+        const lGraph: GraphNode<string> = lRequiredNode.optional('Name[]::TYPE', 'Value');
+
+        // Evaluation.
+        expect(lGraph.root).toBe(lRequiredNode);
+        expect(lGraph.configuration.isRequired).toBeFalsy();
+        expect(lGraph.configuration.isList).toBeTruthy();
+        expect(lGraph.configuration.isBranch).toBeFalsy();
+        expect(lGraph.configuration.dataKey).toBe('Name');
+        expect(lGraph.configuration.valueSelector).toBe(GraphNodeValueSelector.TokenType);
+    });
+
+    await pContext.step('Error merge with value modifier', () => {
+        // Setup.
+        const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
+
+        // Process.
+        const lErrorFunction = () => {
+            lRequiredNode.optional('Name<-InnerName::VALUE', GraphNode.new().required('InnerName', 'InnerValue'));
+        };
+
+        // Evaluation.
+        expect(lErrorFunction).toThrow('Merge identifier "Name<-InnerName::VALUE" can not have a modifier.');
+    });
+
+    await pContext.step('Error merge with token modifier', () => {
+        // Setup.
+        const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
+
+        // Process.
+        const lErrorFunction = () => {
+            lRequiredNode.optional('Name<-InnerName::TOKEN', GraphNode.new().required('InnerName', 'InnerValue'));
+        };
+
+        // Evaluation.
+        expect(lErrorFunction).toThrow('Merge identifier "Name<-InnerName::TOKEN" can not have a modifier.');
+    });
+
+    await pContext.step('Error token modifier before merge', () => {
+        // Setup.
+        const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
+
+        // Process.
+        const lErrorFunction = () => {
+            lRequiredNode.optional('Name::TOKEN<-InnerName', GraphNode.new().required('InnerName', 'InnerValue'));
+        };
+
+        // Evaluation.
+        expect(lErrorFunction).toThrow('Unknown identifier modifier "TOKEN<-InnerName". Modifiers must be the last part of the identifier.');
+    });
+
+    await pContext.step('Error token modifier before list', () => {
+        // Setup.
+        const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
+
+        // Process.
+        const lErrorFunction = () => {
+            lRequiredNode.optional('Name::TOKEN[]', 'Value');
+        };
+
+        // Evaluation.
+        expect(lErrorFunction).toThrow('Unknown identifier modifier "TOKEN[]". Modifiers must be the last part of the identifier.');
+    });
+
+    await pContext.step('Error unknown modifier', () => {
+        // Setup.
+        const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
+
+        // Process.
+        const lErrorFunction = () => {
+            lRequiredNode.optional('Name::UNKNOWN', 'Value');
+        };
+
+        // Evaluation.
+        expect(lErrorFunction).toThrow('Unknown identifier modifier "UNKNOWN". Modifiers must be the last part of the identifier.');
     });
 
     await pContext.step('Error double chaining', () => {

@@ -1,4 +1,5 @@
 import { Exception } from '@kartoffelgames/core';
+import type { LexerToken } from '../../lexer/lexer-token.ts';
 import { Graph } from './graph.ts';
 
 /**
@@ -39,7 +40,8 @@ export class GraphNode<TTokenType extends string, TResultData extends object = o
             dataKey: this.mIdentifier.dataKey,
             isList: this.mIdentifier.type === 'list',
             isRequired: this.mConnections.required,
-            isBranch: this.mConnections.values.length > 1
+            isBranch: this.mConnections.values.length > 1,
+            valueSelector: this.mIdentifier.valueSelector
         };
     }
 
@@ -60,6 +62,13 @@ export class GraphNode<TTokenType extends string, TResultData extends object = o
     }
 
     /**
+     * Value modifier for this node.
+     */
+    public get valueSelector(): GraphNodeValueSelector {
+        return this.mIdentifier.valueSelector;
+    }
+
+    /**
      * Creates an instance of GraphNode.
      * 
      * @param pIdentifier - The identifier for the graph node.
@@ -68,32 +77,63 @@ export class GraphNode<TTokenType extends string, TResultData extends object = o
      * @param pRootNode - (Optional) The root node of the graph. If not provided, this node will be considered the root node.
      */
     private constructor(pIdentifier: GraphNodeKey, pRequired: boolean, pValues: Array<GraphParameterValue<TTokenType>>, pRootNode?: GraphNode<TTokenType>) {
+        // Get the cleaned identifier and modifier.
+        const [lIdentifier, lValueSelector] = ((): [string, GraphNodeValueSelector] => {
+            // Adjust value selector based on the set modifier.
+            if (pIdentifier.includes('::')) {
+                // Split identifger by selector delimiter to get the raw modifier and identifer.
+                const lDelimiterIndex: number = pIdentifier.indexOf('::');
+                const lIdentifierName: string = pIdentifier.substring(0, pIdentifier.indexOf('::'));
+                const lModifierName: string = pIdentifier.substring(lDelimiterIndex + 2);
+
+                // Based on the modifier name return different selector types.
+                switch (lModifierName) {
+                    case 'VALUE': return [lIdentifierName, GraphNodeValueSelector.Value];
+                    case 'TOKEN': return [lIdentifierName, GraphNodeValueSelector.RawToken];
+                    case 'TYPE': return [lIdentifierName, GraphNodeValueSelector.TokenType];
+                }
+
+                throw new Exception(`Unknown identifier modifier "${lModifierName}". Modifiers must be the last part of the identifier.`, this);
+            }
+
+            return [pIdentifier, GraphNodeValueSelector.Value];
+        })();
+
         // Split idenfifier into {empty: boolean, key: string, list: boolean, mergeKey: string}
-        if (pIdentifier === '') {
+        if (lIdentifier === '') {
             this.mIdentifier = {
                 type: 'empty',
                 dataKey: '',
                 mergeKey: '',
+                valueSelector: lValueSelector
             };
-        } else if (pIdentifier.endsWith('[]')) {
+        } else if (lIdentifier.endsWith('[]')) {
             this.mIdentifier = {
                 type: 'list',
                 mergeKey: '',
-                dataKey: pIdentifier.substring(0, pIdentifier.length - 2), // Remove [] from key.
+                dataKey: lIdentifier.substring(0, lIdentifier.length - 2), // Remove [] from key.
+                valueSelector: lValueSelector
             };
-        } else if (pIdentifier.includes('<-')) {
-            const lSplit: Array<string> = pIdentifier.split('<-');
+        } else if (lIdentifier.includes('<-')) {
+            // Merged data is created by the merged graph, so a modifier would have no effect.
+            if (pIdentifier.includes('::')) {
+                throw new Exception(`Merge identifier "${pIdentifier}" can not have a modifier.`, this);
+            }
+
+            const lSplit: Array<string> = lIdentifier.split('<-');
             this.mIdentifier = {
                 type: 'merge',
                 dataKey: lSplit[0],
-                mergeKey: lSplit[1]
+                mergeKey: lSplit[1],
+                valueSelector: lValueSelector
             };
         }
         else {
             this.mIdentifier = {
                 type: 'single',
                 mergeKey: '',
-                dataKey: pIdentifier
+                dataKey: lIdentifier,
+                valueSelector: lValueSelector
             };
         }
 
@@ -246,13 +286,13 @@ export class GraphNode<TTokenType extends string, TResultData extends object = o
         const lChainMergeValue: unknown = lOpenChainData[this.mIdentifier.dataKey];
 
         // NodeData any && ChainData undefined => No Merge. Just insert data into chain data.
-        if(typeof lChainMergeValue === 'undefined'){
+        if (typeof lChainMergeValue === 'undefined') {
             lOpenChainData[this.mIdentifier.dataKey] = lMergePickedNodeData;
             return lOpenChainData as TResultData;
         }
 
         // NodeData:array && ChainData:primitive => ERROR: 
-        if(!Array.isArray(lChainMergeValue)){
+        if (!Array.isArray(lChainMergeValue)) {
             throw new Exception(`Chain data merge value is not an array but should be.`, this);
         }
 
@@ -500,12 +540,14 @@ type GraphNodeConfiguration = {
     isList: boolean;
     isRequired: boolean;
     isBranch: boolean;
+    valueSelector: GraphNodeValueSelector;
 };
 
 type GraphNodeIdentifier = {
     type: 'empty' | 'list' | 'merge' | 'single';
     dataKey: string;
     mergeKey: string;
+    valueSelector: GraphNodeValueSelector;
 };
 
 /*
@@ -516,6 +558,27 @@ type GraphNodeEmptyKey = '';
 type GraphNodeMergeKey = `${string}<-${string}`;
 type GraphNodeSingleKey = string;
 type GraphNodeKey = GraphNodeListKey | GraphNodeEmptyKey | GraphNodeMergeKey | GraphNodeSingleKey;
+
+/*
+ * Graph node key modifiers. A modifier is always the last part of a single or list key.
+ */
+
+
+/**
+ * Mapping for a node value selector to its actual return type.
+ */
+/* eslint-disable @typescript-eslint/naming-convention */
+type GraphNodeValueSelectorResult<TTokenType extends string, TToken extends TTokenType> = {
+    VALUE: string;
+    TOKEN: LexerToken<TTokenType>;
+    TYPE: TToken;
+};
+
+type GraphNodeValueSelectorName = keyof GraphNodeValueSelectorResult<string, string>;
+type GraphNodeValueSelectorKey = `${string}::${string}`;
+type GraphNodeKeyValueSelector<TKey extends string> = TKey extends `${string}::${infer TModifier}` ? (TModifier extends GraphNodeValueSelectorName ? TModifier : never) : 'VALUE';
+type GraphNodeRawKey<TKey extends string> = TKey extends `${infer TUnmodifiedKey}::${string}` ? TUnmodifiedKey : TKey;
+type GraphNodeTokenResult<TTokenType extends string, TKey extends string, TToken extends TTokenType> = GraphNodeValueSelectorResult<TTokenType, TToken>[GraphNodeKeyValueSelector<TKey>];
 
 /*
  * Utility. 
@@ -531,10 +594,10 @@ type MergeObjects<TTarget extends object, TSource extends object> = Prettify<{ [
  * Branch result extend types. 
  */
 
-type UnwrapBranchResult<TTokenType extends string, TValue extends Array<GraphParameterValue<TTokenType>>> = {
+type UnwrapBranchResult<TTokenType extends string, TKey extends string, TValue extends Array<GraphParameterValue<TTokenType>>> = {
     [K in keyof TValue]: (
         TValue[K] extends GraphNodeValue<TTokenType, infer T> ? T :
-        TValue[K] extends TTokenType ? TValue[K] :
+        TValue[K] extends TTokenType ? GraphNodeTokenResult<TTokenType, TKey, TValue[K]> :
         never
     )
 } extends Array<infer U> ? U : never;
@@ -545,8 +608,10 @@ type UnwrapBranchResult<TTokenType extends string, TValue extends Array<GraphPar
 
 type OptionalChainResult<TTokenType extends string, TCurrentResult extends object, TKey extends GraphNodeKey, TValue extends GraphParameterValue<TTokenType>> =
     TKey extends GraphNodeEmptyKey ? GraphNode<TTokenType, TCurrentResult> :
-    TKey extends `${infer TPropertyKey}[]` ? (
-        TValue extends TTokenType ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TPropertyKey]: Array<string> }>> :
+    TKey extends GraphNodeMergeKey & GraphNodeValueSelectorKey ? unknown : // Merge keys can not have modifiers.
+    [GraphNodeKeyValueSelector<TKey>] extends [never] ? unknown : // Unknown modifier or modifier is not the last part of the key.
+    GraphNodeRawKey<TKey> extends `${infer TPropertyKey}[]` ? (
+        TValue extends TTokenType ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TPropertyKey]: Array<GraphNodeTokenResult<TTokenType, TKey, TValue>> }>> :
         TValue extends GraphNodeValue<TTokenType, infer TNodeResultValue> ? (
             TNodeResultValue extends Array<infer TArrayType> ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TPropertyKey]: Array<TArrayType> }>> :
             GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TPropertyKey]: Array<TNodeResultValue> }>>
@@ -570,16 +635,18 @@ type OptionalChainResult<TTokenType extends string, TCurrentResult extends objec
         unknown
     ) :
     TKey extends GraphNodeSingleKey ? (
-        TValue extends TTokenType ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TKey]?: string }>> :
-        TValue extends GraphNodeValue<TTokenType, infer TNodeResultValue> ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TKey]?: TNodeResultValue }>> :
+        TValue extends TTokenType ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in GraphNodeRawKey<TKey>]?: GraphNodeTokenResult<TTokenType, TKey, TValue> }>> :
+        TValue extends GraphNodeValue<TTokenType, infer TNodeResultValue> ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in GraphNodeRawKey<TKey>]?: TNodeResultValue }>> :
         never
     ) :
     never;
 
 type RequiredChainResult<TTokenType extends string, TCurrentResult extends object, TKey extends GraphNodeKey, TValue extends GraphParameterValue<TTokenType>> =
     TKey extends GraphNodeEmptyKey ? GraphNode<TTokenType, TCurrentResult> :
-    TKey extends `${infer TPropertyKey}[]` ? (
-        TValue extends TTokenType ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TPropertyKey]: Array<string> }>> :
+    TKey extends GraphNodeMergeKey & GraphNodeValueSelectorKey ? unknown : // Merge keys can not have modifiers.
+    [GraphNodeKeyValueSelector<TKey>] extends [never] ? unknown : // Unknown modifier or modifier is not the last part of the key.
+    GraphNodeRawKey<TKey> extends `${infer TPropertyKey}[]` ? (
+        TValue extends TTokenType ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TPropertyKey]: Array<GraphNodeTokenResult<TTokenType, TKey, TValue>> }>> :
         TValue extends GraphNodeValue<TTokenType, infer TNodeResultValue> ? (
             TNodeResultValue extends Array<infer TArrayType> ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TPropertyKey]: Array<TArrayType> }>> :
             GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TPropertyKey]: Array<TNodeResultValue> }>>
@@ -604,8 +671,8 @@ type RequiredChainResult<TTokenType extends string, TCurrentResult extends objec
         unknown
     ) :
     TKey extends GraphNodeSingleKey ? (
-        TValue extends TTokenType ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TKey]: string }>> :
-        TValue extends GraphNodeValue<TTokenType, infer TNodeResultValue> ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TKey]: TNodeResultValue }>> :
+        TValue extends TTokenType ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in GraphNodeRawKey<TKey>]: GraphNodeTokenResult<TTokenType, TKey, TValue> }>> :
+        TValue extends GraphNodeValue<TTokenType, infer TNodeResultValue> ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in GraphNodeRawKey<TKey>]: TNodeResultValue }>> :
         never
     ) :
     never;
@@ -613,15 +680,17 @@ type RequiredChainResult<TTokenType extends string, TCurrentResult extends objec
 type RequiredBranchChainResult<TTokenType extends string, TCurrentResult extends object, TKey extends GraphNodeKey, TValue extends Array<GraphParameterValue<TTokenType>>> =
     TKey extends GraphNodeEmptyKey ? GraphNode<TTokenType, TCurrentResult> :
     TKey extends GraphNodeMergeKey ? unknown : // Not allowed on branches.
-    TKey extends `${infer TPropertyKey}[]` ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TPropertyKey]: Array<UnwrapBranchResult<TTokenType, TValue>> }>> :
-    TKey extends GraphNodeSingleKey ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TKey]: UnwrapBranchResult<TTokenType, TValue> }>> :
+    [GraphNodeKeyValueSelector<TKey>] extends [never] ? unknown : // Unknown modifier or modifier is not the last part of the key.
+    GraphNodeRawKey<TKey> extends `${infer TPropertyKey}[]` ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TPropertyKey]: Array<UnwrapBranchResult<TTokenType, TKey, TValue>> }>> :
+    TKey extends GraphNodeSingleKey ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in GraphNodeRawKey<TKey>]: UnwrapBranchResult<TTokenType, TKey, TValue> }>> :
     never;
 
 type OptionalBranchChainResult<TTokenType extends string, TCurrentResult extends object, TKey extends GraphNodeKey, TValue extends Array<GraphParameterValue<TTokenType>>> =
     TKey extends GraphNodeEmptyKey ? GraphNode<TTokenType, TCurrentResult> :
     TKey extends GraphNodeMergeKey ? unknown : // Not allowed on branches.
-    TKey extends `${infer TPropertyKey}[]` ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TPropertyKey]?: Array<UnwrapBranchResult<TTokenType, TValue>> }>> :
-    TKey extends GraphNodeSingleKey ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TKey]?: UnwrapBranchResult<TTokenType, TValue> }>> :
+    [GraphNodeKeyValueSelector<TKey>] extends [never] ? unknown : // Unknown modifier or modifier is not the last part of the key.
+    GraphNodeRawKey<TKey> extends `${infer TPropertyKey}[]` ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TPropertyKey]?: Array<UnwrapBranchResult<TTokenType, TKey, TValue>> }>> :
+    TKey extends GraphNodeSingleKey ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in GraphNodeRawKey<TKey>]?: UnwrapBranchResult<TTokenType, TKey, TValue> }>> :
     never;
 
 /*
@@ -639,3 +708,13 @@ export type GraphNodeConnections<TTokenType extends string> = {
     next: GraphNode<TTokenType> | null;
     values: Array<GraphValue<TTokenType>>;
 };
+
+/**
+ * Token value modifier for value converter.
+ */
+export const GraphNodeValueSelector = {
+    Value: 'Value',
+    RawToken: 'RawToken',
+    TokenType: 'TokenType'
+} as const;
+export type GraphNodeValueSelector = typeof GraphNodeValueSelector[keyof typeof GraphNodeValueSelector];

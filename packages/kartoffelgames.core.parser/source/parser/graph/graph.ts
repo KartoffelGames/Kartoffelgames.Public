@@ -25,7 +25,7 @@ export class Graph<TTokenType extends string, TOriginalData extends object = obj
     private readonly mGraphCollector: GraphNodeCollector<TTokenType, TOriginalData>;
     private readonly mIsJunction: boolean;
     private mResolvedGraphNode: GraphNode<TTokenType> | null;
-    
+
     /**
      * Get whether the graph is a junction.
      */
@@ -74,8 +74,8 @@ export class Graph<TTokenType extends string, TOriginalData extends object = obj
 
         // Get start and end token of graph.
         const lBoundingToken: [LexerToken<TTokenType> | null, LexerToken<TTokenType> | null] = pParsingProcessState.getGraphBoundingToken();
-        const lStartToken = lBoundingToken[0] ?? undefined;
-        const lEndToken = lBoundingToken[1] ?? undefined;
+        const lStartToken: LexerToken<TTokenType> | undefined = lBoundingToken[0] ?? undefined;
+        const lEndToken: LexerToken<TTokenType> | undefined = lBoundingToken[1] ?? undefined;
 
         // Single parser, skip iteration.
         if (this.mDataConverterList.length === 1) {

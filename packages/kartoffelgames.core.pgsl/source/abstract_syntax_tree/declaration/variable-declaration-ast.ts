@@ -12,7 +12,6 @@ import { TypeDeclarationAst } from '../general/type-declaration-ast.ts';
 import type { IValueStoreAst, ValueStoreAstData } from '../i-value-store-ast.interface.ts';
 import { BasePgslTypeKind, type BasePgslType } from '../type/definition/base-pgsl-type.ts';
 import { PgslPointerType } from '../type/definition/pgsl-pointer-type.ts';
-import { PgslSamplerType } from '../type/definition/pgsl-sampler-type.ts';
 import { PgslTextureType } from '../type/definition/pgsl-texture-type.ts';
 import { BaseDeclarationAst, type DeclarationAstData } from './base-declaration-ast.ts';
 
@@ -178,7 +177,7 @@ export class VariableDeclarationAst extends BaseDeclarationAst<VariableDeclarati
      */
     private getAddressSpace(pContext: AbstractSyntaxTreeContext, pCst: VariableDeclarationCst, pDeclarationType: PgslDeclarationType, pType: BasePgslType): PgslValueAddressSpace {
         // For texture and sampler types, we always use texture address space.
-        if (pType instanceof PgslSamplerType || pType instanceof PgslTextureType) {
+        if (pType.isKind(BasePgslTypeKind.Sampler) || pType.isKind(BasePgslTypeKind.Texture)) {
             return PgslValueAddressSpace.Texture;
         }
 
@@ -403,7 +402,7 @@ export class VariableDeclarationAst extends BaseDeclarationAst<VariableDeclarati
             case PgslDeclarationType.Uniform: {
                 // When its a texture or sampler, no other type restrictions apply.
                 switch (true) {
-                    case pType instanceof PgslSamplerType: {
+                    case pType.isKind(BasePgslTypeKind.Sampler): {
                         break;
                     }
                     case pType instanceof PgslTextureType: {

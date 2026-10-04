@@ -104,11 +104,6 @@ export class BinaryExpressionAst extends AbstractSyntaxTree<BinaryExpressionCst,
         const lResultType: BasePgslType = (() => {
             // Validate that right expression of shift operator needs to be a signed integer.
             if (lOperator === PgslOperator.ShiftLeft || lOperator === PgslOperator.ShiftRight) {
-                // Left must be variable.
-                if (!lLeftExpression.data.isStorage) {
-                    pContext.pushIncident(`Left expression of a shift operation must be a variable that can store a value.`, this);
-                }
-
                 // Right must be assignable to unsigned integer.
                 if (lRightValueType.conversionRankTo(lUnsignedInteger) === Number.POSITIVE_INFINITY || typeof lRightExpression.data.constantValue === 'number' && lRightExpression.data.constantValue < 0) {
                     pContext.pushIncident(`Right expression of a shift operation must be an unsigned integer type.`, this);

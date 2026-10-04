@@ -23,7 +23,6 @@ export class AbstractSyntaxTreeContext {
     private readonly mEnums: Map<string, EnumDeclarationAst>;
     private readonly mFunctions: Map<string, FunctionDeclarationAst>;
     private readonly mIncidents: Array<AbstractSyntaxTreeIncident>;
-    private readonly mProcessingStack: Set<string>;
     private mScope: AbstractSyntaxTreeScope | null;
     private readonly mStructs: Map<string, StructDeclarationAst>;
     private readonly mTypeCache: PgslTypeCache;
@@ -87,7 +86,6 @@ export class AbstractSyntaxTreeContext {
 
         // Initialize validation maps.
         this.mBindingNames = new Map<string, Map<string, number>>();
-        this.mProcessingStack = new Set<string>();
     }
 
     /**
@@ -98,26 +96,7 @@ export class AbstractSyntaxTreeContext {
      * @returns The alias if found, undefined otherwise.
      */
     public getAlias(pName: string): AliasDeclarationAst | undefined {
-        const lAlias: AliasDeclarationAst | undefined = this.mAliases.get(pName);
-        if (!lAlias) {
-            return undefined;
-        }
-
-        // Process alias if not yet processed as a build in step.
-        if (!lAlias.isProcessed) {
-            // Restrict recursive processing.
-            if(this.mProcessingStack.has(pName)) {
-                return undefined;
-            }
-
-            this.mProcessingStack.add(pName);
-            this.callInBuildInScope(() => {
-                lAlias.process(this);
-            }, lAlias);
-            this.mProcessingStack.delete(pName);
-        }
-
-        return lAlias;
+        return this.mAliases.get(pName);
     }
 
     /**
@@ -128,26 +107,7 @@ export class AbstractSyntaxTreeContext {
      * @returns The enum if found, undefined otherwise.
      */
     public getEnum(pName: string): EnumDeclarationAst | undefined {
-        const lEnum: EnumDeclarationAst | undefined = this.mEnums.get(pName);
-        if (!lEnum) {
-            return undefined;
-        }
-
-        // Process enum if not yet processed as a build in step.
-        if (!lEnum.isProcessed) {
-            // Restrict recursive processing.
-            if(this.mProcessingStack.has(pName)) {
-                return undefined;
-            }
-
-            this.mProcessingStack.add(pName);
-            this.callInBuildInScope(() => {
-                lEnum.process(this);
-            }, lEnum);
-            this.mProcessingStack.delete(pName);
-        }
-
-        return lEnum;
+        return this.mEnums.get(pName);
     }
 
     /**
@@ -158,26 +118,7 @@ export class AbstractSyntaxTreeContext {
      * @returns The function if found, undefined otherwise.
      */
     public getFunction(pName: string): FunctionDeclarationAst | undefined {
-        const lFunction: FunctionDeclarationAst | undefined = this.mFunctions.get(pName);
-        if (!lFunction) {
-            return undefined;
-        }
-
-        // Process function if not yet processed as a build in step.
-        if (!lFunction.isProcessed) {
-            // Restrict recursive processing.
-            if(this.mProcessingStack.has(pName)) {
-                return undefined;
-            }
-
-            this.mProcessingStack.add(pName);
-            this.callInBuildInScope(() => {
-                lFunction.process(this);
-            }, lFunction);
-            this.mProcessingStack.delete(pName);
-        }
-
-        return lFunction;
+        return this.mFunctions.get(pName);
     }
 
     /**
@@ -188,26 +129,7 @@ export class AbstractSyntaxTreeContext {
      * @returns The struct if found, undefined otherwise.
      */
     public getStruct(pName: string): StructDeclarationAst | undefined {
-        const lStruct: StructDeclarationAst | undefined = this.mStructs.get(pName);
-        if (!lStruct) {
-            return undefined;
-        }
-
-        // Process struct if not yet processed as a build in step.
-        if (!lStruct.isProcessed) {
-            // Restrict recursive processing.
-            if(this.mProcessingStack.has(pName)) {
-                return undefined;
-            }
-
-            this.mProcessingStack.add(pName);
-            this.callInBuildInScope(() => {
-                lStruct.process(this);
-            }, lStruct);
-            this.mProcessingStack.delete(pName);
-        }
-
-        return lStruct;
+        return this.mStructs.get(pName);
     }
 
     /**
@@ -421,32 +343,6 @@ export class AbstractSyntaxTreeContext {
         }
 
         this.mDocument = pDocument;
-    }
-
-    /**
-     * Call action in build-in scope.
-     * 
-     * @param pScopeAction - Action to execute in build-in scope.
-     * @param pOwner - The owner of the scope.
-     */
-    private callInBuildInScope(pScopeAction: () => void, pOwner: AbstractSyntaxTree): void {
-        // Save the current scope.
-        const lLastScope: AbstractSyntaxTreeScope | null = this.mScope;
-
-        // Replace current level with new scope.
-        this.mScope = {
-            type: 'build-in',
-            parent: null,
-            values: new Map<string, IValueStoreAst>(),
-            owner: pOwner
-        };
-
-        // execute scope action and restore last scope afterwards.
-        try {
-            pScopeAction();
-        } finally {
-            this.mScope = lLastScope;
-        }
     }
 }
 

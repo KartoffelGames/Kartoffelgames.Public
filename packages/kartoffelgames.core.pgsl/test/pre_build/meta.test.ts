@@ -210,4 +210,26 @@ Deno.test('Meta', async (pContext) => {
         // Imported key that is not overridden still exists with empty string.
         expect(lTranspilationResult.metaValues.get('Verbose')).toBe('');
     });
+
+    await pContext.step('Keep line numbers', () => {
+        // Setup. Create parser.
+        const lPgslParser: PgslParser = new PgslParser();
+
+        // Setup. Create code text with an undefined value on line six. The second meta follows a blank line.
+        const lUndefinedValueLine: number = 6;
+        const lCodeText: string = `
+            #META "AppName" "MyApp";
+
+            #META "Version" "1.0.0";
+            function testFunction(): void {
+                const value: ${PgslNumericType.typeName.float32} = undefinedValue;
+            }
+        `;
+
+        // Process.
+        const lTranspilationResult: PgslParserResult = lPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+        // Evaluation. Undefined value is reported on its own line.
+        expect(lTranspilationResult.incidents[0].line).toBe(lUndefinedValueLine);
+    });
 });

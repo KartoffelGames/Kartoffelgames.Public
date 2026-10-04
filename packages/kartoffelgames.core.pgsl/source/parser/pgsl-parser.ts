@@ -1716,16 +1716,16 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
 
         // Find and store all imports by name.
         const lImportList: Array<string> = new Array<string>();
-        for (const lImportMatch of lResultCode.matchAll(/^\s*#IMPORT\s+"(.*?)"\s*;/gm)) {
+        for (const lImportMatch of lResultCode.matchAll(/^[ \t]*#IMPORT[ \t]+"(.*?)"[ \t]*;/gm)) {
             lImportList.push(lImportMatch[1].toLowerCase());
         }
 
         // Split the code on each import to get code parts without imports.
         // This allows to parse the document in the correct order with imports first and then the actual document content.
-        const lCodeImportSplits: Array<string> = lResultCode.split(/^\s*#IMPORT\s+".*?"\s*;/gm);
+        const lCodeImportSplits: Array<string> = lResultCode.split(/^[ \t]*#IMPORT[ \t]+".*?"[ \t]*;/gm);
 
-        // Process meta declarations for each code part.
-        const lMetaDeclarationRegex: RegExp = /^\s*#META\s+"(.*?)"\s*(?:"(.*?)")?;\s*$/gm;
+        // Process meta declarations for each code part. Only spaces and tabs are matched around it, so no newline is consumed.
+        const lMetaDeclarationRegex: RegExp = /^[ \t]*#META[ \t]+"(.*?)"[ \t]*(?:"(.*?)")?;[ \t]*$/gm;
         const lCodeParts: Array<PgslParserPreprocessResultCodePart> = lCodeImportSplits.map((pCodePart: string) => {
             // Storage for replaced code parts meta values.
             const lMetaValues: Map<string, string> = new Map<string, string>();
@@ -1735,8 +1735,8 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
                 // Save meta value.
                 lMetaValues.set(pMetaName, pMetaValue || '');
 
-                // Replace with newlines only to keep line numbers lined up.
-                return '\n';
+                // Replace with an empty line to keep line numbers lined up.
+                return '';
             });
 
             return {

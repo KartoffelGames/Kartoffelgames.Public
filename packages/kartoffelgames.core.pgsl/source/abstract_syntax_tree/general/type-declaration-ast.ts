@@ -208,16 +208,16 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
         if (lBuildInTypeName === PgslBuildInType.typeName.clipDistances) {
             // Template must be provided for ClipDistances.
             if (!lTemplateExpression) {
-                pContext.pushIncident(`Clip distance built-in template value must have a value expression.`);
+                pContext.pushIncident(`Clip distance built-in template value must have a value expression.`, this);
             } else {
                 // Template needs to be a constant.
                 if (lTemplateExpression.data.fixedState < PgslValueFixedState.Constant) {
-                    pContext.pushIncident(`Clip distance built-in template value must be a constant.`);
+                    pContext.pushIncident(`Clip distance built-in template value must be a constant.`, this);
                 }
 
                 // Template needs to be a unsigned integer.
                 if (lTemplateExpression.data.resolveType.conversionRankTo(new PgslNumericType(PgslNumericType.typeName.unsignedInteger)) === Number.POSITIVE_INFINITY) {
-                    pContext.pushIncident(`Clip distance built-in template value must be an unsigned integer.`);
+                    pContext.pushIncident(`Clip distance built-in template value must be an unsigned integer.`, this);
                 }
             }
         }

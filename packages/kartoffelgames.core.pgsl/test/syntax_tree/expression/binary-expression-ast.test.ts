@@ -230,6 +230,21 @@ Deno.test('BinaryExpressionAst - Parsing', async (pContext) => {
             const lResultType: PgslNumericType = lExpressionNode.data.resolveType as PgslNumericType;
             expect(lResultType).toBeInstanceOf(PgslNumericType);
         });
+
+        await pContext.step('Shift left of a literal', () => {
+            // Setup.
+            const lCodeText: string = `
+                function testFunction(): void {
+                    let testVariable: ${PgslNumericType.typeName.signedInteger} = 5 << 2u;
+                }
+            `;
+
+            // Process.
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
+
+            // Evaluation. Any integer expression can be shifted.
+            expect(lDocument.data.incidents).toHaveLength(0);
+        });
     });
 
     await pContext.step('Vector Binary Operations', async (pContext) => {
@@ -524,26 +539,6 @@ Deno.test('BinaryExpressionAst - Error', async (pContext) => {
         // Evaluation. Error should mention vector size mismatch.
         expect(lTranspilationResult.incidents.some(pIncident =>
             pIncident.message.includes('Left and right side of bit expression must be of the same vector size')
-        )).toBe(true);
-    });
-
-    await pContext.step('Non-variable in shift left expression', () => {
-        // Setup.
-        const lCodeText: string = `
-            function testFunction(): void {
-                let testVariable: ${PgslNumericType.typeName.signedInteger} = 5 << 2;
-            }
-        `;
-
-        // Process.
-        const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
-
-        // Evaluation. Should have errors.
-        expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
-
-        // Evaluation. Error should mention variable requirement.
-        expect(lTranspilationResult.incidents.some(pIncident =>
-            pIncident.message.includes('Left expression of a shift operation must be a variable that can store a value')
         )).toBe(true);
     });
 

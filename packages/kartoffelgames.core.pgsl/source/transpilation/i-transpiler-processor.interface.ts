@@ -9,9 +9,7 @@ export interface ITranspilerProcessor<TTarget extends AbstractSyntaxTree> {
     readonly target: IAnyParameterConstructor<TTarget>;
 
     /**
-     * Function type for transpilation processors that convert specific syntax tree node types
-     * into target language code. Each processor is responsible for transpiling one type
-     * of syntax tree node.
+     * Processor to convert the target instance into a string representation.
      * 
      * @param pInstance - The syntax tree instance to transpile.
      * @param pTranspile - Callback function to transpile child nodes.

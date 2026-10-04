@@ -67,24 +67,45 @@ export class ArithmeticExpressionAst extends AbstractSyntaxTree<ArithmeticExpres
             const lLeftExpressionType: ExpressionType = lFindExpressionType(lLeftType);
             const lRightExpressionType: ExpressionType = lFindExpressionType(lRightType);
 
+            // Vectors and matrices are compared by their component type.
+            const lLeftInnerType: BasePgslType = (lLeftType instanceof PgslVectorType || lLeftType instanceof PgslMatrixType) ? lLeftType.innerType : lLeftType;
+            const lRightInnerType: BasePgslType = (lRightType instanceof PgslVectorType || lRightType instanceof PgslMatrixType) ? lRightType.innerType : lRightType;
+
+            // Find the correct inner type based on the highest conversation rank.
+            const lInnerType: BasePgslType = (() => {
+                // Left and right need to be same type or implicitly castable.
+                const lLeftToRightRank: number = lLeftInnerType.conversionRankTo(lRightInnerType);
+                const lRightToLeftRank: number = lRightInnerType.conversionRankTo(lLeftInnerType);
+                if (lLeftToRightRank === Number.POSITIVE_INFINITY && lRightToLeftRank === Number.POSITIVE_INFINITY) {
+                    pContext.pushIncident('Left and right side of arithmetic expression must be the same type.', this);
+                }
+
+                // If left type has a cheaper type conversion, convert it to the right type.
+                if (lLeftToRightRank < lRightToLeftRank) {
+                    return lRightInnerType;
+                }
+
+                return lLeftInnerType;
+            })();
+
             // Start right process based on type matching.
             if (lLeftExpressionType === 'scalar' && lRightExpressionType === 'scalar') {
-                return this.processScalarOperation(lLeftType as PgslNumericType, lRightType as PgslNumericType, pContext);
+                return lInnerType;
             }
             if ((lLeftExpressionType === 'scalar' && lRightExpressionType === 'vector') || (lLeftExpressionType === 'vector' && lRightExpressionType === 'scalar')) {
-                return this.processScalarVectorOperation(lLeftType as PgslNumericType | PgslVectorType, lRightType as PgslNumericType | PgslVectorType, pContext);
+                return this.processScalarVectorOperation(lLeftType as PgslNumericType | PgslVectorType, lRightType as PgslNumericType | PgslVectorType, lInnerType);
             }
             if ((lLeftExpressionType === 'scalar' && lRightExpressionType === 'matrix') || (lLeftExpressionType === 'matrix' && lRightExpressionType === 'scalar')) {
-                return this.processScalarMatrixOperation(lLeftType as PgslNumericType | PgslMatrixType, lRightType as PgslNumericType | PgslMatrixType, lOperator!, pContext);
+                return this.processScalarMatrixOperation(lLeftType as PgslNumericType | PgslMatrixType, lRightType as PgslNumericType | PgslMatrixType, lInnerType, lOperator!, pContext);
             }
             if (lLeftExpressionType === 'vector' && lRightExpressionType === 'vector') {
-                return this.processVectorOperation(lLeftType as PgslVectorType, lRightType as PgslVectorType, pContext);
+                return this.processVectorOperation(lLeftType as PgslVectorType, lRightType as PgslVectorType, lInnerType, pContext);
             }
             if ((lLeftExpressionType === 'vector' && lRightExpressionType === 'matrix') || (lLeftExpressionType === 'matrix' && lRightExpressionType === 'vector')) {
-                return this.processVectorMatrixOperation(lLeftType as PgslVectorType | PgslMatrixType, lRightType as PgslVectorType | PgslMatrixType, lOperator!, pContext);
+                return this.processVectorMatrixOperation(lLeftType as PgslVectorType | PgslMatrixType, lRightType as PgslVectorType | PgslMatrixType, lInnerType, lOperator!, pContext);
             }
             if (lLeftExpressionType === 'matrix' && lRightExpressionType === 'matrix') {
-                return this.processMatrixOperation(lLeftType as PgslMatrixType, lRightType as PgslMatrixType, lOperator!, pContext);
+                return this.processMatrixOperation(lLeftType as PgslMatrixType, lRightType as PgslMatrixType, lInnerType, lOperator!, pContext);
             }
 
             // Unhandled type combination.
@@ -109,15 +130,16 @@ export class ArithmeticExpressionAst extends AbstractSyntaxTree<ArithmeticExpres
 
     /**
      * Process and determine result type of a pure matrix operation.
-     * 
+     *
      * @param pLeftType - Type of left side expression.
      * @param pRightType - Type of right side expression.
+     * @param pInnerType - Matix item type of the result.
      * @param pOperator - Operator of the expression.
      * @param pContext - Process context.
-     * 
-     * @returns the result type of the operation. 
+     *
+     * @returns the result type of the operation.
      */
-    private processMatrixOperation(pLeftType: PgslMatrixType, pRightType: PgslMatrixType, pOperator: PgslOperator, pContext: AbstractSyntaxTreeContext): BasePgslType {
+    private processMatrixOperation(pLeftType: PgslMatrixType, pRightType: PgslMatrixType, pInnerType: BasePgslType, pOperator: PgslOperator, pContext: AbstractSyntaxTreeContext): BasePgslType {
         // Get left and right inner types.
         const lLeftInnerType: BasePgslType = pLeftType.innerType;
         const lRightInnerType: BasePgslType = pRightType.innerType;
@@ -125,11 +147,6 @@ export class ArithmeticExpressionAst extends AbstractSyntaxTree<ArithmeticExpres
         // Validate left side type is numeric. Right ist the same type.
         if (!(lLeftInnerType instanceof PgslNumericType) || !(lRightInnerType instanceof PgslNumericType)) {
             pContext.pushIncident('Left and right side of arithmetic expression must be a numeric vector value', this);
-        }
-
-        // Left and right inner type must be implicit castable.
-        if (lRightInnerType.conversionRankTo(lLeftInnerType) === Number.POSITIVE_INFINITY && lLeftInnerType.conversionRankTo(lRightInnerType) === Number.POSITIVE_INFINITY) {
-            pContext.pushIncident('Left and right side of arithmetic expression must be the same type.', this);
         }
 
         // Only a multiplication, addition and subtraction operation is allowed.
@@ -141,7 +158,7 @@ export class ArithmeticExpressionAst extends AbstractSyntaxTree<ArithmeticExpres
                     pContext.pushIncident('Left and right side of arithmetic expression must have the same dimensions.', this);
                 }
 
-                return pLeftType;
+                return new PgslMatrixType(pLeftType.columnCount, pLeftType.rowCount, pInnerType);
             }
             case PgslOperator.Multiply: {
                 // Dimentsion must match. The left columns must match the right rows.
@@ -149,7 +166,8 @@ export class ArithmeticExpressionAst extends AbstractSyntaxTree<ArithmeticExpres
                     pContext.pushIncident('When multiplying a matrix with another matrix, the left matrix columns must match the right matrix rows.', this);
                 }
 
-                return new PgslMatrixType(pLeftType.rowCount, pRightType.columnCount, lLeftInnerType as PgslNumericType);
+                // Result has the right columns and the left rows.
+                return new PgslMatrixType(pRightType.columnCount, pLeftType.rowCount, pInnerType);
             }
         }
 
@@ -162,85 +180,52 @@ export class ArithmeticExpressionAst extends AbstractSyntaxTree<ArithmeticExpres
      * 
      * @param pLeftType - Type of left side expression.
      * @param pRightType - Type of right side expression.
+     * @param pInnerType - Matrix item type of the result.
      * @param pOperator - Operator of the expression.
      * @param pContext - Process context.
-     * 
+     *
      * @returns the result type of the operation.
      */
-    private processScalarMatrixOperation(pLeftType: PgslNumericType | PgslMatrixType, pRightType: PgslNumericType | PgslMatrixType, pOperator: PgslOperator, pContext: AbstractSyntaxTreeContext): BasePgslType {
-        // Get both inner types.
-        const lScalarType: PgslNumericType = (pLeftType instanceof PgslNumericType) ? pLeftType : (pRightType as PgslNumericType);
+    private processScalarMatrixOperation(pLeftType: PgslNumericType | PgslMatrixType, pRightType: PgslNumericType | PgslMatrixType, pInnerType: BasePgslType, pOperator: PgslOperator, pContext: AbstractSyntaxTreeContext): BasePgslType {
+        // Get the matrix side.
         const lMatrixType: PgslMatrixType = (pLeftType instanceof PgslMatrixType) ? pLeftType : (pRightType as PgslMatrixType);
-
-        // Left and right need to be same type or implicitly castable.
-        if (lScalarType.conversionRankTo(lMatrixType.innerType) === Number.POSITIVE_INFINITY && lMatrixType.innerType.conversionRankTo(lScalarType) === Number.POSITIVE_INFINITY) {
-            pContext.pushIncident('Left and right side of arithmetic expression must be the same type.', this);
-        }
 
         // Only multiplication is allowed.
         if (pOperator !== PgslOperator.Multiply) {
             pContext.pushIncident('Only multiplication operation is allowed between scalar and matrix types.', this);
         }
 
-        return lMatrixType;
-    }
-
-    /**
-     * Process and determine result type of a pure scalar operation.
-     * 
-     * @param pLeftType - Type of left side expression.
-     * @param pRightType - Type of right side expression.
-     * @param pContext - Process context.
-     * 
-     * @returns the result type of the operation. 
-     */
-    private processScalarOperation(pLeftType: PgslNumericType, pRightType: PgslNumericType, pContext: AbstractSyntaxTreeContext): BasePgslType {
-        // Left and right need to be same type or implicitly castable.
-        if (pRightType.conversionRankTo(pLeftType) === Number.POSITIVE_INFINITY && pLeftType.conversionRankTo(pRightType) === Number.POSITIVE_INFINITY) {
-            pContext.pushIncident('Left and right side of arithmetic expression must be the same type.', this);
-        }
-
-        // Validate left side type. Right ist the same type.
-        if (!(pLeftType instanceof PgslNumericType)) {
-            pContext.pushIncident('Left and right side of arithmetic expression must be a numeric value', this);
-        }
-
-        return pLeftType;
+        return new PgslMatrixType(lMatrixType.columnCount, lMatrixType.rowCount, pInnerType);
     }
 
     /**
      * Process and determine result type of a scalar-vector operation.
-     * 
+     *
      * @param pLeftType - Type of left side expression.
      * @param pRightType - Type of right side expression.
-     * @param pContext - Process context.
-     * 
+     * @param pInnerType - Vector item type of the result.
+     *
      * @returns the result type of the operation.
      */
-    private processScalarVectorOperation(pLeftType: PgslNumericType | PgslVectorType, pRightType: PgslNumericType | PgslVectorType, pContext: AbstractSyntaxTreeContext): BasePgslType {
-        // Get both inner types.
-        const lScalarType: PgslNumericType = (pLeftType instanceof PgslNumericType) ? pLeftType : (pRightType as PgslNumericType);
+    private processScalarVectorOperation(pLeftType: PgslNumericType | PgslVectorType, pRightType: PgslNumericType | PgslVectorType, pInnerType: BasePgslType): BasePgslType {
+        // Get the vector type of operation.
         const lVectorType: PgslVectorType = (pLeftType instanceof PgslVectorType) ? pLeftType : (pRightType as PgslVectorType);
 
-        // Left and right need to be same type or implicitly castable.
-        if (lScalarType.conversionRankTo(lVectorType.innerType) === Number.POSITIVE_INFINITY && lVectorType.innerType.conversionRankTo(lScalarType) === Number.POSITIVE_INFINITY) {
-            pContext.pushIncident('Left and right side of arithmetic expression must be the same type.', this);
-        }
-
-        return lVectorType;
+        return new PgslVectorType(lVectorType.dimension, pInnerType);
     }
 
     /**
      * Process and determine result type of a vector-matrix operation.
-     * 
+     *
      * @param pLeftType - Type of left side expression.
      * @param pRightType - Type of right side expression.
+     * @param pInnerType - Vector item type of the result.
      * @param pOperator - Operator of the expression.
      * @param pContext - Process context.
-     * 
-     * @returns the result type of the operation. 
+     *
+     * @returns the result type of the operation.
      */
-    private processVectorMatrixOperation(pLeftType: PgslVectorType | PgslMatrixType, pRightType: PgslVectorType | PgslMatrixType, pOperator: PgslOperator, pContext: AbstractSyntaxTreeContext): BasePgslType {
+    private processVectorMatrixOperation(pLeftType: PgslVectorType | PgslMatrixType, pRightType: PgslVectorType | PgslMatrixType, pInnerType: BasePgslType, pOperator: PgslOperator, pContext: AbstractSyntaxTreeContext): BasePgslType {
         // Get left and right inner types.
         const lLeftInnerType: BasePgslType = pLeftType.innerType;
         const lRightInnerType: BasePgslType = pRightType.innerType;
@@ -261,7 +246,7 @@ export class ArithmeticExpressionAst extends AbstractSyntaxTree<ArithmeticExpres
                 pContext.pushIncident('When multiplying a matrix with a vector, the matrix columns must match the vector dimension.', this);
             }
 
-            return new PgslVectorType(pLeftType.rowCount, lLeftInnerType as PgslNumericType);
+            return new PgslVectorType(pLeftType.rowCount, pInnerType);
         }
 
         // When its a vector x matrix operation, the matrix rows must match the vector dimension.
@@ -270,7 +255,7 @@ export class ArithmeticExpressionAst extends AbstractSyntaxTree<ArithmeticExpres
                 pContext.pushIncident('When multiplying a vector with a matrix, the matrix rows must match the vector dimension.', this);
             }
 
-            return new PgslVectorType(pRightType.columnCount, lLeftInnerType as PgslNumericType);
+            return new PgslVectorType(pRightType.columnCount, pInnerType);
         }
 
         // Not a valid combination.
@@ -282,16 +267,12 @@ export class ArithmeticExpressionAst extends AbstractSyntaxTree<ArithmeticExpres
      * 
      * @param pLeftType - Type of left side expression.
      * @param pRightType - Type of right side expression.
+     * @param pInnerType - Vector item type of the result.
      * @param pContext - Process context.
-     * 
+     *
      * @returns the result type of the operation.
      */
-    private processVectorOperation(pLeftType: PgslVectorType, pRightType: PgslVectorType, pContext: AbstractSyntaxTreeContext): BasePgslType {
-        // Left and right need to be same type or implicitly castable.
-        if (pRightType.conversionRankTo(pLeftType) === Number.POSITIVE_INFINITY && pLeftType.conversionRankTo(pRightType) === Number.POSITIVE_INFINITY) {
-            pContext.pushIncident('Left and right side of arithmetic expression must be the same type.', this);
-        }
-
+    private processVectorOperation(pLeftType: PgslVectorType, pRightType: PgslVectorType, pInnerType: BasePgslType, pContext: AbstractSyntaxTreeContext): BasePgslType {
         // Validate left side type is numeric. Right ist the same type.
         const lInnerType: BasePgslType = pLeftType.innerType;
         if (!(lInnerType instanceof PgslNumericType)) {
@@ -303,7 +284,7 @@ export class ArithmeticExpressionAst extends AbstractSyntaxTree<ArithmeticExpres
             pContext.pushIncident('Left and right side of arithmetic expression must have the same dimension.', this);
         }
 
-        return pLeftType;
+        return new PgslVectorType(pLeftType.dimension, pInnerType);
     }
 }
 

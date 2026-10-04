@@ -100,18 +100,38 @@ export class BinaryExpressionAst extends AbstractSyntaxTree<BinaryExpressionCst,
             pContext.pushIncident(`Binary operations can only be applied to integer types.`, this);
         }
 
-        // Validate that right expression of shift operator needs to be a signed integer.
-        if (lOperator === PgslOperator.ShiftLeft || lOperator === PgslOperator.ShiftRight) {
-            // Left must be variable.
-            if (!lLeftExpression.data.isStorage) {
-                pContext.pushIncident(`Left expression of a shift operation must be a variable that can store a value.`, this);
-            }
+        // Get result type of expression.
+        const lResultType: BasePgslType = (() => {
+            // Validate that right expression of shift operator needs to be a signed integer.
+            if (lOperator === PgslOperator.ShiftLeft || lOperator === PgslOperator.ShiftRight) {
+                // Left must be variable.
+                if (!lLeftExpression.data.isStorage) {
+                    pContext.pushIncident(`Left expression of a shift operation must be a variable that can store a value.`, this);
+                }
 
-            // Right must be assignable to unsigned integer.
-            if (lRightValueType.conversionRankTo(lUnsignedInteger) === Number.POSITIVE_INFINITY || typeof lRightExpression.data.constantValue === 'number' && lRightExpression.data.constantValue < 0) {
-                pContext.pushIncident(`Right expression of a shift operation must be an unsigned integer type.`, this);
+                // Right must be assignable to unsigned integer.
+                if (lRightValueType.conversionRankTo(lUnsignedInteger) === Number.POSITIVE_INFINITY || typeof lRightExpression.data.constantValue === 'number' && lRightExpression.data.constantValue < 0) {
+                    pContext.pushIncident(`Right expression of a shift operation must be an unsigned integer type.`, this);
+                }
+
+                // A shift allways uses left sides type.
+                return lLeftExpression.data.resolveType;
+            } else {
+                // Rank the conversion in both directions.
+                const lLeftToRightRank: number = lLeftExpression.data.resolveType.conversionRankTo(lRightExpression.data.resolveType);
+                const lRightToLeftRank: number = lRightExpression.data.resolveType.conversionRankTo(lLeftExpression.data.resolveType);
+                if (lLeftToRightRank === Number.POSITIVE_INFINITY && lRightToLeftRank === Number.POSITIVE_INFINITY) {
+                    pContext.pushIncident('Left and right side of bit expression must be the same type.', this);
+                }
+
+                // Swap types when the rank to convert to right type is better.
+                if (lLeftToRightRank < lRightToLeftRank) {
+                    return lRightExpression.data.resolveType;
+                }
+
+                return lLeftExpression.data.resolveType;
             }
-        }
+        })();
 
         return {
             // Expression data.
@@ -122,7 +142,7 @@ export class BinaryExpressionAst extends AbstractSyntaxTree<BinaryExpressionCst,
             // Expression meta data.
             fixedState: Math.min(lLeftExpression.data.fixedState, lRightExpression.data.fixedState),
             isStorage: false,
-            resolveType: lLeftExpression.data.resolveType,
+            resolveType: lResultType,
             constantValue: null,
             storageAddressSpace: PgslValueAddressSpace.Inherit
         };

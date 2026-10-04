@@ -142,6 +142,30 @@ Deno.test('BinaryExpressionAst - Parsing', async (pContext) => {
             expect(lExpressionNode).toBeInstanceOf(BinaryExpressionAst);
             expect(lExpressionNode.data.leftExpression).toBeInstanceOf(BinaryExpressionAst);
         });
+
+        await pContext.step('Abstract integer with unsigned integer', () => {
+            // Setup.
+            const lCodeText: string = `
+                function testFunction(): void {
+                    let testValue: ${PgslNumericType.typeName.unsignedInteger} = 5u;
+                    let testVariable: ${PgslNumericType.typeName.unsignedInteger} = 3 | testValue;
+                }
+            `;
+
+            // Process.
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
+
+            // Process. Assume correct parsing.
+            const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[1] as VariableDeclarationStatementAst;
+
+            // Evaluation. Abstract integer converts to the unsigned integer.
+            const lExpressionNode: BinaryExpressionAst = lVariableDeclarationNode.data.expression as BinaryExpressionAst;
+            const lResultType: PgslNumericType = lExpressionNode.data.resolveType as PgslNumericType;
+            expect(lResultType).toBeInstanceOf(PgslNumericType);
+            expect(lResultType.numericTypeName).toBe(PgslNumericType.typeName.unsignedInteger);
+        });
     });
 
     await pContext.step('Shift Operations', async (pContext) => {
@@ -596,6 +620,25 @@ Deno.test('BinaryExpressionAst - Error', async (pContext) => {
         // Evaluation. Error should mention the missing parentheses.
         expect(lTranspilationResult.incidents.some(pIncident =>
             pIncident.message.includes('Mixing operator "<<" with "<<" requires parentheses.')
+        )).toBe(true);
+    });
+
+    await pContext.step('Signed with unsigned integer', () => {
+        // Setup.
+        const lCodeText: string = `
+            function testFunction(): void {
+                let testValueOne: ${PgslNumericType.typeName.signedInteger} = 5;
+                let testValueTwo: ${PgslNumericType.typeName.unsignedInteger} = 3u;
+                let testVariable: ${PgslNumericType.typeName.signedInteger} = testValueOne | testValueTwo;
+            }
+        `;
+
+        // Process.
+        const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+        // Evaluation. Error should mention the type mismatch.
+        expect(lTranspilationResult.incidents.some(pIncident =>
+            pIncident.message.includes('Left and right side of bit expression must be the same type.')
         )).toBe(true);
     });
 });

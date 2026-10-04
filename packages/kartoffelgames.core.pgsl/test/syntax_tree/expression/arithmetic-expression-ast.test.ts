@@ -824,6 +824,105 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
             expect(lRightExpression.data.constantValue).toBe(parseFloat(lRightValue));
         });
     });
+
+    await pContext.step('Result type', async (pContext) => {
+        await pContext.step('Integer with float', () => {
+            // Setup.
+            const lCodeText: string = `
+                function testFunction(): void {
+                    let testVariable: ${PgslNumericType.typeName.float32} = 1 + 2.0;
+                }
+            `;
+
+            // Process.
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
+
+            // Process. Assume correct parsing.
+            const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[0] as VariableDeclarationStatementAst;
+
+            // Evaluation. Integer converts to the float.
+            const lExpressionNode: ArithmeticExpressionAst = lVariableDeclarationNode.data.expression as ArithmeticExpressionAst;
+            const lResultType: PgslNumericType = lExpressionNode.data.resolveType as PgslNumericType;
+            expect(lResultType).toBeInstanceOf(PgslNumericType);
+            expect(lResultType.numericTypeName).toBe(PgslNumericType.typeName.abstractFloat);
+        });
+
+        await pContext.step('Abstract integer with concrete integer', () => {
+            // Setup.
+            const lCodeText: string = `
+                function testFunction(): void {
+                    let testValue: ${PgslNumericType.typeName.signedInteger} = 5;
+                    let testVariable: ${PgslNumericType.typeName.signedInteger} = 1 + testValue;
+                }
+            `;
+
+            // Process.
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
+
+            // Process. Assume correct parsing.
+            const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[1] as VariableDeclarationStatementAst;
+
+            // Evaluation. Abstract integer converts to the concrete integer.
+            const lExpressionNode: ArithmeticExpressionAst = lVariableDeclarationNode.data.expression as ArithmeticExpressionAst;
+            const lResultType: PgslNumericType = lExpressionNode.data.resolveType as PgslNumericType;
+            expect(lResultType).toBeInstanceOf(PgslNumericType);
+            expect(lResultType.numericTypeName).toBe(PgslNumericType.typeName.signedInteger);
+        });
+
+        await pContext.step('Integer vector with float', () => {
+            // Setup.
+            const lCodeText: string = `
+                function testFunction(): void {
+                    let testVariable: ${PgslVectorType.typeName.vector3}<${PgslNumericType.typeName.float32}> = new ${PgslVectorType.typeName.vector3}(1, 2, 3) * 2.0;
+                }
+            `;
+
+            // Process.
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
+
+            // Process. Assume correct parsing.
+            const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[0] as VariableDeclarationStatementAst;
+
+            // Evaluation. Vector components convert to the float.
+            const lExpressionNode: ArithmeticExpressionAst = lVariableDeclarationNode.data.expression as ArithmeticExpressionAst;
+            const lResultType: PgslVectorType = lExpressionNode.data.resolveType as PgslVectorType;
+            expect(lResultType).toBeInstanceOf(PgslVectorType);
+            expect(lResultType.dimension).toBe(3);
+            expect((lResultType.innerType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.abstractFloat);
+        });
+
+        await pContext.step('Matrix with different dimensions', () => {
+            // Setup.
+            const lCodeText: string = `
+                function testFunction(): void {
+                    let matrixOne: ${PgslMatrixType.typeName.matrix23}<${PgslNumericType.typeName.float32}> = new ${PgslMatrixType.typeName.matrix23}(1.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+                    let matrixTwo: ${PgslMatrixType.typeName.matrix22}<${PgslNumericType.typeName.float32}> = new ${PgslMatrixType.typeName.matrix22}(1.0, 0.0, 0.0, 1.0);
+                    let testVariable: ${PgslMatrixType.typeName.matrix23}<${PgslNumericType.typeName.float32}> = matrixOne * matrixTwo;
+                }
+            `;
+
+            // Process.
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
+
+            // Process. Assume correct parsing.
+            const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[2] as VariableDeclarationStatementAst;
+
+            // Evaluation. Result has the right columns and the left rows.
+            const lExpressionNode: ArithmeticExpressionAst = lVariableDeclarationNode.data.expression as ArithmeticExpressionAst;
+            const lResultType: PgslMatrixType = lExpressionNode.data.resolveType as PgslMatrixType;
+            expect(lResultType).toBeInstanceOf(PgslMatrixType);
+            expect(lResultType.columnCount).toBe(2);
+            expect(lResultType.rowCount).toBe(3);
+        });
+    });
 });
 
 Deno.test('ArithmeticExpressionAst - Transpilation', async (pContext) => {
@@ -1481,9 +1580,9 @@ Deno.test('ArithmeticExpressionAst - Error', async (pContext) => {
         // Evaluation. Should have errors.
         expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
 
-        // Evaluation. Error should mention type mismatch.
+        // Evaluation. Error should mention dimension mismatch.
         expect(lTranspilationResult.incidents.some(pIncident =>
-            pIncident.message.includes('Left and right side of arithmetic expression must be the same type')
+            pIncident.message.includes('Left and right side of arithmetic expression must have the same dimension.')
         )).toBe(true);
     });
 
@@ -1532,5 +1631,22 @@ Deno.test('ArithmeticExpressionAst - Error', async (pContext) => {
                 pIncident.message.includes('type')
             )).toBe(true);
         });
+    });
+
+    await pContext.step('Float result into integer variable', () => {
+        // Setup.
+        const lCodeText: string = `
+            function testFunction(): void {
+                let testVariable: ${PgslNumericType.typeName.signedInteger} = 1 + 2.0;
+            }
+        `;
+
+        // Process.
+        const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+        // Evaluation. Error should mention the failed conversion.
+        expect(lTranspilationResult.incidents.some(pIncident =>
+            pIncident.message.includes(`Expression values type can't be converted to variables type.`)
+        )).toBe(true);
     });
 });

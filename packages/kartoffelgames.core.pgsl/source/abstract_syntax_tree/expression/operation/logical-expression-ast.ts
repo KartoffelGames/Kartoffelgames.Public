@@ -1,5 +1,5 @@
 import { EnumUtil } from '@kartoffelgames/core';
-import type { LogicalExpressionCst } from '../../../concrete_syntax_tree/expression.type.ts';
+import type { BinaryExpressionCst, LogicalExpressionCst } from '../../../concrete_syntax_tree/expression.type.ts';
 import { PgslOperator } from '../../../enum/pgsl-operator.enum.ts';
 import { PgslValueAddressSpace } from '../../../enum/pgsl-value-address-space.enum.ts';
 import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
@@ -36,6 +36,24 @@ export class LogicalExpressionAst extends AbstractSyntaxTree<LogicalExpressionCs
         // Validate operator usable for logical expressions.
         if (!lShortCircuitOperationList.includes(lOperator as PgslOperator)) {
             pContext.pushIncident(`Operator "${pCst.operator}" can not used for logical expressions.`, this);
+        }
+
+        // When some expressions are chained with a logical expression, they need parentheses.
+        const lAllowedChainedOperators: Array<string> = [PgslOperator.ShiftLeft, PgslOperator.ShiftRight, pCst.operator];
+        for (const lExpression of [pCst.left, pCst.right]) {
+            // Chaining restrictions only apply to logical and binary expressions.
+            if(lExpression.type !== 'LogicalExpression' && lExpression.type !== 'BinaryExpression') {
+                continue;
+            }
+
+            const lExpressionsss: LogicalExpressionCst | BinaryExpressionCst = lExpression as LogicalExpressionCst | BinaryExpressionCst;
+
+            // Logical and bit expressions can only be chained if they are shift expressions.
+            if (lAllowedChainedOperators.includes(lExpressionsss.operator)) {
+                continue;
+            }
+
+            pContext.pushIncident(`Mixing operator "${lExpressionsss.operator}" with "${pCst.operator}" requires parentheses.`, this);
         }
 
         // Read left and right expression attachments.

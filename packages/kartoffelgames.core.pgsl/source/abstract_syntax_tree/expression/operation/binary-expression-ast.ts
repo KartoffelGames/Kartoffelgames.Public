@@ -1,5 +1,5 @@
 import { EnumUtil } from '@kartoffelgames/core';
-import type { BinaryExpressionCst } from '../../../concrete_syntax_tree/expression.type.ts';
+import type { ArithmeticExpressionCst, BinaryExpressionCst, ComparisonExpressionCst, ExpressionCstType, LogicalExpressionCst } from '../../../concrete_syntax_tree/expression.type.ts';
 import { PgslOperator } from '../../../enum/pgsl-operator.enum.ts';
 import { PgslValueAddressSpace } from '../../../enum/pgsl-value-address-space.enum.ts';
 import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
@@ -38,6 +38,25 @@ export class BinaryExpressionAst extends AbstractSyntaxTree<BinaryExpressionCst,
         // Validate operator usable for bit operations.
         if (!lComparisonList.includes(lOperator as PgslOperator)) {
             pContext.pushIncident(`Operator "${pCst.operator}" can not used for bit operations.`, this);
+        }
+
+        // Chaining binary operators are allowed, as long as no shift operations are chained.
+        const lShiftOperators: Array<string> = [PgslOperator.ShiftLeft, PgslOperator.ShiftRight];
+
+        // Bit operations only take plain operands. Mixing them with any other operator needs parentheses.
+        const lExpressionsWithOperators: Array<ExpressionCstType> = ['ArithmeticExpression', 'BinaryExpression', 'ComparisonExpression', 'LogicalExpression'];
+        for (const lExpression of [pCst.left, pCst.right]) {
+            // Plain and parenthesized operands are always valid.
+            if (!lExpressionsWithOperators.includes(lExpression.type)) {
+                continue;
+            }
+
+            const lExpressionOperator: string = (<ArithmeticExpressionCst | BinaryExpressionCst | ComparisonExpressionCst | LogicalExpressionCst>lExpression).operator;
+
+            // Only &, | and ^ can be chained with themselves.
+            if (lExpressionOperator !== pCst.operator || lShiftOperators.includes(pCst.operator)) {
+                pContext.pushIncident(`Mixing operator "${lExpressionOperator}" with "${pCst.operator}" requires parentheses.`, this);
+            }
         }
 
         // Read left and right expression attachments.

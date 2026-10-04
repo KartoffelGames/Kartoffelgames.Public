@@ -756,6 +756,74 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
             expect(lResultType.dimension).toBe(3);
         });
     });
+
+    await pContext.step('Precedence', async (pContext) => {
+        await pContext.step('Multiplication before addition', () => {
+            // Setup. Use string to ensure correct number insertion.
+            const lRightValue: string = '4';
+            const lCodeText: string = `
+                function testFunction(): void {
+                    let testVariable: ${PgslNumericType.typeName.signedInteger} = 2 * 3 + ${lRightValue};
+                }
+            `;
+
+            // Process.
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
+
+            // Process. Assume correct parsing.
+            const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[0] as VariableDeclarationStatementAst;
+
+            // Evaluation. Addition is the outer expression.
+            const lExpressionNode: ArithmeticExpressionAst = lVariableDeclarationNode.data.expression as ArithmeticExpressionAst;
+            expect(lExpressionNode).toBeInstanceOf(ArithmeticExpressionAst);
+            expect(lExpressionNode.data.operator).toBe(PgslOperator.Plus);
+
+            // Evaluation. Multiplication is grouped into the left side.
+            const lLeftExpression: ArithmeticExpressionAst = lExpressionNode.data.leftExpression as ArithmeticExpressionAst;
+            expect(lLeftExpression).toBeInstanceOf(ArithmeticExpressionAst);
+            expect(lLeftExpression.data.operator).toBe(PgslOperator.Multiply);
+
+            // Evaluation. Right side is the plain value.
+            const lRightExpression: LiteralValueExpressionAst = lExpressionNode.data.rightExpression as LiteralValueExpressionAst;
+            expect(lRightExpression).toBeInstanceOf(LiteralValueExpressionAst);
+            expect(lRightExpression.data.constantValue).toBe(parseFloat(lRightValue));
+        });
+
+        await pContext.step('Same level from left to right', () => {
+            // Setup. Use string to ensure correct number insertion.
+            const lRightValue: string = '1';
+            const lCodeText: string = `
+                function testFunction(): void {
+                    let testVariable: ${PgslNumericType.typeName.signedInteger} = 5 - 3 - ${lRightValue};
+                }
+            `;
+
+            // Process.
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
+
+            // Process. Assume correct parsing.
+            const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[0] as VariableDeclarationStatementAst;
+
+            // Evaluation. Last subtraction is the outer expression.
+            const lExpressionNode: ArithmeticExpressionAst = lVariableDeclarationNode.data.expression as ArithmeticExpressionAst;
+            expect(lExpressionNode).toBeInstanceOf(ArithmeticExpressionAst);
+            expect(lExpressionNode.data.operator).toBe(PgslOperator.Minus);
+
+            // Evaluation. First subtraction is grouped into the left side.
+            const lLeftExpression: ArithmeticExpressionAst = lExpressionNode.data.leftExpression as ArithmeticExpressionAst;
+            expect(lLeftExpression).toBeInstanceOf(ArithmeticExpressionAst);
+            expect(lLeftExpression.data.operator).toBe(PgslOperator.Minus);
+
+            // Evaluation. Right side is the plain value.
+            const lRightExpression: LiteralValueExpressionAst = lExpressionNode.data.rightExpression as LiteralValueExpressionAst;
+            expect(lRightExpression).toBeInstanceOf(LiteralValueExpressionAst);
+            expect(lRightExpression.data.constantValue).toBe(parseFloat(lRightValue));
+        });
+    });
 });
 
 Deno.test('ArithmeticExpressionAst - Transpilation', async (pContext) => {

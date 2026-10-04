@@ -44,6 +44,15 @@ export class ComparisonExpressionAst extends AbstractSyntaxTree<ComparisonExpres
             pContext.pushIncident(`Operator "${pCst.operator}" can not used for comparisons.`, this);
         }
 
+        // Comparisons can not be chained without parentheses.
+        for (const lExpression of [pCst.left, pCst.right]) {
+            if (lExpression.type !== 'ComparisonExpression') {
+                continue;
+            }
+
+            pContext.pushIncident(`Chaining comparisons requires parentheses.`, this);
+        }
+
         // Read left and right expression attachments.
         const lLeftExpression: IExpressionAst = ExpressionAstBuilder.build(pCst.left).process(pContext);
         const lRightExpression: IExpressionAst = ExpressionAstBuilder.build(pCst.right).process(pContext);

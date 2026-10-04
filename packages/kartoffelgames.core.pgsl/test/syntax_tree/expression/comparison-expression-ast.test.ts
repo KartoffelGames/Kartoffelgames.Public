@@ -2,6 +2,7 @@ import { expect } from '@kartoffelgames/core-test';
 import type { FunctionDeclarationAst } from '../../../source/abstract_syntax_tree/declaration/function-declaration-ast.ts';
 import type { FunctionOverloadDeclarationAst } from '../../../source/abstract_syntax_tree/declaration/function-overload-declaration-ast.ts';
 import type { DocumentAst } from '../../../source/abstract_syntax_tree/document-ast.ts';
+import { ArithmeticExpressionAst } from '../../../source/abstract_syntax_tree/expression/operation/arithmetic-expression-ast.ts';
 import { ComparisonExpressionAst } from '../../../source/abstract_syntax_tree/expression/operation/comparison-expression-ast.ts';
 import { LiteralValueExpressionAst } from '../../../source/abstract_syntax_tree/expression/single_value/literal-value-expression-ast.ts';
 import type { VariableDeclarationStatementAst } from '../../../source/abstract_syntax_tree/statement/execution/variable-declaration-statement-ast.ts';
@@ -400,6 +401,38 @@ Deno.test('ComparisonExpressionAst - Parsing', async (pContext) => {
             });
         });
     });
+
+    await pContext.step('Arithmetic operand', () => {
+        // Setup. Use string to ensure correct number insertion.
+        const lRightValue: string = '10';
+        const lCodeText: string = `
+            function testFunction(): void {
+                let testValue: ${PgslNumericType.typeName.signedInteger} = 5;
+                let testVariable: bool = testValue + 1 < ${lRightValue};
+            }
+        `;
+
+        // Process.
+        const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
+
+        // Process. Assume correct parsing.
+        const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
+        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+        const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[1] as VariableDeclarationStatementAst;
+
+        // Evaluation. Comparison is the outer expression.
+        const lExpressionNode: ComparisonExpressionAst = lVariableDeclarationNode.data.expression as ComparisonExpressionAst;
+        expect(lExpressionNode).toBeInstanceOf(ComparisonExpressionAst);
+        expect(lExpressionNode.data.operatorName).toBe(PgslOperator.LowerThan);
+
+        // Evaluation. Addition is grouped into the left side.
+        expect(lExpressionNode.data.leftExpression).toBeInstanceOf(ArithmeticExpressionAst);
+
+        // Evaluation. Right side is the plain value.
+        const lRightExpression: LiteralValueExpressionAst = lExpressionNode.data.rightExpression as LiteralValueExpressionAst;
+        expect(lRightExpression).toBeInstanceOf(LiteralValueExpressionAst);
+        expect(lRightExpression.data.constantValue).toBe(parseFloat(lRightValue));
+    });
 });
 
 Deno.test('ComparisonExpressionAst - Transpilation', async (pContext) => {
@@ -767,6 +800,23 @@ Deno.test('ComparisonExpressionAst - Error', async (pContext) => {
         // Evaluation. Error should mention scalar values requirement.
         expect(lTranspilationResult.incidents.some(pIncident =>
             pIncident.message.includes('Comparison can only be between scalar values')
+        )).toBe(true);
+    });
+
+    await pContext.step('Chained comparison without parentheses', () => {
+        // Setup.
+        const lCodeText: string = `
+            function testFunction(): void {
+                let testVariable: bool = 1 == 2 == true;
+            }
+        `;
+
+        // Process.
+        const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+        // Evaluation. Error should mention the missing parentheses.
+        expect(lTranspilationResult.incidents.some(pIncident =>
+            pIncident.message.includes('Chaining comparisons requires parentheses.')
         )).toBe(true);
     });
 });

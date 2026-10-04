@@ -117,6 +117,31 @@ Deno.test('BinaryExpressionAst - Parsing', async (pContext) => {
             expect(lResultType).toBeInstanceOf(PgslNumericType);
             expect(lResultType.numericTypeName).toBe(PgslNumericType.typeName.abstractInteger);
         });
+
+        await pContext.step('Chained binary AND', () => {
+            // Setup.
+            const lCodeText: string = `
+                function testFunction(): void {
+                    let testVariable: ${PgslNumericType.typeName.signedInteger} = 5 & 3 & 1;
+                }
+            `;
+
+            // Process.
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
+
+            // Process. Assume correct parsing.
+            const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[0] as VariableDeclarationStatementAst;
+
+            // Evaluation. Chain of the same operator needs no parentheses.
+            expect(lDocument.data.incidents).toHaveLength(0);
+
+            // Evaluation. First operation is grouped into the left side.
+            const lExpressionNode: BinaryExpressionAst = lVariableDeclarationNode.data.expression as BinaryExpressionAst;
+            expect(lExpressionNode).toBeInstanceOf(BinaryExpressionAst);
+            expect(lExpressionNode.data.leftExpression).toBeInstanceOf(BinaryExpressionAst);
+        });
     });
 
     await pContext.step('Shift Operations', async (pContext) => {
@@ -517,6 +542,60 @@ Deno.test('BinaryExpressionAst - Error', async (pContext) => {
         // Evaluation. Error should mention unsigned integer requirement.
         expect(lTranspilationResult.incidents.some(pIncident =>
             pIncident.message.includes('Right expression of a shift operation must be an unsigned integer type')
+        )).toBe(true);
+    });
+
+    await pContext.step('Arithmetic operand without parentheses', () => {
+        // Setup.
+        const lCodeText: string = `
+            function testFunction(): void {
+                let testValue: ${PgslNumericType.typeName.signedInteger} = 5;
+                let testVariable: ${PgslNumericType.typeName.signedInteger} = testValue & testValue + 1;
+            }
+        `;
+
+        // Process.
+        const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+        // Evaluation. Error should mention the missing parentheses.
+        expect(lTranspilationResult.incidents.some(pIncident =>
+            pIncident.message.includes('Mixing operator "+" with "&" requires parentheses.')
+        )).toBe(true);
+    });
+
+    await pContext.step('Different bitwise operators without parentheses', () => {
+        // Setup.
+        const lCodeText: string = `
+            function testFunction(): void {
+                let testValue: ${PgslNumericType.typeName.signedInteger} = 5;
+                let testVariable: ${PgslNumericType.typeName.signedInteger} = testValue & testValue ^ testValue;
+            }
+        `;
+
+        // Process.
+        const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+        // Evaluation. Error should mention the missing parentheses.
+        expect(lTranspilationResult.incidents.some(pIncident =>
+            pIncident.message.includes('Mixing operator "&" with "^" requires parentheses.')
+        )).toBe(true);
+    });
+
+    await pContext.step('Chained shift without parentheses', () => {
+        // Setup.
+        const lCodeText: string = `
+            function testFunction(): void {
+                let testValue: ${PgslNumericType.typeName.signedInteger} = 5;
+                let testVariable: ${PgslNumericType.typeName.signedInteger} = testValue << 1 << 2;
+            }
+        `;
+
+        // Process.
+        const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+        // Evaluation. Error should mention the missing parentheses.
+        expect(lTranspilationResult.incidents.some(pIncident =>
+            pIncident.message.includes('Mixing operator "<<" with "<<" requires parentheses.')
         )).toBe(true);
     });
 });

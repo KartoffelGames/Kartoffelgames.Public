@@ -615,14 +615,6 @@ type CodeParserProcessStateStackMapping<TTokenType extends string> = {
             node: GraphNode<TTokenType>;
         };
     };
-
-    // Node next parse
-    nodeNextParse: {
-        type: 'nodeNextParse',
-        parameter: {
-            node: GraphNode<TTokenType>;
-        };
-    };
 };
 
 export type CodeParserProcessStateStackItem<TTokenType extends string> = CodeParserProcessStateStackMapping<TTokenType>[keyof CodeParserProcessStateStackMapping<TTokenType>];

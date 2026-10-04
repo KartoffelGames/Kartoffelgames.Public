@@ -53,8 +53,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
     }
 
     /**
-     * Parse a text with the set syntax from {@link CodeParser.setRootGraph} into a syntax tree
-     * or custom data structure.
+     * Parse a text with the set syntax from {@link CodeParser.setRootGraph} into a syntax tree or custom data structure.
      * 
      * @param pCodeText - Code as text.
      * @param pProgressTracker - Optional progress tracker for the parsing progress.
@@ -151,9 +150,6 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * 
      * @param pGraph - Graph.
      * 
-     * @throws {@link Exception}
-     * If the graph part is not defined or lacks a defined data collector.
-     * 
      * @internal
      */
     public setRootGraph(pGraph: Graph<TTokenType, any, TParseResult>): void {
@@ -162,15 +158,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
 
     /**
      * Begins the parsing process for the given cursor and root graph.
-     * 
-     * The parsing process involves managing a stack of parsing tasks, each represented by a `CodeParserProcessStackItem`.
-     * The main loop processes each item on the stack until it is empty, handling different types of parsing tasks such as
-     * graph parsing, node parsing, node value parsing, and chained node parsing.
-     * 
-     * The function handles various states within each parsing task, ensuring proper transitions and error handling.
-     * It also manages circular graph detection, token validation, and data conversion.
-     * 
-     * The function throws exceptions for invalid states or process types, ensuring robust error handling.
+     * Handles its own process stack.
      * 
      * @param pParsingProcessState - The current state of the code parser.
      * @param pRootGraph - The root graph to start parsing from.
@@ -226,35 +214,6 @@ export class CodeParser<TTokenType extends string, TParseResult> {
     }
 
     /**
-     * Processes the chained node parse process.
-     * 
-     * This method handles the state transitions for parsing a chained node in the code parser process stack.
-     * 
-     * @param pNode - Chained graphNode  
-     * 
-     * @returns The result of the node parse process, which can be an object, an empty chain result, or a parser error symbol.
-     */
-    private * createChainedNodeParseProcess(pNode: GraphNode<TTokenType, object>): CodeParserProcess<TTokenType> {
-        // Next chained node.
-        const lNextNode: GraphNode<TTokenType, object> | null = pNode.connections.next;
-
-        // No result when branch end was meet.
-        if (lNextNode === null) {
-            // Set return value to an empty chain result.
-            return {};
-        }
-
-        // Start parsing next node and passthrough errors.
-        const lChainResult: object | CodeParserErrorSymbol = yield { type: 'nodeParse', parameter: { node: lNextNode } };
-        if (lChainResult === CodeParserException.PARSER_ERROR) {
-            return CodeParserException.PARSER_ERROR;
-        }
-
-        // Set return value to node parse result.
-        return lChainResult;
-    }
-
-    /**
      * Processes the graph parsing based on the current state of the parsing process.
      * 
      * @param pParsingProcessState - The current state of the code parser.
@@ -262,8 +221,6 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * @param pStackResult - The result from the previous stack process.
      * 
      * @returns The result of the grap parsing, which can be an unknown value, an object, or a CodeParserErrorSymbol.
-     * 
-     * @throws {Exception} If an invalid graph parse state is encountered.
      */
     private * createGraphParseProcess(pParsingProcessState: CodeParserProcessState<TTokenType>, pGraph: Graph<TTokenType, object, object>): CodeParserProcess<TTokenType> {
         // A graph that has already failed on this token fails again. Skip it including all its nodes.
@@ -328,8 +285,6 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * @param pStackResult - The result from the previous stack process.
      * 
      * @returns The result of the node parsing, which can be an unknown value, an object, or a CodeParserErrorSymbol.
-     * 
-     * @throws {Exception} If an invalid node parse state is encountered.
      */
     private * createNodeParseProcess(pNode: GraphNode<TTokenType, object>): CodeParserProcess<TTokenType> {
         // Wait for node value parse and passthrough errors.
@@ -338,8 +293,14 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             return CodeParserException.PARSER_ERROR;
         }
 
-        // Proceed with next node parse.
-        const lNodeNextParseResult: object | CodeParserErrorSymbol = yield { type: 'nodeNextParse', parameter: { node: pNode } };
+        // Branch end was meet, nothing left to merge.
+        const lNextNode: GraphNode<TTokenType, object> | null = pNode.connections.next;
+        if (lNextNode === null) {
+            return pNode.mergeData(lNodeParseResult, {});
+        }
+
+        // Proceed with next node parse and passthrough errors.
+        const lNodeNextParseResult: object | CodeParserErrorSymbol = yield { type: 'nodeParse', parameter: { node: lNextNode } };
         if (lNodeNextParseResult === CodeParserException.PARSER_ERROR) {
             return CodeParserException.PARSER_ERROR;
         }
@@ -432,7 +393,6 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * - 'graphParse': Parses a graph structure.
      * - 'nodeParse': Parses a node within a graph.
      * - 'nodeValueParse': Parses the value of a node.
-     * - 'nodeNextParse': Parses the next node in a chain of nodes.
      *
      * @param pParsingProcessState - The current state of the code parser.
      * @param pCurrentProcess - The current parsing operation being processed.
@@ -451,9 +411,6 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             case 'nodeValueParse': {
                 return this.createNodeValueParseProcess(pParsingProcessState, pCurrentProcess.parameter.node);
             }
-            case 'nodeNextParse': {
-                return this.createChainedNodeParseProcess(pCurrentProcess.parameter.node);
-            }
         }
     }
 }
@@ -469,7 +426,7 @@ export type CodeParserConfiguration = {
     debug: {
         /**
          * Keeps a list of all parsing incidents.
-         * Outputs a analitic map of hit, missed, cached and thrown an graphs. 
+         * Outputs a analitic map of hit, missed, cached and throws an graphs. 
          */
         analitics: boolean;
     };

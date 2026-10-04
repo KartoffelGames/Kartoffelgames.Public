@@ -1,3 +1,4 @@
+// TODO: Move them and make them a real enum.
 export class PgslInterpolateSamplingEnum {    
     /**
      * Enum values.

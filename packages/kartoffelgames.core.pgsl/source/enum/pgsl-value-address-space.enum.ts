@@ -1,3 +1,4 @@
+// TODO: That usage is spread across. Need manual moving.
 export enum PgslValueAddressSpace {
     /**
      * Variables in function scope.

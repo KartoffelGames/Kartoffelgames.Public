@@ -1,6 +1,7 @@
 import { Exception } from '@kartoffelgames/core';
 import type { PgslNumericTypeName } from '../../abstract_syntax_tree/type/definition/pgsl-numeric-type.ts';
 
+// TODO: Move them and make them a real enum or whatever that is... i dont know.
 export class PgslTexelFormatEnum {
     /**
      * Enum values.

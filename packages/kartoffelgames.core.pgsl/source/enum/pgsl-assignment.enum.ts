@@ -1,3 +1,4 @@
+// TODO: That can be moved into ast directly.
 export enum PgslAssignment {
     Assignment = '=',
     AssignmentPlus = '+=',

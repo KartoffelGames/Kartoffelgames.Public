@@ -1,3 +1,4 @@
+// TODO: Can be moved into ast. But needs a dublication for parser result.
 /**
  * Declaration name. Used by module and function variables.
  * Because it is used by both, it cant be specified more strictly or inside a syntax tree demself.

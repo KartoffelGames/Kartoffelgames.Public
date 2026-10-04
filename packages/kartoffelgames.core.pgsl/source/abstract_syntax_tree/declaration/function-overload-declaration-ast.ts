@@ -134,15 +134,12 @@ export class FunctionOverloadDeclarationAst extends BaseDeclarationAst<FunctionO
             const lReturnTypeDeclaration: TypeDeclarationAst = (() => {
                 const lReturnType: TypeDeclarationAst = new TypeDeclarationAst(pCst.returnType).process(pContext);
 
-                // If function is not built-in check for correct return type in function block.
-                if (!pCst.buildIn) {
-                    // Read block return type.
-                    const lBlockReturnType: BasePgslType = lBlock.data.returnType;
+                // Read block return type.
+                const lBlockReturnType: BasePgslType = lBlock.data.returnType;
 
-                    // Check for correct return type in function block.
-                    if (lBlockReturnType.conversionRankTo(lReturnType.data.type) === Number.POSITIVE_INFINITY) {
-                        pContext.pushIncident(`Function block return type does not match the declared return type.`, lBlock);
-                    }
+                // Check for correct return type in function block.
+                if (lBlockReturnType.conversionRankTo(lReturnType.data.type) === Number.POSITIVE_INFINITY) {
+                    pContext.pushIncident(`Function block return type does not match the declared return type.`, lBlock);
                 }
 
                 return lReturnType;

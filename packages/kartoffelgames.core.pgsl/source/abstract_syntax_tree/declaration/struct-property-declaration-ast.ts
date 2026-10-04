@@ -66,7 +66,7 @@ export class StructPropertyDeclarationAst extends BaseDeclarationAst<StructPrope
         const lType: BasePgslType = lTypeDeclaration.data.type;
 
         // Validate property type.
-        if (!lType.isKind(BasePgslTypeKind.Concrete) && !pCst.buildIn) {
+        if (!lType.isKind(BasePgslTypeKind.Concrete)) {
             pContext.pushIncident(`Property type must be concrete.`, this);
         }
         if (!lType.isKind(BasePgslTypeKind.Plain)) {

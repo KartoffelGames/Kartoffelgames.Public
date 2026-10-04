@@ -58,7 +58,7 @@ export class ComparisonExpressionAst extends AbstractSyntaxTree<ComparisonExpres
         const lRightExpression: IExpressionAst = ExpressionAstBuilder.build(pCst.right).process(pContext);
 
         // Comparison needs to be the same type or implicitly castable.
-        if (lRightExpression.data.resolveType.conversionRankTo(lLeftExpression.data.resolveType) === Number.POSITIVE_INFINITY) {
+        if (lRightExpression.data.resolveType.conversionRankTo(lLeftExpression.data.resolveType) === Number.POSITIVE_INFINITY && lLeftExpression.data.resolveType.conversionRankTo(lRightExpression.data.resolveType) === Number.POSITIVE_INFINITY) {
             pContext.pushIncident(`Comparison can only be between values of the same type.`, this);
         }
 

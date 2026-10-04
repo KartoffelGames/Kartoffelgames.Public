@@ -6,9 +6,7 @@ import type { BlockStatementCst } from './statement.type.ts';
  * Core.
  */
 export type DeclarationCstType = 'AliasDeclaration' | 'EnumDeclaration' | 'EnumDeclarationValue' | 'FunctionDeclaration' | 'FunctionOverloadDeclaration' | 'FunctionDeclarationParameter' | 'FunctionDeclarationGeneric' | 'StructDeclaration' | 'StructPropertyDeclaration' | 'VariableDeclaration';
-export type DeclarationCst<TDeclarationType extends DeclarationCstType = DeclarationCstType> = Cst<TDeclarationType> & {
-    buildIn: boolean;
-};
+export type DeclarationCst<TDeclarationType extends DeclarationCstType = DeclarationCstType> = Cst<TDeclarationType>;
 
 /*
  * Alias.

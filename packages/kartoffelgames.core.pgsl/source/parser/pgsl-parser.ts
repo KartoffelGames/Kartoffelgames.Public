@@ -417,7 +417,6 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
         }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): VariableDeclarationCst => {
             return {
                 type: 'VariableDeclaration',
-                buildIn: false,
                 range: this.createTokenBoundParameter(pStartToken, pEndToken),
                 name: pData.variableName,
                 declarationType: pData.declarationType,
@@ -444,7 +443,6 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
         }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): AliasDeclarationCst => {
             return {
                 type: 'AliasDeclaration',
-                buildIn: false,
                 range: this.createTokenBoundParameter(pStartToken, pEndToken),
                 name: pData.name,
                 typeDefinition: pData.type,
@@ -467,7 +465,6 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
         }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): StructPropertyDeclarationCst => {
             return {
                 type: 'StructPropertyDeclaration',
-                buildIn: false,
                 range: this.createTokenBoundParameter(pStartToken, pEndToken),
                 name: pData.name,
                 typeDeclaration: pData.type,
@@ -505,7 +502,6 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
         }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): StructDeclarationCst => {
             return {
                 type: 'StructDeclaration',
-                buildIn: false,
                 range: this.createTokenBoundParameter(pStartToken, pEndToken),
                 name: pData.name,
                 properties: pData.properties ?? [],
@@ -527,7 +523,6 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
         }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): EnumDeclarationValueCst => {
             return {
                 type: 'EnumDeclarationValue',
-                buildIn: false,
                 range: this.createTokenBoundParameter(pStartToken, pEndToken),
                 name: pData.name,
                 value: pData.value
@@ -563,7 +558,6 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
         }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): EnumDeclarationCst => {
             return {
                 type: 'EnumDeclaration',
-                buildIn: false,
                 range: this.createTokenBoundParameter(pStartToken, pEndToken),
                 name: pData.name,
                 values: pData.values ?? [],
@@ -582,7 +576,6 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
         }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): FunctionDeclarationParameterCst => {
             return {
                 type: 'FunctionDeclarationParameter',
-                buildIn: false,
                 range: this.createTokenBoundParameter(pStartToken, pEndToken),
                 name: pData.name,
                 typeDeclaration: pData.type
@@ -624,7 +617,6 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
             // Build function header.
             const lFunctionHeader: FunctionOverloadDeclarationCst = {
                 type: 'FunctionOverloadDeclaration',
-                buildIn: false,
                 range: this.createTokenBoundParameter(pStartToken, pEndToken),
                 attributeList: pData.attributes,
                 generics: [], // User functions do not support generics.
@@ -636,7 +628,6 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
             return {
                 type: 'FunctionDeclaration',
                 isConstant: false,
-                buildIn: false,
                 range: this.createTokenBoundParameter(pStartToken, pEndToken),
                 name: pData.name,
                 declarations: [lFunctionHeader]

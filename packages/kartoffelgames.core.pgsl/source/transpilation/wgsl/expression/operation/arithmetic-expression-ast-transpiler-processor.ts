@@ -1,7 +1,7 @@
 import { ArithmeticExpressionAst } from '../../../../abstract_syntax_tree/expression/operation/arithmetic-expression-ast.ts';
-import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-transpiler-processor.interface.ts';
+import { TranspilerProcessor } from '../../../transpiler-processor.ts';
 
-export class ArithmeticExpressionAstTranspilerProcessor implements ITranspilerProcessor<ArithmeticExpressionAst> {
+export class ArithmeticExpressionAstTranspilerProcessor extends TranspilerProcessor<ArithmeticExpressionAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */
@@ -13,11 +13,10 @@ export class ArithmeticExpressionAstTranspilerProcessor implements ITranspilerPr
      * Transpiles a PGSL arithmetic expression into WGSL code.
      * 
      * @param pInstance - Processor syntax tree instance.
-     * @param pTranspile - Transpile function.
-     * 
+     *
      * @returns Transpiled WGSL code.
      */
-    process(pInstance: ArithmeticExpressionAst, pTranspile: PgslTranspilerProcessorTranspile): string {
-        return `${pTranspile(pInstance.data.leftExpression)}${pInstance.data.operator}${pTranspile(pInstance.data.rightExpression)}`;
+    protected override onProcess(pInstance: ArithmeticExpressionAst): string {
+        return `${this.transpileAst(pInstance.data.leftExpression)}${pInstance.data.operator}${this.transpileAst(pInstance.data.rightExpression)}`;
     }
 }

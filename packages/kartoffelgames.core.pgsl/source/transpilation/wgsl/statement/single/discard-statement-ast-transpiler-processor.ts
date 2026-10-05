@@ -1,7 +1,7 @@
 import { DiscardStatementAst } from '../../../../abstract_syntax_tree/statement/single/discard-statement-ast.ts';
-import type { ITranspilerProcessor } from '../../../i-transpiler-processor.interface.ts';
+import { TranspilerProcessor } from '../../../transpiler-processor.ts';
 
-export class DiscardStatementAstTranspilerProcessor implements ITranspilerProcessor<DiscardStatementAst> {
+export class DiscardStatementAstTranspilerProcessor extends TranspilerProcessor<DiscardStatementAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */
@@ -14,7 +14,7 @@ export class DiscardStatementAstTranspilerProcessor implements ITranspilerProces
      * 
      * @returns Transpiled WGSL code.
      */
-    public process(): string {
+    protected override onProcess(): string {
         return `discard;`;
     }
 }

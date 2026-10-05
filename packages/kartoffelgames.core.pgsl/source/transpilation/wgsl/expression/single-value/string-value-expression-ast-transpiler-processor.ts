@@ -1,7 +1,7 @@
 import { StringValueExpressionAst } from '../../../../abstract_syntax_tree/expression/single_value/string-value-expression-ast.ts';
-import type { ITranspilerProcessor } from '../../../i-transpiler-processor.interface.ts';
+import { TranspilerProcessor } from '../../../transpiler-processor.ts';
 
-export class StringValueExpressionAstTranspilerProcessor implements ITranspilerProcessor<StringValueExpressionAst> {
+export class StringValueExpressionAstTranspilerProcessor extends TranspilerProcessor<StringValueExpressionAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */
@@ -16,7 +16,7 @@ export class StringValueExpressionAstTranspilerProcessor implements ITranspilerP
      * 
      * @returns Transpiled WGSL code.
      */
-    public process(pInstance: StringValueExpressionAst): string {
+    protected override onProcess(pInstance: StringValueExpressionAst): string {
         return pInstance.data.value;
     }
 }

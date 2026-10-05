@@ -1,7 +1,7 @@
 import { AddressOfExpressionAst } from '../../../../abstract_syntax_tree/expression/single_value/address-of-expression-ast.ts';
-import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-transpiler-processor.interface.ts';
+import { TranspilerProcessor } from '../../../transpiler-processor.ts';
 
-export class AddressOfExpressionAstTranspilerProcessor implements ITranspilerProcessor<AddressOfExpressionAst> {
+export class AddressOfExpressionAstTranspilerProcessor extends TranspilerProcessor<AddressOfExpressionAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */
@@ -13,11 +13,10 @@ export class AddressOfExpressionAstTranspilerProcessor implements ITranspilerPro
      * Transpiles a PGSL address-of expression into WGSL code.
      * 
      * @param pInstance - Processor syntax tree instance.
-     * @param pTranspile - Transpile function.
      * 
      * @returns Transpiled WGSL code.
      */
-    public process(pInstance: AddressOfExpressionAst, pTranspile: PgslTranspilerProcessorTranspile): string {
-        return `&${pTranspile(pInstance.data.variable)}`;
+    protected override onProcess(pInstance: AddressOfExpressionAst): string {
+        return `&${this.transpileAst(pInstance.data.variable)}`;
     }
 }

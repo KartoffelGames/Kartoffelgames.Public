@@ -1,7 +1,7 @@
 import { IncrementDecrementStatementAst } from '../../../../abstract_syntax_tree/statement/execution/increment-decrement-statement-ast.ts';
-import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-transpiler-processor.interface.ts';
+import { TranspilerProcessor } from '../../../transpiler-processor.ts';
 
-export class IncrementDecrementStatementAstTranspilerProcessor implements ITranspilerProcessor<IncrementDecrementStatementAst> {
+export class IncrementDecrementStatementAstTranspilerProcessor extends TranspilerProcessor<IncrementDecrementStatementAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */
@@ -13,11 +13,10 @@ export class IncrementDecrementStatementAstTranspilerProcessor implements ITrans
      * Transpiles a PGSL increment/decrement statement into WGSL code.
      * 
      * @param pInstance - Processor syntax tree instance.
-     * @param pTranspile - Transpile function.
-     * 
+     *
      * @returns Transpiled WGSL code.
      */
-    public process(pInstance: IncrementDecrementStatementAst, pTranspile: PgslTranspilerProcessorTranspile): string {
-        return `${pTranspile(pInstance.data.expression)}${pInstance.data.operator};`;
+    protected override onProcess(pInstance: IncrementDecrementStatementAst): string {
+        return `${this.transpileAst(pInstance.data.expression)}${pInstance.data.operator};`;
     }
 }

@@ -2,10 +2,10 @@ import { Exception } from '@kartoffelgames/core';
 import { FunctionDeclarationAst } from '../../../abstract_syntax_tree/declaration/function-declaration-ast.ts';
 import type { BasePgslType } from '../../../abstract_syntax_tree/type/definition/base-pgsl-type.ts';
 import { PgslVoidType } from '../../../abstract_syntax_tree/type/definition/pgsl-void-type.ts';
-import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../i-transpiler-processor.interface.ts';
+import { TranspilerProcessor } from '../../transpiler-processor.ts';
 import type { FunctionOverloadDeclarationAst } from '../../../abstract_syntax_tree/declaration/function-overload-declaration-ast.ts';
 
-export class FunctionDeclarationAstTranspilerProcessor implements ITranspilerProcessor<FunctionDeclarationAst> {
+export class FunctionDeclarationAstTranspilerProcessor extends TranspilerProcessor<FunctionDeclarationAst> {
     /**
      * Gets the target class this processor can handle.
      *
@@ -19,13 +19,10 @@ export class FunctionDeclarationAstTranspilerProcessor implements ITranspilerPro
      * Transpile current function declaration into a string.
      * 
      * @param pInstance - Instance to process.
-     * @param pTrace - Transpilation trace.
-     * @param pSendResult - Callback to send transpiled WGSL code.
-     * @param pTranspile - Callback to transpile nested expressions.
      * 
      * @returns Transpiled string.
      */
-    public process(pInstance: FunctionDeclarationAst, pTranspile: PgslTranspilerProcessorTranspile): string {
+    protected override onProcess(pInstance: FunctionDeclarationAst): string {
         if (pInstance.data.declarations.length !== 1) {
             throw new Exception(`Unable to transpile function "${pInstance.data.name}" with ${pInstance.data.declarations.length} heads.`, this);
         }
@@ -38,7 +35,7 @@ export class FunctionDeclarationAstTranspilerProcessor implements ITranspilerPro
 
         // Transpile return type. use empty string for void type.
         const lReturnType: BasePgslType = lSoleHeader.data.returnType.data.type;
-        const lReturnTypeName: string | null = lReturnType instanceof PgslVoidType ? null : pTranspile(lSoleHeader.data.returnType);
+        const lReturnTypeName: string | null = lReturnType instanceof PgslVoidType ? null : this.transpileAst(lSoleHeader.data.returnType);
 
         // Transpile function parameter list.
         const lParameterList: string = lSoleHeader.data.parameter.map((pParameter) => {
@@ -46,7 +43,7 @@ export class FunctionDeclarationAstTranspilerProcessor implements ITranspilerPro
                 throw new Exception(`Unable to transpile function "${pInstance.data.name}" with generic parameter type.`, this);
             }
 
-            return `${pParameter.name}:${pTranspile(pParameter.type)}`;
+            return `${pParameter.name}:${this.transpileAst(pParameter.type)}`;
         }).join(',');
 
         // Transpile attributes.
@@ -81,7 +78,7 @@ export class FunctionDeclarationAstTranspilerProcessor implements ITranspilerPro
         }
 
         // Add function block.
-        lResult += pTranspile(lSoleHeader.data.block);
+        lResult += this.transpileAst(lSoleHeader.data.block);
 
         return lResult;
     }

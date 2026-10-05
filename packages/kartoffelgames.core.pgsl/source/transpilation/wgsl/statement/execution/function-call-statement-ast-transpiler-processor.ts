@@ -1,7 +1,7 @@
 import { FunctionCallStatementAst } from '../../../../abstract_syntax_tree/statement/execution/function-call-statement-ast.ts';
-import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-transpiler-processor.interface.ts';
+import { TranspilerProcessor } from '../../../transpiler-processor.ts';
 
-export class FunctionCallStatementAstTranspilerProcessor implements ITranspilerProcessor<FunctionCallStatementAst> {
+export class FunctionCallStatementAstTranspilerProcessor extends TranspilerProcessor<FunctionCallStatementAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */
@@ -13,11 +13,10 @@ export class FunctionCallStatementAstTranspilerProcessor implements ITranspilerP
      * Transpiles a PGSL function call statement into WGSL code.
      * 
      * @param pInstance - Processor syntax tree instance.
-     * @param pTranspile - Transpile function.
-     * 
+     *
      * @returns Transpiled WGSL code.
      */
-    public process(pInstance: FunctionCallStatementAst, pTranspile: PgslTranspilerProcessorTranspile): string {
-        return pTranspile(pInstance.data.functionExpression) + ';';
+    protected override onProcess(pInstance: FunctionCallStatementAst): string {
+        return this.transpileAst(pInstance.data.functionExpression) + ';';
     }
 }

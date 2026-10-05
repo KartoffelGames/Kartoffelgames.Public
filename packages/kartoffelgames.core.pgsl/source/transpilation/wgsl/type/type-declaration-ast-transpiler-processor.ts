@@ -17,12 +17,12 @@ import { PgslVoidType } from '../../../abstract_syntax_tree/type/definition/pgsl
 import { PgslAccessModeEnum } from '../../../feature_set/enum/pgsl-access-mode-enum.ts';
 import { PgslTexelFormatEnum } from '../../../feature_set/enum/pgsl-texel-format-enum.ts';
 import { PgslValueAddressSpace } from '../../../enum/pgsl-value-address-space.enum.ts';
-import type { ITranspilerProcessor } from '../../i-transpiler-processor.interface.ts';
+import { TranspilerProcessor } from '../../transpiler-processor.ts';
 
 /**
  * Transpiles PGSL type declarations and the types they resolve to into WGSL.
  */
-export class TypeDeclarationAstTranspilerProcessor implements ITranspilerProcessor<TypeDeclarationAst> {
+export class TypeDeclarationAstTranspilerProcessor extends TranspilerProcessor<TypeDeclarationAst> {
     /**
      * Gets the target type that this processor handles.
      */
@@ -37,7 +37,7 @@ export class TypeDeclarationAstTranspilerProcessor implements ITranspilerProcess
      *
      * @returns The transpiled WGSL type string.
      */
-    public process(pInstance: TypeDeclarationAst): string {
+    protected override onProcess(pInstance: TypeDeclarationAst): string {
         return this.transpileType(pInstance.data.type);
     }
 

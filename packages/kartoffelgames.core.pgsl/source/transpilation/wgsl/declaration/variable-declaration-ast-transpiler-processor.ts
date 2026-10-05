@@ -3,10 +3,10 @@ import { PgslSamplerType } from '../../../abstract_syntax_tree/type/definition/p
 import { PgslTextureType } from '../../../abstract_syntax_tree/type/definition/pgsl-texture-type.ts';
 import { PgslAccessModeEnum } from '../../../feature_set/enum/pgsl-access-mode-enum.ts';
 import { PgslDeclarationType } from '../../../enum/pgsl-declaration-type.enum.ts';
-import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../i-transpiler-processor.interface.ts';
-import type { TranspilationMeta, TranspilationMetaBinding } from '../../transpilation-meta.ts';
+import { TranspilerProcessor } from '../../transpiler-processor.ts';
+import type { TranspilationMetaBinding } from '../../transpilation-meta.ts';
 
-export class VariableDeclarationAstTranspilerProcessor implements ITranspilerProcessor<VariableDeclarationAst> {
+export class VariableDeclarationAstTranspilerProcessor extends TranspilerProcessor<VariableDeclarationAst> {
     /**
      * Gets the target class this processor can handle.
      * 
@@ -20,11 +20,10 @@ export class VariableDeclarationAstTranspilerProcessor implements ITranspilerPro
      * Process a variable declaration instance and transpile it to WGSL.
      * 
      * @param pInstance - The variable declaration instance to process.
-     * @param pTrace - The trace information for the current transpilation context.
-     * @param pSendResult - The function to send the transpiled result.
-     * @param pTranspile - The function to transpile expressions.
+     *
+     * @returns Transpiled WGSL code.
      */
-    public process(pInstance: VariableDeclarationAst, pTranspile: PgslTranspilerProcessorTranspile, pTranspilationMeta: TranspilationMeta): string {
+    protected override onProcess(pInstance: VariableDeclarationAst): string {
         // Get type, resolving any aliases.
         const lDeclarationTypeString = ((): string => {
             // When the type is a texture or sampler, we ignore the declaration type and use var without address space.
@@ -68,19 +67,19 @@ export class VariableDeclarationAstTranspilerProcessor implements ITranspilerPro
             }
 
             // Create binding information for this variable declaration.
-            const lValueTrace: TranspilationMetaBinding = pTranspilationMeta.createBindingFor(pInstance);
+            const lValueTrace: TranspilationMetaBinding = this.meta.createBindingFor(pInstance);
 
             return `@group(${lValueTrace.bindGroupIndex})@binding(${lValueTrace.bindingIndex})`;
         })();
 
         // Transpile declaration parts to fit spaces correctly.
-        const lTypeDeclaration: string = pTranspile(pInstance.data.typeDeclaration);
+        const lTypeDeclaration: string = this.transpileAst(pInstance.data.typeDeclaration);
 
         // If no expression is given, return declaration without expression.
         if (!pInstance.data.expression) {
             return `${lBindingAttribute}${lDeclarationTypeString} ${pInstance.data.name}:${lTypeDeclaration};`;
         } else {
-            return `${lBindingAttribute}${lDeclarationTypeString} ${pInstance.data.name}:${lTypeDeclaration}=${pTranspile(pInstance.data.expression)};`;
+            return `${lBindingAttribute}${lDeclarationTypeString} ${pInstance.data.name}:${lTypeDeclaration}=${this.transpileAst(pInstance.data.expression)};`;
         }
     }
 } 

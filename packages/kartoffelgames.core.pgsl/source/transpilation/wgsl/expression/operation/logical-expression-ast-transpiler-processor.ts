@@ -1,7 +1,7 @@
 import { LogicalExpressionAst } from '../../../../abstract_syntax_tree/expression/operation/logical-expression-ast.ts';
-import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-transpiler-processor.interface.ts';
+import { TranspilerProcessor } from '../../../transpiler-processor.ts';
 
-export class LogicalExpressionAstTranspilerProcessor implements ITranspilerProcessor<LogicalExpressionAst> {
+export class LogicalExpressionAstTranspilerProcessor extends TranspilerProcessor<LogicalExpressionAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */
@@ -13,11 +13,10 @@ export class LogicalExpressionAstTranspilerProcessor implements ITranspilerProce
      * Transpiles a PGSL logical expression into WGSL code.
      * 
      * @param pInstance - Processor syntax tree instance.
-     * @param pTranspile - Transpile function.
-     * 
+     *
      * @returns Transpiled WGSL code.
      */
-    public process(pInstance: LogicalExpressionAst, pTranspile: PgslTranspilerProcessorTranspile): string {
-        return `${pTranspile(pInstance.data.leftExpression)}${pInstance.data.operatorName}${pTranspile(pInstance.data.rightExpression)}`;
+    protected override onProcess(pInstance: LogicalExpressionAst): string {
+        return `${this.transpileAst(pInstance.data.leftExpression)}${pInstance.data.operatorName}${this.transpileAst(pInstance.data.rightExpression)}`;
     }
 }

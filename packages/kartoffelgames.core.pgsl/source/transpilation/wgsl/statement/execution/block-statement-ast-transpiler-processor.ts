@@ -1,7 +1,7 @@
 import { BlockStatementAst } from '../../../../abstract_syntax_tree/statement/execution/block-statement-ast.ts';
-import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-transpiler-processor.interface.ts';
+import { TranspilerProcessor } from '../../../transpiler-processor.ts';
 
-export class BlockStatementAstTranspilerProcessor implements ITranspilerProcessor<BlockStatementAst> {
+export class BlockStatementAstTranspilerProcessor extends TranspilerProcessor<BlockStatementAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */
@@ -13,12 +13,11 @@ export class BlockStatementAstTranspilerProcessor implements ITranspilerProcesso
      * Transpiles a PGSL block statement into WGSL code.
      * 
      * @param pInstance - Processor syntax tree instance.
-     * @param pTranspile - Transpile function.
-     * 
+     *
      * @returns Transpiled WGSL code.
      */
-    public process(pInstance: BlockStatementAst, pTranspile: PgslTranspilerProcessorTranspile): string {
+    protected override onProcess(pInstance: BlockStatementAst): string {
         // Transpile all statements.
-        return `{${pInstance.data.statementList.map(pStatement => pTranspile(pStatement)).join('')}}`;
+        return `{${pInstance.data.statementList.map(pStatement => this.transpileAst(pStatement)).join('')}}`;
     }
 }

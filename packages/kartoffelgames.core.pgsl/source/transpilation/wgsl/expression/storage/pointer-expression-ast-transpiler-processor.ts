@@ -1,7 +1,7 @@
 import { PointerExpressionAst } from '../../../../abstract_syntax_tree/expression/storage/pointer-expression-ast.ts';
-import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-transpiler-processor.interface.ts';
+import { TranspilerProcessor } from '../../../transpiler-processor.ts';
 
-export class PointerExpressionAstTranspilerProcessor implements ITranspilerProcessor<PointerExpressionAst> {
+export class PointerExpressionAstTranspilerProcessor extends TranspilerProcessor<PointerExpressionAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */
@@ -13,11 +13,10 @@ export class PointerExpressionAstTranspilerProcessor implements ITranspilerProce
      * Transpiles a PGSL pointer expression into WGSL code.
      * 
      * @param pInstance - Processor syntax tree instance.
-     * @param pTranspile - Transpile function.
-     * 
+     *
      * @returns Transpiled WGSL code.
      */
-    public process(pInstance: PointerExpressionAst, pTranspile: PgslTranspilerProcessorTranspile): string {
-        return `*${pTranspile(pInstance.data.expression)}`;
+    protected override onProcess(pInstance: PointerExpressionAst): string {
+        return `*${this.transpileAst(pInstance.data.expression)}`;
     }
 }

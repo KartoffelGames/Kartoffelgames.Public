@@ -1,7 +1,7 @@
 import { WhileStatementAst } from '../../../../abstract_syntax_tree/statement/branch/while-statement-ast.ts';
-import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-transpiler-processor.interface.ts';
+import { TranspilerProcessor } from '../../../transpiler-processor.ts';
 
-export class WhileStatementAstTranspilerProcessor implements ITranspilerProcessor<WhileStatementAst> {
+export class WhileStatementAstTranspilerProcessor extends TranspilerProcessor<WhileStatementAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */
@@ -11,13 +11,12 @@ export class WhileStatementAstTranspilerProcessor implements ITranspilerProcesso
 
     /**
      * Transpiles a PGSL while statement into WGSL code.
-     * 
+     *
      * @param pInstance - Processor syntax tree instance.
-     * @param pTranspile - Transpile function.
-     * 
+     *
      * @returns Transpiled WGSL code.
      */
-    public process(pInstance: WhileStatementAst, pTranspile: PgslTranspilerProcessorTranspile): string {
-        return `loop{if !(${pTranspile(pInstance.data.expression)}){break;}${pTranspile(pInstance.data.block)}}`;
+    protected override onProcess(pInstance: WhileStatementAst): string {
+        return `loop{if !(${this.transpileAst(pInstance.data.expression)}){break;}${this.transpileAst(pInstance.data.block)}}`;
     }
 }

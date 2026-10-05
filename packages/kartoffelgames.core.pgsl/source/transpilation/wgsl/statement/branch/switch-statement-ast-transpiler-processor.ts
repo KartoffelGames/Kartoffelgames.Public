@@ -1,7 +1,7 @@
 import { SwitchStatementAst } from '../../../../abstract_syntax_tree/statement/branch/switch-statement-ast.ts';
-import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-transpiler-processor.interface.ts';
+import { TranspilerProcessor } from '../../../transpiler-processor.ts';
 
-export class SwitchStatementAstTranspilerProcessor implements ITranspilerProcessor<SwitchStatementAst> {
+export class SwitchStatementAstTranspilerProcessor extends TranspilerProcessor<SwitchStatementAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */
@@ -13,21 +13,20 @@ export class SwitchStatementAstTranspilerProcessor implements ITranspilerProcess
      * Transpiles a PGSL switch statement into WGSL code.
      * 
      * @param pInstance - Processor syntax tree instance.
-     * @param pTranspile - Transpile function.
-     * 
+     *
      * @returns Transpiled WGSL code.
      */
-    public process(pInstance: SwitchStatementAst, pTranspile: PgslTranspilerProcessorTranspile): string {
+    protected override onProcess(pInstance: SwitchStatementAst): string {
         // Open switch.
-        let lResult: string = `switch(${pTranspile(pInstance.data.expression)}){`;
+        let lResult: string = `switch(${this.transpileAst(pInstance.data.expression)}){`;
 
         // Append each case.
         for(const lCase of pInstance.data.cases) {
-            lResult += `case ${lCase.cases.map((pTree)=> {return pTranspile(pTree);}).join(',')}:${pTranspile(lCase.block)}`;
+            lResult += `case ${lCase.cases.map((pTree)=> {return this.transpileAst(pTree);}).join(',')}:${this.transpileAst(lCase.block)}`;
         }
 
         // Append default case.
-        lResult += `default:${pTranspile(pInstance.data.default)}`;
+        lResult += `default:${this.transpileAst(pInstance.data.default)}`;
 
         // Close switch.
         return lResult + '}';

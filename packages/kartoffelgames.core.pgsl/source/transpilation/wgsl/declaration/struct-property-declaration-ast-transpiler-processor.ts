@@ -2,10 +2,9 @@ import { StructPropertyDeclarationAst } from '../../../abstract_syntax_tree/decl
 import { PgslBuildInType } from '../../../abstract_syntax_tree/type/definition/pgsl-build-in-type.ts';
 import { PgslInterpolateSamplingEnum } from '../../../feature_set/enum/pgsl-interpolate-sampling-enum.ts';
 import { PgslInterpolateTypeEnum } from '../../../feature_set/enum/pgsl-interpolate-type-enum.ts';
-import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../i-transpiler-processor.interface.ts';
-import type { TranspilationMeta } from '../../transpilation-meta.ts';
+import { TranspilerProcessor } from '../../transpiler-processor.ts';
 
-export class StructPropertyDeclarationAstTranspilerProcessor implements ITranspilerProcessor<StructPropertyDeclarationAst> {
+export class StructPropertyDeclarationAstTranspilerProcessor extends TranspilerProcessor<StructPropertyDeclarationAst> {
     /**
      * Returns the target type for this processor.
      */
@@ -17,13 +16,12 @@ export class StructPropertyDeclarationAstTranspilerProcessor implements ITranspi
      * Transpile current struct declaration property into a string.
      * 
      * @param pInstance - Instance to process.
-     * @param pTrace - Trace information.
-     * @param pSendResult - Function to send the result.
-     * @param pTranspile - Function to transpile child nodes.
+     *
+     * @returns Transpiled WGSL code.
      */
-    public process(pInstance: StructPropertyDeclarationAst, pTranspile: PgslTranspilerProcessorTranspile, pTranspilationMeta: TranspilationMeta): string {
+    protected override onProcess(pInstance: StructPropertyDeclarationAst): string {
         // Transpile property type.
-        const lTypeTranspilation: string = pTranspile(pInstance.data.typeDeclaration);
+        const lTypeTranspilation: string = this.transpileAst(pInstance.data.typeDeclaration);
 
         // Create result array.
         const lResultParts: Array<string> = new Array<string>();
@@ -57,7 +55,7 @@ export class StructPropertyDeclarationAstTranspilerProcessor implements ITranspi
         }
         if (pInstance.data.meta.locationName) {
             // Create new location index for this property.
-            const lLocationIndex: number = pTranspilationMeta.createLocationFor(pInstance.struct, pInstance);
+            const lLocationIndex: number = this.meta.createLocationFor(pInstance.struct, pInstance);
             lResultParts.push(`@location(${lLocationIndex})`);
         }
         if (typeof pInstance.data.meta.size !== 'undefined') {

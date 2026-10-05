@@ -1,7 +1,7 @@
 import { UnaryExpressionAst } from '../../../../abstract_syntax_tree/expression/unary/unary-expression-ast.ts';
-import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-transpiler-processor.interface.ts';
+import { TranspilerProcessor } from '../../../transpiler-processor.ts';
 
-export class UnaryExpressionAstTranspilerProcessor implements ITranspilerProcessor<UnaryExpressionAst> {
+export class UnaryExpressionAstTranspilerProcessor extends TranspilerProcessor<UnaryExpressionAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */
@@ -13,13 +13,12 @@ export class UnaryExpressionAstTranspilerProcessor implements ITranspilerProcess
      * Transpiles a PGSL expression into WGSL code.
      * 
      * @param pInstance - Processor syntax tree instance.
-     * @param pTranspile - Transpile function.
-     * 
+     *
      * @returns Transpiled WGSL code.
      */
-    public process(pInstance: UnaryExpressionAst, pTranspile: PgslTranspilerProcessorTranspile): string {
+    protected override onProcess(pInstance: UnaryExpressionAst): string {
         // Transpile expression.
-        const lExpression: string = pTranspile(pInstance.data.expression);
+        const lExpression: string = this.transpileAst(pInstance.data.expression);
         return `${pInstance.data.operator}${lExpression}`;
     }
 }

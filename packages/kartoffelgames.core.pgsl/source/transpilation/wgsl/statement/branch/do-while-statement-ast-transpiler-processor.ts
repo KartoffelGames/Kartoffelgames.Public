@@ -1,7 +1,7 @@
 import { DoWhileStatementAst } from '../../../../abstract_syntax_tree/statement/branch/do-while-statement-ast.ts';
-import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-transpiler-processor.interface.ts';
+import { TranspilerProcessor } from '../../../transpiler-processor.ts';
 
-export class DoWhileStatementAstTranspilerProcessor implements ITranspilerProcessor<DoWhileStatementAst> {
+export class DoWhileStatementAstTranspilerProcessor extends TranspilerProcessor<DoWhileStatementAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */
@@ -13,12 +13,10 @@ export class DoWhileStatementAstTranspilerProcessor implements ITranspilerProces
      * Transpiles a PGSL do-while statement into WGSL code.
      * 
      * @param pInstance - Processor syntax tree instance.
-     * @param _pTrace - Transpilation trace.
-     * @param pTranspile - Transpile function.
-     * 
+     *
      * @returns Transpiled WGSL code.
      */
-    public process(pInstance: DoWhileStatementAst, pTranspile: PgslTranspilerProcessorTranspile): string {
-        return `loop{${pTranspile(pInstance.data.block)}if !(${pTranspile(pInstance.data.expression)}){break;}}`;
+    protected override onProcess(pInstance: DoWhileStatementAst): string {
+        return `loop{${this.transpileAst(pInstance.data.block)}if !(${this.transpileAst(pInstance.data.expression)}){break;}}`;
     }
 }

@@ -1,7 +1,7 @@
 import { ParenthesizedExpressionAst } from '../../../../abstract_syntax_tree/expression/single_value/parenthesized-expression-ast.ts';
-import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-transpiler-processor.interface.ts';
+import { TranspilerProcessor } from '../../../transpiler-processor.ts';
 
-export class ParenthesizedExpressionAstTranspilerProcessor implements ITranspilerProcessor<ParenthesizedExpressionAst> {
+export class ParenthesizedExpressionAstTranspilerProcessor extends TranspilerProcessor<ParenthesizedExpressionAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */
@@ -13,11 +13,10 @@ export class ParenthesizedExpressionAstTranspilerProcessor implements ITranspile
      * Transpiles a PGSL parenthesized expression into WGSL code.
      * 
      * @param pInstance - Processor syntax tree instance.
-     * @param pTranspile - Transpile function.
      * 
      * @returns Transpiled WGSL code.
      */
-    public process(pInstance: ParenthesizedExpressionAst, pTranspile: PgslTranspilerProcessorTranspile): string {
-        return `(${pTranspile(pInstance.data.expression)})`;
+    protected override onProcess(pInstance: ParenthesizedExpressionAst): string {
+        return `(${this.transpileAst(pInstance.data.expression)})`;
     }
 }

@@ -6,9 +6,9 @@ import { DocumentAst } from '../../abstract_syntax_tree/document-ast.ts';
 import { AttributeListAst } from '../../abstract_syntax_tree/general/attribute-list-ast.ts';
 import { PgslBuildInType } from '../../abstract_syntax_tree/type/definition/pgsl-build-in-type.ts';
 import { PgslNumericType } from '../../abstract_syntax_tree/type/definition/pgsl-numeric-type.ts';
-import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../i-transpiler-processor.interface.ts';
+import { TranspilerProcessor } from '../transpiler-processor.ts';
 
-export class DocumentAstTranspilerProcessor implements ITranspilerProcessor<DocumentAst> {
+export class DocumentAstTranspilerProcessor extends TranspilerProcessor<DocumentAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */
@@ -20,10 +20,10 @@ export class DocumentAstTranspilerProcessor implements ITranspilerProcessor<Docu
      * Processes the PGSL document syntax tree.
      * 
      * @param pInstance - The syntax tree instance to transpile.
-     * @param _pTrace - The syntax tree trace for context.
-     * @param pSendResult - The function to call with transpilation results.
+     *
+     * @returns Transpiled WGSL code.
      */
-    public process(pInstance: DocumentAst, pTranspile: PgslTranspilerProcessorTranspile): string {
+    protected override onProcess(pInstance: DocumentAst): string {
         // List of transpileable child nodes.
         const lTranspileableChildren: Array<AbstractSyntaxTreeConstructor> = [
             FunctionDeclarationAst, VariableDeclarationAst, StructDeclarationAst
@@ -46,7 +46,7 @@ export class DocumentAstTranspilerProcessor implements ITranspilerProcessor<Docu
                 continue;
             }
 
-            lResult += pTranspile(lChild);
+            lResult += this.transpileAst(lChild);
         }
 
         // Prepend used extensions.

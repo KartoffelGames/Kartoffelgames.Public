@@ -1,7 +1,7 @@
 import { BreakStatementAst } from '../../../../abstract_syntax_tree/statement/single/break-statement-ast.ts';
-import type { ITranspilerProcessor } from '../../../i-transpiler-processor.interface.ts';
+import { TranspilerProcessor } from '../../../transpiler-processor.ts';
 
-export class BreakStatementAstTranspilerProcessor implements ITranspilerProcessor<BreakStatementAst> {
+export class BreakStatementAstTranspilerProcessor extends TranspilerProcessor<BreakStatementAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */
@@ -14,7 +14,7 @@ export class BreakStatementAstTranspilerProcessor implements ITranspilerProcesso
      * 
      * @returns Transpiled WGSL code.
      */
-    public process(): string {
+    protected override onProcess(): string {
         return `break;`;
     }
 }

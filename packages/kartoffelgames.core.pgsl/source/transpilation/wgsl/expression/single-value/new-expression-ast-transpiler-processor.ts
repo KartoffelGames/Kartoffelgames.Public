@@ -5,9 +5,9 @@ import { PgslBooleanType } from '../../../../abstract_syntax_tree/type/definitio
 import { PgslMatrixType } from '../../../../abstract_syntax_tree/type/definition/pgsl-matrix-type.ts';
 import { PgslNumericType } from '../../../../abstract_syntax_tree/type/definition/pgsl-numeric-type.ts';
 import { PgslVectorType } from '../../../../abstract_syntax_tree/type/definition/pgsl-vector-type.ts';
-import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-transpiler-processor.interface.ts';
+import { TranspilerProcessor } from '../../../transpiler-processor.ts';
 
-export class NewCallExpressionAstTranspilerProcessor implements ITranspilerProcessor<NewExpressionAst> {
+export class NewCallExpressionAstTranspilerProcessor extends TranspilerProcessor<NewExpressionAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */
@@ -19,19 +19,18 @@ export class NewCallExpressionAstTranspilerProcessor implements ITranspilerProce
      * Transpiles a PGSL new call expression into WGSL code.
      *
      * @param pInstance - Processor syntax tree instance.
-     * @param pTranspile - Transpile function.
      *
      * @returns Transpiled WGSL code.
      */
-    public process(pInstance: NewExpressionAst, pTranspile: PgslTranspilerProcessorTranspile): string {
+    protected override onProcess(pInstance: NewExpressionAst): string {
         // Only write the generic when it is written in PGSL. WGSL infers any omitted template itself.
         let lGenerics: string = '';
         if (pInstance.data.generic) {
-            lGenerics = `<${pTranspile(pInstance.data.generic)}>`;
+            lGenerics = `<${this.transpileAst(pInstance.data.generic)}>`;
         }
 
         // Simply transpile the constructor and parameters without the new part.
-        return `${this.constructorName(pInstance.data.typeName)}${lGenerics}(${pInstance.data.parameterList.map(pParam => pTranspile(pParam)).join(',')})`;
+        return `${this.constructorName(pInstance.data.typeName)}${lGenerics}(${pInstance.data.parameterList.map(pParam => this.transpileAst(pParam)).join(',')})`;
     }
 
     /**

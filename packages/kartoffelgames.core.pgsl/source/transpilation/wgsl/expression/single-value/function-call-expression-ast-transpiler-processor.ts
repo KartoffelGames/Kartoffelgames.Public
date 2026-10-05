@@ -1,7 +1,7 @@
 import { FunctionCallExpressionAst } from '../../../../abstract_syntax_tree/expression/single_value/function-call-expression-ast.ts';
-import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-transpiler-processor.interface.ts';
+import { TranspilerProcessor } from '../../../transpiler-processor.ts';
 
-export class FunctionCallExpressionAstTranspilerProcessor implements ITranspilerProcessor<FunctionCallExpressionAst> {
+export class FunctionCallExpressionAstTranspilerProcessor extends TranspilerProcessor<FunctionCallExpressionAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */
@@ -13,17 +13,16 @@ export class FunctionCallExpressionAstTranspilerProcessor implements ITranspiler
      * Transpiles a PGSL function call expression into WGSL code.
      *
      * @param pInstance - Processor syntax tree instance.
-     * @param pTranspile - Transpile function.
      *
      * @returns Transpiled WGSL code.
      */
-    public process(pInstance: FunctionCallExpressionAst, pTranspile: PgslTranspilerProcessorTranspile): string {
+    protected override onProcess(pInstance: FunctionCallExpressionAst): string {
         // Transpile function call generics.
         let lGenerics: string = '';
         if(pInstance.data.generics.length > 0 && pInstance.data.functionDeclaration.data.explicitGenerics) {
-            lGenerics = `<${pInstance.data.generics.map(pGeneric => pTranspile(pGeneric)).join(',')}>`;
+            lGenerics = `<${pInstance.data.generics.map(pGeneric => this.transpileAst(pGeneric)).join(',')}>`;
         }
 
-        return `${pInstance.data.name}${lGenerics}(${pInstance.data.parameters.map(pParam => pTranspile(pParam)).join(',')})`;
+        return `${pInstance.data.name}${lGenerics}(${pInstance.data.parameters.map(pParam => this.transpileAst(pParam)).join(',')})`;
     }
 }

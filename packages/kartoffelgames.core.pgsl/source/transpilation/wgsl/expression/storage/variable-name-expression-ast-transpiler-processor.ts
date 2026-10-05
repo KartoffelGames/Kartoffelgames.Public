@@ -1,9 +1,9 @@
 import { Exception } from '@kartoffelgames/core';
 import { VariableNameExpressionAst } from '../../../../abstract_syntax_tree/expression/storage/variable-name-expression-ast.ts';
-import type { ITranspilerProcessor } from '../../../i-transpiler-processor.interface.ts';
+import { TranspilerProcessor } from '../../../transpiler-processor.ts';
 import { PgslEnumType } from '../../../../abstract_syntax_tree/type/definition/pgsl-enum-type.ts';
 
-export class VariableNameExpressionAstTranspilerProcessor implements ITranspilerProcessor<VariableNameExpressionAst> {
+export class VariableNameExpressionAstTranspilerProcessor extends TranspilerProcessor<VariableNameExpressionAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */
@@ -18,7 +18,7 @@ export class VariableNameExpressionAstTranspilerProcessor implements ITranspiler
      * 
      * @returns Transpiled WGSL code.
      */
-    public process(pInstance: VariableNameExpressionAst): string {
+    protected override onProcess(pInstance: VariableNameExpressionAst): string {
         // Throw when resolve type is an enum.
         if (pInstance.data.resolveType instanceof PgslEnumType) {
             throw new Exception(`Cannot transpile variable name expression for enum type "${pInstance.data.resolveType.enumName}".`, this);

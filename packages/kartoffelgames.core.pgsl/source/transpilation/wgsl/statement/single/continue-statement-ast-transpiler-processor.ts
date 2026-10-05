@@ -1,7 +1,7 @@
 import { ContinueStatementAst } from '../../../../abstract_syntax_tree/statement/single/continue-statement-ast.ts';
-import type { ITranspilerProcessor } from '../../../i-transpiler-processor.interface.ts';
+import { TranspilerProcessor } from '../../../transpiler-processor.ts';
 
-export class ContinueStatementAstTranspilerProcessor implements ITranspilerProcessor<ContinueStatementAst> {
+export class ContinueStatementAstTranspilerProcessor extends TranspilerProcessor<ContinueStatementAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */
@@ -14,7 +14,7 @@ export class ContinueStatementAstTranspilerProcessor implements ITranspilerProce
      * 
      * @returns Transpiled WGSL code.
      */
-    public process(): string {
+    protected override onProcess(): string {
         return `continue;`;
     }
 }

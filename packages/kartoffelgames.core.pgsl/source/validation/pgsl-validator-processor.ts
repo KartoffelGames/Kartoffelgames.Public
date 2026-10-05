@@ -53,6 +53,21 @@ export abstract class PgslValidatorProcessor<TTarget extends AbstractSyntaxTree>
         }
     }
 
+
+    /**
+     * Add a validation incident.
+     * 
+     * @param pMessage - Incident message.
+     * @param pDifferentAst - Changes the target of the incident to a different AST.
+     */
+    protected pushIncident(pMessage: string, pDifferentAst?: AbstractSyntaxTree): void {
+        if (!this.mValidationContext) {
+            throw new Exception('Invalid call of pushIncident', this);
+        }
+
+        this.mValidationContext.incidentList.push(new AbstractSyntaxTreeIncident(pMessage, pDifferentAst ?? this.mValidationContext.instance));
+    }
+
     /**
      * Find the nearest parent of the validated instance that is the specified type.
      *
@@ -64,7 +79,7 @@ export abstract class PgslValidatorProcessor<TTarget extends AbstractSyntaxTree>
      */
     protected stackContains<TParentType extends PgslValidatorProcessorParentType<AbstractSyntaxTree>>(pAstType: TParentType): InstanceType<TParentType> | null {
         if (!this.mValidationContext) {
-            throw new Exception('Invalid call of findParent', this);
+            throw new Exception('Invalid call of stackContains', this);
         }
 
         // Search from the nearest to the farthest parent.
@@ -80,20 +95,6 @@ export abstract class PgslValidatorProcessor<TTarget extends AbstractSyntaxTree>
         }
 
         return null;
-    }
-
-    /**
-     * Add a validation incident.
-     * 
-     * @param pMessage - Incident message.
-     * @param pDifferentAst - Changes the target of the incident to a different AST.
-     */
-    protected pushIncident(pMessage: string, pDifferentAst?: AbstractSyntaxTree): void {
-        if (!this.mValidationContext) {
-            throw new Exception('Invalid call of pushIncident', this);
-        }
-
-        this.mValidationContext.incidentList.push(new AbstractSyntaxTreeIncident(pMessage, pDifferentAst ?? this.mValidationContext.instance));
     }
 
     /**

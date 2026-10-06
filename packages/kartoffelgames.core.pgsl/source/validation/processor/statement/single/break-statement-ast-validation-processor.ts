@@ -18,5 +18,6 @@ export class BreakStatementAstValidationProcessor extends PgslValidatorProcessor
      * @param _pInstance - The syntax tree instance to validate.
      */
     protected override onValidate(_pInstance: BreakStatementAst): void {
+        // TODO: Validate that the break statement is placed inside a while, do-while or for loop or a switch statement, searched as enclosing ancestor with stackContains.
     }
 }

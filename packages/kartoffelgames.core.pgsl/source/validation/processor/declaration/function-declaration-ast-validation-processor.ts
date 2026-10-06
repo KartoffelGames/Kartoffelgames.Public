@@ -18,5 +18,10 @@ export class FunctionDeclarationAstValidationProcessor extends PgslValidatorProc
      * @param _pInstance - The syntax tree instance to validate.
      */
     protected override onValidate(_pInstance: FunctionDeclarationAst): void {
+        // TODO: Validate the child overload declarations.
+        // TODO: Validate that the function name is a valid WGSL identifier: not a WGSL keyword or reserved word (the lexer lets fn, override, non_coherent and noncoherent through) and not starting with two underscores (new).
+        // TODO: Validate that the function name is not a WGSL predeclared type or enumerant name like f32, vec3, read or rgba8unorm, which the function would shadow in the whole transpiled module (new).
+        // TODO: Validate that the function name does not contain the reserved name part __GENERIC__ (new).
+        // TODO: Validate that no overload of a function with more than one overload has attributes.
     }
 }

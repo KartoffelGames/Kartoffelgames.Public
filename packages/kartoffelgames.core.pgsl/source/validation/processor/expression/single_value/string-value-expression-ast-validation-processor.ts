@@ -18,5 +18,6 @@ export class StringValueExpressionAstValidationProcessor extends PgslValidatorPr
      * @param _pInstance - The syntax tree instance to validate.
      */
     protected override onValidate(_pInstance: StringValueExpressionAst): void {
+        // TODO: Validate that the string value only appears as an attribute parameter, a type template argument or an enum value, because WGSL has no string values and the transpiler would emit it unchanged (new).
     }
 }

@@ -18,5 +18,11 @@ export class IndexedValueExpressionAstValidationProcessor extends PgslValidatorP
      * @param _pInstance - The syntax tree instance to validate.
      */
     protected override onValidate(_pInstance: IndexedValueExpressionAst): void {
+        // TODO: Validate the child value expression.
+        // TODO: Validate the child index expression.
+        // TODO: Validate that the value is an Array, a Vector or a Matrix, reporting once in place of both of today's messages and skipping when the value type is poison.
+        // TODO: Validate that the index is an int or a uint scalar, abstract integers included, skipped when the index type is poison.
+        // TODO: Validate that a constant index is not negative, where constant means a compile time constant and not a param value.
+        // TODO: Validate that a constant index is less than the length of an Array with a constant length, the dimension of a Vector or the column count of a Matrix (new).
     }
 }

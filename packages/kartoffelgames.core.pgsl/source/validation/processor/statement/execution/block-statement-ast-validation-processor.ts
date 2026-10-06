@@ -18,5 +18,7 @@ export class BlockStatementAstValidationProcessor extends PgslValidatorProcessor
      * @param _pInstance - The syntax tree instance to validate.
      */
     protected override onValidate(_pInstance: BlockStatementAst): void {
+        // TODO: Validate each child statement of the block.
+        // TODO: Validate that no two variable declarations directly inside the block share the same name.
     }
 }

@@ -18,5 +18,7 @@ export class PointerExpressionAstValidationProcessor extends PgslValidatorProces
      * @param _pInstance - The syntax tree instance to validate.
      */
     protected override onValidate(_pInstance: PointerExpressionAst): void {
+        // TODO: Validate the child expression that is dereferenced.
+        // TODO: Validate that the dereferenced expression is a pointer, skipped when its type is poison.
     }
 }

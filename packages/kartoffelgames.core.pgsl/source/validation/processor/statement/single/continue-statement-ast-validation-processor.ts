@@ -18,5 +18,6 @@ export class ContinueStatementAstValidationProcessor extends PgslValidatorProces
      * @param _pInstance - The syntax tree instance to validate.
      */
     protected override onValidate(_pInstance: ContinueStatementAst): void {
+        // TODO: Validate that the continue statement is placed inside a while, do-while or for loop, searched as enclosing ancestor with stackContains, where a switch between the loop and the continue is allowed.
     }
 }

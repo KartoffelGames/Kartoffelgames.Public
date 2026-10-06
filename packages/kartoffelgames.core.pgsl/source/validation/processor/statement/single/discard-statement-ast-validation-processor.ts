@@ -18,5 +18,6 @@ export class DiscardStatementAstValidationProcessor extends PgslValidatorProcess
      * @param _pInstance - The syntax tree instance to validate.
      */
     protected override onValidate(_pInstance: DiscardStatementAst): void {
+        // TODO: Validate that the nearest enclosing function overload, found with stackContains, is no Vertex or Compute entry point, as WGSL only allows discard in the fragment stage (new).
     }
 }

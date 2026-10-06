@@ -18,5 +18,7 @@ export class FunctionCallStatementAstValidationProcessor extends PgslValidatorPr
      * @param _pInstance - The syntax tree instance to validate.
      */
     protected override onValidate(_pInstance: FunctionCallStatementAst): void {
+        // TODO: Validate the child function call expression.
+        // TODO: Validate that the called function is no built-in function with a non-void return type, because WGSL declares those built-ins must_use and rejects them as a whole statement, skipped when the call resolved no function (new).
     }
 }

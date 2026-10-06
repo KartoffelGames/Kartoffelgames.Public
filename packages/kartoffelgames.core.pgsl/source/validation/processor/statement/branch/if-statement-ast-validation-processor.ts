@@ -18,5 +18,9 @@ export class IfStatementAstValidationProcessor extends PgslValidatorProcessor<If
      * @param _pInstance - The syntax tree instance to validate.
      */
     protected override onValidate(_pInstance: IfStatementAst): void {
+        // TODO: Validate the child condition expression.
+        // TODO: Validate the child block.
+        // TODO: Validate the child else block or else-if statement when present.
+        // TODO: Validate that the condition expression resolves to bool, skipped when its type is poison.
     }
 }

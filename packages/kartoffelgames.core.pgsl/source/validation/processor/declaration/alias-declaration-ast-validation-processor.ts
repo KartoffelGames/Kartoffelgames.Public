@@ -18,5 +18,8 @@ export class AliasDeclarationAstValidationProcessor extends PgslValidatorProcess
      * @param _pInstance - The syntax tree instance to validate.
      */
     protected override onValidate(_pInstance: AliasDeclarationAst): void {
+        // TODO: Validate the child attribute list.
+        // TODO: Validate the child type declaration of the aliased type.
+        // TODO: Validate that the alias name does not contain the reserved name part __GENERIC__ (new).
     }
 }

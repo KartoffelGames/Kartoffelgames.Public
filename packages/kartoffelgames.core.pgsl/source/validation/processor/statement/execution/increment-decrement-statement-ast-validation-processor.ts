@@ -18,5 +18,11 @@ export class IncrementDecrementStatementAstValidationProcessor extends PgslValid
      * @param _pInstance - The syntax tree instance to validate.
      */
     protected override onValidate(_pInstance: IncrementDecrementStatementAst): void {
+        // TODO: Validate the child expression.
+        // TODO: Validate that the operator is ++ or --.
+        // TODO: Validate that the expression is a storage expression, like a variable name, an indexed value, a struct property or a dereferenced pointer.
+        // TODO: Validate that the expression is a variable and not a const, param, function parameter or other fixed value.
+        // TODO: Validate that the memory behind the expression is writable, which rejects uniform variables and storage variables without AccessMode read_write, also when reached through a pointer (new).
+        // TODO: Validate that the type of the expression is int or uint, as WGSL only increments and decrements concrete integer scalars, skipped when the type is poison (new).
     }
 }

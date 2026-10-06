@@ -18,5 +18,6 @@ export class ParenthesizedExpressionAstValidationProcessor extends PgslValidator
      * @param _pInstance - The syntax tree instance to validate.
      */
     protected override onValidate(_pInstance: ParenthesizedExpressionAst): void {
+        // TODO: Validate the child expression inside the parentheses.
     }
 }

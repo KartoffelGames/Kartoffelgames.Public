@@ -18,5 +18,11 @@ export class LiteralValueExpressionAstValidationProcessor extends PgslValidatorP
      * @param _pInstance - The syntax tree instance to validate.
      */
     protected override onValidate(_pInstance: LiteralValueExpressionAst): void {
+        // TODO: Validate that the literal text is a boolean, integer or float literal, reporting "No matching Type for literal" for the recorded text.
+        // TODO: Validate that an integer literal with i suffix is at most 2147483647 and one with u suffix is at most 4294967295 (new).
+        // TODO: Validate that an integer literal without suffix is representable as a 64-bit signed integer (new).
+        // TODO: Validate that a float literal with f or h suffix does not overflow float or float16 (new).
+        // TODO: Validate that a hexadecimal float literal with f or h suffix is exactly representable in float or float16 (new).
+        // TODO: Validate that a float literal without suffix is finite as a 64-bit float (new).
     }
 }

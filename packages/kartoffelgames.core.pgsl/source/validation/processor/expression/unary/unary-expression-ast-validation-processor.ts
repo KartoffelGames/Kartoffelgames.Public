@@ -39,6 +39,12 @@ export class UnaryExpressionAstValidationProcessor extends PgslValidatorProcesso
             return false;
         };
 
+        
+        // TODO: Report "Unary operation <operator> not supported for <operand type>." when the result type is poison and the operator is valid 
+        //       ~ on an operand that converts to no int, uint or Vector of them,
+        //       - on an operand that converts to no int, float, float16 or Vector of them, so never on a uint or a Vector of uint, 
+        //       ! on an operand that is no bool or Vector of bool.
+
         // Validate that the operator is one of ~, - and !.
         // And validate value is correct type.
         switch (pData.operator) {
@@ -68,7 +74,5 @@ export class UnaryExpressionAstValidationProcessor extends PgslValidatorProcesso
                 this.pushIncident(`Unknown unary operator "${pData.operator}".`);
             }
         }
-
-        // TODO: Report "Unary operation <operator> not supported for <operand type>." when the result type is poison and the operator is valid (~ on an operand that converts to no int, uint or Vector of them, - on an operand that converts to no int, float, float16 or Vector of them, so never on a uint or a Vector of uint, ! on an operand that is no bool or Vector of bool).
     }
 }

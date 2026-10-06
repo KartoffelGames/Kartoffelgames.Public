@@ -21,7 +21,7 @@ export class ReturnStatementAstValidationProcessor extends PgslValidatorProcesso
         // TODO: Validate the child return expression when present.
         // TODO: Validate that a return without a value is only used in a function overload whose declared return type is void, reading the nearest enclosing function overload with stackContains.
         // TODO: Validate that a return with a value is only used in a function overload with a non-void declared return type.
-        // TODO: Validate that the type of the return value converts to the declared return type of the enclosing function overload, skipped when either type is poison.
+        // TODO: Validate that the type of the return value converts to the declared return type of the enclosing function overload.
         // TODO: Validate that a constant return value is representable in the declared return type, e.g. no negative value for uint (new).
     }
 }

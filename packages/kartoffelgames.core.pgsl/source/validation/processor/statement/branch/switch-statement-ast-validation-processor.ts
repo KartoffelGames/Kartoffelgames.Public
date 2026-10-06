@@ -24,7 +24,6 @@ export class SwitchStatementAstValidationProcessor extends PgslValidatorProcesso
         // TODO: Validate the child default block.
         // TODO: Validate that every case value is a constant expression.
         // TODO: Validate that no constant case value is used twice across all cases of the switch.
-        // TODO: Skip the type rules below for the switch expression and for every case value whose type is poison.
         // TODO: Validate that the switch expression converts to int or uint.
         // TODO: Validate that every case value converts to int or uint.
         // TODO: Validate that the switch expression and all case values convert to one common type int or uint, so a uint switch expression rejects a 1i case value (new).

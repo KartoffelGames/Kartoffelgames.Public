@@ -28,7 +28,6 @@ export class VariableDeclarationStatementAstValidationProcessor extends PgslVali
         // TODO: Validate that the variable name is not the name of a function or struct declaration, which the variable would shadow in the rest of its transpiled scope while PGSL still resolves calls and type names to that declaration (new).
         // TODO: Validate that the variable name does not contain the reserved name part __GENERIC__ (new).
         // TODO: Validate that a const declaration has an initializer.
-        // TODO: Skip each type rule below that reads a poison type, the declared type or the type of the initializer.
         // TODO: Validate that the declared type is constructible unless it is a pointer, which also rejects an Array with a param-sized length once the Array type is only constructible with a constant length.
         // TODO: Validate that a variable of pointer type is declared with const, because let emits a WGSL var and a var cannot hold a pointer (new).
         // TODO: Validate that the type of the initializer converts to the declared type.

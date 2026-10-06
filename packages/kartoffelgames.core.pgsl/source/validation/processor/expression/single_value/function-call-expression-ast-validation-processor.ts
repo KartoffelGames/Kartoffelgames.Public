@@ -21,7 +21,7 @@ export class FunctionCallExpressionAstValidationProcessor extends PgslValidatorP
         // TODO: Validate each argument expression.
         // TODO: Validate each explicit generic type declaration.
         // TODO: Validate that the function name resolves to a function declaration, reporting "Function 'name' is not defined." from the recorded raw name.
-        // TODO: Validate that an overload of the function matches the argument count, the explicit generic count and the argument types, reporting the argument types when none matched and skipping when an argument or explicit generic is poison.
+        // TODO: Validate that an overload of the function matches the argument count, the explicit generic count and the argument types, reporting the argument types when none matched.
         // TODO: Validate that the call is not ambiguous, reporting the recorded tie when no matching overload converts every argument at a rank at least as good as every other matching overload and at least one argument at a better rank (new).
         // TODO: Validate that each explicit generic satisfies the restrictions of its generic in the selected overload, so bitcast<bool>(v) is rejected (new).
         // TODO: Validate that every generic which occurs in no parameter of the selected overload is written explicitly, so bitcast(v) without a generic is rejected (new).

@@ -21,7 +21,6 @@ export class TypeDeclarationAstValidationProcessor extends PgslValidatorProcesso
         // TODO: Validate the child type declaration or expression of each template argument.
         // TODO: Validate the inner type declaration of a pointer type.
         // TODO: Report "Typename "<name>" not defined." when the raw type name resolves to no type.
-        // TODO: Skip the rules that read the type of a template argument when that type is poison.
         // TODO: Validate that void, bool, string, int, uint, float, float16, Sampler, SamplerComparison, struct, enum and alias types have no template arguments.
         // TODO: Validate that the string type is never written explicitly.
         // TODO: Validate that Array has one or two template arguments.

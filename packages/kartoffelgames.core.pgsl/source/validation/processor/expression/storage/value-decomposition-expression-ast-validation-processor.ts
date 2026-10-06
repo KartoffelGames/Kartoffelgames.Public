@@ -19,7 +19,7 @@ export class ValueDecompositionExpressionAstValidationProcessor extends PgslVali
      */
     protected override onValidate(_pInstance: ValueDecompositionExpressionAst): void {
         // TODO: Validate the child value expression.
-        // TODO: Validate that the value is a struct, an enum or a Vector, reporting once in place of both of today's messages and skipping when the value type is poison.
+        // TODO: Validate that the value is a struct, an enum or a Vector, reporting once in place of both of today's messages.
         // TODO: Validate that the struct type of the value resolves to its struct declaration.
         // TODO: Validate that the struct declares a property with the accessed name.
         // TODO: Validate that the enum type of the value resolves to its enum declaration.

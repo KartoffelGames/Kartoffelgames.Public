@@ -24,7 +24,6 @@ export class AttributeListAstValidationProcessor extends PgslValidatorProcessor<
         // TODO: Validate that each attribute with an enforced parent type is attached to a declaration of that type (GroupBinding and AccessMode on variable declarations, Align, BlendSource, Interpolate, Invariant, Location and Size on struct properties, Vertex, Fragment and Compute on function overloads).
         // TODO: Validate that the parameter count of each attribute matches one of the parameter definitions of that attribute.
         // TODO: Validate that attributes without a parameter definition (Invariant, Vertex and Fragment) have no parameters (new).
-        // TODO: Skip the type and value rules of a parameter whose type is poison.
         // TODO: Validate that each string parameter is a constant expression.
         // TODO: Validate that each string parameter is of type string.
         // TODO: Validate that each string parameter has a constant string value.

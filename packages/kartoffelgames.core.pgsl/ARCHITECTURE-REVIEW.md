@@ -219,16 +219,16 @@ One incident cannot move yet. `PgslPointerType.assignAddressSpace` only sees a c
 at the moment of the second assignment, and the shared, mutable type (D6) keeps no trace of it. It
 stays the context's only incident until §3.2 makes pointers stateless; `pushIncident` goes with it.
 
-### Result types and the origin of poison
+### Result types and poison
 
 The process pass still computes result types: the arithmetic dispatch, the rank comparison of the
 binary operators, overload selection. When it cannot, the result is poison. To say why, the validator
-does not run those rules a second time. It reports where the poison starts:
+does not run those rules a second time:
 
-> **A node whose own result is poison while none of its inputs are is where the mistake is, and it
-> reports once.** For a name, that means the reference itself is unresolved; a resolved variable whose
-> type is poison is not an origin. For an operation, the message names the input types:
-> `Arithmetic operation not supported for Vector3<float> and Vector2<float>.`
+> **A node whose own result is poison reports it, and the message names the input types:**
+> `Arithmetic operation not supported for Vector3<float> and Vector2<float>.` For a name, only the
+> unresolved reference counts; a resolved variable whose type is poison is defined and is not reported
+> as undefined.
 
 The types in the message show the problem, and the rules exist only once. Rules that do not decide the
 result type move to the validator completely: the right side of a shift must be unsigned, a constant
@@ -237,37 +237,25 @@ shift amount must not be negative.
 A function call records the selected overload and its binding (§3.1), or that none matched or several
 tie. Its message comes from that record, not from a second binding run.
 
-### The poison type (D4)
+### Cascading incidents are accepted
 
-`PgslInvalidType` is the fallback when resolution fails, but today it *propagates* instead of being
-*absorbed*: one undefined variable used three times produces eight incidents, five of them noise. With
-the split, absorption comes down to three points:
+`PgslInvalidType` is the fallback when resolution fails or a result cannot be computed, and it
+propagates: one undefined variable used three times produces eight incidents. Every one of them is
+correct, they are only harder to read. So there is no machinery to absorb poison: no rule skips a poison
+input, no comparison treats poison as equal to everything, and `BasePgslType` stays as it is. A rule
+that reads poison simply reports.
 
-**⓪ Poison has a name generic code can test.** `BasePgslTypeKind.Invalid` is a bit, so the guard is
-`isKind(Invalid)` and works anywhere a `BasePgslType` is in hand. Make `PgslInvalidType` a singleton;
-it takes no arguments and carries no state.
+What stays:
 
-**① The process pass passes poison on.** A result that depends on a poison operand is poison.
-`ArithmeticExpressionAst` classifies its operands as scalar, vector or matrix; poison is none of them,
-lands in the catch-all and comes out as poison, so no extra arm is needed once the catch-all reports
-nothing. An expression whose result does not depend on its operands, like a comparison that is always
-`bool`, keeps that type, and the cascade ends there.
-
-**② A validator rule that reads poison is skipped.** Poison gets no capability bits and does not compare
-equal to everything; either would let it slip past rules it should never reach, and `BasePgslType`
-stays as it is. The rule simply does not run. `let a: float = nope;` reports `nope` once at the name,
-and the declaration's conversion check sees poison and stays silent.
-
-Together with the origin rule, every mistake is reported once, where it is.
-
-**The invariant to write down and test:**
-
-> **Poison in → poison out, and one incident per mistake.**
-
-```ts
-// For each fixture containing exactly one resolution error,
-// assert incidents.length === 1 (or === the number of distinct bad references).
-```
+- **Poison has a name generic code can test.** `BasePgslTypeKind.Invalid` is a bit, so the check is
+  `isKind(Invalid)` and works anywhere a `BasePgslType` is in hand. Make `PgslInvalidType` a singleton;
+  it takes no arguments and carries no state.
+- **The process pass passes poison on.** A result that depends on a poison operand is poison.
+  `ArithmeticExpressionAst` classifies its operands as scalar, vector or matrix; poison is none of
+  them, lands in the catch-all and comes out as poison. An expression whose result does not depend on
+  its operands, like a comparison that is always `bool`, keeps that type.
+- **Rules must not throw on poison.** Poison has no capability bits, so a kind check simply fails and
+  the rule reports.
 
 `transpileInvalidType` throwing `Invalid type encountered during transpilation` stays. After validation
 it is unreachable, because `PgslParser.transpile` only transpiles when there are no incidents. On fast
@@ -299,7 +287,7 @@ The steps are a dependency order, not a release plan:
    singleton.
 3. **Move the rules**, file by file, from `onProcess` into validator processors, mirroring
    `transpilation/wgsl/`. Steps 2 and 3 go together per file. Result-type failures change to the
-   origin message, and their tests with them.
+   message with the input types, and their tests with them.
 4. **Strip the context** of `incidents` (except the pointer incident until §3.2) and
    `registerBindingName`, and add fast transpile to `PgslParser`.
 
@@ -679,7 +667,6 @@ Each of these is reproduced against the current tree.
 | **D1** | `#META` replacement inserts a newline | declaration on source line 2 after a `#META` | Reported at line 3; the drift depends on surrounding blank lines. §1a |
 | **D2** | `#IMPORT` split restarts line numbering | `#IMPORT` on line 3, mistake on line 4 | Reported at line 2. §1b |
 | **D3** | No source identity in `CstRange` | two declarations named `dup`, one imported | Both report a bare line number; the file is unknowable. §1c |
-| **D4** | `PgslInvalidType` propagates instead of absorbing | `let a: float = nope + nope + nope;` | Eight incidents for three real mistakes. §2 |
 | **D5** | Array lengths are only kept as folded constants | `private a: Array<float, SIZE + 1>;`, or `Array<float, SIZE>` with `param SIZE: uint = 4u;` | Emitted as runtime-sized `array<f32>`, or as `array<f32,4>` that overriding `SIZE` does not resize; no incident. §3.5 |
 | **D6** | Pointer address space is mutable state on a shared type | `workgroupUniformLoad(&a)` on a `workgroup` variable, then on a `private` variable in a second document of the same parser | The second document gets `Pointer address space is already assigned and cannot be changed` at `0:0`. §3.2 |
 | **D7** | The pointer access mode is not part of the pointer | a `read_write` storage variable passed to a `*float` parameter | Emits `ptr<storage,f32>`, which is `read` in WGSL; the call is invalid. §3.2 |
@@ -709,8 +696,8 @@ The numbering is a dependency order — what has to exist before what — not a 
 5. `PgslValidator` walker with its parent stack.
 6. The process pass keeps its promises: a trace of every failure in `data`, every child in the tree,
    no exception on user input, poison for results it cannot compute.
-7. Move every rule out of `onProcess` into validator processors, with the origin rule for result
-   types. Fixes **D4**.
+7. Move every rule out of `onProcess` into validator processors; result-type failures report with the
+   input types.
 8. Strip incidents and `registerBindingName` from the context, add fast transpile.
 
 **Generics** — §3.1, §3.2

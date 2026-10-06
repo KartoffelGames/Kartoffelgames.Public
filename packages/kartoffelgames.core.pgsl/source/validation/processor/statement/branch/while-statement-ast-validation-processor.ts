@@ -20,6 +20,6 @@ export class WhileStatementAstValidationProcessor extends PgslValidatorProcessor
     protected override onValidate(_pInstance: WhileStatementAst): void {
         // TODO: Validate the child condition expression.
         // TODO: Validate the child block.
-        // TODO: Validate that the condition expression resolves to bool, skipped when its type is poison.
+        // TODO: Validate that the condition expression resolves to bool.
     }
 }

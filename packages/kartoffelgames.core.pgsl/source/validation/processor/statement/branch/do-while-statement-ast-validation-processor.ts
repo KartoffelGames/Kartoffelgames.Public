@@ -20,6 +20,6 @@ export class DoWhileStatementAstValidationProcessor extends PgslValidatorProcess
     protected override onValidate(_pInstance: DoWhileStatementAst): void {
         // TODO: Validate the child block.
         // TODO: Validate the child condition expression.
-        // TODO: Validate that the condition expression resolves to bool, skipped when its type is poison.
+        // TODO: Validate that the condition expression resolves to bool.
     }
 }

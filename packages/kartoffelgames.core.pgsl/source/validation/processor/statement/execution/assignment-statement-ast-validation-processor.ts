@@ -1,4 +1,4 @@
-import { AssignmentStatementAst } from '../../../../abstract_syntax_tree/statement/execution/assignment-statement-ast.ts';
+import { AssignmentStatementAst, type AssignmentStatementAstData } from '../../../../abstract_syntax_tree/statement/execution/assignment-statement-ast.ts';
 import { PgslValidatorProcessor } from '../../../pgsl-validator-processor.ts';
 
 /**
@@ -15,9 +15,9 @@ export class AssignmentStatementAstValidationProcessor extends PgslValidatorProc
     /**
      * Validates the PGSL assignment statement syntax tree.
      * 
-     * @param _pInstance - The syntax tree instance to validate.
+     * @param _pData - The syntax tree data to validate.
      */
-    protected override onValidate(_pInstance: AssignmentStatementAst): void {
+    protected override onValidate(_pData: AssignmentStatementAstData): void {
         // TODO: Validate the child variable expression.
         // TODO: Validate the child assigned expression.
         // TODO: Validate that the assignment operator is one of =, +=, -=, *=, /=, %=, &=, |=, ^=, <<= or >>=.

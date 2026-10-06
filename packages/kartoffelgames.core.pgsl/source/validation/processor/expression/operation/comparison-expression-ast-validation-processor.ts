@@ -1,4 +1,4 @@
-import { ComparisonExpressionAst } from '../../../../abstract_syntax_tree/expression/operation/comparison-expression-ast.ts';
+import { ComparisonExpressionAst, type ComparisonExpressionAstData } from '../../../../abstract_syntax_tree/expression/operation/comparison-expression-ast.ts';
 import { PgslValidatorProcessor } from '../../../pgsl-validator-processor.ts';
 
 /**
@@ -15,9 +15,9 @@ export class ComparisonExpressionAstValidationProcessor extends PgslValidatorPro
     /**
      * Validates the PGSL comparison expression syntax tree.
      * 
-     * @param _pInstance - The syntax tree instance to validate.
+     * @param _pData - The syntax tree data to validate.
      */
-    protected override onValidate(_pInstance: ComparisonExpressionAst): void {
+    protected override onValidate(_pData: ComparisonExpressionAstData): void {
         // TODO: Validate the left operand expression.
         // TODO: Validate the right operand expression.
         // TODO: Validate that the operator is one of ==, !=, <, <=, > and >=.

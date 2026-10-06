@@ -1,4 +1,4 @@
-import { AliasDeclarationAst } from '../../../abstract_syntax_tree/declaration/alias-declaration-ast.ts';
+import { AliasDeclarationAst, type AliasDeclarationAstData } from '../../../abstract_syntax_tree/declaration/alias-declaration-ast.ts';
 import { PgslValidatorProcessor } from '../../pgsl-validator-processor.ts';
 
 /**
@@ -15,9 +15,9 @@ export class AliasDeclarationAstValidationProcessor extends PgslValidatorProcess
     /**
      * Validates the PGSL alias declaration syntax tree.
      * 
-     * @param _pInstance - The syntax tree instance to validate.
+     * @param _pData - The syntax tree data to validate.
      */
-    protected override onValidate(_pInstance: AliasDeclarationAst): void {
+    protected override onValidate(_pData: AliasDeclarationAstData): void {
         // TODO: Validate the child attribute list.
         // TODO: Validate the child type declaration of the aliased type.
         // TODO: Validate that the alias name does not contain the reserved name part __GENERIC__ (new).

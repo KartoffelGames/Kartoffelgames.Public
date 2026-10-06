@@ -54,7 +54,7 @@ export class AliasDeclarationAst extends BaseDeclarationAst<AliasDeclarationCst,
     }
 }
 
-type AliasDeclarationAstData = {
+export type AliasDeclarationAstData = {
     aliasName: string;
     underlyingType: BasePgslType;
 } & DeclarationAstData;

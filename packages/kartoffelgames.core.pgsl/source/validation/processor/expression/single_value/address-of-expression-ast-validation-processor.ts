@@ -1,4 +1,4 @@
-import { AddressOfExpressionAst } from '../../../../abstract_syntax_tree/expression/single_value/address-of-expression-ast.ts';
+import { AddressOfExpressionAst, type AddressOfExpressionAstData } from '../../../../abstract_syntax_tree/expression/single_value/address-of-expression-ast.ts';
 import { PgslValidatorProcessor } from '../../../pgsl-validator-processor.ts';
 
 /**
@@ -15,9 +15,9 @@ export class AddressOfExpressionAstValidationProcessor extends PgslValidatorProc
     /**
      * Validates the PGSL address of expression syntax tree.
      * 
-     * @param _pInstance - The syntax tree instance to validate.
+     * @param _pData - The syntax tree data to validate.
      */
-    protected override onValidate(_pInstance: AddressOfExpressionAst): void {
+    protected override onValidate(_pData: AddressOfExpressionAstData): void {
         // TODO: Validate the child target expression.
         // TODO: Validate that the target of the address is a stored value, so a let or module variable or a value reached through a pointer dereference, but not a const, a param or a function parameter.
         // TODO: Validate that the type of the target is storable.

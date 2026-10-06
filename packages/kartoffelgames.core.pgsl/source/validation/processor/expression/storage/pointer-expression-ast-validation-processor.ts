@@ -1,4 +1,4 @@
-import { PointerExpressionAst } from '../../../../abstract_syntax_tree/expression/storage/pointer-expression-ast.ts';
+import { PointerExpressionAst, type PointerExpressionAstData } from '../../../../abstract_syntax_tree/expression/storage/pointer-expression-ast.ts';
 import { PgslValidatorProcessor } from '../../../pgsl-validator-processor.ts';
 
 /**
@@ -15,9 +15,9 @@ export class PointerExpressionAstValidationProcessor extends PgslValidatorProces
     /**
      * Validates the PGSL pointer expression syntax tree.
      * 
-     * @param _pInstance - The syntax tree instance to validate.
+     * @param _pData - The syntax tree data to validate.
      */
-    protected override onValidate(_pInstance: PointerExpressionAst): void {
+    protected override onValidate(_pData: PointerExpressionAstData): void {
         // TODO: Validate the child expression that is dereferenced.
         // TODO: Validate that the dereferenced expression is a pointer.
     }

@@ -1,4 +1,4 @@
-import { LogicalExpressionAst } from '../../../../abstract_syntax_tree/expression/operation/logical-expression-ast.ts';
+import { LogicalExpressionAst, type LogicalExpressionAstData } from '../../../../abstract_syntax_tree/expression/operation/logical-expression-ast.ts';
 import { PgslValidatorProcessor } from '../../../pgsl-validator-processor.ts';
 
 /**
@@ -15,9 +15,9 @@ export class LogicalExpressionAstValidationProcessor extends PgslValidatorProces
     /**
      * Validates the PGSL logical expression syntax tree.
      * 
-     * @param _pInstance - The syntax tree instance to validate.
+     * @param _pData - The syntax tree data to validate.
      */
-    protected override onValidate(_pInstance: LogicalExpressionAst): void {
+    protected override onValidate(_pData: LogicalExpressionAstData): void {
         // TODO: Validate the left operand expression.
         // TODO: Validate the right operand expression.
         // TODO: Validate that the operator is && or ||.

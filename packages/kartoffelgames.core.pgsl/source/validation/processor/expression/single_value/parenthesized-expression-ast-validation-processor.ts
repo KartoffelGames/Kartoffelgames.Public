@@ -1,4 +1,4 @@
-import { ParenthesizedExpressionAst } from '../../../../abstract_syntax_tree/expression/single_value/parenthesized-expression-ast.ts';
+import { ParenthesizedExpressionAst, type ParenthesizedExpressionAstData } from '../../../../abstract_syntax_tree/expression/single_value/parenthesized-expression-ast.ts';
 import { PgslValidatorProcessor } from '../../../pgsl-validator-processor.ts';
 
 /**
@@ -15,9 +15,9 @@ export class ParenthesizedExpressionAstValidationProcessor extends PgslValidator
     /**
      * Validates the PGSL parenthesized expression syntax tree.
      * 
-     * @param _pInstance - The syntax tree instance to validate.
+     * @param _pData - The syntax tree data to validate.
      */
-    protected override onValidate(_pInstance: ParenthesizedExpressionAst): void {
+    protected override onValidate(_pData: ParenthesizedExpressionAstData): void {
         // TODO: Validate the child expression inside the parentheses.
     }
 }

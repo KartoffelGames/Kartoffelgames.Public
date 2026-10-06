@@ -1,4 +1,4 @@
-import { BlockStatementAst } from '../../../../abstract_syntax_tree/statement/execution/block-statement-ast.ts';
+import { BlockStatementAst, type BlockStatementAstData } from '../../../../abstract_syntax_tree/statement/execution/block-statement-ast.ts';
 import { PgslValidatorProcessor } from '../../../pgsl-validator-processor.ts';
 
 /**
@@ -15,9 +15,9 @@ export class BlockStatementAstValidationProcessor extends PgslValidatorProcessor
     /**
      * Validates the PGSL block statement syntax tree.
      * 
-     * @param _pInstance - The syntax tree instance to validate.
+     * @param _pData - The syntax tree data to validate.
      */
-    protected override onValidate(_pInstance: BlockStatementAst): void {
+    protected override onValidate(_pData: BlockStatementAstData): void {
         // TODO: Validate each child statement of the block.
         // TODO: Validate that no two variable declarations directly inside the block share the same name.
     }

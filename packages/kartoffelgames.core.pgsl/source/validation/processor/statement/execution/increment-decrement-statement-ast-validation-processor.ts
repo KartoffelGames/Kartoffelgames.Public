@@ -1,4 +1,4 @@
-import { IncrementDecrementStatementAst } from '../../../../abstract_syntax_tree/statement/execution/increment-decrement-statement-ast.ts';
+import { IncrementDecrementStatementAst, type IncrementDecrementStatementAstData } from '../../../../abstract_syntax_tree/statement/execution/increment-decrement-statement-ast.ts';
 import { PgslValidatorProcessor } from '../../../pgsl-validator-processor.ts';
 
 /**
@@ -15,9 +15,9 @@ export class IncrementDecrementStatementAstValidationProcessor extends PgslValid
     /**
      * Validates the PGSL increment decrement statement syntax tree.
      * 
-     * @param _pInstance - The syntax tree instance to validate.
+     * @param _pData - The syntax tree data to validate.
      */
-    protected override onValidate(_pInstance: IncrementDecrementStatementAst): void {
+    protected override onValidate(_pData: IncrementDecrementStatementAstData): void {
         // TODO: Validate the child expression.
         // TODO: Validate that the operator is ++ or --.
         // TODO: Validate that the expression is a storage expression, like a variable name, an indexed value, a struct property or a dereferenced pointer.

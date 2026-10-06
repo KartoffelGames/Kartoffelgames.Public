@@ -1,4 +1,4 @@
-import { SwitchStatementAst } from '../../../../abstract_syntax_tree/statement/branch/switch-statement-ast.ts';
+import { SwitchStatementAst, type SwitchStatementAstData } from '../../../../abstract_syntax_tree/statement/branch/switch-statement-ast.ts';
 import { PgslValidatorProcessor } from '../../../pgsl-validator-processor.ts';
 
 /**
@@ -15,9 +15,9 @@ export class SwitchStatementAstValidationProcessor extends PgslValidatorProcesso
     /**
      * Validates the PGSL switch statement syntax tree.
      * 
-     * @param _pInstance - The syntax tree instance to validate.
+     * @param _pData - The syntax tree data to validate.
      */
-    protected override onValidate(_pInstance: SwitchStatementAst): void {
+    protected override onValidate(_pData: SwitchStatementAstData): void {
         // TODO: Validate the child switch expression.
         // TODO: Validate the child value expressions of every case.
         // TODO: Validate the child block of every case.

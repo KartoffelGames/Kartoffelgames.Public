@@ -1,4 +1,4 @@
-import { FunctionCallStatementAst } from '../../../../abstract_syntax_tree/statement/execution/function-call-statement-ast.ts';
+import { FunctionCallStatementAst, type FunctionCallStatementAstData } from '../../../../abstract_syntax_tree/statement/execution/function-call-statement-ast.ts';
 import { PgslValidatorProcessor } from '../../../pgsl-validator-processor.ts';
 
 /**
@@ -15,9 +15,9 @@ export class FunctionCallStatementAstValidationProcessor extends PgslValidatorPr
     /**
      * Validates the PGSL function call statement syntax tree.
      * 
-     * @param _pInstance - The syntax tree instance to validate.
+     * @param _pData - The syntax tree data to validate.
      */
-    protected override onValidate(_pInstance: FunctionCallStatementAst): void {
+    protected override onValidate(_pData: FunctionCallStatementAstData): void {
         // TODO: Validate the child function call expression.
         // TODO: Validate that the called function is no built-in function with a non-void return type, because WGSL declares those built-ins must_use and rejects them as a whole statement, skipped when the call resolved no function (new).
     }

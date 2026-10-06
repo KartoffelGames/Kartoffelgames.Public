@@ -1,4 +1,4 @@
-import { UnaryExpressionAst } from '../../../../abstract_syntax_tree/expression/unary/unary-expression-ast.ts';
+import { UnaryExpressionAst, type UnaryExpressionAstData } from '../../../../abstract_syntax_tree/expression/unary/unary-expression-ast.ts';
 import { BasePgslType, BasePgslTypeKind } from "../../../../abstract_syntax_tree/type/definition/base-pgsl-type.ts";
 import { PgslOperator } from "../../../../enum/pgsl-operator.enum.ts";
 import { PgslValidatorProcessor } from '../../../pgsl-validator-processor.ts';
@@ -17,11 +17,11 @@ export class UnaryExpressionAstValidationProcessor extends PgslValidatorProcesso
     /**
      * Validates the PGSL unary expression syntax tree.
      * 
-     * @param pInstance - The syntax tree instance to validate.
+     * @param pData - The syntax tree data to validate.
      */
-    protected override onValidate(pInstance: UnaryExpressionAst): void {
+    protected override onValidate(pData: UnaryExpressionAstData): void {
         // Validate expression.
-        this.validateAst(pInstance.data.expression);
+        this.validateAst(pData.expression);
 
         const lCastableIntoNumeric = (pType: BasePgslType, pIncludeUnsigned: boolean, pIncludeFloat: boolean): boolean => {
             if (pIncludeFloat && pType.isKind(BasePgslTypeKind.Float)) {
@@ -41,9 +41,9 @@ export class UnaryExpressionAstValidationProcessor extends PgslValidatorProcesso
 
         // Validate that the operator is one of ~, - and !.
         // And validate value is correct type.
-        switch (pInstance.data.operator) {
+        switch (pData.operator) {
             case PgslOperator.BinaryNegate: {
-                if (!lCastableIntoNumeric(pInstance.data.itemValue, true, false)) {
+                if (!lCastableIntoNumeric(pData.itemValue, true, false)) {
                     this.pushIncident(`Binary negation only valid for integer type.`);
                 }
 
@@ -51,21 +51,21 @@ export class UnaryExpressionAstValidationProcessor extends PgslValidatorProcesso
             }
             case PgslOperator.Minus: {
                 // TODO: This shit should block unsigned ints, but does not.
-                if (!lCastableIntoNumeric(pInstance.data.itemValue, true, true)) {
+                if (!lCastableIntoNumeric(pData.itemValue, true, true)) {
                     this.pushIncident(`Negation only valid for numeric or vector type.`);
                 }
 
                 break;
             }
             case PgslOperator.Not: {
-                if (!pInstance.data.itemValue.isKind(BasePgslTypeKind.Boolean)) {
+                if (!pData.itemValue.isKind(BasePgslTypeKind.Boolean)) {
                     this.pushIncident(`Boolean negation only valid for boolean type.`);
                 }
 
                 break;
             }
             default: {
-                this.pushIncident(`Unknown unary operator "${pInstance.data.operator}".`);
+                this.pushIncident(`Unknown unary operator "${pData.operator}".`);
             }
         }
 

@@ -1,4 +1,4 @@
-import { StructPropertyDeclarationAst } from '../../../abstract_syntax_tree/declaration/struct-property-declaration-ast.ts';
+import { StructPropertyDeclarationAst, type StructPropertyDeclarationAstData } from '../../../abstract_syntax_tree/declaration/struct-property-declaration-ast.ts';
 import { PgslValidatorProcessor } from '../../pgsl-validator-processor.ts';
 
 /**
@@ -15,9 +15,9 @@ export class StructPropertyDeclarationAstValidationProcessor extends PgslValidat
     /**
      * Validates the PGSL struct property declaration syntax tree.
      * 
-     * @param _pInstance - The syntax tree instance to validate.
+     * @param _pData - The syntax tree data to validate.
      */
-    protected override onValidate(_pInstance: StructPropertyDeclarationAst): void {
+    protected override onValidate(_pData: StructPropertyDeclarationAstData): void {
         // TODO: Validate the child attribute list.
         // TODO: Validate the child type declaration.
         // TODO: Validate that the property name is a valid WGSL identifier: not a WGSL keyword or reserved word (the lexer lets fn, override, non_coherent and noncoherent through) and not starting with two underscores (new).

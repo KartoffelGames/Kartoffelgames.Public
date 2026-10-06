@@ -1,4 +1,4 @@
-import { DoWhileStatementAst } from '../../../../abstract_syntax_tree/statement/branch/do-while-statement-ast.ts';
+import { DoWhileStatementAst, type DoWhileStatementAstData } from '../../../../abstract_syntax_tree/statement/branch/do-while-statement-ast.ts';
 import { PgslValidatorProcessor } from '../../../pgsl-validator-processor.ts';
 
 /**
@@ -15,9 +15,9 @@ export class DoWhileStatementAstValidationProcessor extends PgslValidatorProcess
     /**
      * Validates the PGSL do while statement syntax tree.
      * 
-     * @param _pInstance - The syntax tree instance to validate.
+     * @param _pData - The syntax tree data to validate.
      */
-    protected override onValidate(_pInstance: DoWhileStatementAst): void {
+    protected override onValidate(_pData: DoWhileStatementAstData): void {
         // TODO: Validate the child block.
         // TODO: Validate the child condition expression.
         // TODO: Validate that the condition expression resolves to bool.

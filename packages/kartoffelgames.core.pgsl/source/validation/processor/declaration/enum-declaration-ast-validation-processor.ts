@@ -1,4 +1,4 @@
-import { EnumDeclarationAst } from '../../../abstract_syntax_tree/declaration/enum-declaration-ast.ts';
+import { EnumDeclarationAst, type EnumDeclarationAstData } from '../../../abstract_syntax_tree/declaration/enum-declaration-ast.ts';
 import { PgslValidatorProcessor } from '../../pgsl-validator-processor.ts';
 
 /**
@@ -15,9 +15,9 @@ export class EnumDeclarationAstValidationProcessor extends PgslValidatorProcesso
     /**
      * Validates the PGSL enum declaration syntax tree.
      * 
-     * @param _pInstance - The syntax tree instance to validate.
+     * @param _pData - The syntax tree data to validate.
      */
-    protected override onValidate(_pInstance: EnumDeclarationAst): void {
+    protected override onValidate(_pData: EnumDeclarationAstData): void {
         // TODO: Validate the child attribute list.
         // TODO: Validate the child value expression of every enum value.
         // TODO: Validate that the enum name does not contain the reserved name part __GENERIC__ (new).

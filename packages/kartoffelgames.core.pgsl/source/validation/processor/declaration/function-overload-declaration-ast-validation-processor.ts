@@ -1,4 +1,4 @@
-import { FunctionOverloadDeclarationAst } from '../../../abstract_syntax_tree/declaration/function-overload-declaration-ast.ts';
+import { FunctionOverloadDeclarationAst, type FunctionOverloadDeclarationAstData } from '../../../abstract_syntax_tree/declaration/function-overload-declaration-ast.ts';
 import { PgslValidatorProcessor } from '../../pgsl-validator-processor.ts';
 
 /**
@@ -15,9 +15,9 @@ export class FunctionOverloadDeclarationAstValidationProcessor extends PgslValid
     /**
      * Validates the PGSL function overload declaration syntax tree.
      * 
-     * @param _pInstance - The syntax tree instance to validate.
+     * @param _pData - The syntax tree data to validate.
      */
-    protected override onValidate(_pInstance: FunctionOverloadDeclarationAst): void {
+    protected override onValidate(_pData: FunctionOverloadDeclarationAstData): void {
         // TODO: Validate the child attribute list.
         // TODO: Validate the child restriction type declarations of every generic.
         // TODO: Validate the child type declaration of every parameter.

@@ -1,4 +1,4 @@
-import { NewExpressionAst } from '../../../../abstract_syntax_tree/expression/single_value/new-expression-ast.ts';
+import { NewExpressionAst, type NewExpressionAstData } from '../../../../abstract_syntax_tree/expression/single_value/new-expression-ast.ts';
 import { PgslValidatorProcessor } from '../../../pgsl-validator-processor.ts';
 
 /**
@@ -15,9 +15,9 @@ export class NewExpressionAstValidationProcessor extends PgslValidatorProcessor<
     /**
      * Validates the PGSL new expression syntax tree.
      * 
-     * @param _pInstance - The syntax tree instance to validate.
+     * @param _pData - The syntax tree data to validate.
      */
-    protected override onValidate(_pInstance: NewExpressionAst): void {
+    protected override onValidate(_pData: NewExpressionAstData): void {
         // TODO: Validate each argument expression.
         // TODO: Validate the type declaration of each written generic.
         // TODO: Validate that the type name can be constructed with new, reporting "Type 'name' cannot be constructed with 'new'." from the recorded raw name.

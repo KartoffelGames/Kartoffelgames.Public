@@ -1,4 +1,4 @@
-import { AttributeListAst } from '../../../abstract_syntax_tree/general/attribute-list-ast.ts';
+import { AttributeListAst, type AttributeListAstData } from '../../../abstract_syntax_tree/general/attribute-list-ast.ts';
 import { PgslValidatorProcessor } from '../../pgsl-validator-processor.ts';
 
 /**
@@ -15,9 +15,9 @@ export class AttributeListAstValidationProcessor extends PgslValidatorProcessor<
     /**
      * Validates the PGSL attribute list syntax tree.
      * 
-     * @param _pInstance - The syntax tree instance to validate.
+     * @param _pData - The syntax tree data to validate.
      */
-    protected override onValidate(_pInstance: AttributeListAst): void {
+    protected override onValidate(_pData: AttributeListAstData): void {
         // TODO: Validate each parameter expression of each attribute, including attributes that are unknown or have a wrong parameter count.
         // TODO: Validate that the attribute list belongs to a declaration, found as the nearest enclosing declaration on the parent stack.
         // TODO: Validate that each attribute name is a known attribute (GroupBinding, AccessMode, Align, BlendSource, Interpolate, Invariant, Location, Size, Vertex, Fragment, Compute or Meta).

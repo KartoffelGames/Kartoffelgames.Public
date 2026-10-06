@@ -1,4 +1,4 @@
-import { FunctionCallExpressionAst } from '../../../../abstract_syntax_tree/expression/single_value/function-call-expression-ast.ts';
+import { FunctionCallExpressionAst, type FunctionCallExpressionAstData } from '../../../../abstract_syntax_tree/expression/single_value/function-call-expression-ast.ts';
 import { PgslValidatorProcessor } from '../../../pgsl-validator-processor.ts';
 
 /**
@@ -15,9 +15,9 @@ export class FunctionCallExpressionAstValidationProcessor extends PgslValidatorP
     /**
      * Validates the PGSL function call expression syntax tree.
      * 
-     * @param _pInstance - The syntax tree instance to validate.
+     * @param _pData - The syntax tree data to validate.
      */
-    protected override onValidate(_pInstance: FunctionCallExpressionAst): void {
+    protected override onValidate(_pData: FunctionCallExpressionAstData): void {
         // TODO: Validate each argument expression.
         // TODO: Validate each explicit generic type declaration.
         // TODO: Validate that the function name resolves to a function declaration, reporting "Function 'name' is not defined." from the recorded raw name.

@@ -1,4 +1,4 @@
-import { TypeDeclarationAst } from '../../../abstract_syntax_tree/general/type-declaration-ast.ts';
+import { TypeDeclarationAst, type TypeDeclarationAstData } from '../../../abstract_syntax_tree/general/type-declaration-ast.ts';
 import { PgslValidatorProcessor } from '../../pgsl-validator-processor.ts';
 
 /**
@@ -15,9 +15,9 @@ export class TypeDeclarationAstValidationProcessor extends PgslValidatorProcesso
     /**
      * Validates the PGSL type declaration syntax tree.
      * 
-     * @param _pInstance - The syntax tree instance to validate.
+     * @param _pData - The syntax tree data to validate.
      */
-    protected override onValidate(_pInstance: TypeDeclarationAst): void {
+    protected override onValidate(_pData: TypeDeclarationAstData): void {
         // TODO: Validate the child type declaration or expression of each template argument.
         // TODO: Validate the inner type declaration of a pointer type.
         // TODO: Report "Typename "<name>" not defined." when the raw type name resolves to no type.

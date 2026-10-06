@@ -43,7 +43,7 @@ export abstract class PgslValidatorProcessor<TTarget extends AbstractSyntaxTree>
 
         try {
             // Then call validate.
-            this.onValidate(this.mValidationContext.instance);
+            this.onValidate(this.mValidationContext.instance.data, this.mValidationContext.instance);
 
             // The result is negative if new incidents were added while validating.
             return this.mValidationContext.incidentList.length === lCurrentIncidentCount;
@@ -114,10 +114,12 @@ export abstract class PgslValidatorProcessor<TTarget extends AbstractSyntaxTree>
 
     /**
      * Validate instance.
-     * 
+     * Processors that only need the data can omit the instance parameter.
+     *
+     * @param pData - Data of the AST instance.
      * @param pInstance - AST instance.
      */
-    protected abstract onValidate(pInstance: TTarget): void;
+    protected abstract onValidate(pData: TTarget['data'], pInstance: TTarget): void;
 }
 
 /**

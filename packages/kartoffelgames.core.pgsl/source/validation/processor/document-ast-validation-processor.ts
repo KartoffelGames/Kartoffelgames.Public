@@ -1,4 +1,4 @@
-import { DocumentAst } from "../../abstract_syntax_tree/document-ast.ts";
+import { DocumentAst, type DocumentAstData } from "../../abstract_syntax_tree/document-ast.ts";
 import { PgslValidatorProcessor } from "../pgsl-validator-processor.ts";
 
 /**
@@ -15,11 +15,11 @@ export class DocumentAstValidationProcessor extends PgslValidatorProcessor<Docum
     /**
      * Validates the PGSL document syntax tree.
      * 
-     * @param pInstance - The syntax tree instance to transpile.
+     * @param pData - The syntax tree data to validate.
      */
-    protected override onValidate(pInstance: DocumentAst): void {
+    protected override onValidate(pData: DocumentAstData): void {
         // Validate all child declarations.
-        for (const lDeclarationAst of pInstance.data.content) {
+        for (const lDeclarationAst of pData.content) {
             this.validateAst(lDeclarationAst);
         }
 

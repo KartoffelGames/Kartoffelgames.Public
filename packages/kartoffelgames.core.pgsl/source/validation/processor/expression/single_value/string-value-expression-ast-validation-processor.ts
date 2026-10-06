@@ -1,4 +1,4 @@
-import { StringValueExpressionAst } from '../../../../abstract_syntax_tree/expression/single_value/string-value-expression-ast.ts';
+import { StringValueExpressionAst, type StringValueExpressionAstData } from '../../../../abstract_syntax_tree/expression/single_value/string-value-expression-ast.ts';
 import { PgslValidatorProcessor } from '../../../pgsl-validator-processor.ts';
 
 /**
@@ -15,9 +15,9 @@ export class StringValueExpressionAstValidationProcessor extends PgslValidatorPr
     /**
      * Validates the PGSL string value expression syntax tree.
      * 
-     * @param _pInstance - The syntax tree instance to validate.
+     * @param _pData - The syntax tree data to validate.
      */
-    protected override onValidate(_pInstance: StringValueExpressionAst): void {
+    protected override onValidate(_pData: StringValueExpressionAstData): void {
         // TODO: Validate that the string value only appears as an attribute parameter, a type template argument or an enum value, because WGSL has no string values and the transpiler would emit it unchanged (new).
     }
 }

@@ -1,4 +1,4 @@
-import { ValueDecompositionExpressionAst } from '../../../../abstract_syntax_tree/expression/storage/value-decomposition-expression-ast.ts';
+import { ValueDecompositionExpressionAst, type ValueDecompositionExpressionAstData } from '../../../../abstract_syntax_tree/expression/storage/value-decomposition-expression-ast.ts';
 import { PgslValidatorProcessor } from '../../../pgsl-validator-processor.ts';
 
 /**
@@ -15,9 +15,9 @@ export class ValueDecompositionExpressionAstValidationProcessor extends PgslVali
     /**
      * Validates the PGSL value decomposition expression syntax tree.
      * 
-     * @param _pInstance - The syntax tree instance to validate.
+     * @param _pData - The syntax tree data to validate.
      */
-    protected override onValidate(_pInstance: ValueDecompositionExpressionAst): void {
+    protected override onValidate(_pData: ValueDecompositionExpressionAstData): void {
         // TODO: Validate the child value expression.
         // TODO: Validate that the value is a struct, an enum or a Vector, reporting once in place of both of today's messages.
         // TODO: Validate that the struct type of the value resolves to its struct declaration.

@@ -1,4 +1,4 @@
-import { VariableDeclarationAst } from '../../../abstract_syntax_tree/declaration/variable-declaration-ast.ts';
+import { VariableDeclarationAst, type VariableDeclarationAstData } from '../../../abstract_syntax_tree/declaration/variable-declaration-ast.ts';
 import { PgslValidatorProcessor } from '../../pgsl-validator-processor.ts';
 
 /**
@@ -15,9 +15,9 @@ export class VariableDeclarationAstValidationProcessor extends PgslValidatorProc
     /**
      * Validates the PGSL variable declaration syntax tree.
      * 
-     * @param _pInstance - The syntax tree instance to validate.
+     * @param _pData - The syntax tree data to validate.
      */
-    protected override onValidate(_pInstance: VariableDeclarationAst): void {
+    protected override onValidate(_pData: VariableDeclarationAstData): void {
         // TODO: Validate the child attribute list.
         // TODO: Validate the child type declaration.
         // TODO: Validate the child initializer expression when it is set.

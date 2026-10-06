@@ -1,4 +1,4 @@
-import { ForStatementAst } from '../../../../abstract_syntax_tree/statement/branch/for-statement-ast.ts';
+import { ForStatementAst, type ForStatementAstData } from '../../../../abstract_syntax_tree/statement/branch/for-statement-ast.ts';
 import { PgslValidatorProcessor } from '../../../pgsl-validator-processor.ts';
 
 /**
@@ -15,9 +15,9 @@ export class ForStatementAstValidationProcessor extends PgslValidatorProcessor<F
     /**
      * Validates the PGSL for statement syntax tree.
      * 
-     * @param _pInstance - The syntax tree instance to validate.
+     * @param _pData - The syntax tree data to validate.
      */
-    protected override onValidate(_pInstance: ForStatementAst): void {
+    protected override onValidate(_pData: ForStatementAstData): void {
         // TODO: Validate the child init declaration when present.
         // TODO: Validate the child condition expression when present.
         // TODO: Validate the child update statement when present.

@@ -1,4 +1,4 @@
-import { IndexedValueExpressionAst } from '../../../../abstract_syntax_tree/expression/storage/indexed-value-expression-ast.ts';
+import { IndexedValueExpressionAst, type IndexedValueExpressionAstData } from '../../../../abstract_syntax_tree/expression/storage/indexed-value-expression-ast.ts';
 import { PgslValidatorProcessor } from '../../../pgsl-validator-processor.ts';
 
 /**
@@ -15,9 +15,9 @@ export class IndexedValueExpressionAstValidationProcessor extends PgslValidatorP
     /**
      * Validates the PGSL indexed value expression syntax tree.
      * 
-     * @param _pInstance - The syntax tree instance to validate.
+     * @param _pData - The syntax tree data to validate.
      */
-    protected override onValidate(_pInstance: IndexedValueExpressionAst): void {
+    protected override onValidate(_pData: IndexedValueExpressionAstData): void {
         // TODO: Validate the child value expression.
         // TODO: Validate the child index expression.
         // TODO: Validate that the value is an Array, a Vector or a Matrix, reporting once in place of both of today's messages.

@@ -1,4 +1,4 @@
-import { ArithmeticExpressionAst } from '../../../../abstract_syntax_tree/expression/operation/arithmetic-expression-ast.ts';
+import { ArithmeticExpressionAst, type ArithmeticExpressionAstData } from '../../../../abstract_syntax_tree/expression/operation/arithmetic-expression-ast.ts';
 import { PgslValidatorProcessor } from '../../../pgsl-validator-processor.ts';
 
 /**
@@ -15,9 +15,9 @@ export class ArithmeticExpressionAstValidationProcessor extends PgslValidatorPro
     /**
      * Validates the PGSL arithmetic expression syntax tree.
      * 
-     * @param _pInstance - The syntax tree instance to validate.
+     * @param _pData - The syntax tree data to validate.
      */
-    protected override onValidate(_pInstance: ArithmeticExpressionAst): void {
+    protected override onValidate(_pData: ArithmeticExpressionAstData): void {
         // TODO: Validate the left operand expression.
         // TODO: Validate the right operand expression.
         // TODO: Validate that the operator is one of +, -, *, / and %.

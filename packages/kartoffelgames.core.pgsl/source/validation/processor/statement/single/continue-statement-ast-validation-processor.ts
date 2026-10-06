@@ -1,4 +1,4 @@
-import { ContinueStatementAst } from '../../../../abstract_syntax_tree/statement/single/continue-statement-ast.ts';
+import { ContinueStatementAst, type ContinueStatementAstData } from '../../../../abstract_syntax_tree/statement/single/continue-statement-ast.ts';
 import { PgslValidatorProcessor } from '../../../pgsl-validator-processor.ts';
 
 /**
@@ -15,9 +15,9 @@ export class ContinueStatementAstValidationProcessor extends PgslValidatorProces
     /**
      * Validates the PGSL continue statement syntax tree.
      * 
-     * @param _pInstance - The syntax tree instance to validate.
+     * @param _pData - The syntax tree data to validate.
      */
-    protected override onValidate(_pInstance: ContinueStatementAst): void {
+    protected override onValidate(_pData: ContinueStatementAstData): void {
         // TODO: Validate that the continue statement is placed inside a while, do-while or for loop, searched as enclosing ancestor with stackContains, where a switch between the loop and the continue is allowed.
     }
 }

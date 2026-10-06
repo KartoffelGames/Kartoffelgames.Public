@@ -72,7 +72,7 @@ export class DocumentAst extends AbstractSyntaxTree<DocumentCst, DocumentAstData
     }
 }
 
-type DocumentAstData = {
+export type DocumentAstData = {
     incidents: ReadonlyArray<AbstractSyntaxTreeIncident>;
     content: ReadonlyArray<BaseDeclarationAst>;
     symbolUsages: Set<AbstractSyntaxTreeSymbolUsageName>;

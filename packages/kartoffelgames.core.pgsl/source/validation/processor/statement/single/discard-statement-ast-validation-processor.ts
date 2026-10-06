@@ -1,4 +1,4 @@
-import { DiscardStatementAst } from '../../../../abstract_syntax_tree/statement/single/discard-statement-ast.ts';
+import { DiscardStatementAst, type DiscardStatementAstData } from '../../../../abstract_syntax_tree/statement/single/discard-statement-ast.ts';
 import { PgslValidatorProcessor } from '../../../pgsl-validator-processor.ts';
 
 /**
@@ -15,9 +15,9 @@ export class DiscardStatementAstValidationProcessor extends PgslValidatorProcess
     /**
      * Validates the PGSL discard statement syntax tree.
      * 
-     * @param _pInstance - The syntax tree instance to validate.
+     * @param _pData - The syntax tree data to validate.
      */
-    protected override onValidate(_pInstance: DiscardStatementAst): void {
+    protected override onValidate(_pData: DiscardStatementAstData): void {
         // TODO: Validate that the nearest enclosing function overload, found with stackContains, is no Vertex or Compute entry point, as WGSL only allows discard in the fragment stage (new).
     }
 }

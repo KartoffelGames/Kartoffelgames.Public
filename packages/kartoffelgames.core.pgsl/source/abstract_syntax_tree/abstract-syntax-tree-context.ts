@@ -22,7 +22,6 @@ export class AbstractSyntaxTreeContext {
     private mDocument: DocumentAst | null;
     private readonly mEnums: Map<string, EnumDeclarationAst>;
     private readonly mFunctions: Map<string, FunctionDeclarationAst>;
-    private readonly mIncidents: Array<AbstractSyntaxTreeIncident>;
     private mScope: AbstractSyntaxTreeScope | null;
     private readonly mStructs: Map<string, StructDeclarationAst>;
     private readonly mTypeCache: PgslTypeCache;
@@ -43,14 +42,6 @@ export class AbstractSyntaxTreeContext {
         return this.mDocument;
     }
 
-    /**
-     * Gets the list of incidents that have been recorded in this context.
-     *
-     * @returns A readonly array of context incidents.
-     */
-    public get incidents(): ReadonlyArray<AbstractSyntaxTreeIncident> {
-        return this.mIncidents;
-    }
 
     /**
      * Get context types.
@@ -75,7 +66,6 @@ export class AbstractSyntaxTreeContext {
         this.mScope = null;
         this.mDocument = null;
 
-        this.mIncidents = new Array<AbstractSyntaxTreeIncident>();
         this.mTypeCache = new PgslTypeCache();
 
         // Initialize declaration maps.
@@ -176,18 +166,6 @@ export class AbstractSyntaxTreeContext {
         } while (lCurrentScope = lCurrentScope.parent); // Thats correct, assignment in condition.
 
         return null;
-    }
-
-    /**
-     * Pushes an incident to the context for later analysis or reporting.
-     *
-     * @param pMessage - The message describing the incident.
-     * @param pSyntaxTree - Optional syntax tree node associated with the incident.
-     *
-     * @throws {Error} When the context is sealed.
-     */
-    public pushIncident(pMessage: string, pSyntaxTree?: AbstractSyntaxTree): void {
-        this.mIncidents.push(new AbstractSyntaxTreeIncident(pMessage, pSyntaxTree));
     }
 
     /**

@@ -10,6 +10,7 @@ export class EnumUtil {
      * 
      * @param pEnum - typeof Enum object.
      * @param pValue - Value of enum.
+     * @param pDefault - Optional default value.
      * 
      * @typeParam T - Enum type the value should be infered into.
      * 
@@ -24,14 +25,17 @@ export class EnumUtil {
      * 
      * const existingValue = EnumUtil.cast<MyEnum>(MyEnum, 1); // => MyEnum.Entry1
      * const noneExistingValue = EnumUtil.cast<MyEnum>(MyEnum, 5); // => undefined
+     * const defaultedValue = EnumUtil.cast<MyEnum>(MyEnum, 5, MyEnum.Entry2); // => MyEnum.Entry2
      * ```
      */
-    public static cast<T>(pEnum: object, pValue: any): T | undefined {
+    public static cast<T>(pEnum: object, pValue: any): T | undefined
+    public static cast<T>(pEnum: object, pValue: any, pDefault: T): T
+    public static cast<T>(pEnum: object, pValue: any, pDefault?: T): T | undefined {
         // Thats it... :)
         if (EnumUtil.exists<T>(pEnum, pValue)) {
             return pValue;
         } else {
-            return undefined;
+            return pDefault;
         }
     }
 

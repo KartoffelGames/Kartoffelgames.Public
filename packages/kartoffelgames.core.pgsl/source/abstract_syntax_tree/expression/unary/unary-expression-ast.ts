@@ -25,58 +25,24 @@ export class UnaryExpressionAst extends AbstractSyntaxTree<UnaryExpressionCst, U
         // Build expression.
         const lExpression: IExpressionAst = ExpressionAstBuilder.build(pCst.expression).process(pContext);
 
-        // Try to convert operator.
-        let lOperator: PgslOperator | undefined = EnumUtil.cast(PgslOperator, pCst.operator);
-        if (!lOperator) {
-            pContext.pushIncident(`Operator "${pCst.operator}" is not a valid operator.`, this);
-
-            lOperator = PgslOperator.BinaryNegate;
-        }
+        // Convert operator.
+        const lOperator: PgslOperator = EnumUtil.cast<PgslOperator>(PgslOperator, pCst.operator, PgslOperator.None);
 
         // Type buffer for validating the processed types.
-        let lValueType: BasePgslType;
-
-        // Validate vectors differently.
-        if (lExpression.data.resolveType instanceof PgslVectorType) {
-            lValueType = lExpression.data.resolveType.innerType;
-        } else {
-            lValueType = lExpression.data.resolveType;
-        }
-
-        const lCastableIntoNumeric = (pType: BasePgslType, pIncludeUnsigned: boolean, pIncludeFloat: boolean): boolean => {
-            const lFloar16Type = new PgslNumericType(PgslNumericType.typeName.float16);
-            if (pIncludeFloat && pType.conversionRankTo(lFloar16Type) !== Number.POSITIVE_INFINITY) {
-                return true;
+        let lValueType: BasePgslType = (() => {
+            // Validate vectors differently.
+            if (lExpression.data.resolveType instanceof PgslVectorType) {
+                return lExpression.data.resolveType.innerType;
             }
 
-            const lFloat32Type = new PgslNumericType(PgslNumericType.typeName.float32);
-            if (pIncludeFloat && pType.conversionRankTo(lFloat32Type) !== Number.POSITIVE_INFINITY) {
-                return true;
-            }
+            return lExpression.data.resolveType;
+        })();
 
-            const lUnsignedIntegerType = new PgslNumericType(PgslNumericType.typeName.unsignedInteger);
-            if (pType.conversionRankTo(lUnsignedIntegerType) !== Number.POSITIVE_INFINITY) {
-                return true;
-            }
-
-            const lSignedIntegerType = new PgslNumericType(PgslNumericType.typeName.signedInteger);
-            if (pIncludeUnsigned && pType.conversionRankTo(lSignedIntegerType) !== Number.POSITIVE_INFINITY) {
-                return true;
-            }
-
-            return false;
-        };
-
-        const lResolveType: BasePgslType = lExpression.data.resolveType;
         let lConstantValue: string | number | null = lExpression.data.constantValue;
 
         // Validate type for each.
         switch (lOperator) {
             case PgslOperator.BinaryNegate: {
-                if (!lCastableIntoNumeric(lValueType, true, false)) {
-                    pContext.pushIncident(`Binary negation only valid for numeric type.`, this);
-                }
-
                 // Binary negate constant value.
                 if (typeof lConstantValue === 'number') {
                     lConstantValue = ~lConstantValue;
@@ -85,11 +51,6 @@ export class UnaryExpressionAst extends AbstractSyntaxTree<UnaryExpressionCst, U
                 break;
             }
             case PgslOperator.Minus: {
-                if (!lCastableIntoNumeric(lValueType, true, true)) {
-                    pContext.pushIncident(`Negation only valid for numeric or vector type.`, this);
-                    break;
-                }
-
                 // Negate constant value.
                 if (typeof lConstantValue === 'number') {
                     lConstantValue = -lConstantValue;
@@ -98,10 +59,6 @@ export class UnaryExpressionAst extends AbstractSyntaxTree<UnaryExpressionCst, U
                 break;
             }
             case PgslOperator.Not: {
-                if (!(lValueType instanceof PgslBooleanType)) {
-                    pContext.pushIncident(`Boolean negation only valid for boolean type.`, this);
-                }
-
                 // Negate constant value.
                 if (typeof lConstantValue === 'number') {
                     lConstantValue = -lConstantValue;
@@ -109,20 +66,18 @@ export class UnaryExpressionAst extends AbstractSyntaxTree<UnaryExpressionCst, U
 
                 break;
             }
-            default: {
-                pContext.pushIncident(`Unknown unary operator "${lOperator}".`, this);
-            }
         }
 
         return {
             // Expression data.
             operator: lOperator,
             expression: lExpression,
+            itemValue: lValueType,
 
             // Expression meta data.
             fixedState: PgslValueFixedState.Variable,
             isStorage: false,
-            resolveType: lResolveType,
+            resolveType: lExpression.data.resolveType,
             constantValue: lConstantValue,
             storageAddressSpace: lExpression.data.storageAddressSpace
         };
@@ -132,4 +87,5 @@ export class UnaryExpressionAst extends AbstractSyntaxTree<UnaryExpressionCst, U
 export type UnaryExpressionAstData = {
     operator: PgslOperator;
     expression: IExpressionAst;
+    itemValue: BasePgslType;
 } & ExpressionAstData;

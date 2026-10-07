@@ -1,11 +1,9 @@
 import type { IndexedValueExpressionCst } from '../../../concrete_syntax_tree/expression.type.ts';
-import { PgslValueFixedState } from '../../../enum/pgsl-value-fixed-state.ts';
 import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
-import { type BasePgslType, BasePgslTypeKind } from '../../type/definition/base-pgsl-type.ts';
+import type { BasePgslType } from '../../type/definition/base-pgsl-type.ts';
 import { PgslArrayType } from '../../type/definition/pgsl-array-type.ts';
 import { PgslMatrixType } from '../../type/definition/pgsl-matrix-type.ts';
-import { PgslNumericType } from '../../type/definition/pgsl-numeric-type.ts';
 import { PgslVectorType } from '../../type/definition/pgsl-vector-type.ts';
 import { ExpressionAstBuilder } from '../expression-ast-builder.ts';
 import type { ExpressionAstData, IExpressionAst } from '../i-expression-ast.interface.ts';
@@ -15,9 +13,9 @@ import type { ExpressionAstData, IExpressionAst } from '../i-expression-ast.inte
  */
 export class IndexedValueExpressionAst extends AbstractSyntaxTree<IndexedValueExpressionCst, IndexedValueExpressionAstData> implements IExpressionAst {
     /**
-     * Validate data of current structure.
+     * Build data of current structure.
      * 
-     * @param pContext - Validation context.
+     * @param pContext - Process context.
      * @param pCst - Cst data.
      */
     protected override onProcess(pContext: AbstractSyntaxTreeContext, pCst: IndexedValueExpressionCst): IndexedValueExpressionAstData {
@@ -25,40 +23,24 @@ export class IndexedValueExpressionAst extends AbstractSyntaxTree<IndexedValueEx
         const lValue: IExpressionAst = ExpressionAstBuilder.build(pCst.value).process(pContext);
         const lIndex: IExpressionAst = ExpressionAstBuilder.build(pCst.index).process(pContext);
 
-        // Value needs to be indexable.
-        if (!lValue.data.resolveType.isKind(BasePgslTypeKind.Indexable)) {
-            pContext.pushIncident('Value of index expression needs to be a indexable composite value.', this);
-        }
-
-        // Value needs to be a unsigned numeric value.
-        if (lIndex.data.resolveType.conversionRankTo(new PgslNumericType(PgslNumericType.typeName.unsignedInteger)) === Number.POSITIVE_INFINITY) {
-            pContext.pushIncident('Index needs to be a unsigned numeric value.', this);
-        }
-
-        // Index cannot be negative constant.
-        if (typeof lIndex.data.constantValue === 'number' && lIndex.data.constantValue < 0) {
-            pContext.pushIncident('Index needs to be a unsigned numeric value.', this);
-        }
-
-        const lResolveType: BasePgslType = (() => {
+        // Get resolve type of index expression and the values max length if its fixed.
+        const [lResolveType, lFixedLength] = ((): [BasePgslType, number] => {
             switch (true) {
                 case lValue.data.resolveType instanceof PgslArrayType: {
-                    return lValue.data.resolveType.innerType;
+                    return [lValue.data.resolveType.innerType, lValue.data.resolveType.length ?? -1];
                 }
 
                 case lValue.data.resolveType instanceof PgslVectorType: {
-                    return lValue.data.resolveType.innerType;
+                    return [lValue.data.resolveType.innerType, lValue.data.resolveType.dimension];
                 }
 
                 case lValue.data.resolveType instanceof PgslMatrixType: {
-                    return lValue.data.resolveType.vectorType;
+                    return [lValue.data.resolveType.vectorType, lValue.data.resolveType.columnCount];
                 }
 
                 default: {
-                    pContext.pushIncident('Type does not support a index signature', this);
-
                     // Somehow could have the same type.
-                    return lValue.data.resolveType;
+                    return [lValue.data.resolveType, -1];
                 }
             }
         })();
@@ -67,10 +49,11 @@ export class IndexedValueExpressionAst extends AbstractSyntaxTree<IndexedValueEx
             // Expression data.
             value: lValue,
             index: lIndex,
+            fixedLength: lFixedLength,
 
             // Expression meta data.
-            fixedState: PgslValueFixedState.Variable,
-            isStorage: true,
+            fixedState: Math.min(lValue.data.fixedState, lIndex.data.fixedState),
+            isStorage: lValue.data.isStorage,
             resolveType: lResolveType,
             constantValue: null,
             storageAddressSpace: lValue.data.storageAddressSpace
@@ -81,4 +64,5 @@ export class IndexedValueExpressionAst extends AbstractSyntaxTree<IndexedValueEx
 export type IndexedValueExpressionAstData = {
     value: IExpressionAst;
     index: IExpressionAst;
+    fixedLength: number;
 } & ExpressionAstData;

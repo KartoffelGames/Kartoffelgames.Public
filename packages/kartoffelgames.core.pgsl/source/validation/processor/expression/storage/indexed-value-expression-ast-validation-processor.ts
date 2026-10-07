@@ -1,4 +1,5 @@
 import { IndexedValueExpressionAst, type IndexedValueExpressionAstData } from '../../../../abstract_syntax_tree/expression/storage/indexed-value-expression-ast.ts';
+import { BasePgslTypeKind } from '../../../../abstract_syntax_tree/type/definition/base-pgsl-type.ts';
 import { PgslValidatorProcessor } from '../../../pgsl-validator-processor.ts';
 
 /**
@@ -15,14 +16,34 @@ export class IndexedValueExpressionAstValidationProcessor extends PgslValidatorP
     /**
      * Validates the PGSL indexed value expression syntax tree.
      * 
-     * @param _pData - The syntax tree data to validate.
+     * @param pData - The syntax tree data to validate.
      */
-    protected override onValidate(_pData: IndexedValueExpressionAstData): void {
-        // TODO: Validate the child value expression.
-        // TODO: Validate the child index expression.
-        // TODO: Validate that the value is an Array, a Vector or a Matrix, reporting once in place of both of today's messages.
-        // TODO: Validate that the index is an int or a uint scalar, abstract integers included.
-        // TODO: Validate that a constant index is not negative, where constant means a compile time constant and not a param value.
-        // TODO: Validate that a constant index is less than the length of an Array with a constant length, the dimension of a Vector or the column count of a Matrix (new).
+    protected override onValidate(pData: IndexedValueExpressionAstData): void {
+        // Validate the value and index expression.
+        this.validateAst(pData.value);
+        this.validateAst(pData.index);
+
+        // Value needs to be indexable.
+        if (!pData.value.data.resolveType.isKind(BasePgslTypeKind.Indexable)) {
+            this.pushIncident('Value of index expression needs to be a indexable composite value.', pData.value);
+        }
+
+        // Value needs to be a integer value.
+        if (!pData.index.data.resolveType.isKind(BasePgslTypeKind.Integer)) {
+            this.pushIncident('Index needs to be a integer value.', pData.index);
+        }
+
+        // When the index is a constant value we can validate that too.
+        if (typeof pData.index.data.constantValue === 'number') {
+            // Index cannot be negative constant.
+            if (pData.index.data.constantValue < 0) {
+                this.pushIncident('Index needs to be a non negative integer value.', pData.index);
+            }
+
+            // Index must be inside bounds.
+            if (pData.fixedLength !== -1 && pData.index.data.constantValue >= pData.fixedLength) {
+                this.pushIncident('Index out of bounds.', pData.index);
+            }
+        }
     }
 }

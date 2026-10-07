@@ -45,6 +45,8 @@ export class VariableDeclarationStatementAst extends AbstractSyntaxTree<Variable
         // Read expression attachment when a expression is present.
         if (pCst.expression) {
             lExpression = ExpressionAstBuilder.build(pCst.expression).process(pContext);
+
+            // TODO: Only assign a const value when its a const declaration.
             lConstantValue = lExpression.data.constantValue;
 
             // Validate same type.

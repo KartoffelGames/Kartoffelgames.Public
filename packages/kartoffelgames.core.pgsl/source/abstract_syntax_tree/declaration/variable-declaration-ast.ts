@@ -256,6 +256,8 @@ export class VariableDeclarationAst extends BaseDeclarationAst<VariableDeclarati
      * @returns The constant value or null if not available.
      */
     private getConstantValue(pExpression: IExpressionAst | null): number | null {
+        // TODO: Only set a constant value when its a const declaration.
+
         // Constant value must be a number.
         if (!pExpression || typeof pExpression.data.constantValue !== 'number') {
             return null;

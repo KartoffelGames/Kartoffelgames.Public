@@ -1,4 +1,3 @@
-// TODO: That can be moved into ast directly.
 export const PgslOperator = {
     None: '',
     Plus: '+',

@@ -2,6 +2,7 @@ import { Exception, type Stack } from '@kartoffelgames/core';
 import type { IAnyParameterConstructor } from '../../../kartoffelgames.core/source/interface/i-constructor.ts';
 import { AbstractSyntaxTreeIncident } from '../abstract_syntax_tree/abstract-syntax-tree-context.ts';
 import type { AbstractSyntaxTree } from '../abstract_syntax_tree/abstract-syntax-tree.ts';
+import type { PgslTypeCache } from '../abstract_syntax_tree/type/pgsl-type-cache.ts';
 
 /**
  * Validates one syntax tree type and reports its incidents to the validator.
@@ -15,6 +16,17 @@ export abstract class PgslValidatorProcessor<TTarget extends AbstractSyntaxTree>
      * The target abstract syntax tree constructor that this processor handles.
      */
     public abstract readonly target: IAnyParameterConstructor<TTarget>;
+
+    /**
+     * Type cache of the running validation.
+     */
+    protected get types(): PgslTypeCache {
+        if (!this.mValidationContext) {
+            throw new Exception('Invalid access of types', this);
+        }
+
+        return this.mValidationContext.types;
+    }
 
     /**
      * Constructor.
@@ -130,6 +142,7 @@ export type PgslValidatorProcessorValidate = (pInstance: AbstractSyntaxTree) => 
 export type PgslValidatorProcessorContext<TTarget extends AbstractSyntaxTree> = {
     incidentList: Array<AbstractSyntaxTreeIncident>;
     instance: TTarget;
+    types: PgslTypeCache;
     validationCallback: PgslValidatorProcessorValidate;
     validationStack: Stack<AbstractSyntaxTree>;
 };

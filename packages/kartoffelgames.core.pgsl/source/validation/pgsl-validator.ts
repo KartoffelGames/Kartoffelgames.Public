@@ -1,6 +1,7 @@
 import { Stack } from '@kartoffelgames/core';
 import type { AbstractSyntaxTreeIncident } from '../abstract_syntax_tree/abstract-syntax-tree-context.ts';
 import type { AbstractSyntaxTree, AbstractSyntaxTreeConstructor } from '../abstract_syntax_tree/abstract-syntax-tree.ts';
+import { PgslTypeCache } from '../abstract_syntax_tree/type/pgsl-type-cache.ts';
 import type { PgslValidatorProcessor, PgslValidatorProcessorConstructor, PgslValidatorProcessorValidate } from './pgsl-validator-processor.ts';
 import { AliasDeclarationAstValidationProcessor } from './processor/declaration/alias-declaration-ast-validation-processor.ts';
 import { EnumDeclarationAstValidationProcessor } from './processor/declaration/enum-declaration-ast-validation-processor.ts';
@@ -137,8 +138,10 @@ export class PgslValidator {
      * @returns The validation result.
      */
     public validate(pInstance: AbstractSyntaxTree): PgslValidatorResult {
+        // Generate resources for this validation run.
         const lIncidentList: Array<AbstractSyntaxTreeIncident> = new Array<AbstractSyntaxTreeIncident>();
         const lValidationStack: Stack<AbstractSyntaxTree> = new Stack<AbstractSyntaxTree>();
+        const lTypeCache: PgslTypeCache = new PgslTypeCache();
 
         // Create callbacks.
         const lValidate: PgslValidatorProcessorValidate = (pInstance: AbstractSyntaxTree): boolean => {
@@ -156,6 +159,7 @@ export class PgslValidator {
                 instance: pInstance,
                 validationCallback: lValidate,
                 incidentList: lIncidentList,
+                types: lTypeCache,
                 validationStack: lValidationStack
             });
 

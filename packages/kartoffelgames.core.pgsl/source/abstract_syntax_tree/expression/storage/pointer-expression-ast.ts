@@ -1,4 +1,5 @@
 import type { PointerExpressionCst } from '../../../concrete_syntax_tree/expression.type.ts';
+import { PgslValueAddressSpace } from "../../../enum/pgsl-value-address-space.enum.ts";
 import { PgslValueFixedState } from '../../../enum/pgsl-value-fixed-state.ts';
 import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
@@ -12,35 +13,37 @@ import type { ExpressionAstData, IExpressionAst } from '../i-expression-ast.inte
  */
 export class PointerExpressionAst extends AbstractSyntaxTree<PointerExpressionCst, PointerExpressionAstData> implements IExpressionAst {
     /**
-     * Validate data of current structure.
+     * Process data of current structure.
      * 
-     * @param pContext - Validation context.
+     * @param pContext - Build context.
      * @param pCst - Cst data.
      */
     protected override onProcess(pContext: AbstractSyntaxTreeContext, pCst: PointerExpressionCst): PointerExpressionAstData {
         // Build expression.
         const lExpression: IExpressionAst = ExpressionAstBuilder.build(pCst.expression).process(pContext);
 
-        const lResolveType: BasePgslType = (() => {
-            // Value needs to be a pointer.
+        // Try to read the expressions pointer referenced type.
+        const [lResolveType, lStorageAddressSpace] = ((): [BasePgslType, PgslValueAddressSpace] => {
+            // Just skip type resolve when its not a pointer.
             if (!(lExpression.data.resolveType instanceof PgslPointerType)) {
-                pContext.pushIncident('Pointer of expression needs to be a pointer type.', this);
-                return lExpression.data.resolveType;
+                return [lExpression.data.resolveType, PgslValueAddressSpace.Inherit];
             }
 
-            return lExpression.data.resolveType.referencedType;
+            return [lExpression.data.resolveType.referencedType, lExpression.data.resolveType.assignedAddressSpace];
         })();
 
         return {
             // Expression data.
             expression: lExpression,
 
-            // Expression meta data.
+            // A pointer is always variable and therefore has no constant value.
             fixedState: PgslValueFixedState.Variable,
+            constantValue: null,
+
+            // Expression meta data.
             isStorage: true,
             resolveType: lResolveType,
-            constantValue: lExpression.data.constantValue,
-            storageAddressSpace: lExpression.data.storageAddressSpace
+            storageAddressSpace: lStorageAddressSpace
         };
     }
 }

@@ -1,4 +1,5 @@
 import { PointerExpressionAst, type PointerExpressionAstData } from '../../../../abstract_syntax_tree/expression/storage/pointer-expression-ast.ts';
+import { BasePgslTypeKind } from '../../../../abstract_syntax_tree/type/definition/base-pgsl-type.ts';
 import { PgslValidatorProcessor } from '../../../pgsl-validator-processor.ts';
 
 /**
@@ -15,10 +16,15 @@ export class PointerExpressionAstValidationProcessor extends PgslValidatorProces
     /**
      * Validates the PGSL pointer expression syntax tree.
      * 
-     * @param _pData - The syntax tree data to validate.
+     * @param pData - The syntax tree data to validate.
      */
-    protected override onValidate(_pData: PointerExpressionAstData): void {
-        // TODO: Validate the child expression that is dereferenced.
-        // TODO: Validate that the dereferenced expression is a pointer.
+    protected override onValidate(pData: PointerExpressionAstData): void {
+        // Validate pointers inner expression.
+        this.validateAst(pData.expression);
+
+        // Value needs to be a pointer.
+        if (!pData.expression.data.resolveType.isKind(BasePgslTypeKind.Pointer)) {
+            this.pushIncident('Pointer of expression needs to be a pointer type.', pData.expression);
+        }
     }
 }

@@ -1,5 +1,5 @@
-import { DocumentAst, type DocumentAstData } from "../../abstract_syntax_tree/document-ast.ts";
-import { PgslValidatorProcessor } from "../pgsl-validator-processor.ts";
+import { DocumentAst, type DocumentAstData } from '../../abstract_syntax_tree/document-ast.ts';
+import { PgslValidatorProcessor } from '../pgsl-validator-processor.ts';
 
 /**
  * Validation processor of DocumentAst.

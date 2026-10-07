@@ -9,7 +9,7 @@ import { FunctionOverloadDeclarationAstValidationProcessor } from './processor/d
 import { StructDeclarationAstValidationProcessor } from './processor/declaration/struct-declaration-ast-validation-processor.ts';
 import { StructPropertyDeclarationAstValidationProcessor } from './processor/declaration/struct-property-declaration-ast-validation-processor.ts';
 import { VariableDeclarationAstValidationProcessor } from './processor/declaration/variable-declaration-ast-validation-processor.ts';
-import { DocumentAstValidationProcessor } from "./processor/document-ast-validation-processor.ts";
+import { DocumentAstValidationProcessor } from './processor/document-ast-validation-processor.ts';
 import { ArithmeticExpressionAstValidationProcessor } from './processor/expression/operation/arithmetic-expression-ast-validation-processor.ts';
 import { BinaryExpressionAstValidationProcessor } from './processor/expression/operation/binary-expression-ast-validation-processor.ts';
 import { ComparisonExpressionAstValidationProcessor } from './processor/expression/operation/comparison-expression-ast-validation-processor.ts';

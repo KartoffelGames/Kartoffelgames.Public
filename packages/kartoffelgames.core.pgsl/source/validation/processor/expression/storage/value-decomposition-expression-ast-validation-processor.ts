@@ -15,10 +15,12 @@ export class ValueDecompositionExpressionAstValidationProcessor extends PgslVali
     /**
      * Validates the PGSL value decomposition expression syntax tree.
      * 
-     * @param _pData - The syntax tree data to validate.
+     * @param pData - The syntax tree data to validate.
      */
-    protected override onValidate(_pData: ValueDecompositionExpressionAstData): void {
-        // TODO: Validate the child value expression.
+    protected override onValidate(pData: ValueDecompositionExpressionAstData): void {
+        // Validate the child value expression.
+        this.validateAst(pData.value);
+
         // TODO: Validate that the value is a struct, an enum or a Vector, reporting once in place of both of today's messages.
         // TODO: Validate that the struct type of the value resolves to its struct declaration.
         // TODO: Validate that the struct declares a property with the accessed name.

@@ -3,6 +3,7 @@ import { PgslValueAddressSpace } from '../../../enum/pgsl-value-address-space.en
 import { PgslValueFixedState } from '../../../enum/pgsl-value-fixed-state.ts';
 import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
+import { EnumDeclarationAst } from "../../declaration/enum-declaration-ast.ts";
 import type { IValueStoreAst } from '../../i-value-store-ast.interface.ts';
 import { PgslEnumType } from '../../type/definition/pgsl-enum-type.ts';
 import { PgslInvalidType } from '../../type/definition/pgsl-invalid-type.ts';
@@ -13,9 +14,9 @@ import type { ExpressionAstData, IExpressionAst } from '../i-expression-ast.inte
  */
 export class VariableNameExpressionAst extends AbstractSyntaxTree<VariableNameExpressionCst, VariableNameExpressionAstData> implements IExpressionAst {
     /**
-     * Validate data of current structure.
+     * Process data of current structure.
      * 
-     * @param pContext - Validation context.
+     * @param pContext - Build context.
      * @param pCst - Cst data.
      */
     protected override onProcess(pContext: AbstractSyntaxTreeContext, pCst: VariableNameExpressionCst): VariableNameExpressionAstData {
@@ -27,6 +28,7 @@ export class VariableNameExpressionAst extends AbstractSyntaxTree<VariableNameEx
             return {
                 // Expression data.
                 variableName: lVariableName,
+                valueDeclaration: lVariableDefinition,
 
                 // Expression meta data.
                 fixedState: lVariableDefinition.data.fixedState,
@@ -43,6 +45,7 @@ export class VariableNameExpressionAst extends AbstractSyntaxTree<VariableNameEx
             return {
                 // Expression data.
                 variableName: lVariableName,
+                valueDeclaration: lEnumDefinition,
 
                 // Expression meta data.
                 fixedState: PgslValueFixedState.Variable,
@@ -53,11 +56,10 @@ export class VariableNameExpressionAst extends AbstractSyntaxTree<VariableNameEx
             };
         }
 
-        pContext.pushIncident(`Variable "${lVariableName}" not defined.`, this);
-
         return {
             // Expression data.
             variableName: lVariableName,
+            valueDeclaration: null,
 
             // Expression meta data.
             fixedState: PgslValueFixedState.Variable,
@@ -71,4 +73,5 @@ export class VariableNameExpressionAst extends AbstractSyntaxTree<VariableNameEx
 
 export type VariableNameExpressionAstData = {
     variableName: string;
+    valueDeclaration: EnumDeclarationAst | IValueStoreAst | null;
 } & ExpressionAstData;

@@ -8,7 +8,7 @@ import type { BasePgslType } from './type/definition/base-pgsl-type.ts';
  * Interface representing a value storage in the abstract syntax tree.
  */
 export interface IValueStoreAst {
-    readonly data: Readonly<ValueStoreAstData>
+    readonly data: Readonly<ValueStoreAstData>;
 }
 
 export type ValueStoreAstData = {
@@ -46,4 +46,4 @@ export type ValueStoreAstData = {
      * The access mode for the value
      */
     accessMode: PgslAccessMode;
-}
+};

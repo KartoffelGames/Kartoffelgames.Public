@@ -1,4 +1,6 @@
+import { ValueDecompositionExpressionAst } from "../../../../abstract_syntax_tree/expression/storage/value-decomposition-expression-ast.ts";
 import { VariableNameExpressionAst, type VariableNameExpressionAstData } from '../../../../abstract_syntax_tree/expression/storage/variable-name-expression-ast.ts';
+import { BasePgslTypeKind } from "../../../../abstract_syntax_tree/type/definition/base-pgsl-type.ts";
 import { PgslValidatorProcessor } from '../../../pgsl-validator-processor.ts';
 
 /**
@@ -15,10 +17,21 @@ export class VariableNameExpressionAstValidationProcessor extends PgslValidatorP
     /**
      * Validates the PGSL variable name expression syntax tree.
      * 
-     * @param _pData - The syntax tree data to validate.
+     * @param pData - The syntax tree data to validate.
      */
-    protected override onValidate(_pData: VariableNameExpressionAstData): void {
-        // TODO: Validate that the name resolves to a value declaration or an enum, reporting "Variable "name" not defined." from the recorded raw name; a resolved value whose type is poison is defined and is not reported as undefined.
-        // TODO: Validate that a name resolving to an enum is only used as the value of a value decomposition like EnumName.Value, because the transpiler throws for a bare enum name (new).
+    protected override onValidate(pData: VariableNameExpressionAstData, pInstance: VariableNameExpressionAst): void {
+        // Validate that the name was found.
+        if (pData.valueDeclaration === null) {
+            this.pushIncident(`Variable "${pData.variableName}" not defined.`);
+        }
+
+        // If its a enum. Check that its inside a value decomposition.
+        if (pData.resolveType.isKind(BasePgslTypeKind.Enum)) {
+            // The enum value must be the value part of a decomposition. 
+            const lDecompositionAst: ValueDecompositionExpressionAst | null = this.stackContains(ValueDecompositionExpressionAst);
+            if (!lDecompositionAst || lDecompositionAst.data.value !== pInstance) {
+                this.pushIncident(`Enum "${pData.variableName}" can only be used as value.`);
+            }
+        }
     }
 }

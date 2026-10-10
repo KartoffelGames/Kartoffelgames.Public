@@ -47,22 +47,30 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
         };
 
         // Get the type all other types convert into. When a type is a vector or matrix, it uses its inner type.
-        const lCommonTypeOf = (pTypeList: Array<BasePgslType>): BasePgslType => {
-            let lCommonType: BasePgslType = pTypeList[0];
+        const lCommonTypeOf = (pTypeList: Array<BasePgslType>, pUnwrap: boolean = true): BasePgslType => {
+            // Unwrap a generic-type to get its inner type.
+            const lUnrap = (pType: BasePgslType) => {
+                // Skip unwrapping if its disabled (only arrays i think)
+                if (!pUnwrap) {
+                    return pType;
+                }
 
+                if (pType instanceof PgslVectorType || pType instanceof PgslMatrixType) {
+                    return pType.innerType;
+                }
+
+                return pType;
+            };
+
+            // Compare each type to get the type with the highest convertion rank between all types.
+            let lCommonType: BasePgslType = lUnrap(pTypeList[0]);
             for (const lType of pTypeList) {
                 // Unwrap a vector and matrix to get its inner type.
-                const lInnerType: BasePgslType = (() => {
-                    if (lType instanceof PgslVectorType || lType instanceof PgslMatrixType) {
-                        return lType.innerType;
-                    }
-
-                    return lType;
-                })();
+                const lUnwrappedType: BasePgslType = lUnrap(lType);
 
                 // Compare both conversion directions and keep the type the other one converts into.
-                if (lInnerType.conversionRankTo(lCommonType) > lCommonType.conversionRankTo(lInnerType)) {
-                    lCommonType = lType;
+                if (lUnwrappedType.conversionRankTo(lCommonType) > lCommonType.conversionRankTo(lUnwrappedType)) {
+                    lCommonType = lUnwrappedType;
                 }
             }
 
@@ -77,7 +85,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                 ],
                 returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>): BasePgslType => {
                     // Find the common type of all parameters.
-                    const lElementType: BasePgslType = lCommonTypeOf(pParameterList);
+                    const lElementType: BasePgslType = lCommonTypeOf(pParameterList, false);
 
                     // Create length expression and trace it.
                     const lConstantLengthExpressionCst: LiteralValueExpressionCst = {

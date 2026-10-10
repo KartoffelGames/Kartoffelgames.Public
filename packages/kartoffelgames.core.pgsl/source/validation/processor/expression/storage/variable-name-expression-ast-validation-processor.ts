@@ -29,7 +29,7 @@ export class VariableNameExpressionAstValidationProcessor extends PgslValidatorP
         if (pData.resolveType.isKind(BasePgslTypeKind.Enum)) {
             // The enum value must be the value part of a decomposition. 
             const lDecompositionAst: ValueDecompositionExpressionAst | null = this.stackContains(ValueDecompositionExpressionAst);
-            if (!lDecompositionAst || lDecompositionAst.data.value !== pInstance) {
+            if (!lDecompositionAst || lDecompositionAst.data.expressionValue !== pInstance) {
                 this.pushIncident(`Enum "${pData.variableName}" can only be used as value.`);
             }
         }

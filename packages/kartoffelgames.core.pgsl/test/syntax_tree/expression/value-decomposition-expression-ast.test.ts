@@ -272,7 +272,7 @@ Deno.test('ValueDecompositionExpressionAst - Parsing', async (pContext) => {
             expect(lExpressionNode).toBeInstanceOf(ValueDecompositionExpressionAst);
             expect(lExpressionNode.data.property).toBe('x');
 
-            const lIndexExpression: IndexedValueExpressionAst = lExpressionNode.data.value as IndexedValueExpressionAst;
+            const lIndexExpression: IndexedValueExpressionAst = lExpressionNode.data.expressionValue as IndexedValueExpressionAst;
             expect(lIndexExpression).toBeInstanceOf(IndexedValueExpressionAst);
             expect(lIndexExpression.data.value).toBeInstanceOf(VariableNameExpressionAst);
 
@@ -305,7 +305,7 @@ Deno.test('ValueDecompositionExpressionAst - Parsing', async (pContext) => {
             expect(lExpressionNode).toBeInstanceOf(ValueDecompositionExpressionAst);
             expect(lExpressionNode.data.property).toBe('x');
 
-            const lCallExpression: FunctionCallExpressionAst = lExpressionNode.data.value as FunctionCallExpressionAst;
+            const lCallExpression: FunctionCallExpressionAst = lExpressionNode.data.expressionValue as FunctionCallExpressionAst;
             expect(lCallExpression).toBeInstanceOf(FunctionCallExpressionAst);
             expect(lCallExpression.data.name).toBe(lFunctionName);
 

@@ -206,7 +206,7 @@ Deno.test('IndexedValueExpressionAst - Parsing', async (pContext) => {
             const lDecompositionExpression: ValueDecompositionExpressionAst = lExpressionNode.data.value as ValueDecompositionExpressionAst;
             expect(lDecompositionExpression).toBeInstanceOf(ValueDecompositionExpressionAst);
             expect(lDecompositionExpression.data.property).toBe(lPropertyName);
-            expect(lDecompositionExpression.data.value).toBeInstanceOf(VariableNameExpressionAst);
+            expect(lDecompositionExpression.data.expressionValue).toBeInstanceOf(VariableNameExpressionAst);
 
             // Evaluation. Correct result type.
             expect(lExpressionNode.data.resolveType).toBeInstanceOf(PgslNumericType);
@@ -247,10 +247,10 @@ Deno.test('IndexedValueExpressionAst - Parsing', async (pContext) => {
             expect(lNestedDecomposition).toBeInstanceOf(ValueDecompositionExpressionAst);
             expect(lNestedDecomposition.data.property).toBe(lNestedPropertyName);
 
-            const lOuterDecomposition: ValueDecompositionExpressionAst = lNestedDecomposition.data.value as ValueDecompositionExpressionAst;
+            const lOuterDecomposition: ValueDecompositionExpressionAst = lNestedDecomposition.data.expressionValue as ValueDecompositionExpressionAst;
             expect(lOuterDecomposition).toBeInstanceOf(ValueDecompositionExpressionAst);
             expect(lOuterDecomposition.data.property).toBe(lPropertyName);
-            expect(lOuterDecomposition.data.value).toBeInstanceOf(VariableNameExpressionAst);
+            expect(lOuterDecomposition.data.expressionValue).toBeInstanceOf(VariableNameExpressionAst);
         });
 
         await pContext.step('After a function call', () => {

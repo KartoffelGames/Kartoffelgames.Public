@@ -1,3 +1,4 @@
+import { EnumDeclarationAst } from "../../../../abstract_syntax_tree/declaration/enum-declaration-ast.ts";
 import { ValueDecompositionExpressionAst } from '../../../../abstract_syntax_tree/expression/storage/value-decomposition-expression-ast.ts';
 import { TranspilerProcessor } from '../../../transpiler-processor.ts';
 
@@ -18,11 +19,14 @@ export class ValueDecompositionExpressionAstTranspilerProcessor extends Transpil
      */
     protected override onProcess(pInstance: ValueDecompositionExpressionAst): string {
         // When the value is a enum, transpille its resolved value as constant.
-        if (pInstance.data.enumValue) {
-            return this.transpileAst(pInstance.data.enumValue);
+        if (pInstance.data.expressionDeclaration instanceof EnumDeclarationAst) {
+            if(!pInstance.data.propertyValue){
+                return '<--ERROR-->'
+            }
+            return this.transpileAst(pInstance.data.propertyValue);
         }
 
         // Transpile value and property.
-        return `${this.transpileAst(pInstance.data.value)}.${pInstance.data.property}`;
+        return `${this.transpileAst(pInstance.data.expressionValue)}.${pInstance.data.property}`;
     }
 }

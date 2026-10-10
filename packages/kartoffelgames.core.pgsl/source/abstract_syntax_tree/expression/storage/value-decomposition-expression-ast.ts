@@ -3,8 +3,10 @@ import { PgslValueAddressSpace } from '../../../enum/pgsl-value-address-space.en
 import { PgslValueFixedState } from '../../../enum/pgsl-value-fixed-state.ts';
 import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
+import { EnumDeclarationAst } from "../../declaration/enum-declaration-ast.ts";
+import { StructDeclarationAst } from "../../declaration/struct-declaration-ast.ts";
 import type { StructPropertyDeclarationAst } from '../../declaration/struct-property-declaration-ast.ts';
-import { type BasePgslType, BasePgslTypeKind } from '../../type/definition/base-pgsl-type.ts';
+import { type BasePgslType } from '../../type/definition/base-pgsl-type.ts';
 import { PgslEnumType } from '../../type/definition/pgsl-enum-type.ts';
 import { PgslInvalidType } from '../../type/definition/pgsl-invalid-type.ts';
 import { PgslStructType } from '../../type/definition/pgsl-struct-type.ts';
@@ -24,120 +26,121 @@ export class ValueDecompositionExpressionAst extends AbstractSyntaxTree<ValueDec
      */
     protected override onProcess(pContext: AbstractSyntaxTreeContext, pCst: ValueDecompositionExpressionCst): ValueDecompositionExpressionAstData {
         // Build value expression.
-        const lValue: IExpressionAst = ExpressionAstBuilder.build(pCst.value).process(pContext);
+        const lPropertyRootExpression: IExpressionAst = ExpressionAstBuilder.build(pCst.value).process(pContext);
 
         const lPropertyName: string = pCst.property;
 
         // Read attachment from resolve type.
-        const lExpressionType: BasePgslType = lValue.data.resolveType;
-
-        // Must be compositeable.
-        if (!lExpressionType.isKind(BasePgslTypeKind.Composite)) {
-            pContext.pushIncident(`Type must be a compositeable type.`, this);
-        }
+        const lExpressionType: BasePgslType = lPropertyRootExpression.data.resolveType;
 
         // Resolve property type.
-        const lPropertyInformation = ((): ({ type: BasePgslType, fixedState: PgslValueFixedState, constValue: null | string | number, addressSpace: PgslValueAddressSpace; isStorage: boolean; enumValue: IExpressionAst | null; } | null) => {
+        const lPropertyInformation = ((): ValueDecompositionExpressionAstPropertyData | null => {
             switch (true) {
                 case lExpressionType instanceof PgslStructType: {
-                    // Read struct definition.
-                    const lStructDeclaration = pContext.getStruct(lExpressionType.structName);
-                    if (!lStructDeclaration) {
-                        pContext.pushIncident(`Struct type for "${lExpressionType.structName}" not found.`, this);
-                        return null;
-                    }
+                    // Read struct and its declaration.
+                    const [lStructDeclaration, lStructProperty] = (() => {
+                        // Try to get the struct.
+                        const lStruct: StructDeclarationAst | undefined = pContext.getStruct(lExpressionType.structName);
+                        if (!lStruct) {
+                            return [null, null];
+                        }
 
-                    // Find property by name in its struct.
-                    const lProperty: StructPropertyDeclarationAst | undefined = lStructDeclaration.data.properties.find((pProperty) => { return pProperty.data.name === lPropertyName; });
-                    if (!lProperty) {
-                        pContext.pushIncident(`Struct has no defined property "${lPropertyName}"`, this);
-                        return null;
-                    }
+                        // Find property by name in its struct.
+                        const lStructProperty: StructPropertyDeclarationAst | undefined = lStruct.data.properties.find((pProperty) => {
+                            return pProperty.data.name === lPropertyName;
+                        });
+
+                        return [lStruct, lStructProperty];
+                    })();
 
                     return {
-                        type: lProperty.data.typeDeclaration.data.type,
-                        fixedState: PgslValueFixedState.Variable,
-                        constValue: null,
-                        addressSpace: lValue.data.storageAddressSpace,
-                        isStorage: true,
-                        enumValue: null
+                        type: lStructProperty?.data.typeDeclaration.data.type ?? pContext.types.create(PgslInvalidType),
+                        propertyValue: null, // Cant be read.
+                        expressionDeclaration: lStructDeclaration,
+
+                        fixedState: lPropertyRootExpression.data.fixedState,
+                        constantValue: null,
+                        storageAddressSpace: lPropertyRootExpression.data.storageAddressSpace,
+                        isStorage: lPropertyRootExpression.data.isStorage
                     };
                 }
 
                 case lExpressionType instanceof PgslEnumType: {
-                    const lEnumDeclaration = pContext.getEnum(lExpressionType.enumName);
-                    if (!lEnumDeclaration) {
-                        pContext.pushIncident(`Enum type for "${lExpressionType.enumName}" not found.`, this);
-                        return null;
-                    }
+                    // Read enum and its declaration.
+                    const [lEnumDeclaration, lEnumValue] = (() => {
+                        // Try to get the enum.
+                        const lEnum: EnumDeclarationAst | undefined = pContext.getEnum(lExpressionType.enumName);
+                        if (!lEnum) {
+                            return [null, null];
+                        }
 
-                    // Read enum value by property name.
-                    const lEnumValue: IExpressionAst | undefined = lEnumDeclaration.data.values.get(lPropertyName);
-                    if (!lEnumValue) {
-                        pContext.pushIncident(`Enum "${lEnumDeclaration.data.name}" does not contain a value for property "${lPropertyName}".`, this);
+                        // Read enum value by property name.
+                        const lEnumValue: IExpressionAst | undefined = lEnum.data.values.get(lPropertyName);
+                        return [lEnum, lEnumValue];
+                    })();
+
+                    // Absolutly nothing was right.
+                    if (!lEnumDeclaration) {
                         return null;
                     }
 
                     return {
-                        type: lEnumValue.data.resolveType,
-                        fixedState: lEnumValue.data.fixedState,
-                        constValue: lEnumValue.data.constantValue,
-                        addressSpace: lEnumValue.data.storageAddressSpace,
-                        isStorage: false,
-                        enumValue: lEnumValue
+                        type: lEnumValue?.data.resolveType ?? pContext.types.create(PgslInvalidType),
+                        propertyValue: lEnumValue ?? null,
+                        expressionDeclaration: lEnumDeclaration,
+
+                        fixedState: lEnumValue?.data.fixedState ?? PgslValueFixedState.Variable,
+                        constantValue: lEnumValue?.data.constantValue ?? null,
+                        storageAddressSpace: lEnumValue?.data.storageAddressSpace ?? PgslValueAddressSpace.Function,
+                        isStorage: false
                     };
                 }
 
                 case lExpressionType instanceof PgslVectorType: {
-                    // Validate swizzle name.
-                    if (!/^([rgba]{1,4}|[xyzw]{1,4})$/.test(lPropertyName)) {
-                        pContext.pushIncident(`Swizzle name "${lPropertyName}" can't be used to access vector.`, this);
-                    }
-
                     // When swizzle is only one long return the inner type.
                     if (lPropertyName.length === 1) {
                         return {
                             type: lExpressionType.innerType,
-                            fixedState: PgslValueFixedState.Variable,
-                            constValue: null,
-                            addressSpace: lValue.data.storageAddressSpace,
-                            isStorage: false,
-                            enumValue: null
+                            expressionDeclaration: null,
+                            propertyValue: null,
+
+                            fixedState: lPropertyRootExpression.data.fixedState,
+                            constantValue: null,
+                            storageAddressSpace: lPropertyRootExpression.data.storageAddressSpace,
+                            isStorage: lPropertyRootExpression.data.isStorage
                         };
                     }
 
                     // Build vectorN type from vector type.
-                    const lVectorType: PgslVectorType = new PgslVectorType(lPropertyName.length, lExpressionType.innerType);
-
                     return {
-                        type: lVectorType,
-                        fixedState: PgslValueFixedState.Variable,
-                        constValue: null,
-                        addressSpace: lValue.data.storageAddressSpace,
-                        isStorage: false,
-                        enumValue: null
+                        type: pContext.types.create(PgslVectorType, lPropertyName.length, lExpressionType.innerType),
+                        expressionDeclaration: null,
+                        propertyValue: null,
+
+                        fixedState: lPropertyRootExpression.data.fixedState,
+                        constantValue: null,
+                        storageAddressSpace: lPropertyRootExpression.data.storageAddressSpace,
+                        isStorage: false
                     };
                 }
             }
 
-            // No valid type found.
-            pContext.pushIncident(`Value is not a composite type property "${lPropertyName}".`, this);
-
+            // When property information could not be resolved, return invalid type.
             return null;
         })();
 
-        // When property information could not be resolved, return invalid type.
-        if (lPropertyInformation === null) {
+        if (!lPropertyInformation) {
             return {
                 // Expression data.
-                value: lValue,
                 property: lPropertyName,
-                enumValue: null,
+                propertyValue: null,
+                expressionValue: lPropertyRootExpression,
+                expressionDeclaration: null,
 
                 // Expression meta data.
+                resolveType: pContext.types.create(PgslInvalidType),
                 fixedState: PgslValueFixedState.Variable,
                 isStorage: false,
-                resolveType: new PgslInvalidType(),
                 constantValue: null,
                 storageAddressSpace: PgslValueAddressSpace.Function
             };
@@ -145,26 +148,37 @@ export class ValueDecompositionExpressionAst extends AbstractSyntaxTree<ValueDec
 
         return {
             // Expression data.
-            value: lValue,
             property: lPropertyName,
-            enumValue: lPropertyInformation.enumValue,
+            propertyValue: lPropertyInformation.propertyValue,
+            expressionValue: lPropertyRootExpression,
+            expressionDeclaration: lPropertyInformation.expressionDeclaration,
 
             // Expression meta data.
+            resolveType: lPropertyInformation.type,
             fixedState: lPropertyInformation.fixedState,
             isStorage: lPropertyInformation.isStorage,
-            resolveType: lPropertyInformation.type,
-            constantValue: lPropertyInformation.constValue,
-            storageAddressSpace: lPropertyInformation.addressSpace
+            constantValue: lPropertyInformation.constantValue,
+            storageAddressSpace: lPropertyInformation.storageAddressSpace
         };
     }
 }
 
+type ValueDecompositionExpressionAstPropertyData = {
+    type: BasePgslType;
+
+    propertyValue: IExpressionAst | null;
+    expressionDeclaration: EnumDeclarationAst | StructDeclarationAst | null;
+
+    constantValue: null | string | number;
+    fixedState: PgslValueFixedState;
+    storageAddressSpace: PgslValueAddressSpace;
+    isStorage: boolean;
+};
+
 export type ValueDecompositionExpressionAstData = {
     property: string;
-    value: IExpressionAst;
+    propertyValue: IExpressionAst | null;
 
-    /**
-     * Resolved enum value when the decomposited value is a enum, null otherwise.
-     */
-    enumValue: IExpressionAst | null;
+    expressionDeclaration: EnumDeclarationAst | StructDeclarationAst | null;
+    expressionValue: IExpressionAst;
 } & ExpressionAstData;

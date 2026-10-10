@@ -15,9 +15,10 @@ export class ParenthesizedExpressionAstValidationProcessor extends PgslValidator
     /**
      * Validates the PGSL parenthesized expression syntax tree.
      * 
-     * @param _pData - The syntax tree data to validate.
+     * @param pData - The syntax tree data to validate.
      */
-    protected override onValidate(_pData: ParenthesizedExpressionAstData): void {
-        // TODO: Validate the child expression inside the parentheses.
+    protected override onValidate(pData: ParenthesizedExpressionAstData): void {
+        // Validate inner expression.
+        this.validateAst(pData.expression);
     }
 }

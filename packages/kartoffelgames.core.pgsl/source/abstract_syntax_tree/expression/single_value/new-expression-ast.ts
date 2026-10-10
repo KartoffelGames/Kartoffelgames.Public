@@ -27,7 +27,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
      * 
      * @returns the constructor definitions or null when the type can not be constructed.
      */
-    private static callDefinition(pContext: AbstractSyntaxTreeContext, pTypeName: string): PgslNewExpressionCallDefinition | null {
+    private static callDefinition(pContext: AbstractSyntaxTreeContext, pTypeName: string): NewExpressionAstCallDefinition | null {
         // Restriction types.
         const lBooleanType: BasePgslType = pContext.types.create(PgslBooleanType);
         const lFloatTypes: Array<BasePgslType> = [pContext.types.create(PgslNumericType, PgslNumericType.typeName.float32), pContext.types.create(PgslNumericType, PgslNumericType.typeName.float16)];
@@ -75,6 +75,9 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
             case PgslVectorType.typeName.vector2: return {
                 generics: [...lNumericTypes, lBooleanType],
                 parameters: [
+                    // Zero value
+                    [],
+
                     // Identity
                     [{ typeRestrictions: [...lVectorsOf(2, [lBooleanType])] }],
                     [{ typeRestrictions: [...lVectorsOf(2, lNumericTypes)] }],
@@ -96,6 +99,9 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
             case PgslVectorType.typeName.vector3: return {
                 generics: [...lNumericTypes, lBooleanType],
                 parameters: [
+                    // Zero value
+                    [],
+
                     // Identity
                     [{ typeRestrictions: [...lVectorsOf(3, [lBooleanType])] }],
                     [{ typeRestrictions: [...lVectorsOf(3, lNumericTypes)] }],
@@ -140,6 +146,9 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
             case PgslVectorType.typeName.vector4: return {
                 generics: [...lNumericTypes, lBooleanType],
                 parameters: [
+                    // Zero value
+                    [],
+
                     // Identity
                     [{ typeRestrictions: [...lVectorsOf(4, [lBooleanType])] }],
                     [{ typeRestrictions: [...lVectorsOf(4, lNumericTypes)] }],
@@ -524,23 +533,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
      */
     protected override onProcess(pContext: AbstractSyntaxTreeContext, pCst: NewExpressionCst): NewExpressionAstData {
         // Read call definitions.
-        const lCallDefinition: PgslNewExpressionCallDefinition | null = NewExpressionAst.callDefinition(pContext, pCst.typeName);
-        if (!lCallDefinition) {
-            pContext.pushIncident(`Type '${pCst.typeName}' cannot be constructed with 'new'.`, this);
-            return {
-                // Expression data.
-                typeName: pCst.typeName,
-                parameterList: new Array<IExpressionAst>(),
-                generic: null,
-
-                // Expression meta.
-                fixedState: PgslValueFixedState.Variable,
-                isStorage: false,
-                resolveType: new PgslInvalidType(),
-                constantValue: null,
-                storageAddressSpace: PgslValueAddressSpace.Inherit,
-            };
-        }
+        const lCallDefinition: NewExpressionAstCallDefinition | null = NewExpressionAst.callDefinition(pContext, pCst.typeName);
 
         // Build parameter expression list.
         const lParameterExpressionList: Array<IExpressionAst> = pCst.parameterList.map((pParameterCst) => {
@@ -552,27 +545,29 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
             return pParameterExpression.data.resolveType;
         });
 
-        // Only once generic is supported.
-        if (pCst.genericList.length > 1) {
-            pContext.pushIncident(`Only one generic type is supported in 'new' expressions.`, this);
-        }
+        // Build all written generic declarations. Only the first one is used.
+        const lGenericDeclarationList: Array<TypeDeclarationAst> = pCst.genericList.map((pGenericCst) => {
+            return new TypeDeclarationAst(pGenericCst).process(pContext);
+        });
 
-        // Only types with generics can be constructed with a generic.
-        if (pCst.genericList.length > 0 && !lCallDefinition.generics) {
-            pContext.pushIncident(`Type '${pCst.typeName}' can not be constructed with a generic type.`, this);
-        }
+        const lGenericType: BasePgslType | null = lGenericDeclarationList.length > 0 ? lGenericDeclarationList[0].data.type : null;
 
-        // Build first generic declaration if available.
-        const lGenericDeclaration: TypeDeclarationAst | null = (() => {
-            if (pCst.genericList.length > 0) {
-                return new TypeDeclarationAst(pCst.genericList[0]).process(pContext);
+        // Resolve result type.
+        const lResultType: BasePgslType = (() => {
+            // A type that can not be constructed resolves to an invalid type.
+            if (!lCallDefinition) {
+                return pContext.types.create(PgslInvalidType);
             }
 
-            return null;
-        })();
-        const lGenericType: BasePgslType | null = lGenericDeclaration?.data.type ?? null;
+            // Without parameters, only a generic can name the constructed type.
+            if (lParameterTypeList.length === 0 && !lGenericType) {
+                return pContext.types.create(PgslInvalidType);
+            }
 
-        // Find the lowest fixed state of all parameters while validating the expression types
+            return lCallDefinition.returnType(pContext, lParameterTypeList, lGenericType);
+        })();
+
+        // Find the lowest fixed state of all parameters.
         const lFixedState: PgslValueFixedState = (() => {
             // Create default variables starting with the stiffest state.
             let lFixedState: PgslValueFixedState = PgslValueFixedState.Constant;
@@ -582,96 +577,18 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                 if (lParameterExpression.data.fixedState < lFixedState) {
                     lFixedState = lParameterExpression.data.fixedState;
                 }
-
-                // Must be constructable.
-                if (!lParameterExpression.data.resolveType.isKind(BasePgslTypeKind.Constructible)) {
-                    pContext.pushIncident(`New expression type must be constructible.`, this);
-                }
-
-                // Must be fixed.
-                if (!lParameterExpression.data.resolveType.isKind(BasePgslTypeKind.FixedFootprint)) {
-                    pContext.pushIncident(`New expression type must be length fixed.`, this);
-                }
             }
 
             // Function is constant, parameters need to be to.
             return lFixedState;
         })();
 
-        // Validate used generic against definition.
-        (() => {
-            if (!lGenericType || !lCallDefinition.generics) {
-                return;
-            }
-
-            // Check each defined generic agains the used one.
-            const lGenericMatched: boolean = lCallDefinition.generics.some((pGeneric: BasePgslType) => {
-                return pGeneric.accepts(lGenericType);
-            });
-            if (!lGenericMatched) {
-                pContext.pushIncident(`Generic type is not valid for constructed type '${pCst.typeName}'.`, this);
-            }
-        })();
-
-        // Validate parameter list against definitions and find matching one.
-        (() => {
-            DEFINTION_CHECK: for (const lParameterDefinitionList of lCallDefinition.parameters) {
-                // Save current index of parameter list.
-                let lParameterIndex: number = 0;
-
-                // Check parameters parts.
-                for (const lParameterDefinition of lParameterDefinitionList) {
-                    const lValidParameterTypeList: Array<BasePgslType> = lParameterDefinition.typeRestrictions;
-                    const lParameterCountMin: number = lParameterDefinition.count?.min ?? 1;
-                    const lParameterCountMax: number = lParameterDefinition.count?.max ?? 1;
-
-                    // Calculate iteration stop index based on max and current index.
-                    const lParameterMinIndex: number = lParameterIndex + lParameterCountMin - 1;
-                    const lParameterMaxIndex: number = lParameterIndex + lParameterCountMax - 1;
-
-                    // Iterate expected parameters until max count or end of parameter list is reached.
-                    for (; lParameterIndex < lParameterTypeList.length; lParameterIndex++) {
-                        // Break if max count reached.
-                        if (lParameterIndex > lParameterMaxIndex) {
-                            break;
-                        }
-
-                        // Get actual parameter type.
-                        const lActualType: BasePgslType = lParameterTypeList[lParameterIndex];
-
-                        // Check type restrictions. No restrictions means always match.
-                        const lTypeMatched: boolean = lValidParameterTypeList.length === 0 || lValidParameterTypeList.some((pValidParameterType: BasePgslType) => {
-                            return pValidParameterType.accepts(lActualType);
-                        });
-
-                        // Skip this definition on mismatch.
-                        if (!lTypeMatched) {
-                            break;
-                        }
-                    }
-
-                    // Check if min count was reached and continue with next definition on failure.
-                    if (lParameterIndex <= lParameterMinIndex) {
-                        continue DEFINTION_CHECK;
-                    }
-                }
-
-                // Definition matched.
-                return;
-            }
-
-            // No matching definition found.
-            pContext.pushIncident(`No matching constructor found for type '${pCst.typeName}' with ${pCst.parameterList.length} parameter(s).`, this);
-        })();
-
-        // Resolve result type.
-        const lResultType: BasePgslType = lCallDefinition.returnType(pContext, lParameterTypeList, lGenericType);
-
         return {
             // Expression data.
             typeName: pCst.typeName,
             parameterList: lParameterExpressionList,
-            generic: lGenericDeclaration,
+            genericList: lGenericDeclarationList,
+            callDefinition: lCallDefinition,
 
             // Expression meta.
             fixedState: lFixedState,
@@ -683,13 +600,13 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
     }
 }
 
-type PgslNewExpressionCallDefinition = {
+export type NewExpressionAstCallDefinition = {
     generics?: Array<BasePgslType>;
-    parameters: Array<Array<PgslNewExpressionCallDefinitionParameter>>;
+    parameters: Array<Array<NewExpressionAstCallDefinitionParameter>>;
     returnType: (pContext: AbstractSyntaxTreeContext, pParameterTypes: Array<BasePgslType>, pGeneric: BasePgslType | null) => BasePgslType;
 };
 
-type PgslNewExpressionCallDefinitionParameter = {
+export type NewExpressionAstCallDefinitionParameter = {
     typeRestrictions: Array<BasePgslType>;
     count?: { min: number; max: number; };
 };
@@ -697,5 +614,6 @@ type PgslNewExpressionCallDefinitionParameter = {
 export type NewExpressionAstData = {
     typeName: string;
     parameterList: Array<IExpressionAst>;
-    generic: TypeDeclarationAst | null;
+    genericList: Array<TypeDeclarationAst>;
+    callDefinition: NewExpressionAstCallDefinition | null;
 } & ExpressionAstData;

@@ -25,8 +25,8 @@ export class NewCallExpressionAstTranspilerProcessor extends TranspilerProcessor
     protected override onProcess(pInstance: NewExpressionAst): string {
         // Only write the generic when it is written in PGSL. WGSL infers any omitted template itself.
         let lGenerics: string = '';
-        if (pInstance.data.generic) {
-            lGenerics = `<${this.transpileAst(pInstance.data.generic)}>`;
+        if (pInstance.data.genericList.length > 0) {
+            lGenerics = `<${pInstance.data.genericList.map(pGeneric => this.transpileAst(pGeneric)).join(',')}>`;
         }
 
         // Simply transpile the constructor and parameters without the new part.

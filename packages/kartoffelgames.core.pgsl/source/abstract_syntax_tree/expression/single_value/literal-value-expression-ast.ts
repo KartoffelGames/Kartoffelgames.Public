@@ -16,12 +16,12 @@ export class LiteralValueExpressionAst extends AbstractSyntaxTree<LiteralValueEx
     /**
      * Validate data of current structure.
      * 
-     * @param pContext - Validation context.
+     * @param _pContext - Validation context.
      * @param pCst - Cst data.
      */
-    protected override onProcess(pContext: AbstractSyntaxTreeContext, pCst: LiteralValueExpressionCst): LiteralValueExpressionAstData {
+    protected override onProcess(_pContext: AbstractSyntaxTreeContext, pCst: LiteralValueExpressionCst): LiteralValueExpressionAstData {
         // Convert value.
-        const [lResolveType, lValue] = this.convertData(pContext, pCst.textValue);
+        const [lResolveType, lValue] = this.convertData(pCst.textValue);
 
         return {
             // Expression data.
@@ -45,7 +45,7 @@ export class LiteralValueExpressionAst extends AbstractSyntaxTree<LiteralValueEx
      * @throws {@link Exception}
      * When a unsupported type should be set or the {@link pTextValue} value does not fit the {@link pType}.
      */
-    private convertData(pContext: AbstractSyntaxTreeContext, pTextValue: string): [BasePgslType, number] {
+    private convertData(pTextValue: string): [BasePgslType, number] {
         // Might be a boolean
         if (pTextValue === 'true') {
             return [new PgslBooleanType(), 1];
@@ -126,8 +126,7 @@ export class LiteralValueExpressionAst extends AbstractSyntaxTree<LiteralValueEx
             return [new PgslNumericType(lSuffixType), lNumber];
         }
 
-        pContext.pushIncident(`No matching Type for literal "${pTextValue}".`, this);
-
+        // No literal type matched.
         return [new PgslInvalidType(), 0];
     }
 }

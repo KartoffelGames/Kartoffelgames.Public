@@ -21,11 +21,12 @@ export class LiteralValueExpressionAst extends AbstractSyntaxTree<LiteralValueEx
      */
     protected override onProcess(_pContext: AbstractSyntaxTreeContext, pCst: LiteralValueExpressionCst): LiteralValueExpressionAstData {
         // Convert value.
-        const [lResolveType, lValue] = this.convertData(pCst.textValue);
+        const [lResolveType, lValue, lRepresentationType] = this.convertData(pCst.textValue);
 
         return {
             // Expression data.
             textValue: pCst.textValue,
+            representationType: lRepresentationType,
 
             // Expression meta data.
             fixedState: PgslValueFixedState.Constant,
@@ -45,20 +46,20 @@ export class LiteralValueExpressionAst extends AbstractSyntaxTree<LiteralValueEx
      * @throws {@link Exception}
      * When a unsupported type should be set or the {@link pTextValue} value does not fit the {@link pType}.
      */
-    private convertData(pTextValue: string): [BasePgslType, number] {
+    private convertData(pTextValue: string): [BasePgslType, number, LiteralValueExpressionAstRepresentationType] {
         // Might be a boolean
         if (pTextValue === 'true') {
-            return [new PgslBooleanType(), 1];
+            return [new PgslBooleanType(), 1, LiteralValueExpressionAstRepresentationType.Boolean];
         }
         if (pTextValue === 'false') {
-            return [new PgslBooleanType(), 0];
+            return [new PgslBooleanType(), 0, LiteralValueExpressionAstRepresentationType.Boolean];
         }
 
         // Might be a integer.
-        const lIntegerMatch: RegExpExecArray | null = /^(?<number>(0)|(?:[1-9][0-9]*)|(?:0[xX][0-9a-fA-F]+))(?<suffix>[iu]?)$/.exec(pTextValue);
+        const lIntegerMatch: RegExpExecArray | null = /^(?:(?<number>(?:0)|(?:[1-9][0-9]*))|(?<hex>0[xX][0-9a-fA-F]+))(?<suffix>[iu]?)$/.exec(pTextValue);
         if (lIntegerMatch) {
-            // Convert number value.
-            const lNumber: number = parseInt(lIntegerMatch.groups!['number']);
+            // Convert number value. Hexadecimal numbers are parsed by their 0x prefix.
+            const lNumber: number = parseInt(lIntegerMatch.groups!['number'] ?? lIntegerMatch.groups!['hex']);
 
             // Convert suffix to concrete type.
             let lSuffixType: PgslNumericTypeName;
@@ -77,7 +78,13 @@ export class LiteralValueExpressionAst extends AbstractSyntaxTree<LiteralValueEx
                 }
             }
 
-            return [new PgslNumericType(lSuffixType), lNumber];
+            // Read representation from the matched number group.
+            let lRepresentationType: LiteralValueExpressionAstRepresentationType = LiteralValueExpressionAstRepresentationType.Decimal;
+            if (lIntegerMatch.groups!['hex']) {
+                lRepresentationType = LiteralValueExpressionAstRepresentationType.Hexadecimal;
+            }
+
+            return [new PgslNumericType(lSuffixType), lNumber, lRepresentationType];
         }
 
         // Might be a float.
@@ -123,14 +130,32 @@ export class LiteralValueExpressionAst extends AbstractSyntaxTree<LiteralValueEx
                 }
             }
 
-            return [new PgslNumericType(lSuffixType), lNumber];
+            // Read representation from the matched number group.
+            let lRepresentationType: LiteralValueExpressionAstRepresentationType = LiteralValueExpressionAstRepresentationType.Decimal;
+            if (lFloatMatch.groups!['hex']) {
+                lRepresentationType = LiteralValueExpressionAstRepresentationType.Hexadecimal;
+            }
+
+            return [new PgslNumericType(lSuffixType), lNumber, lRepresentationType];
         }
 
         // No literal type matched.
-        return [new PgslInvalidType(), 0];
+        return [new PgslInvalidType(), 0, LiteralValueExpressionAstRepresentationType.None];
     }
 }
 
+/**
+ * Written representation of a literal value.
+ */
+export const LiteralValueExpressionAstRepresentationType = {
+    None: 0,
+    Boolean: 1,
+    Decimal: 2,
+    Hexadecimal: 3
+} as const;
+export type LiteralValueExpressionAstRepresentationType = typeof LiteralValueExpressionAstRepresentationType[keyof typeof LiteralValueExpressionAstRepresentationType];
+
 export type LiteralValueExpressionAstData = {
     textValue: string;
+    representationType: LiteralValueExpressionAstRepresentationType;
 } & ExpressionAstData;

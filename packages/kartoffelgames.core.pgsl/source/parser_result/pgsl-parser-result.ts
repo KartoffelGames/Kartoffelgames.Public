@@ -4,6 +4,7 @@ import { VariableDeclarationAst } from '../abstract_syntax_tree/declaration/vari
 import type { DocumentAst } from '../abstract_syntax_tree/document-ast.ts';
 import { PgslDeclarationType } from '../enum/pgsl-declaration-type.enum.ts';
 import type { TranspilationMeta } from '../transpilation/transpilation-meta.ts';
+import { PgslValidatorResult } from "../validation/pgsl-validator.ts";
 import { PgslParserResultComputeEntryPoint } from './entry_point/pgsl-parser-result-compute-entry-point.ts';
 import { PgslParserResultFragmentEntryPoint } from './entry_point/pgsl-parser-result-fragment-entry-point.ts';
 import { PgslParserResultVertexEntryPoint } from './entry_point/pgsl-parser-result-vertex-entry-point.ts';
@@ -79,20 +80,17 @@ export class PgslParserResult extends PgslParserResultObject {
     /**
      * Constructor.
      * 
-     * @param pSource - The transpiled source code.
-     * @param pSourceMap - The source map for the transpiled code, if available.
-     * @param pDocument - The PGSL document representation.
-     * @param pMeta - The transpilation metadata.
+     * @param pParameter - Parameter.
      */
-    public constructor(pSource: string, pSourceMap: string | null, pDocument: DocumentAst, pMeta: TranspilationMeta) {
+    public constructor(pParameter: PgslParserResultConstructorParameter) {
         // Init metadata based on document meta values.
-        super(pDocument.data.metaValues);
+        super(pParameter.document.data.metaValues);
 
         // Convert incidents from document to parser result format.
-        this.mIncidents = this.convertIncidents(pDocument);
+        this.mIncidents = this.convertIncidents(pParameter.validationResult);
 
-        this.mSource = pSource;
-        this.mSourceMap = pSourceMap;
+        this.mSource = pParameter.source;
+        this.mSourceMap = pParameter.sourceMap;
 
         // Skip metadata extraction if there are incidents.
         if (this.mIncidents.length > 0) {
@@ -108,9 +106,9 @@ export class PgslParserResult extends PgslParserResultObject {
             };
         } else {
             this.mMeta = {
-                bindings: this.convertBindings(pDocument, pMeta),
-                parameters: this.convertShaderParameter(pDocument),
-                entrypoints: this.convertEntryPoints(pDocument, pMeta)
+                bindings: this.convertBindings(pParameter.document, pParameter.meta),
+                parameters: this.convertShaderParameter(pParameter.document),
+                entrypoints: this.convertEntryPoints(pParameter.document, pParameter.meta)
             };
         }
     }
@@ -203,8 +201,14 @@ export class PgslParserResult extends PgslParserResultObject {
      * 
      * @returns An array of parser result incidents.
      */
-    private convertIncidents(pDocument: DocumentAst): Array<PgslParserResultIncident> {
-        return pDocument.data.incidents.map(pIncident => new PgslParserResultIncident(
+    private convertIncidents(pValidationResult: PgslValidatorResult | null): Array<PgslParserResultIncident> {
+        // Validation was disabled (should be so).
+        if (!pValidationResult) {
+            return new Array<PgslParserResultIncident>();
+        }
+
+        // Convert every validation incident.
+        return pValidationResult.incidents.map(pIncident => new PgslParserResultIncident(
             pIncident.message,
             pIncident.syntaxTree?.meta[0] ?? 0,
             pIncident.syntaxTree?.meta[1] ?? 0
@@ -256,3 +260,29 @@ export type ReadonlyPgslParserResultMetaEntryPoints = {
     readonly compute: ReadonlyMap<string, PgslParserResultComputeEntryPoint>;
 };
 
+export type PgslParserResultConstructorParameter = {
+    /**
+     * The transpiled source code.
+     */
+    source: string,
+
+    /**
+     * The source map for the transpiled code, if available.
+     */
+    sourceMap: string | null,
+
+    /**
+     * The PGSL document representation.
+     */
+    document: DocumentAst,
+
+    /**
+     * The transpilation metadata.
+     */
+    meta: TranspilationMeta;
+
+    /**
+     * Validation result
+     */
+    validationResult: PgslValidatorResult | null;
+};

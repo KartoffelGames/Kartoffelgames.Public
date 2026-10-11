@@ -1,10 +1,13 @@
-import type { PgslFeatureSet } from '../feature_set/pgsl-feature-set.ts';
 import type { DocumentCst } from '../concrete_syntax_tree/general.type.ts';
-import type { AbstractSyntaxTreeContext, AbstractSyntaxTreeIncident, AbstractSyntaxTreeSymbolUsageName } from './abstract-syntax-tree-context.ts';
+import type { PgslFeatureSet } from '../feature_set/pgsl-feature-set.ts';
+import type { AbstractSyntaxTreeContext, AbstractSyntaxTreeSymbolUsageName } from './abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from './abstract-syntax-tree.ts';
 import type { BaseDeclarationAst } from './declaration/base-declaration-ast.ts';
 import { DeclarationAstBuilder } from './declaration/declaration-ast-builder.ts';
 
+/**
+ * Main PGSL document. Containing all Abstract Syntax Data.
+ */
 export class DocumentAst extends AbstractSyntaxTree<DocumentCst, DocumentAstData> {
     private readonly mFeatureSets: ReadonlyArray<PgslFeatureSet>;
 
@@ -16,7 +19,7 @@ export class DocumentAst extends AbstractSyntaxTree<DocumentCst, DocumentAstData
      */
     public constructor(pConcreteSyntaxTree: DocumentCst, pFeatureSets: ReadonlyArray<PgslFeatureSet>) {
         super(pConcreteSyntaxTree);
-        
+
         this.mFeatureSets = pFeatureSets;
     }
 
@@ -32,14 +35,6 @@ export class DocumentAst extends AbstractSyntaxTree<DocumentCst, DocumentAstData
         // Document is the only ast that create its own context object.
         pContext.setDocument(this);
 
-        // Prepare data containers.
-        const lDocumentData = {
-            incidents: new Array<AbstractSyntaxTreeIncident>(),
-            content: new Array<BaseDeclarationAst>(),
-            symbolUsages: new Set<AbstractSyntaxTreeSymbolUsageName>(),
-            metaValues: new Map<string, string>(pCst.metaValues)
-        };
-
         // Register the declarations of every feature set first outside any scope.
         pContext.pushScope('build-in', () => {
             for (const lFeatureSet of this.mFeatureSets) {
@@ -48,6 +43,13 @@ export class DocumentAst extends AbstractSyntaxTree<DocumentCst, DocumentAstData
                 }
             }
         }, this);
+
+        // Prepare data containers.
+        const lDocumentData: DocumentAstData = {
+            content: new Array<BaseDeclarationAst>(),
+            symbolUsages: new Set<AbstractSyntaxTreeSymbolUsageName>(),
+            metaValues: new Map<string, string>(pCst.metaValues)
+        };
 
         // Push global scope for document processing.
         return pContext.pushScope('global', () => {
@@ -58,9 +60,6 @@ export class DocumentAst extends AbstractSyntaxTree<DocumentCst, DocumentAstData
                     lDocumentData.content.push(DeclarationAstBuilder.build(lDeclarationItem).process(pContext).register(pContext));
                 }
             }
-
-            // Collect all incidents from context.
-            lDocumentData.incidents.push(...pContext.incidents);
 
             // Collect all used symbol usages from context.
             for (const lUsage of pContext.usages) {
@@ -73,8 +72,7 @@ export class DocumentAst extends AbstractSyntaxTree<DocumentCst, DocumentAstData
 }
 
 export type DocumentAstData = {
-    incidents: ReadonlyArray<AbstractSyntaxTreeIncident>;
-    content: ReadonlyArray<BaseDeclarationAst>;
+    content: Array<BaseDeclarationAst>;
     symbolUsages: Set<AbstractSyntaxTreeSymbolUsageName>;
     metaValues: Map<string, string>;
 };

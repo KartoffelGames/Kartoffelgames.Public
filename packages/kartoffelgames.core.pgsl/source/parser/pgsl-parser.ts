@@ -10,26 +10,39 @@ import type { AssignmentStatementCst, BlockStatementCst, BreakStatementCst, Cont
 import { PgslCoreFeatureSet } from '../feature_set/core_set/pgsl-core-feature-set.ts';
 import type { PgslFeatureSet, PgslFeatureSetConstructor } from '../feature_set/pgsl-feature-set.ts';
 import { PgslParserResult } from '../parser_result/pgsl-parser-result.ts';
-import { TranspilationMeta } from '../transpilation/transpilation-meta.ts';
 import type { PgslTranspilationResult, Transpiler } from '../transpilation/transpiler.ts';
+import { PgslValidator, PgslValidatorResult } from "../validation/pgsl-validator.ts";
 import { PgslLexer } from './pgsl-lexer.ts';
 import { PgslToken } from './pgsl-token.enum.ts';
 
+/**
+ * PGSL-Parser used to transpile, parse into an Abstract Syntax Tree or paring into a Concrete Syntax Tree.
+ */
 export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
+    private readonly mPgslParserConfiguration: PgslParserConfiguration;
     private readonly mEnvironmentValues: Map<string, string> = new Map<string, string>();
     private readonly mFeatureSets: Array<PgslFeatureSet>;
     private readonly mImports: Map<string, string> = new Map<string, string>();
+    private readonly mPgslValidator: PgslValidator;
 
     /**
      * Constructor.
      */
-    public constructor() {
+    public constructor(pConfiguration?: Partial<PgslParserConfiguration>) {
         // Disable failure cache as it "shouldn't" have redundant graphs.
         super(new PgslLexer(), {
             caching: {
                 failureCache: false
             }
         });
+
+        // Defaultize configuration data.
+        this.mPgslParserConfiguration = {
+            validate: pConfiguration?.validate ?? true
+        };
+
+        // Init validator. Even when its not used.
+        this.mPgslValidator = new PgslValidator();
 
         // Initialize import and environment value mapper.
         this.mImports = new Map<string, string>();
@@ -143,22 +156,38 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
         // Parse document structure.
         const lDocument: DocumentAst = this.parseAst(pCodeText);
 
-        // Skip transpilation if there are incidents.
-        let lTranspilationResult: PgslTranspilationResult;
-        if (lDocument.data.incidents.length === 0) {
-            // Start transpilation process.
-            lTranspilationResult = pTranspiler.transpile(lDocument);
-        } else {
-            // Create empty result.
-            lTranspilationResult = {
-                code: '',
-                sourceMap: null,
-                meta: new TranspilationMeta()
-            };
+        // Optionally validate.
+        let lValidationResult: PgslValidatorResult | null = null;
+        if (this.mPgslParserConfiguration.validate) {
+            lValidationResult = this.mPgslValidator.validate(lDocument);
         }
 
+        // Start transpilation.
+        const lTranspilationResult: PgslTranspilationResult = pTranspiler.transpile(lDocument);
+
         // Build and return PgslParserResult.
-        return new PgslParserResult(lTranspilationResult.code, lTranspilationResult.sourceMap, lDocument, lTranspilationResult.meta);
+        return new PgslParserResult({
+            document: lDocument,
+            source: lTranspilationResult.code,
+            sourceMap: lTranspilationResult.sourceMap,
+            meta: lTranspilationResult.meta,
+            validationResult: lValidationResult
+        });
+    }
+
+    /**
+     * Validate pgsl code.
+     * 
+     * @param pCodeText - Pgsl code as text.
+     * 
+     * @returns validation result.
+     */
+    public validate(pCodeText: string): PgslValidatorResult {
+        // Parse document structure.
+        const lDocument: DocumentAst = this.parseAst(pCodeText);
+
+        // Validate and return found incidents.
+        return this.mPgslValidator.validate(lDocument);
     }
 
     /**
@@ -1822,4 +1851,8 @@ type PgslParserOperatorPrecedence = {
 type PgslParserOperatorExpression = {
     operator: PgslParserOperatorPrecedence;
     expression: ExpressionCst<ExpressionCstType>;
+};
+
+export type PgslParserConfiguration = {
+    validate: boolean;
 };

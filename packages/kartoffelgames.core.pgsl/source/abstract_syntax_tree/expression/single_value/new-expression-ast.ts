@@ -83,9 +83,9 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                 parameters: [
                     [{ typeRestrictions: [], count: { min: 1, max: 100 } }]
                 ],
-                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>): BasePgslType => {
+                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>): NewExpressionAstCallDefinitionReturnType => {
                     // Find the common type of all parameters.
-                    const lElementType: BasePgslType = lCommonTypeOf(pParameterList, false);
+                    const lItemType: BasePgslType = lCommonTypeOf(pParameterList, false);
 
                     // Create length expression and trace it.
                     const lConstantLengthExpressionCst: LiteralValueExpressionCst = {
@@ -96,7 +96,10 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     const lConstantLengthExpressionAst: LiteralValueExpressionAst = new LiteralValueExpressionAst(lConstantLengthExpressionCst).process(pContext);
 
                     // Construct fixed array type.
-                    return new PgslArrayType(lElementType, lConstantLengthExpressionAst);
+                    return {
+                        returnType: new PgslArrayType(lItemType, lConstantLengthExpressionAst),
+                        itemType: lItemType
+                    };
                 }
             };
 
@@ -114,11 +117,14 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     // Scalar
                     [{ typeRestrictions: [...lNumericTypes, lBooleanType], count: { min: 2, max: 2 } }]
                 ],
-                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pGeneric: BasePgslType | null) => {
+                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pGeneric: BasePgslType | null): NewExpressionAstCallDefinitionReturnType => {
                     // Find inner type by generic or the common component type of all parameters.
-                    const lElementType: BasePgslType = pGeneric ?? lCommonTypeOf(pParameterList);
+                    const lItemType: BasePgslType = pGeneric ?? lCommonTypeOf(pParameterList);
 
-                    return pContext.types.create(PgslVectorType, 2, lElementType);
+                    return {
+                        returnType: pContext.types.create(PgslVectorType, 2, lItemType),
+                        itemType: lItemType,
+                    };
                 }
             };
 
@@ -154,11 +160,14 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                         { typeRestrictions: [...lVectorsOf(2, lNumericTypes)] }
                     ],
                 ],
-                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pGeneric: BasePgslType | null) => {
+                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pGeneric: BasePgslType | null): NewExpressionAstCallDefinitionReturnType => {
                     // Find inner type by generic or the common component type of all parameters.
-                    const lElementType: BasePgslType = pGeneric ?? lCommonTypeOf(pParameterList);
+                    const lItemType: BasePgslType = pGeneric ?? lCommonTypeOf(pParameterList);
 
-                    return pContext.types.create(PgslVectorType, 3, lElementType);
+                    return {
+                        returnType: pContext.types.create(PgslVectorType, 3, lItemType),
+                        itemType: lItemType,
+                    };
                 }
             };
 
@@ -242,11 +251,14 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                         { typeRestrictions: [...lVectorsOf(3, lNumericTypes)] }
                     ],
                 ],
-                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pGeneric: BasePgslType | null) => {
+                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pGeneric: BasePgslType | null): NewExpressionAstCallDefinitionReturnType => {
                     // Find inner type by generic or the common component type of all parameters.
-                    const lElementType: BasePgslType = pGeneric ?? lCommonTypeOf(pParameterList);
+                    const lItemType: BasePgslType = pGeneric ?? lCommonTypeOf(pParameterList);
 
-                    return pContext.types.create(PgslVectorType, 4, lElementType);
+                    return {
+                        returnType: pContext.types.create(PgslVectorType, 4, lItemType),
+                        itemType: lItemType,
+                    };
                 }
             };
 
@@ -263,11 +275,14 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     // Vectors
                     [{ typeRestrictions: [...lVectorsOf(2, lFloatTypes)], count: { min: 2, max: 2 } }],
                 ],
-                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pGeneric: BasePgslType | null) => {
+                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pGeneric: BasePgslType | null): NewExpressionAstCallDefinitionReturnType => {
                     // Find inner type by generic or the common component type of all parameters.
-                    const lElementType: BasePgslType = pGeneric ?? lCommonTypeOf(pParameterList);
+                    const lItemType: BasePgslType = pGeneric ?? lCommonTypeOf(pParameterList);
 
-                    return pContext.types.create(PgslMatrixType, 2, 2, lElementType);
+                    return {
+                        returnType: pContext.types.create(PgslMatrixType, 2, 2, lItemType),
+                        itemType: lItemType,
+                    };
                 }
             };
             case PgslMatrixType.typeName.matrix23: return {
@@ -282,11 +297,14 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     // Vectors
                     [{ typeRestrictions: [...lVectorsOf(3, lFloatTypes)], count: { min: 2, max: 2 } }],
                 ],
-                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pGeneric: BasePgslType | null) => {
+                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pGeneric: BasePgslType | null): NewExpressionAstCallDefinitionReturnType => {
                     // Find inner type by generic or the common component type of all parameters.
-                    const lElementType: BasePgslType = pGeneric ?? lCommonTypeOf(pParameterList);
+                    const lItemType: BasePgslType = pGeneric ?? lCommonTypeOf(pParameterList);
 
-                    return pContext.types.create(PgslMatrixType, 2, 3, lElementType);
+                    return {
+                        returnType: pContext.types.create(PgslMatrixType, 2, 3, lItemType),
+                        itemType: lItemType,
+                    };
                 }
             };
             case PgslMatrixType.typeName.matrix24: return {
@@ -301,11 +319,14 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     // Vectors
                     [{ typeRestrictions: [...lVectorsOf(4, lFloatTypes)], count: { min: 2, max: 2 } }],
                 ],
-                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pGeneric: BasePgslType | null) => {
+                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pGeneric: BasePgslType | null): NewExpressionAstCallDefinitionReturnType => {
                     // Find inner type by generic or the common component type of all parameters.
-                    const lElementType: BasePgslType = pGeneric ?? lCommonTypeOf(pParameterList);
+                    const lItemType: BasePgslType = pGeneric ?? lCommonTypeOf(pParameterList);
 
-                    return pContext.types.create(PgslMatrixType, 2, 4, lElementType);
+                    return {
+                        returnType: pContext.types.create(PgslMatrixType, 2, 4, lItemType),
+                        itemType: lItemType,
+                    };
                 }
             };
             case PgslMatrixType.typeName.matrix32: return {
@@ -320,11 +341,14 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     // Vectors
                     [{ typeRestrictions: [...lVectorsOf(2, lFloatTypes)], count: { min: 3, max: 3 } }],
                 ],
-                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pGeneric: BasePgslType | null) => {
+                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pGeneric: BasePgslType | null): NewExpressionAstCallDefinitionReturnType => {
                     // Find inner type by generic or the common component type of all parameters.
-                    const lElementType: BasePgslType = pGeneric ?? lCommonTypeOf(pParameterList);
+                    const lItemType: BasePgslType = pGeneric ?? lCommonTypeOf(pParameterList);
 
-                    return pContext.types.create(PgslMatrixType, 3, 2, lElementType);
+                    return {
+                        returnType: pContext.types.create(PgslMatrixType, 3, 2, lItemType),
+                        itemType: lItemType,
+                    };
                 }
             };
             case PgslMatrixType.typeName.matrix33: return {
@@ -339,11 +363,14 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     // Vectors
                     [{ typeRestrictions: [...lVectorsOf(3, lFloatTypes)], count: { min: 3, max: 3 } }],
                 ],
-                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pGeneric: BasePgslType | null) => {
+                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pGeneric: BasePgslType | null): NewExpressionAstCallDefinitionReturnType => {
                     // Find inner type by generic or the common component type of all parameters.
-                    const lElementType: BasePgslType = pGeneric ?? lCommonTypeOf(pParameterList);
+                    const lItemType: BasePgslType = pGeneric ?? lCommonTypeOf(pParameterList);
 
-                    return pContext.types.create(PgslMatrixType, 3, 3, lElementType);
+                    return {
+                        returnType: pContext.types.create(PgslMatrixType, 3, 3, lItemType),
+                        itemType: lItemType,
+                    };
                 }
             };
             case PgslMatrixType.typeName.matrix34: return {
@@ -358,11 +385,14 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     // Vectors
                     [{ typeRestrictions: [...lVectorsOf(4, lFloatTypes)], count: { min: 3, max: 3 } }],
                 ],
-                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pGeneric: BasePgslType | null) => {
+                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pGeneric: BasePgslType | null): NewExpressionAstCallDefinitionReturnType => {
                     // Find inner type by generic or the common component type of all parameters.
-                    const lElementType: BasePgslType = pGeneric ?? lCommonTypeOf(pParameterList);
+                    const lItemType: BasePgslType = pGeneric ?? lCommonTypeOf(pParameterList);
 
-                    return pContext.types.create(PgslMatrixType, 3, 4, lElementType);
+                    return {
+                        returnType: pContext.types.create(PgslMatrixType, 3, 4, lItemType),
+                        itemType: lItemType,
+                    };
                 }
             };
             case PgslMatrixType.typeName.matrix42: return {
@@ -377,11 +407,14 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     // Vectors
                     [{ typeRestrictions: [...lVectorsOf(2, lFloatTypes)], count: { min: 4, max: 4 } }],
                 ],
-                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pGeneric: BasePgslType | null) => {
+                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pGeneric: BasePgslType | null): NewExpressionAstCallDefinitionReturnType => {
                     // Find inner type by generic or the common component type of all parameters.
-                    const lElementType: BasePgslType = pGeneric ?? lCommonTypeOf(pParameterList);
+                    const lItemType: BasePgslType = pGeneric ?? lCommonTypeOf(pParameterList);
 
-                    return pContext.types.create(PgslMatrixType, 4, 2, lElementType);
+                    return {
+                        returnType: pContext.types.create(PgslMatrixType, 4, 2, lItemType),
+                        itemType: lItemType,
+                    };
                 }
             };
 
@@ -397,11 +430,14 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     // Vectors
                     [{ typeRestrictions: [...lVectorsOf(3, lFloatTypes)], count: { min: 4, max: 4 } }],
                 ],
-                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pGeneric: BasePgslType | null) => {
+                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pGeneric: BasePgslType | null): NewExpressionAstCallDefinitionReturnType => {
                     // Find inner type by generic or the common component type of all parameters.
-                    const lElementType: BasePgslType = pGeneric ?? lCommonTypeOf(pParameterList);
+                    const lItemType: BasePgslType = pGeneric ?? lCommonTypeOf(pParameterList);
 
-                    return pContext.types.create(PgslMatrixType, 4, 3, lElementType);
+                    return {
+                        returnType: pContext.types.create(PgslMatrixType, 4, 3, lItemType),
+                        itemType: lItemType,
+                    };
                 }
             };
             case PgslMatrixType.typeName.matrix44: return {
@@ -416,11 +452,14 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     // Vectors
                     [{ typeRestrictions: [...lVectorsOf(4, lFloatTypes)], count: { min: 4, max: 4 } }],
                 ],
-                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pGeneric: BasePgslType | null) => {
+                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pGeneric: BasePgslType | null): NewExpressionAstCallDefinitionReturnType => {
                     // Find inner type by generic or the common component type of all parameters.
-                    const lElementType: BasePgslType = pGeneric ?? lCommonTypeOf(pParameterList);
+                    const lItemType: BasePgslType = pGeneric ?? lCommonTypeOf(pParameterList);
 
-                    return pContext.types.create(PgslMatrixType, 4, 4, lElementType);
+                    return {
+                        returnType: pContext.types.create(PgslMatrixType, 4, 4, lItemType),
+                        itemType: lItemType,
+                    };
                 }
             };
 
@@ -430,8 +469,12 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     [{ typeRestrictions: [...lNumericTypes] }],
                     [{ typeRestrictions: [lBooleanType] }]
                 ],
-                returnType: (pContext: AbstractSyntaxTreeContext) => {
-                    return pContext.types.create(PgslBooleanType);
+                returnType: (pContext: AbstractSyntaxTreeContext): NewExpressionAstCallDefinitionReturnType => {
+                    const lType: BasePgslType = pContext.types.create(PgslBooleanType);
+                    return {
+                        returnType: lType,
+                        itemType: lType
+                    };
                 }
             };
             case PgslNumericType.typeName.float16: return {
@@ -439,8 +482,12 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     [{ typeRestrictions: [...lNumericTypes] }],
                     [{ typeRestrictions: [lBooleanType] }]
                 ],
-                returnType: (pContext: AbstractSyntaxTreeContext) => {
-                    return pContext.types.create(PgslNumericType, PgslNumericType.typeName.float16);
+                returnType: (pContext: AbstractSyntaxTreeContext): NewExpressionAstCallDefinitionReturnType => {
+                    const lType: BasePgslType = pContext.types.create(PgslNumericType, PgslNumericType.typeName.float16);
+                    return {
+                        returnType: lType,
+                        itemType: lType
+                    };
                 }
             };
             case PgslNumericType.typeName.float32: return {
@@ -448,8 +495,12 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     [{ typeRestrictions: [...lNumericTypes] }],
                     [{ typeRestrictions: [lBooleanType] }]
                 ],
-                returnType: (pContext: AbstractSyntaxTreeContext) => {
-                    return pContext.types.create(PgslNumericType, PgslNumericType.typeName.float32);
+                returnType: (pContext: AbstractSyntaxTreeContext): NewExpressionAstCallDefinitionReturnType => {
+                    const lType: BasePgslType = pContext.types.create(PgslNumericType, PgslNumericType.typeName.float32);
+                    return {
+                        returnType: lType,
+                        itemType: lType
+                    };
                 }
             };
             case PgslNumericType.typeName.signedInteger: return {
@@ -457,8 +508,12 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     [{ typeRestrictions: [...lNumericTypes] }],
                     [{ typeRestrictions: [lBooleanType] }]
                 ],
-                returnType: (pContext: AbstractSyntaxTreeContext) => {
-                    return pContext.types.create(PgslNumericType, PgslNumericType.typeName.signedInteger);
+                returnType: (pContext: AbstractSyntaxTreeContext): NewExpressionAstCallDefinitionReturnType => {
+                    const lType: BasePgslType = pContext.types.create(PgslNumericType, PgslNumericType.typeName.signedInteger);
+                    return {
+                        returnType: lType,
+                        itemType: lType
+                    };
                 }
             };
             case PgslNumericType.typeName.unsignedInteger: return {
@@ -466,8 +521,12 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     [{ typeRestrictions: [...lNumericTypes] }],
                     [{ typeRestrictions: [lBooleanType] }]
                 ],
-                returnType: (pContext: AbstractSyntaxTreeContext) => {
-                    return pContext.types.create(PgslNumericType, PgslNumericType.typeName.unsignedInteger);
+                returnType: (pContext: AbstractSyntaxTreeContext): NewExpressionAstCallDefinitionReturnType => {
+                    const lType: BasePgslType = pContext.types.create(PgslNumericType, PgslNumericType.typeName.unsignedInteger);
+                    return {
+                        returnType: lType,
+                        itemType: lType
+                    };
                 }
             };
         }
@@ -503,18 +562,22 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
         const lGenericType: BasePgslType | null = lGenericDeclarationList.length > 0 ? lGenericDeclarationList[0].data.type : null;
 
         // Resolve result type.
-        const lResultType: BasePgslType = (() => {
+        const [lResultType, lItemType] = ((): [BasePgslType, BasePgslType] => {
+            const lInvalidType: PgslInvalidType = pContext.types.create(PgslInvalidType);
+
             // A type that can not be constructed resolves to an invalid type.
             if (!lCallDefinition) {
-                return pContext.types.create(PgslInvalidType);
+                return [lInvalidType, lInvalidType];
             }
 
             // Without parameters, only a generic can name the constructed type.
             if (lParameterTypeList.length === 0 && !lGenericType) {
-                return pContext.types.create(PgslInvalidType);
+                return [lInvalidType, lInvalidType];
             }
 
-            return lCallDefinition.returnType(pContext, lParameterTypeList, lGenericType);
+            const lReturnTypes: NewExpressionAstCallDefinitionReturnType = lCallDefinition.returnType(pContext, lParameterTypeList, lGenericType);
+
+            return [lReturnTypes.returnType, lReturnTypes.itemType];
         })();
 
         // Find the lowest fixed state of all parameters.
@@ -540,6 +603,10 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
             genericList: lGenericDeclarationList,
             callDefinition: lCallDefinition,
 
+            // Dublicated return types.
+            returnType: lResultType,
+            returnTypeItem: lItemType,
+
             // Expression meta.
             fixedState: lFixedState,
             isStorage: false,
@@ -553,7 +620,12 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
 export type NewExpressionAstCallDefinition = {
     generics?: Array<BasePgslType>;
     parameters: Array<Array<NewExpressionAstCallDefinitionParameter>>;
-    returnType: (pContext: AbstractSyntaxTreeContext, pParameterTypes: Array<BasePgslType>, pGeneric: BasePgslType | null) => BasePgslType;
+    returnType: (pContext: AbstractSyntaxTreeContext, pParameterTypes: Array<BasePgslType>, pGeneric: BasePgslType | null) => NewExpressionAstCallDefinitionReturnType;
+};
+
+export type NewExpressionAstCallDefinitionReturnType = {
+    returnType: BasePgslType;
+    itemType: BasePgslType;
 };
 
 export type NewExpressionAstCallDefinitionParameter = {
@@ -566,4 +638,6 @@ export type NewExpressionAstData = {
     parameterList: Array<IExpressionAst>;
     genericList: Array<TypeDeclarationAst>;
     callDefinition: NewExpressionAstCallDefinition | null;
+    returnType: BasePgslType;
+    returnTypeItem: BasePgslType;
 } & ExpressionAstData;

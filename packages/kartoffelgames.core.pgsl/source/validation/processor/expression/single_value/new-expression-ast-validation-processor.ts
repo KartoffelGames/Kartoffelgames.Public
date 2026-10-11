@@ -1,6 +1,9 @@
 import { NewExpressionAst, type NewExpressionAstCallDefinitionParameter, type NewExpressionAstData } from '../../../../abstract_syntax_tree/expression/single_value/new-expression-ast.ts';
 import type { IExpressionAst } from '../../../../abstract_syntax_tree/expression/i-expression-ast.interface.ts';
 import { type BasePgslType, BasePgslTypeKind } from '../../../../abstract_syntax_tree/type/definition/base-pgsl-type.ts';
+import { PgslArrayType } from '../../../../abstract_syntax_tree/type/definition/pgsl-array-type.ts';
+import { PgslMatrixType } from '../../../../abstract_syntax_tree/type/definition/pgsl-matrix-type.ts';
+import { PgslVectorType } from '../../../../abstract_syntax_tree/type/definition/pgsl-vector-type.ts';
 import { PgslValidatorProcessor } from '../../../pgsl-validator-processor.ts';
 
 /**
@@ -80,9 +83,81 @@ export class NewExpressionAstValidationProcessor extends PgslValidatorProcessor<
             this.pushIncident(`No matching constructor found for type '${pData.typeName}' with ${pData.parameterList.length} parameter(s).`);
         }
 
-        // TODO: Validate that the arguments convert to one common type, comparing the component types of Vector arguments for Vector and Matrix constructors and the whole argument types for Array, so new Vector2(1, true) and new Array(1, true) are rejected (new).
-        // TODO: Validate that every argument converts to the written generic, taking the component type of Vector arguments, so new Vector2<int>(1.5, 2.5) is rejected while the single argument conversion new Vector2<int>(floatVector) stays valid (new).
-        // TODO: Validate that a constant abstract integer argument lies within the range of an int or uint component and that a constant abstract argument lies within the finite range of a float or float16 component, so new uint(-1), new int(5000000000) and new float16(70000.0) are rejected while new int(1e10) is clamped and stays valid (new).
+        // Validate that every parameter can be converted to the inner item type.
+        if (pData.parameterList.length > 1) {
+            // Array items should not be unwrapped as they are used as a whole.
+            const lUnwrap: boolean = !(pData.returnType instanceof PgslArrayType);
+
+            // Unwrap inner type.
+            const lUnwrapType = (pType: BasePgslType): BasePgslType => {
+                // Skip unwrapping if its disabled (only arrays i think)
+                if (!lUnwrap) {
+                    return pType;
+                }
+
+                if (pType instanceof PgslVectorType || pType instanceof PgslMatrixType) {
+                    return pType.innerType;
+                }
+
+                return pType;
+            };
+
+            // Check every parameter that it can be converted into the result item.
+            for (const lParameter of pData.parameterList) {
+                const lUnwrappedParameterType: BasePgslType = lUnwrapType(lParameter.data.resolveType);
+
+                if (lUnwrappedParameterType.conversionRankTo(pData.returnTypeItem) === Number.POSITIVE_INFINITY) {
+                    this.pushIncident(`Parameter of type '${lUnwrappedParameterType.meta.typeName}' can not be converted into '${pData.returnTypeItem.meta.typeName}'.`, lParameter);
+                }
+            }
+        }
+
+        // Validate that a constant abstract argument lies within the range of the item type.
+        for (const lParameter of pData.parameterList) {
+            const lParameterType: BasePgslType = lParameter.data.resolveType;
+            const lConstantValue: number | string | null = lParameter.data.constantValue;
+
+            // Only constant abstract numbers are converted when the shader is created.
+            if (typeof lConstantValue !== 'number' || !lParameterType.isKind(BasePgslTypeKind.Abstract)) {
+                continue;
+            }
+
+            // Check the value against the range of the item type.
+            const lValueFits: boolean = (() => {
+                // Validate that constant int values does not overflow. 
+                if (pData.returnTypeItem.isKind(BasePgslTypeKind.SignedInteger)) {
+                    // Only a int should be validated, a float gets clamped into a valid range.
+                    if (!lParameterType.isKind(BasePgslTypeKind.Integer)) {
+                        return true;
+                    }
+
+                    return lConstantValue >= -Math.pow(2, 31) && lConstantValue <= Math.pow(2, 31) - 1;
+                }
+                if (pData.returnTypeItem.isKind(BasePgslTypeKind.UnsignedInteger)) {
+                    // Only a int should be validated, a float gets clamped into a valid range.
+                    if (!lParameterType.isKind(BasePgslTypeKind.Integer)) {
+                        return true;
+                    }
+
+                    return lConstantValue >= 0 && lConstantValue <= Math.pow(2, 32) - 1;
+                }
+
+                // Validate that constant float values does not overflow. 
+                if (pData.returnTypeItem.isKind(BasePgslTypeKind.Float32)) {
+                    return Math.abs(lConstantValue) <= Math.pow(2, 128) - Math.pow(2, 104);
+                }
+                if (pData.returnTypeItem.isKind(BasePgslTypeKind.Float16)) {
+                    return Math.abs(lConstantValue) <= Math.pow(2, 16) - Math.pow(2, 5);
+                }
+
+                // Anything else has no restriction.
+                return true;
+            })();
+
+            if (!lValueFits) {
+                this.pushIncident(`Value ${lConstantValue} does not fit into '${pData.returnTypeItem.meta.typeName}'.`, lParameter);
+            }
+        }
     }
 
     /**

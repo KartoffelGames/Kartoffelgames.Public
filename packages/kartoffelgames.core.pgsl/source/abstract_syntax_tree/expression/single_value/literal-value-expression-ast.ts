@@ -99,7 +99,7 @@ export class LiteralValueExpressionAst extends AbstractSyntaxTree<LiteralValueEx
                 const lHexNumber = lFloatMatch.groups!['hex'].slice(2);
 
                 // Split float part from exponential.
-                const [lFloatPart, lExponential] = lHexNumber.split(/pP/g) as [string, string | undefined];
+                const [lFloatPart, lExponential] = lHexNumber.split(/[pP]/) as [string, string | undefined];
 
                 // Integer part can be empty, decimal part can be undefined.
                 const [lInteger, lFracture] = lFloatPart.split('.') as [string, string | undefined];

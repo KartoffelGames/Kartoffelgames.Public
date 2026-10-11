@@ -1,6 +1,10 @@
-import { ExpressionAstData } from "../../../../abstract_syntax_tree/expression/i-expression-ast.interface.ts";
+import type { ExpressionAstData, IExpressionAst } from "../../../../abstract_syntax_tree/expression/i-expression-ast.interface.ts";
 import { AddressOfExpressionAst, type AddressOfExpressionAstData } from '../../../../abstract_syntax_tree/expression/single_value/address-of-expression-ast.ts';
+import { ParenthesizedExpressionAst } from '../../../../abstract_syntax_tree/expression/single_value/parenthesized-expression-ast.ts';
+import { IndexedValueExpressionAst } from '../../../../abstract_syntax_tree/expression/storage/indexed-value-expression-ast.ts';
+import { ValueDecompositionExpressionAst } from '../../../../abstract_syntax_tree/expression/storage/value-decomposition-expression-ast.ts';
 import { BasePgslTypeKind } from '../../../../abstract_syntax_tree/type/definition/base-pgsl-type.ts';
+import { PgslVectorType } from '../../../../abstract_syntax_tree/type/definition/pgsl-vector-type.ts';
 import { PgslValueAddressSpace } from '../../../../enum/pgsl-value-address-space.enum.ts';
 import { PgslValidatorProcessor } from '../../../pgsl-validator-processor.ts';
 
@@ -42,7 +46,27 @@ export class AddressOfExpressionAstValidationProcessor extends PgslValidatorProc
             this.pushIncident(`Target of address can not be a texture or sampler value`);
         }
 
-        // TODO: Validate that the stored target is a let or module variable or a value reached through a pointer dereference, but not a const, a param or a function parameter.
-        // TODO: Validate that the target is not a single Vector component, neither by index like v[0] nor by a swizzle like v.x, because WGSL can not take the address of a vector component (new).
+        // Validate that the target is not a single vector component, neither by index nor by swizzle, because WGSL can not take the address of a vector component.
+        const lIsVectorComponent: boolean = (() => {
+            // Unwrapp parenthesized expressions.
+            let lTarget: IExpressionAst = pData.variable;
+            while (lTarget instanceof ParenthesizedExpressionAst) {
+                lTarget = lTarget.data.expression;
+            }
+
+            // A component is an index or a swizzle of a vector.
+            if (lTarget instanceof IndexedValueExpressionAst) {
+                return lTarget.data.value.data.resolveType instanceof PgslVectorType;
+            }
+            if (lTarget instanceof ValueDecompositionExpressionAst) {
+                return lTarget.data.expressionValue.data.resolveType instanceof PgslVectorType;
+            }
+
+            return false;
+        })();
+
+        if (lIsVectorComponent) {
+            this.pushIncident(`Target of address can not be a vector component.`);
+        }
     }
 }

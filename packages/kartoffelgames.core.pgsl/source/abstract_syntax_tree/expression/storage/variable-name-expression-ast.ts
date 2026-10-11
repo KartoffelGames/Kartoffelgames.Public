@@ -1,4 +1,5 @@
 import type { VariableNameExpressionCst } from '../../../concrete_syntax_tree/expression.type.ts';
+import { PgslDeclarationType } from '../../../enum/pgsl-declaration-type.enum.ts';
 import { PgslValueAddressSpace } from '../../../enum/pgsl-value-address-space.enum.ts';
 import { PgslValueFixedState } from '../../../enum/pgsl-value-fixed-state.ts';
 import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
@@ -25,6 +26,26 @@ export class VariableNameExpressionAst extends AbstractSyntaxTree<VariableNameEx
         // Check if variable is defined.
         const lVariableDefinition: IValueStoreAst | null = pContext.getValue(lVariableName);
         if (lVariableDefinition) {
+            // Depending on the declaration type, alter the storage type.
+            const lIsStorage: boolean = (() => {
+                switch (lVariableDefinition.data.declarationType) {
+                    // Const and param are a one time store but cant be used as a storage after.
+                    case PgslDeclarationType.Const:
+                    case PgslDeclarationType.Param: {
+                        return false;
+                    }
+
+                    // Other type can be used to assign values.
+                    case PgslDeclarationType.Storage:
+                    case PgslDeclarationType.Uniform:
+                    case PgslDeclarationType.Workgroup:
+                    case PgslDeclarationType.Private:
+                    case PgslDeclarationType.Let: {
+                        return true;
+                    }
+                }
+            })();
+
             return {
                 // Expression data.
                 variableName: lVariableName,
@@ -32,7 +53,7 @@ export class VariableNameExpressionAst extends AbstractSyntaxTree<VariableNameEx
 
                 // Expression meta data.
                 fixedState: lVariableDefinition.data.fixedState,
-                isStorage: true,
+                isStorage: lIsStorage,
                 resolveType: lVariableDefinition.data.type,
                 constantValue: lVariableDefinition.data.constantValue,
                 storageAddressSpace: lVariableDefinition.data.addressSpace

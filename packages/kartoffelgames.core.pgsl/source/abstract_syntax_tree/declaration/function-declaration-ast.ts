@@ -1,5 +1,7 @@
 import type { FunctionDeclarationCst } from '../../concrete_syntax_tree/declaration.type.ts';
 import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
+import type { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
+import type { FunctionCallExpressionAstData } from '../expression/single_value/function-call-expression-ast.ts';
 import { AttributeListAst } from '../general/attribute-list-ast.ts';
 import { BaseDeclarationAst, type DeclarationAstData } from './base-declaration-ast.ts';
 import { FunctionOverloadDeclarationAst } from './function-overload-declaration-ast.ts';
@@ -54,6 +56,7 @@ export class FunctionDeclarationAst extends BaseDeclarationAst<FunctionDeclarati
             isConstant: pCst.isConstant,
             name: pCst.name,
             explicitGenerics: pCst.explicitGenerics ?? false,
+            validator: null,
 
             // Create empty attributes list to satisfy type.
             attributes: new AttributeListAst({
@@ -90,4 +93,18 @@ export type FunctionDeclarationAstData = {
      * Function parameter list.
      */
     declarations: ReadonlyArray<FunctionOverloadDeclarationAst>;
+
+    /**
+     * Additional validation of each call.
+     * Should only be set by build-in functions.
+     */
+    validator: FunctionDeclarationAstValidator | null;
 } & DeclarationAstData;
+
+/**
+ * Further function call validations for build in functions..
+ *
+ * @param pCall - Data of the validated function call.
+ * @param pPushIncident - Add a validation incident, by default on the function call.
+ */
+export type FunctionDeclarationAstValidator = (pCall: FunctionCallExpressionAstData, pPushIncident: (pMessage: string, pDifferentAst?: AbstractSyntaxTree) => void) => void;

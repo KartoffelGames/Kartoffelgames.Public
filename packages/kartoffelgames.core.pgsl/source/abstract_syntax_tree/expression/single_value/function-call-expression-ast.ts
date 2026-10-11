@@ -29,16 +29,27 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
         // Register function name as used symbol.
         pContext.registerSymbolUsage(pCst.functionName);
 
-        // Should be a function declaration otherwise it cant be validated further.
-        if (!lFunctionDeclaration) {
-            pContext.pushIncident(`Function '${pCst.functionName}' is not defined.`, this);
+        // Build parameter expressions.
+        const lParameterList: Array<IExpressionAst> = pCst.parameterList.map((pParameterCst) => {
+            return ExpressionAstBuilder.build(pParameterCst).process(pContext);
+        });
 
+        // Build function call generic declarations.
+        const lGenericList: Array<TypeDeclarationAst> = pCst.genericList.map((pGenericTypeDeclarationCst) => {
+            return new TypeDeclarationAst(pGenericTypeDeclarationCst).process(pContext);
+        });
+
+        // Should be a function declaration otherwise it cant be processed further.
+        if (!lFunctionDeclaration) {
             return {
                 // Expression data.
                 name: pCst.functionName,
-                parameters: new Array<IExpressionAst>(),
-                generics: new Array<TypeDeclarationAst>(),
-                functionDeclaration: null as unknown as FunctionDeclarationAst,
+                parameters: lParameterList,
+                generics: lGenericList,
+
+                // Function signature.
+                declaration: null,
+                overload: null,
 
                 // Expression meta data.
                 fixedState: PgslValueFixedState.Variable,
@@ -48,11 +59,6 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
                 storageAddressSpace: PgslValueAddressSpace.Inherit
             };
         }
-
-        // Build parameter expressions.
-        const lParameterList: Array<IExpressionAst> = pCst.parameterList.map((pParameterCst) => {
-            return ExpressionAstBuilder.build(pParameterCst).process(pContext);
-        });
 
         // Check properties for constructable, host sharable, and fixed footprint characteristics
         const lFixedState: PgslValueFixedState = (() => {
@@ -74,17 +80,8 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
             return lFixedState;
         })();
 
-        // Build function call generic declarations.
-        const lGenericList: Array<TypeDeclarationAst> = pCst.genericList.map((pGenericTypeDeclarationCst) => {
-            return new TypeDeclarationAst(pGenericTypeDeclarationCst).process(pContext);
-        });
-
-
         // Try to match function header.
-        const lMatchedFunctionHeader: FunctionHeaderMatchResult | null = this.matchFunctionHeader(pContext, pCst, lFunctionDeclaration, lGenericList, lParameterList);
-        if (!lMatchedFunctionHeader) {
-            pContext.pushIncident(`No matching function header found for function '${pCst.functionName}'.`, this);
-        }
+        const lMatchedFunctionHeader: FunctionOverloadMatchResult | null = this.matchFunctionHeader(lFunctionDeclaration, lGenericList, lParameterList);
 
         // Get the return type from the matched function header.
         const lReturnType: BasePgslType = (() => {
@@ -92,7 +89,7 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
                 return new PgslInvalidType();
             }
 
-            const lPossibleGenericResultType: BasePgslType = lMatchedFunctionHeader.header.data.returnType.data.type;
+            const lPossibleGenericResultType: BasePgslType = lMatchedFunctionHeader.overload.data.returnType.data.type;
             if (!lMatchedFunctionHeader.genericTypes.has(lPossibleGenericResultType)) {
                 return lPossibleGenericResultType;
             }
@@ -102,8 +99,8 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
 
         // For any used pointer type, try to assign its expression address space is correct.
         if (lMatchedFunctionHeader) {
-            for (let lParameterIndex = 0; lParameterIndex < lMatchedFunctionHeader.header.data.parameter.length; lParameterIndex++) {
-                const lParameterType: BasePgslType = lMatchedFunctionHeader.header.data.parameter[lParameterIndex].type.data.type;;
+            for (let lParameterIndex = 0; lParameterIndex < lMatchedFunctionHeader.overload.data.parameter.length; lParameterIndex++) {
+                const lParameterType: BasePgslType = lMatchedFunctionHeader.overload.data.parameter[lParameterIndex].type.data.type;;
 
                 // Assign address space to pointer types.
                 if (lParameterType instanceof PgslPointerType) {
@@ -118,7 +115,10 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
             name: pCst.functionName,
             parameters: lParameterList,
             generics: lGenericList,
-            functionDeclaration: lFunctionDeclaration,
+
+            // Function signature.
+            declaration: lFunctionDeclaration,
+            overload: lMatchedFunctionHeader?.overload ?? null,
 
             // Expression meta data.
             fixedState: lFixedState,
@@ -132,15 +132,13 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
     /**
      * Match function declaration headers against provided generics and parameters.
      *
-     * @param pContext - Process context.
-     * @param pCst - Cst data.
      * @param pFunctionDeclaration - Function declaation of call.
      * @param pGenericList - Generic types used for this call.
      * @param pParameterList - Parameter expressions used for this call.
      *
      * @returns Matched function header and infered generics or null when no match is found.
      */
-    private matchFunctionHeader(pContext: AbstractSyntaxTreeContext, pCst: FunctionCallExpressionCst, pFunctionDeclaration: FunctionDeclarationAst, pGenericList: Array<TypeDeclarationAst>, pParameterList: Array<IExpressionAst>): FunctionHeaderMatchResult | null {
+    private matchFunctionHeader(pFunctionDeclaration: FunctionDeclarationAst, pGenericList: Array<TypeDeclarationAst>, pParameterList: Array<IExpressionAst>): FunctionOverloadMatchResult | null {
         // Check each function header for a match.
         FUNCTION_HEADER_LOOP: for (const lFunctionHeader of pFunctionDeclaration.data.declarations) {
             // Parameter count needs to match.
@@ -173,14 +171,9 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
                 const lParameterExpression: IExpressionAst = pParameterList[lParameterIndex];
                 const lParameterExpressionType: BasePgslType = lParameterExpression.data.resolveType;
 
-                const lParameterDeclaration: FunctionOverloadDeclarationAstDataParameter | undefined = lFunctionHeader.data.parameter[lParameterIndex];
+                // The parameter count of the header and used parameters is matched so the FunctionHeader.parameter should be never null.
+                const lParameterDeclaration: FunctionOverloadDeclarationAstDataParameter = lFunctionHeader.data.parameter[lParameterIndex];
                 const lParameterDeclarationType: BasePgslType = lParameterDeclaration.type.data.type;
-
-                // Validate parameter declaration exists.
-                if (!lParameterDeclaration) {
-                    pContext.pushIncident(`Parameter ${lParameterIndex} of function '${pCst.functionName}' is not defined.`, this);
-                    continue FUNCTION_HEADER_LOOP;
-                }
 
                 // Non-generic parameter: check implicit cast compatibility directly.
                 if (!(lParameterDeclarationType instanceof PgslGenericType)) {
@@ -222,7 +215,7 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
             }
 
             return {
-                header: lFunctionHeader,
+                overload: lFunctionHeader,
                 genericTypes: lStaticGenericTypes
             };
         }
@@ -251,8 +244,8 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
     }
 }
 
-type FunctionHeaderMatchResult = {
-    header: FunctionOverloadDeclarationAst;
+type FunctionOverloadMatchResult = {
+    overload: FunctionOverloadDeclarationAst;
 
     /**
      * Mapping from a generic type to a non generic type.
@@ -264,5 +257,8 @@ export type FunctionCallExpressionAstData = {
     name: string;
     parameters: Array<IExpressionAst>;
     generics: Array<TypeDeclarationAst>;
-    functionDeclaration: FunctionDeclarationAst;
+
+    // Found function signature.
+    declaration: FunctionDeclarationAst | null;
+    overload: FunctionOverloadDeclarationAst | null;
 } & ExpressionAstData;

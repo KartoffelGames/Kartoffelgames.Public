@@ -1,7 +1,7 @@
 import { Exception } from '@kartoffelgames/core';
 import type { BaseDeclarationAst } from '../abstract_syntax_tree/declaration/base-declaration-ast.ts';
 import { EnumDeclarationAst } from '../abstract_syntax_tree/declaration/enum-declaration-ast.ts';
-import { FunctionDeclarationAst } from '../abstract_syntax_tree/declaration/function-declaration-ast.ts';
+import { FunctionDeclarationAst, type FunctionDeclarationAstValidator } from '../abstract_syntax_tree/declaration/function-declaration-ast.ts';
 import { FunctionOverloadDeclarationAst, type FunctionOverloadDeclarationAstDataParameter } from '../abstract_syntax_tree/declaration/function-overload-declaration-ast.ts';
 import { StructDeclarationAst } from '../abstract_syntax_tree/declaration/struct-declaration-ast.ts';
 import { StructPropertyDeclarationAst } from '../abstract_syntax_tree/declaration/struct-property-declaration-ast.ts';
@@ -141,6 +141,7 @@ export abstract class PgslFeatureSetProcessor {
             name: pName,
             isConstant: pOptions.constant ?? false,
             explicitGenerics: pOptions.explicitGenerics ?? false,
+            validator: pOptions.validator ?? null,
             declarations: lOverloads
         });
     }
@@ -298,6 +299,11 @@ export type PgslFeatureSetProcessorFunctionOptions = {
      * Generics must be written into the call and are never infered.
      */
     explicitGenerics?: true;
+
+    /**
+     * Additional validation of each function call expression.
+     */
+    validator?: FunctionDeclarationAstValidator;
 };
 
 /**

@@ -1,3 +1,4 @@
+import type { AbstractSyntaxTree } from '../../../../abstract_syntax_tree/abstract-syntax-tree.ts';
 import { FunctionCallExpressionAst, type FunctionCallExpressionAstData } from '../../../../abstract_syntax_tree/expression/single_value/function-call-expression-ast.ts';
 import { PgslValidatorProcessor } from '../../../pgsl-validator-processor.ts';
 
@@ -15,13 +16,39 @@ export class FunctionCallExpressionAstValidationProcessor extends PgslValidatorP
     /**
      * Validates the PGSL function call expression syntax tree.
      * 
-     * @param _pData - The syntax tree data to validate.
+     * @param pData - The syntax tree data to validate.
      */
-    protected override onValidate(_pData: FunctionCallExpressionAstData): void {
-        // TODO: Validate each argument expression.
-        // TODO: Validate each explicit generic type declaration.
-        // TODO: Validate that the function name resolves to a function declaration, reporting "Function 'name' is not defined." from the recorded raw name.
-        // TODO: Validate that an overload of the function matches the argument count, the explicit generic count and the argument types, reporting the argument types when none matched.
+    protected override onValidate(pData: FunctionCallExpressionAstData): void {
+        // Validate each argument expression.
+        for (const lParameter of pData.parameters) {
+            this.validateAst(lParameter);
+        }
+
+        // Validate each explicit generic type declaration.
+        for (const lGeneric of pData.generics) {
+            this.validateAst(lGeneric);
+        }
+
+        // Validate that the function name resolves to a function declaration.
+        if (!pData.declaration) {
+            this.pushIncident(`Function '${pData.name}' is not defined.`);
+            return;
+        }
+
+        // Validate that an overload of the function matches the argument count, the explicit generic count and the argument types.
+        if (!pData.overload) {
+            this.pushIncident(`No matching function header found for function '${pData.name}'.`);
+            return;
+        }
+
+        // Validate the additional rules of the function, which build-in functions can set beyond their overloads.
+        if (pData.declaration.data.validator) {
+            pData.declaration.data.validator(pData, (pMessage: string, pDifferentAst?: AbstractSyntaxTree) => {
+                this.pushIncident(pMessage, pDifferentAst);
+            });
+        }
+
+        // TODO: Validate that an overload that does not match lists the argument types in its incident.
         // TODO: Validate that the call is not ambiguous, reporting the recorded tie when no matching overload converts every argument at a rank at least as good as every other matching overload and at least one argument at a better rank (new).
         // TODO: Validate that each explicit generic satisfies the restrictions of its generic in the selected overload, so bitcast<bool>(v) is rejected (new).
         // TODO: Validate that every generic which occurs in no parameter of the selected overload is written explicitly, so bitcast(v) without a generic is rejected (new).

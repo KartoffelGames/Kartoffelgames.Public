@@ -178,10 +178,18 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
                 lGenericRestrictions.set(lGeneric.name, lGeneric);
             }
 
-            // Map static provided generic types.
+            // Map and validate static provided generic types.
             const lStaticGenericTypes: Map<PgslGenericType, BasePgslType> = new Map<PgslGenericType, BasePgslType>();
             for (let lGenericIndex = 0; lGenericIndex < pGenericList.length; lGenericIndex++) {
-                lStaticGenericTypes.set(lFunctionHeader.data.generics[lGenericIndex], pGenericList[lGenericIndex].data.type);
+                const lGenericType: PgslGenericType = lFunctionHeader.data.generics[lGenericIndex];
+                const lExplicitGenericType: BasePgslType = pGenericList[lGenericIndex].data.type;
+
+                // Skip this overload when the explicit generic can not be used for the generic restriction.
+                if (!lGenericType.accepts(lExplicitGenericType)) {
+                    continue FUNCTION_HEADER_LOOP;
+                }
+
+                lStaticGenericTypes.set(lGenericType, lExplicitGenericType);
             }
 
             // Collect candidate types for each generic that needs inference.

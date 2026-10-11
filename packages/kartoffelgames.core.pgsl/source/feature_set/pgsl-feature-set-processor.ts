@@ -85,10 +85,11 @@ export abstract class PgslFeatureSetProcessor {
      * @param pName - Function name.
      * @param pOptions - Function options.
      * @param pOverloads - Function overloads.
+     * @param pValidator - Additional validation of a function call.
      *
      * @returns the processed function declaration.
      */
-    public createFunction(pName: string, pOptions: PgslFeatureSetProcessorFunctionOptions, pOverloads: Array<PgslFeatureSetProcessorOverload>): FunctionDeclarationAst {
+    public createFunction(pName: string, pOptions: PgslFeatureSetProcessorFunctionOptions, pOverloads: Array<PgslFeatureSetProcessorOverload>, pValidator?: FunctionDeclarationAstValidator): FunctionDeclarationAst {
         // Create an overload declaration for every overload definition.
         const lOverloads: Array<FunctionOverloadDeclarationAst> = pOverloads.map((pOverload: PgslFeatureSetProcessorOverload) => {
             // Create and register all generics of this overload.
@@ -141,7 +142,7 @@ export abstract class PgslFeatureSetProcessor {
             name: pName,
             isConstant: pOptions.constant ?? false,
             explicitGenerics: pOptions.explicitGenerics ?? false,
-            validator: pOptions.validator ?? null,
+            validator: pValidator ?? null,
             declarations: lOverloads
         });
     }
@@ -299,11 +300,6 @@ export type PgslFeatureSetProcessorFunctionOptions = {
      * Generics must be written into the call and are never infered.
      */
     explicitGenerics?: true;
-
-    /**
-     * Additional validation of each function call expression.
-     */
-    validator?: FunctionDeclarationAstValidator;
 };
 
 /**

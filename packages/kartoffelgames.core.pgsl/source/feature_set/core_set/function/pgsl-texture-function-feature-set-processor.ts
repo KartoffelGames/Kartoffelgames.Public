@@ -1,9 +1,13 @@
+import type { FunctionDeclarationAstValidator } from '../../../abstract_syntax_tree/declaration/function-declaration-ast.ts';
+import type { IExpressionAst } from '../../../abstract_syntax_tree/expression/i-expression-ast.interface.ts';
+import { FunctionCallExpressionAst } from "../../../abstract_syntax_tree/expression/single_value/function-call-expression-ast.ts";
 import type { BasePgslType } from '../../../abstract_syntax_tree/type/definition/base-pgsl-type.ts';
 import { PgslNumericType, type PgslNumericTypeName } from '../../../abstract_syntax_tree/type/definition/pgsl-numeric-type.ts';
 import { PgslSamplerType } from '../../../abstract_syntax_tree/type/definition/pgsl-sampler-type.ts';
 import { PgslTextureType, type PgslTextureTypeName } from '../../../abstract_syntax_tree/type/definition/pgsl-texture-type.ts';
 import { PgslVectorType } from '../../../abstract_syntax_tree/type/definition/pgsl-vector-type.ts';
 import { PgslVoidType } from '../../../abstract_syntax_tree/type/definition/pgsl-void-type.ts';
+import { PgslValueFixedState } from '../../../enum/pgsl-value-fixed-state.ts';
 import { type PgslAccessMode, PgslAccessModeEnum } from '../../enum/pgsl-access-mode-enum.ts';
 import { type PgslTexelFormat, PgslTexelFormatEnum } from '../../enum/pgsl-texel-format-enum.ts';
 import { PgslFeatureSetProcessor } from '../../pgsl-feature-set-processor.ts';
@@ -52,6 +56,15 @@ export class PgslTextureFunctionFeatureSetProcessor extends PgslFeatureSetProces
         const lIntegerTypes: Array<BasePgslType> = [lSignedInteger, lUnsignedInteger];
         const lIntegerVector2Types: Array<BasePgslType> = [this.types.create(PgslVectorType, 2, lSignedInteger), this.types.create(PgslVectorType, 2, lUnsignedInteger)];
         const lIntegerVector3Types: Array<BasePgslType> = [this.types.create(PgslVectorType, 3, lSignedInteger), this.types.create(PgslVectorType, 3, lUnsignedInteger)];
+
+        // The texel offset of a sampling or gathering must be constant.
+        const lOffsetValidator: FunctionDeclarationAstValidator = (pCall: FunctionCallExpressionAst, pPushIncident) => {
+            // Read offset parameter. Not all function overloads have a offset parameter.
+            const lOffset: IExpressionAst | null = pCall.getParameter('offset');
+            if (lOffset && lOffset.data.fixedState !== PgslValueFixedState.Constant) {
+                pPushIncident(`Offset of ${pCall.data.name} must be a constant.`, lOffset);
+            }
+        };
 
         // textureDimensions
         this.registerDeclaration(this.createFunction(PgslTextureFunctionFeatureSetProcessor.names.textureDimensions, {}, [
@@ -258,7 +271,26 @@ export class PgslTextureFunctionFeatureSetProcessor extends PgslFeatureSetProces
                 'coords': this.types.create(PgslVectorType, 3, lFloat32),
                 'arrayIndex': 'TIndex'
             }, this.types.create(PgslVectorType, 4, lFloat32)),
-        ]));
+        ], (pCall: FunctionCallExpressionAst, pPushIncident) => {
+            lOffsetValidator(pCall, pPushIncident);
+
+            // Read component 
+            const lComponent: IExpressionAst | null = pCall.getParameter('component');
+            if (!lComponent) {
+                return;
+            }
+
+            if (lComponent.data.fixedState !== PgslValueFixedState.Constant) {
+                pPushIncident(`Component of textureGather must be a constant.`, lComponent);
+                return;
+            }
+
+            // A component can not be greater than 4 values (rgba)
+            const lComponentNumber: number | string | null = lComponent.data.constantValue;
+            if (typeof lComponentNumber === 'number' && (lComponentNumber < 0 || lComponentNumber > 3)) {
+                pPushIncident(`Component of textureGather must be between 0 and 3.`, lComponent);
+            }
+        }));
 
         // textureGatherCompare
         this.registerDeclaration(this.createFunction(PgslTextureFunctionFeatureSetProcessor.names.textureGatherCompare, {}, [
@@ -308,7 +340,7 @@ export class PgslTextureFunctionFeatureSetProcessor extends PgslFeatureSetProces
                 'arrayIndex': 'TIndex',
                 'depthReference': lFloat32
             }, this.types.create(PgslVectorType, 4, lFloat32)),
-        ]));
+        ], lOffsetValidator));
 
         // textureLoad
         this.registerDeclaration(this.createFunction(PgslTextureFunctionFeatureSetProcessor.names.textureLoad, {}, [
@@ -678,7 +710,7 @@ export class PgslTextureFunctionFeatureSetProcessor extends PgslFeatureSetProces
                 'coords': this.types.create(PgslVectorType, 3, lFloat32),
                 'arrayIndex': 'TIndex'
             }, lFloat32),
-        ]));
+        ], lOffsetValidator));
 
         // textureSampleBias
         this.registerDeclaration(this.createFunction(PgslTextureFunctionFeatureSetProcessor.names.textureSampleBias, {}, [
@@ -736,7 +768,7 @@ export class PgslTextureFunctionFeatureSetProcessor extends PgslFeatureSetProces
                 'arrayIndex': 'TIndex',
                 'bias': lFloat32
             }, this.types.create(PgslVectorType, 4, lFloat32)),
-        ]));
+        ], lOffsetValidator));
 
         // textureSampleCompare
         this.registerDeclaration(this.createFunction(PgslTextureFunctionFeatureSetProcessor.names.textureSampleCompare, {}, [
@@ -786,7 +818,7 @@ export class PgslTextureFunctionFeatureSetProcessor extends PgslFeatureSetProces
                 'arrayIndex': 'TIndex',
                 'depthRef': lFloat32
             }, lFloat32),
-        ]));
+        ], lOffsetValidator));
 
         // textureSampleCompareLevel
         this.registerDeclaration(this.createFunction(PgslTextureFunctionFeatureSetProcessor.names.textureSampleCompareLevel, {}, [
@@ -836,7 +868,7 @@ export class PgslTextureFunctionFeatureSetProcessor extends PgslFeatureSetProces
                 'arrayIndex': 'TIndex',
                 'depthRef': lFloat32
             }, lFloat32),
-        ]));
+        ], lOffsetValidator));
 
         // textureSampleGrad
         this.registerDeclaration(this.createFunction(PgslTextureFunctionFeatureSetProcessor.names.textureSampleGrad, {}, [
@@ -901,7 +933,7 @@ export class PgslTextureFunctionFeatureSetProcessor extends PgslFeatureSetProces
                 'ddx': this.types.create(PgslVectorType, 3, lFloat32),
                 'ddy': this.types.create(PgslVectorType, 3, lFloat32)
             }, this.types.create(PgslVectorType, 4, lFloat32)),
-        ]));
+        ], lOffsetValidator));
 
         // textureSampleLevel
         this.registerDeclaration(this.createFunction(PgslTextureFunctionFeatureSetProcessor.names.textureSampleLevel, {}, [
@@ -1013,7 +1045,7 @@ export class PgslTextureFunctionFeatureSetProcessor extends PgslFeatureSetProces
                 'arrayIndex': 'TIndex',
                 'level': 'TLevel'
             }, lFloat32),
-        ]));
+        ], lOffsetValidator));
 
         // textureSampleBaseClampToEdge
         this.registerDeclaration(this.createFunction(PgslTextureFunctionFeatureSetProcessor.names.textureSampleBaseClampToEdge, {}, [

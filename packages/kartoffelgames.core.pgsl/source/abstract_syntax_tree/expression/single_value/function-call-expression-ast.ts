@@ -18,6 +18,27 @@ import type { ExpressionAstData, IExpressionAst } from '../i-expression-ast.inte
  */
 export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallExpressionCst, FunctionCallExpressionAstData> implements IExpressionAst {
     /**
+     * Get the parameter by its parameter name in the matched overload.
+     *
+     * @param pParameterName - Parameter name of the matched overload.
+     *
+     * @returns the parameter expression or null when the matched overload has no parameter with this name.
+     */
+    public getParameter(pParameterName: string): IExpressionAst | null {
+        // Find the parameter position in the matched overload.
+        const lParameterIndex: number = this.data.overload?.data.parameter.findIndex((pParameter) => {
+            return pParameter.name === pParameterName;
+        }) ?? -1;
+
+        // Parameter does not exist.
+        if (lParameterIndex === -1) {
+            return null;
+        }
+
+        return this.data.parameters[lParameterIndex] ?? null;
+    }
+
+    /**
      * Validate data of current structure.
      * 
      * @param pContext - Validation context.

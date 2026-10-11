@@ -1,7 +1,11 @@
-import type { BasePgslType } from '../../../abstract_syntax_tree/type/definition/base-pgsl-type.ts';
+import type { IExpressionAst } from '../../../abstract_syntax_tree/expression/i-expression-ast.interface.ts';
+import { FunctionCallExpressionAst } from "../../../abstract_syntax_tree/expression/single_value/function-call-expression-ast.ts";
+import { type BasePgslType, BasePgslTypeKind } from '../../../abstract_syntax_tree/type/definition/base-pgsl-type.ts';
+import { PgslArrayType } from '../../../abstract_syntax_tree/type/definition/pgsl-array-type.ts';
 import { PgslBooleanType } from '../../../abstract_syntax_tree/type/definition/pgsl-boolean-type.ts';
 import { PgslMatrixType } from '../../../abstract_syntax_tree/type/definition/pgsl-matrix-type.ts';
 import { PgslNumericType } from '../../../abstract_syntax_tree/type/definition/pgsl-numeric-type.ts';
+import { PgslPointerType } from '../../../abstract_syntax_tree/type/definition/pgsl-pointer-type.ts';
 import { PgslStructType } from '../../../abstract_syntax_tree/type/definition/pgsl-struct-type.ts';
 import { PgslVectorType } from '../../../abstract_syntax_tree/type/definition/pgsl-vector-type.ts';
 import { PgslFeatureSetProcessor } from '../../pgsl-feature-set-processor.ts';
@@ -162,7 +166,23 @@ export class PgslNumericFunctionFeatureSetProcessor extends PgslFeatureSetProces
         this.registerDeclaration(this.createFunction(PgslNumericFunctionFeatureSetProcessor.names.arrayLength, {}, [
             // TODO: Restrict to pointers of arrays with any element type once pointer types can express it. An empty restriction accepts nothing yet.
             this.createOverload({ 'TResult': [], }, { 'array': 'TResult' }, lUnsignedInteger),
-        ]));
+        ], (pCall: FunctionCallExpressionAst, pPushIncident) => {
+            // Try to read array type.
+            const lArrayType: BasePgslType | undefined = pCall.getParameter('array')?.data.resolveType;
+            if (!lArrayType) {
+                return;
+            }
+
+            // Must be a pointer type.
+            if (!(lArrayType instanceof PgslPointerType)) {
+                return;
+            }
+
+            // The references type cant be a fixed array.
+            if (lArrayType.referencedType.isKind(BasePgslTypeKind.FixedFootprint)) {
+                pPushIncident(`References array must be runtime-sized.`);
+            }
+        }));
     }
 
     /**
@@ -341,7 +361,14 @@ export class PgslNumericFunctionFeatureSetProcessor extends PgslFeatureSetProces
         // clamp
         this.registerDeclaration(this.createFunction(PgslNumericFunctionFeatureSetProcessor.names.clamp, { constant: true }, [
             this.createOverload({ 'TResult': [...this.numericTypes(), ...this.vectorTypes(this.numericTypes())], }, { 'e': 'TResult', 'low': 'TResult', 'high': 'TResult' }, 'TResult')
-        ]));
+        ], (pCall: FunctionCallExpressionAst, pPushIncident) => {
+            // Constant low must not be greater than constant high.
+            const lLow: number | string | null = pCall.getParameter('low')?.data.constantValue ?? null;
+            const lHigh: number | string | null = pCall.getParameter('high')?.data.constantValue ?? null;
+            if (typeof lLow === 'number' && typeof lHigh === 'number' && lLow > lHigh) {
+                pPushIncident(`Low value of clamp must not be greater than its high value.`);
+            }
+        }));
 
         // cos
         this.registerDeclaration(this.createFunction(PgslNumericFunctionFeatureSetProcessor.names.cos, { constant: true }, [
@@ -459,7 +486,14 @@ export class PgslNumericFunctionFeatureSetProcessor extends PgslFeatureSetProces
         this.registerDeclaration(this.createFunction(PgslNumericFunctionFeatureSetProcessor.names.extractBits, { constant: true }, [
             this.createOverload({ 'TResult': [lSignedInteger, ...this.vectorTypes([lSignedInteger])], }, { 'e': 'TResult', 'offset': lUnsignedInteger, 'count': lUnsignedInteger }, 'TResult'),
             this.createOverload({ 'TResult': [lUnsignedInteger, ...this.vectorTypes([lUnsignedInteger])], }, { 'e': 'TResult', 'offset': lUnsignedInteger, 'count': lUnsignedInteger }, 'TResult'),
-        ]));
+        ], (pCall: FunctionCallExpressionAst, pPushIncident) => {
+            // Constant offset plus count must stay within the 32 bits of an int or uint.
+            const lOffset: number | string | null = pCall.getParameter('offset')?.data.constantValue ?? null;
+            const lCount: number | string | null = pCall.getParameter('count')?.data.constantValue ?? null;
+            if (typeof lOffset === 'number' && typeof lCount === 'number' && lOffset + lCount > 32) {
+                pPushIncident(`Offset plus count of extractBits must not exceed 32 bits.`);
+            }
+        }));
 
         // faceForward
         this.registerDeclaration(this.createFunction(PgslNumericFunctionFeatureSetProcessor.names.faceForward, { constant: true }, [
@@ -517,7 +551,14 @@ export class PgslNumericFunctionFeatureSetProcessor extends PgslFeatureSetProces
         // insertBits
         this.registerDeclaration(this.createFunction(PgslNumericFunctionFeatureSetProcessor.names.insertBits, { constant: true }, [
             this.createOverload({ 'TResult': [...this.integerTypes(), ...this.vectorTypes(this.integerTypes())], }, { 'e': 'TResult', 'newbits': 'TResult', 'offset': lUnsignedInteger, 'count': lUnsignedInteger }, 'TResult')
-        ]));
+        ], (pCall: FunctionCallExpressionAst, pPushIncident) => {
+            // Constant offset plus count must stay within the 32 bits of an int or uint.
+            const lOffset: number | string | null = pCall.getParameter('offset')?.data.constantValue ?? null;
+            const lCount: number | string | null = pCall.getParameter('count')?.data.constantValue ?? null;
+            if (typeof lOffset === 'number' && typeof lCount === 'number' && lOffset + lCount > 32) {
+                pPushIncident(`Offset plus count of insertBits must not exceed 32 bits.`);
+            }
+        }));
 
         // inverseSqrt
         this.registerDeclaration(this.createFunction(PgslNumericFunctionFeatureSetProcessor.names.inverseSqrt, { constant: true }, [
@@ -541,7 +582,30 @@ export class PgslNumericFunctionFeatureSetProcessor extends PgslFeatureSetProces
             // Vector4
             this.createOverload({ 'TResult': [...this.floatTypes(), ...this.vectorTypes(this.floatTypes())], }, { 'e1': 'TResult', 'e2': this.types.create(PgslVectorType, 4, lSignedInteger) }, 'TResult'),
             this.createOverload({ 'TResult': [...this.floatTypes(), ...this.vectorTypes(this.floatTypes())], }, { 'e1': 'TResult', 'e2': this.types.create(PgslVectorType, 4, lAbstractInteger) }, 'TResult'),
-        ]));
+        ], (pCall: FunctionCallExpressionAst, pPushIncident) => {
+            // Only a constant exponent is limited.
+            const lExponentParameter: IExpressionAst | null = pCall.getParameter('e2');
+            const lExponentNumber: number | string | null = lExponentParameter?.data.constantValue ?? null;
+            if (!lExponentParameter || typeof lExponentNumber !== 'number') {
+                return;
+            }
+
+            // The exponent must not be greater than the exponent bias plus one of the float type. A concrete exponent converts an abstract float into a float.
+            const lExponentLimit: number = (() => {
+                if (pCall.data.resolveType.isKind(BasePgslTypeKind.Float16)) {
+                    return 16;
+                }
+                if (pCall.data.resolveType.isKind(BasePgslTypeKind.Float32) || !lExponentParameter.data.resolveType.isKind(BasePgslTypeKind.Abstract)) {
+                    return 128;
+                }
+
+                return 1024;
+            })();
+            
+            if (lExponentNumber > lExponentLimit) {
+                pPushIncident(`Exponent of ldexp must not be greater than ${lExponentLimit}.`);
+            }
+        }));
 
         // length
         this.registerDeclaration(this.createFunction(PgslNumericFunctionFeatureSetProcessor.names.length, { constant: true }, [
@@ -640,7 +704,18 @@ export class PgslNumericFunctionFeatureSetProcessor extends PgslFeatureSetProces
         // quantizeToF16
         this.registerDeclaration(this.createFunction(PgslNumericFunctionFeatureSetProcessor.names.quantizeToF16, { constant: true }, [
             this.createOverload({ 'TResult': [lFloat32, ...this.vectorTypes([lFloat32])], }, { 'e': 'TResult' }, 'TResult'),
-        ]));
+        ], (pCall: FunctionCallExpressionAst, pPushIncident) => {
+            // Read potential constant float32 value.
+            const lValue: number | string | null = pCall.getParameter('e')?.data.constantValue ?? null;
+            if (typeof lValue !== 'number') {
+                return;
+            }
+
+            // Value must be in float16 range.
+            if (Math.abs(lValue) > (Math.pow(2, 16) - Math.pow(2, 5))) {
+                pPushIncident(`Value ${lValue} of quantizeToF16 does not fit into 'float16'.`);
+            }
+        }));
 
         // radians
         this.registerDeclaration(this.createFunction(PgslNumericFunctionFeatureSetProcessor.names.radians, { constant: true }, [
@@ -700,7 +775,14 @@ export class PgslNumericFunctionFeatureSetProcessor extends PgslFeatureSetProces
         // smoothstep
         this.registerDeclaration(this.createFunction(PgslNumericFunctionFeatureSetProcessor.names.smoothstep, { constant: true }, [
             this.createOverload({ 'TResult': [...this.floatTypes(), ...this.vectorTypes(this.floatTypes())], }, { 'edge0': 'TResult', 'edge1': 'TResult', 'x': 'TResult' }, 'TResult')
-        ]));
+        ], (pCall: FunctionCallExpressionAst, pPushIncident) => {
+            // Constant edges must not be equal, as the interpolation divides by their difference.
+            const lEdge0: number | string | null = pCall.getParameter('edge0')?.data.constantValue ?? null;
+            const lEdge1: number | string | null = pCall.getParameter('edge1')?.data.constantValue ?? null;
+            if (typeof lEdge0 === 'number' && lEdge0 === lEdge1) {
+                pPushIncident(`Values of smoothstep must not be equal.`);
+            }
+        }));
 
         // sqrt
         this.registerDeclaration(this.createFunction(PgslNumericFunctionFeatureSetProcessor.names.sqrt, { constant: true }, [

@@ -520,9 +520,11 @@ parameter type (`*float`) leaves them unbound, so binding takes them from the ar
 overload restricts them (`workgroup` for `workgroupUniformLoad`). Every user function called with a
 different address space or access mode becomes its own late instance (§3.1, checking the body).
 
-User functions with `storage`, `uniform` or `workgroup` pointer parameters also need WGSL's
-`unrestricted_pointer_parameters` language feature; core WGSL only allows `function` and `private`
-pointer parameters.
+PGSL requires sometimes WGSL's `unrestricted_pointer_parameters` language extension. Core WGSL only allows
+`function` and `private` pointer parameters and only pointers to a whole root variable (`&a`, not
+`&a[1]` or `&s.property`); the extension lifts both, so user function calls need no rule for either.
+With the address space part of the pointer, overload matching rejects a pointer argument in the wrong
+address space by itself, so the function call validator has no address space rule.
 
 ### 3.3 Modular types
 

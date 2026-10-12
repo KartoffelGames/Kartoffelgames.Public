@@ -163,10 +163,12 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
      * @param pGenericList - Generic types used for this call.
      * @param pParameterList - Parameter expressions used for this call.
      *
-     * @returns Matched function header and infered generics or null when no match is found.
+     * @returns Best matching function header and infered generics or null when no match is found.
      */
     private matchFunctionHeader(pFunctionDeclaration: FunctionDeclarationAst, pGenericList: Array<TypeDeclarationAst>, pParameterList: Array<IExpressionAst>): FunctionOverloadMatchResult | null {
-        // Check each function header for a match.
+        let lBestOverloadMatch: FunctionOverloadMatchResult | null = null;
+
+        // Check each function header for a match and keep the best one.
         FUNCTION_HEADER_LOOP: for (const lFunctionHeader of pFunctionDeclaration.data.declarations) {
             // Parameter count needs to match.
             if (lFunctionHeader.data.parameter.length !== pParameterList.length) {
@@ -201,6 +203,9 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
             // Collect candidate types for each generic that needs inference.
             const lGenericCandidates: Map<PgslGenericType, Array<BasePgslType>> = new Map<PgslGenericType, Array<BasePgslType>>();
 
+            // Sum of every conversion ranks of every parameter and generic used.
+            let lConversionRank: number = 0;
+
             // Validate each parameter against the function header.
             for (let lParameterIndex = 0; lParameterIndex < pParameterList.length; lParameterIndex++) {
                 const lParameterExpression: IExpressionAst = pParameterList[lParameterIndex];
@@ -212,18 +217,26 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
 
                 // Non-generic parameter: check implicit cast compatibility directly.
                 if (!(lParameterDeclarationType instanceof PgslGenericType)) {
-                    if (lParameterExpressionType.conversionRankTo(lParameterDeclarationType) === Number.POSITIVE_INFINITY) {
+                    const lParameterConversionRank: number = lParameterExpressionType.conversionRankTo(lParameterDeclarationType);
+                    if (lParameterConversionRank === Number.POSITIVE_INFINITY) {
                         continue FUNCTION_HEADER_LOOP;
                     }
+
+                    lConversionRank += lParameterConversionRank;
                     continue;
                 }
 
+                // The parameter is generic try to resolve it.
+
                 // When the generic is static, check against the static.
                 if (lStaticGenericTypes.has(lParameterDeclarationType)) {
-                    const lStaticGenericType: BasePgslType = lStaticGenericTypes.get(lParameterDeclarationType)!;
-                    if (lParameterExpressionType.conversionRankTo(lStaticGenericType) === Number.POSITIVE_INFINITY) {
+                    // Get the convertion rank between the resolved static and the current parameter. Skip when it cant be converted.
+                    const lParameterConversionRank: number = lParameterExpressionType.conversionRankTo(lStaticGenericTypes.get(lParameterDeclarationType)!);
+                    if (lParameterConversionRank === Number.POSITIVE_INFINITY) {
                         continue FUNCTION_HEADER_LOOP;
                     }
+
+                    lConversionRank += lParameterConversionRank;
                     continue;
                 }
 
@@ -247,15 +260,25 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
                 }
 
                 lStaticGenericTypes.set(lGenericType, lResolvedType);
+
+                // Thats a little fucked up.
+                // Every generic candidate can be converted into the resolved type, so we count every candidates convertion rank.
+                for (const lCandidate of lCandidates) {
+                    lConversionRank += lCandidate.conversionRankTo(lResolvedType);
+                }
             }
 
-            return {
-                overload: lFunctionHeader,
-                genericTypes: lStaticGenericTypes
-            };
+            // Keep the best overload match, the overload with the lowest overall conversion rank.
+            if (!lBestOverloadMatch || lConversionRank < lBestOverloadMatch.conversionRank) {
+                lBestOverloadMatch = {
+                    overload: lFunctionHeader,
+                    genericTypes: lStaticGenericTypes,
+                    conversionRank: lConversionRank
+                };
+            }
         }
 
-        return null;
+        return lBestOverloadMatch;
     }
 
     /**
@@ -286,6 +309,11 @@ type FunctionOverloadMatchResult = {
      * Mapping from a generic type to a non generic type.
      */
     genericTypes: Map<PgslGenericType, BasePgslType>;
+
+    /**
+     * Sum of all canvertion ranks for every parameter and every used generic.
+     */
+    conversionRank: number;
 };
 
 export type FunctionCallExpressionAstData = {

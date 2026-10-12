@@ -66,7 +66,10 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
                 // Expression data.
                 name: pCst.functionName,
                 parameters: lParameterList,
-                generics: lGenericList,
+                generics: {
+                    explicit: lGenericList,
+                    resolved: new Map<PgslGenericType, BasePgslType>()
+                },
 
                 // Function signature.
                 declaration: null,
@@ -111,11 +114,11 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
             }
 
             const lPossibleGenericResultType: BasePgslType = lMatchedFunctionHeader.overload.data.returnType.data.type;
-            if (!lMatchedFunctionHeader.genericTypes.has(lPossibleGenericResultType)) {
+            if (!lMatchedFunctionHeader.genericTypes.has(lPossibleGenericResultType as PgslGenericType)) { // It is no a generic but so we check if its a generic.
                 return lPossibleGenericResultType;
             }
 
-            return lMatchedFunctionHeader.genericTypes.get(lPossibleGenericResultType)!;
+            return lMatchedFunctionHeader.genericTypes.get(lPossibleGenericResultType as PgslGenericType)!;
         })();
 
         // For any used pointer type, try to assign its expression address space is correct.
@@ -135,7 +138,10 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
             // Expression data.
             name: pCst.functionName,
             parameters: lParameterList,
-            generics: lGenericList,
+            generics: {
+                explicit: lGenericList,
+                resolved: lMatchedFunctionHeader?.genericTypes ?? new Map<PgslGenericType, BasePgslType>()
+            },
 
             // Function signature.
             declaration: lFunctionDeclaration,
@@ -279,13 +285,16 @@ type FunctionOverloadMatchResult = {
     /**
      * Mapping from a generic type to a non generic type.
      */
-    genericTypes: Map<BasePgslType, BasePgslType>;
+    genericTypes: Map<PgslGenericType, BasePgslType>;
 };
 
 export type FunctionCallExpressionAstData = {
     name: string;
     parameters: Array<IExpressionAst>;
-    generics: Array<TypeDeclarationAst>;
+    generics: {
+        explicit: Array<TypeDeclarationAst>;
+        resolved: Map<PgslGenericType, BasePgslType>;
+    };
 
     // Found function signature.
     declaration: FunctionDeclarationAst | null;

@@ -1,0 +1,81 @@
+import { expect } from '@kartoffelgames/core-test';
+import type { FunctionDeclarationAst } from '../../../../source/abstract_syntax_tree/declaration/function-declaration-ast.ts';
+import type { FunctionOverloadDeclarationAst } from '../../../../source/abstract_syntax_tree/declaration/function-overload-declaration-ast.ts';
+import type { DocumentAst } from '../../../../source/abstract_syntax_tree/document-ast.ts';
+import type { DoWhileStatementAst } from '../../../../source/abstract_syntax_tree/statement/branch/do-while-statement-ast.ts';
+import type { ForStatementAst } from '../../../../source/abstract_syntax_tree/statement/branch/for-statement-ast.ts';
+import type { WhileStatementAst } from '../../../../source/abstract_syntax_tree/statement/branch/while-statement-ast.ts';
+import { ContinueStatementAst } from '../../../../source/abstract_syntax_tree/statement/single/continue-statement-ast.ts';
+import { PgslNumericType } from '../../../../source/abstract_syntax_tree/type/definition/pgsl-numeric-type.ts';
+import { PgslParser } from '../../../../source/parser/pgsl-parser.ts';
+
+// Create parser instance.
+const gPgslParser: PgslParser = new PgslParser();
+
+Deno.test('ContinueStatementAst - Parsing', async (pContext) => {
+    await pContext.step('Continue in loop', async (pContext) => {
+        await pContext.step('Continue in while loop', () => {
+            // Setup.
+            const lCodeText: string = `
+                function testFunction(): void {
+                    while (true) {
+                        continue;
+                    }
+                }
+            `;
+
+            // Process.
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
+
+            // Evaluation. Correct type of statement node.
+            const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lWhileStatement: WhileStatementAst = lFunctionDeclaration.data.block.data.statementList[0] as WhileStatementAst;
+            const lContinueStatement: ContinueStatementAst = lWhileStatement.data.block.data.statementList[0] as ContinueStatementAst;
+            expect(lContinueStatement).toBeInstanceOf(ContinueStatementAst);
+        });
+
+        await pContext.step('Continue in for loop', () => {
+            // Setup.
+            const lCodeText: string = `
+                function testFunction(): void {
+                    for (let i: ${PgslNumericType.typeName.signedInteger} = 0; i < 10; i++) {
+                        continue;
+                    }
+                }
+            `;
+
+            // Process.
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
+
+            // Evaluation. Correct type of statement node.
+            const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lForWhileStatement: ForStatementAst = lFunctionDeclaration.data.block.data.statementList[0] as ForStatementAst;
+            const lContinueStatement: ContinueStatementAst = lForWhileStatement.data.block.data.statementList[0] as ContinueStatementAst;
+            expect(lContinueStatement).toBeInstanceOf(ContinueStatementAst);
+        });
+
+        await pContext.step('Continue in do-while loop', () => {
+            // Setup.
+            const lCodeText: string = `
+                function testFunction(): void {
+                    do {
+                        continue;
+                    } while (true);
+                }
+            `;
+
+            // Process.
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
+
+            // Evaluation. Correct type of statement node.
+            const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lDoWhileStatement: DoWhileStatementAst = lFunctionDeclaration.data.block.data.statementList[0] as DoWhileStatementAst;
+            const lContinueStatement: ContinueStatementAst = lDoWhileStatement.data.block.data.statementList[0] as ContinueStatementAst;
+            expect(lContinueStatement).toBeInstanceOf(ContinueStatementAst);
+
+        });
+    });
+});

@@ -19,8 +19,8 @@ export class FunctionCallExpressionAstTranspilerProcessor extends TranspilerProc
     protected override onProcess(pInstance: FunctionCallExpressionAst): string {
         // Transpile function call generics.
         let lGenerics: string = '';
-        if(pInstance.data.generics.length > 0 && pInstance.data.declaration?.data.explicitGenerics) {
-            lGenerics = `<${pInstance.data.generics.map(pGeneric => this.transpileAst(pGeneric)).join(',')}>`;
+        if(pInstance.data.generics.explicit.length > 0 && pInstance.data.declaration?.data.explicitGenerics) {
+            lGenerics = `<${pInstance.data.generics.explicit.map(pGeneric => this.transpileAst(pGeneric)).join(',')}>`;
         }
 
         return `${pInstance.data.name}${lGenerics}(${pInstance.data.parameters.map(pParam => this.transpileAst(pParam)).join(',')})`;

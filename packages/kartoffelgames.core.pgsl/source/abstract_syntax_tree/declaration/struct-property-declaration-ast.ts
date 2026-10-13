@@ -266,7 +266,7 @@ export class StructPropertyDeclarationAst extends BaseDeclarationAst<StructPrope
         const lValidType: boolean = (() => {
             // Can be either float32 or int.
             for (const lNumericType of lNumericTypeList) {
-                if (pType.conversionRankTo(lNumericType) === Number.POSITIVE_INFINITY) {
+                if (pType.conversionRankTo(lNumericType) !== Number.POSITIVE_INFINITY) {
                     return true;
                 }
             }
@@ -275,7 +275,7 @@ export class StructPropertyDeclarationAst extends BaseDeclarationAst<StructPrope
             for (let lDimension: number = 2; lDimension <= 4; lDimension++) {
                 for (const lNumericType of lNumericTypeList) {
                     const lVectorType: BasePgslType = new PgslVectorType(lDimension, lNumericType);
-                    if (pType.conversionRankTo(lVectorType) === Number.POSITIVE_INFINITY) {
+                    if (pType.conversionRankTo(lVectorType) !== Number.POSITIVE_INFINITY) {
                         return true;
                     }
                 }

@@ -1,5 +1,5 @@
 import { EnumUtil } from '@kartoffelgames/core';
-import type { BinaryExpressionCst, LogicalExpressionCst } from '../../../concrete_syntax_tree/expression.type.ts';
+import type { LogicalExpressionCst } from '../../../concrete_syntax_tree/expression.type.ts';
 import { PgslOperator } from '../../../enum/pgsl-operator.enum.ts';
 import { PgslValueAddressSpace } from '../../../enum/pgsl-value-address-space.enum.ts';
 import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
@@ -19,56 +19,12 @@ export class LogicalExpressionAst extends AbstractSyntaxTree<LogicalExpressionCs
      * @param pCst - Cst data.
      */
     protected override onProcess(pContext: AbstractSyntaxTreeContext, pCst: LogicalExpressionCst): LogicalExpressionAstData {
-        // Try to convert operator.
-        let lOperator: PgslOperator | undefined = EnumUtil.cast(PgslOperator, pCst.operator);
-        if (!lOperator) {
-            pContext.pushIncident(`Operator "${pCst.operator}" is not a valid operator.`, this);
-
-            lOperator = PgslOperator.ShortCircuitOr;
-        }
-
-        // Create list of all short circuit operations.
-        const lShortCircuitOperationList: Array<PgslOperator> = [
-            PgslOperator.ShortCircuitOr,
-            PgslOperator.ShortCircuitAnd
-        ];
-
-        // Validate operator usable for logical expressions.
-        if (!lShortCircuitOperationList.includes(lOperator as PgslOperator)) {
-            pContext.pushIncident(`Operator "${pCst.operator}" can not used for logical expressions.`, this);
-        }
-
-        // When some expressions are chained with a logical expression, they need parentheses.
-        const lAllowedChainedOperators: Array<string> = [PgslOperator.ShiftLeft, PgslOperator.ShiftRight, pCst.operator];
-        for (const lExpression of [pCst.left, pCst.right]) {
-            // Chaining restrictions only apply to logical and binary expressions.
-            if(lExpression.type !== 'LogicalExpression' && lExpression.type !== 'BinaryExpression') {
-                continue;
-            }
-
-            const lExpressionsss: LogicalExpressionCst | BinaryExpressionCst = lExpression as LogicalExpressionCst | BinaryExpressionCst;
-
-            // Logical and bit expressions can only be chained if they are shift expressions.
-            if (lAllowedChainedOperators.includes(lExpressionsss.operator)) {
-                continue;
-            }
-
-            pContext.pushIncident(`Mixing operator "${lExpressionsss.operator}" with "${pCst.operator}" requires parentheses.`, this);
-        }
+        // Convert operator.
+        const lOperator: PgslOperator = EnumUtil.cast<PgslOperator>(PgslOperator, pCst.operator, PgslOperator.None);
 
         // Read left and right expression attachments.
         const lLeftExpression: IExpressionAst = ExpressionAstBuilder.build(pCst.left).process(pContext);
         const lRightExpression: IExpressionAst = ExpressionAstBuilder.build(pCst.right).process(pContext);
-
-        // Validate left side type.
-        if (lLeftExpression.data.resolveType.conversionRankTo(new PgslBooleanType()) === Number.POSITIVE_INFINITY) {
-            pContext.pushIncident('Left side of logical expression needs to be a boolean', this);
-        }
-
-        // Validate right side type.
-        if (lRightExpression.data.resolveType.conversionRankTo(new PgslBooleanType()) === Number.POSITIVE_INFINITY) {
-            pContext.pushIncident('Right side of logical expression needs to be a boolean', this);
-        }
 
         return {
             // Expression data.

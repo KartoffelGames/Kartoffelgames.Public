@@ -3,7 +3,6 @@ import { FunctionOverloadDeclarationAstDataParameter } from "../../../../abstrac
 import { IExpressionAst } from "../../../../abstract_syntax_tree/expression/i-expression-ast.interface.ts";
 import { FunctionCallExpressionAst, type FunctionCallExpressionAstData } from '../../../../abstract_syntax_tree/expression/single_value/function-call-expression-ast.ts';
 import { BasePgslType, BasePgslTypeKind } from '../../../../abstract_syntax_tree/type/definition/base-pgsl-type.ts';
-import { PgslGenericType } from "../../../../abstract_syntax_tree/type/definition/pgsl-generic-type.ts";
 import { PgslNumericType } from "../../../../abstract_syntax_tree/type/definition/pgsl-numeric-type.ts";
 import { PgslValidatorProcessor } from '../../../pgsl-validator-processor.ts';
 
@@ -51,13 +50,6 @@ export class FunctionCallExpressionAstValidationProcessor extends PgslValidatorP
             return;
         }
 
-        // Validate that every generic is resolved.
-        for (const [lGenericType, lResolvedGenericType] of pData.generics.resolved) {
-            if (lResolvedGenericType instanceof PgslGenericType) {
-                this.pushIncident(`Generic '${lGenericType.name}' of function '${pData.name}' must be written explicitly.`);
-            }
-        }
-
         // Validate that the function is not an entry point.
         if (pData.overload.data.entryPoint) {
             this.pushIncident(`Entry point function '${pData.name}' can not be called.`);
@@ -82,7 +74,7 @@ export class FunctionCallExpressionAstValidationProcessor extends PgslValidatorP
             if (lResolvedParameterDeclarationType instanceof PgslNumericType && !lResolvedParameterDeclarationType.constantFits(lParameterValue.data.resolveType, lParameterValue.data.constantValue)) {
                 // Read the actual overloads parameter to read the name.
                 const lParameterName: string = pData.overload.data.parameter[lParameterIndex].name;
-                this.pushIncident(`Value ${lParameterValue.data.constantValue} does not fit into '${lParameterName}'s '${lResolvedParameterDeclarationType.meta.typeName}'.`, lParameterValue);
+                this.pushIncident(`Value ${lParameterValue.data.constantValue} of parameter '${lParameterName}' does not fit into '${lResolvedParameterDeclarationType.meta.typeName}'.`, lParameterValue);
             }
         }
 

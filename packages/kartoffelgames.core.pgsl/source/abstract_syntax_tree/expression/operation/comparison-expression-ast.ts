@@ -29,10 +29,15 @@ export class ComparisonExpressionAst extends AbstractSyntaxTree<ComparisonExpres
             lOperator = PgslOperator.Equal;
         }
 
+        // Create list of all comparisons a boolean can compare.
+        const lBooleanComparison: Array<PgslOperator> = [
+            PgslOperator.Equal,
+            PgslOperator.NotEqual
+        ];
+
         // Create list of all comparison operations.
         const lComparisonList: Array<PgslOperator> = [
-            PgslOperator.Equal,
-            PgslOperator.NotEqual,
+            ...lBooleanComparison,
             PgslOperator.LowerThan,
             PgslOperator.LowerThanEqual,
             PgslOperator.GreaterThan,
@@ -78,7 +83,7 @@ export class ComparisonExpressionAst extends AbstractSyntaxTree<ComparisonExpres
         }
 
         // Validate boolean compare.
-        if (![PgslOperator.Equal, PgslOperator.NotEqual].includes(lOperator as PgslOperator) && lValueType instanceof PgslBooleanType) {
+        if (!lBooleanComparison.includes(lOperator as PgslOperator) && lValueType instanceof PgslBooleanType) {
             pContext.pushIncident(`Boolean can only be compares with "NotEqual" or "Equal"`, this);
         }
 

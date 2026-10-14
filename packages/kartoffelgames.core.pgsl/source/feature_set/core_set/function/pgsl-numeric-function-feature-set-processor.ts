@@ -567,21 +567,21 @@ export class PgslNumericFunctionFeatureSetProcessor extends PgslFeatureSetProces
 
         // ldexp
         this.registerDeclaration(this.createFunction(PgslNumericFunctionFeatureSetProcessor.names.ldexp, { constant: true }, [
-            // Scalar
-            this.createOverload({ 'TResult': [...this.floatTypes(), ...this.vectorTypes(this.floatTypes())], }, { 'e1': 'TResult', 'e2': lSignedInteger }, 'TResult'),
-            this.createOverload({ 'TResult': [...this.floatTypes(), ...this.vectorTypes(this.floatTypes())], }, { 'e1': 'TResult', 'e2': lAbstractInteger }, 'TResult'),
+            // Scalar. The exponent is only abstract when the value is abstract.
+            this.createOverload({ 'TResult': this.floatTypes(), }, { 'e1': 'TResult', 'e2': lSignedInteger }, 'TResult'),
+            this.createOverload({}, { 'e1': lAbstractFloat, 'e2': lAbstractInteger }, lAbstractFloat),
 
             // Vector2
-            this.createOverload({ 'TResult': [...this.floatTypes(), ...this.vectorTypes(this.floatTypes())], }, { 'e1': 'TResult', 'e2': this.types.create(PgslVectorType, 2, lSignedInteger) }, 'TResult'),
-            this.createOverload({ 'TResult': [...this.floatTypes(), ...this.vectorTypes(this.floatTypes())], }, { 'e1': 'TResult', 'e2': this.types.create(PgslVectorType, 2, lAbstractInteger) }, 'TResult'),
+            this.createOverload({ 'TResult': this.vectorTypes(this.floatTypes(), [2]), }, { 'e1': 'TResult', 'e2': this.types.create(PgslVectorType, 2, lSignedInteger) }, 'TResult'),
+            this.createOverload({}, { 'e1': this.types.create(PgslVectorType, 2, lAbstractFloat), 'e2': this.types.create(PgslVectorType, 2, lAbstractInteger) }, this.types.create(PgslVectorType, 2, lAbstractFloat)),
 
             // Vector3
-            this.createOverload({ 'TResult': [...this.floatTypes(), ...this.vectorTypes(this.floatTypes())], }, { 'e1': 'TResult', 'e2': this.types.create(PgslVectorType, 3, lSignedInteger) }, 'TResult'),
-            this.createOverload({ 'TResult': [...this.floatTypes(), ...this.vectorTypes(this.floatTypes())], }, { 'e1': 'TResult', 'e2': this.types.create(PgslVectorType, 3, lAbstractInteger) }, 'TResult'),
+            this.createOverload({ 'TResult': this.vectorTypes(this.floatTypes(), [3]), }, { 'e1': 'TResult', 'e2': this.types.create(PgslVectorType, 3, lSignedInteger) }, 'TResult'),
+            this.createOverload({}, { 'e1': this.types.create(PgslVectorType, 3, lAbstractFloat), 'e2': this.types.create(PgslVectorType, 3, lAbstractInteger) }, this.types.create(PgslVectorType, 3, lAbstractFloat)),
 
             // Vector4
-            this.createOverload({ 'TResult': [...this.floatTypes(), ...this.vectorTypes(this.floatTypes())], }, { 'e1': 'TResult', 'e2': this.types.create(PgslVectorType, 4, lSignedInteger) }, 'TResult'),
-            this.createOverload({ 'TResult': [...this.floatTypes(), ...this.vectorTypes(this.floatTypes())], }, { 'e1': 'TResult', 'e2': this.types.create(PgslVectorType, 4, lAbstractInteger) }, 'TResult'),
+            this.createOverload({ 'TResult': this.vectorTypes(this.floatTypes(), [4]), }, { 'e1': 'TResult', 'e2': this.types.create(PgslVectorType, 4, lSignedInteger) }, 'TResult'),
+            this.createOverload({}, { 'e1': this.types.create(PgslVectorType, 4, lAbstractFloat), 'e2': this.types.create(PgslVectorType, 4, lAbstractInteger) }, this.types.create(PgslVectorType, 4, lAbstractFloat)),
         ], (pCall: FunctionCallExpressionAst, pPushIncident) => {
             // Only a constant exponent is limited.
             const lExponentParameter: IExpressionAst | null = pCall.getParameter('e2');

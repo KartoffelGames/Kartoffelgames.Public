@@ -304,6 +304,13 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
                 }
             }
 
+            // Skip this overload when any generic cant be resolved, because either the generic is not explicit set or cant be infered by the set parameters.
+            for (const lGenericType of lFunctionOverload.data.generics) {
+                if (!lStaticGenericTypes.has(lGenericType)) {
+                    continue FUNCTION_OVERLOAD_LOOP;
+                }
+            }
+
             // Keep the best overload match, the overload with the lowest overall conversion rank.
             if (!lBestOverloadMatch || lConversionRank < lBestOverloadMatch.conversionRank) {
                 lBestOverloadMatch = {

@@ -161,12 +161,12 @@ export class PgslParserResult extends PgslParserResultObject {
             }
 
             // Skip all functions without declarations.
-            if (lValue.data.declarations.length < 1) {
+            if (lValue.data.overloads.length < 1) {
                 continue;
             }
 
             // Read first function declaration and check for any entry point data.
-            const lEntryPointTypeDeclaration: FunctionOverloadDeclarationAst = lValue.data.declarations[0];
+            const lEntryPointTypeDeclaration: FunctionOverloadDeclarationAst = lValue.data.overloads[0];
             if (!lEntryPointTypeDeclaration.data.entryPoint) {
                 continue;
             }

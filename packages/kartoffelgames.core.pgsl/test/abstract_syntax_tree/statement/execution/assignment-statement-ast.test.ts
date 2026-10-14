@@ -25,7 +25,7 @@ Deno.test('AssignmentStatementAst - Parsing', async (pContext) => {
 
         // Evaluation. Correct type of statement node.
         const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
         const lAssignmentStatement: AssignmentStatementAst = lFunctionDeclaration.data.block.data.statementList[1] as AssignmentStatementAst;
         expect(lAssignmentStatement).toBeInstanceOf(AssignmentStatementAst);
         expect(lAssignmentStatement.data.assignment).toBe(PgslAssignment.Assignment);
@@ -45,7 +45,7 @@ Deno.test('AssignmentStatementAst - Parsing', async (pContext) => {
 
         // Evaluation. Correct type of statement node.
         const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
         const lAssignmentStatement: AssignmentStatementAst = lFunctionDeclaration.data.block.data.statementList[1] as AssignmentStatementAst;
         expect(lAssignmentStatement).toBeInstanceOf(AssignmentStatementAst);
         expect(lAssignmentStatement.data.assignment).toBe(PgslAssignment.AssignmentPlus);
@@ -65,7 +65,7 @@ Deno.test('AssignmentStatementAst - Parsing', async (pContext) => {
 
         // Evaluation. Correct type of statement node.
         const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
         const lAssignmentStatement: AssignmentStatementAst = lFunctionDeclaration.data.block.data.statementList[1] as AssignmentStatementAst;
         expect(lAssignmentStatement).toBeInstanceOf(AssignmentStatementAst);
         expect(lAssignmentStatement.data.assignment).toBe(PgslAssignment.AssignmentMinus);
@@ -85,7 +85,7 @@ Deno.test('AssignmentStatementAst - Parsing', async (pContext) => {
 
         // Evaluation. Correct type of statement node.
         const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
         const lAssignmentStatement: AssignmentStatementAst = lFunctionDeclaration.data.block.data.statementList[1] as AssignmentStatementAst;
         expect(lAssignmentStatement).toBeInstanceOf(AssignmentStatementAst);
         expect(lAssignmentStatement.data.assignment).toBe(PgslAssignment.AssignmentMultiply);
@@ -105,7 +105,7 @@ Deno.test('AssignmentStatementAst - Parsing', async (pContext) => {
 
         // Evaluation. Correct type of statement node.
         const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
         const lAssignmentStatement: AssignmentStatementAst = lFunctionDeclaration.data.block.data.statementList[1] as AssignmentStatementAst;
         expect(lAssignmentStatement).toBeInstanceOf(AssignmentStatementAst);
         expect(lAssignmentStatement.data.assignment).toBe(PgslAssignment.AssignmentDivide);
@@ -125,7 +125,7 @@ Deno.test('AssignmentStatementAst - Parsing', async (pContext) => {
 
         // Evaluation. Correct type of statement node.
         const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
         const lAssignmentStatement: AssignmentStatementAst = lFunctionDeclaration.data.block.data.statementList[1] as AssignmentStatementAst;
         expect(lAssignmentStatement).toBeInstanceOf(AssignmentStatementAst);
         expect(lAssignmentStatement.data.assignment).toBe(PgslAssignment.AssignmentModulo);
@@ -145,7 +145,7 @@ Deno.test('AssignmentStatementAst - Parsing', async (pContext) => {
 
         // Evaluation. Correct type of statement node.
         const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
         const lAssignmentStatement: AssignmentStatementAst = lFunctionDeclaration.data.block.data.statementList[1] as AssignmentStatementAst;
         expect(lAssignmentStatement).toBeInstanceOf(AssignmentStatementAst);
         expect(lAssignmentStatement.data.assignment).toBe(PgslAssignment.AssignmentBinaryAnd);
@@ -165,7 +165,7 @@ Deno.test('AssignmentStatementAst - Parsing', async (pContext) => {
 
         // Evaluation. Correct type of statement node.
         const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
         const lAssignmentStatement: AssignmentStatementAst = lFunctionDeclaration.data.block.data.statementList[1] as AssignmentStatementAst;
         expect(lAssignmentStatement).toBeInstanceOf(AssignmentStatementAst);
         expect(lAssignmentStatement.data.assignment).toBe(PgslAssignment.AssignmentBinaryOr);
@@ -185,7 +185,7 @@ Deno.test('AssignmentStatementAst - Parsing', async (pContext) => {
 
         // Evaluation. Correct type of statement node.
         const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
         const lAssignmentStatement: AssignmentStatementAst = lFunctionDeclaration.data.block.data.statementList[1] as AssignmentStatementAst;
         expect(lAssignmentStatement).toBeInstanceOf(AssignmentStatementAst);
         expect(lAssignmentStatement.data.assignment).toBe(PgslAssignment.AssignmentBinaryXor);
@@ -205,7 +205,7 @@ Deno.test('AssignmentStatementAst - Parsing', async (pContext) => {
 
         // Evaluation. Correct type of statement node.
         const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
         const lAssignmentStatement: AssignmentStatementAst = lFunctionDeclaration.data.block.data.statementList[1] as AssignmentStatementAst;
         expect(lAssignmentStatement).toBeInstanceOf(AssignmentStatementAst);
         expect(lAssignmentStatement.data.assignment).toBe(PgslAssignment.AssignmentShiftRight);
@@ -225,7 +225,7 @@ Deno.test('AssignmentStatementAst - Parsing', async (pContext) => {
 
         // Evaluation. Correct type of statement node.
         const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
         const lAssignmentStatement: AssignmentStatementAst = lFunctionDeclaration.data.block.data.statementList[1] as AssignmentStatementAst;
         expect(lAssignmentStatement).toBeInstanceOf(AssignmentStatementAst);
         expect(lAssignmentStatement.data.assignment).toBe(PgslAssignment.AssignmentShiftLeft);

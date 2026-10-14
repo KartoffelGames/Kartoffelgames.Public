@@ -31,7 +31,7 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
 
             // Evaluation. Read parsed nodes.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
             const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[0] as VariableDeclarationStatementAst;
 
             // Evaluation. Correct type of expression node.
@@ -68,7 +68,7 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
 
             // Evaluation. Read parsed nodes.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
             const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[0] as VariableDeclarationStatementAst;
 
             // Evaluation. Correct type of expression node.
@@ -99,7 +99,7 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
 
             // Evaluation. Read parsed nodes.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
             const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[2] as VariableDeclarationStatementAst;
 
             // Evaluation. Correct type of expression node.
@@ -131,7 +131,7 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
 
             // Evaluation. Read parsed nodes.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
             const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[2] as VariableDeclarationStatementAst;
 
             // Evaluation. Correct type of expression node.
@@ -159,7 +159,7 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
 
             // Evaluation. Read parsed nodes.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
             const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[0] as VariableDeclarationStatementAst;
 
             // Evaluation. Correct type of expression node.
@@ -188,7 +188,7 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
 
             // Evaluation. Read parsed nodes.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
             const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[0] as VariableDeclarationStatementAst;
 
             // Evaluation. Correct type of expression node.
@@ -219,7 +219,7 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
 
             // Evaluation. Read parsed nodes.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
             const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[2] as VariableDeclarationStatementAst;
 
             // Evaluation. Correct type of expression node.
@@ -250,7 +250,7 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
 
             // Evaluation. Read parsed nodes.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
             const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[2] as VariableDeclarationStatementAst;
 
             // Evaluation. Correct type of expression node.
@@ -278,7 +278,7 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
 
             // Evaluation. Read parsed nodes.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
             const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[0] as VariableDeclarationStatementAst;
 
             // Evaluation. Correct type of expression node.
@@ -307,7 +307,7 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
 
             // Evaluation. Read parsed nodes.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
             const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[0] as VariableDeclarationStatementAst;
 
             // Evaluation. Correct type of expression node.
@@ -338,7 +338,7 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
 
             // Evaluation. Read parsed nodes.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
             const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[2] as VariableDeclarationStatementAst;
 
             // Evaluation. Correct type of expression node.
@@ -369,7 +369,7 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
 
             // Evaluation. Read parsed nodes.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
             const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[2] as VariableDeclarationStatementAst;
 
             // Evaluation. Correct type of expression node.
@@ -401,7 +401,7 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
 
             // Evaluation. Read parsed nodes.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
             const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[2] as VariableDeclarationStatementAst;
 
             // Evaluation. Correct type of expression node.
@@ -429,7 +429,7 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
 
             // Evaluation. Read parsed nodes.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
             const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[2] as VariableDeclarationStatementAst;
 
             // Evaluation. Correct type of expression node.
@@ -457,7 +457,7 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
 
             // Evaluation. Read parsed nodes.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
             const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[2] as VariableDeclarationStatementAst;
 
             // Evaluation. Correct type of expression node.
@@ -485,7 +485,7 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
 
             // Evaluation. Read parsed nodes.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
             const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[2] as VariableDeclarationStatementAst;
 
             // Evaluation. Correct type of expression node.
@@ -513,7 +513,7 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
 
             // Evaluation. Read parsed nodes.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
             const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[0] as VariableDeclarationStatementAst;
 
             // Evaluation. Correct type of expression node.
@@ -542,7 +542,7 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
 
             // Evaluation. Read parsed nodes.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
             const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[0] as VariableDeclarationStatementAst;
 
             // Evaluation. Correct type of expression node.
@@ -573,7 +573,7 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
 
             // Evaluation. Read parsed nodes.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
             const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[2] as VariableDeclarationStatementAst;
 
             // Evaluation. Correct type of expression node.
@@ -604,7 +604,7 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
 
             // Evaluation. Read parsed nodes.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
             const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[2] as VariableDeclarationStatementAst;
 
             // Evaluation. Correct type of expression node.
@@ -632,7 +632,7 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
 
             // Evaluation. Read parsed nodes.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
             const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[0] as VariableDeclarationStatementAst;
 
             // Evaluation. Correct type of expression node.
@@ -661,7 +661,7 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
 
             // Evaluation. Read parsed nodes.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
             const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[0] as VariableDeclarationStatementAst;
 
             // Evaluation. Correct type of expression node.
@@ -692,7 +692,7 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
 
             // Evaluation. Read parsed nodes.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
             const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[2] as VariableDeclarationStatementAst;
 
             // Evaluation. Correct type of expression node.
@@ -723,7 +723,7 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
 
             // Evaluation. Read parsed nodes.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
             const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[2] as VariableDeclarationStatementAst;
 
             // Evaluation. Correct type of expression node.
@@ -752,7 +752,7 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
 
             // Evaluation. Read parsed nodes.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
             const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[0] as VariableDeclarationStatementAst;
 
             // Evaluation. Addition is the outer expression.
@@ -785,7 +785,7 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
 
             // Evaluation. Read parsed nodes.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
             const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[0] as VariableDeclarationStatementAst;
 
             // Evaluation. Last subtraction is the outer expression.
@@ -819,7 +819,7 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
 
             // Evaluation. Read parsed nodes.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
             const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[0] as VariableDeclarationStatementAst;
 
             // Evaluation. Integer converts to the float.
@@ -843,7 +843,7 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
 
             // Evaluation. Read parsed nodes.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
             const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[1] as VariableDeclarationStatementAst;
 
             // Evaluation. Abstract integer converts to the concrete integer.
@@ -866,7 +866,7 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
 
             // Evaluation. Read parsed nodes.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
             const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[0] as VariableDeclarationStatementAst;
 
             // Evaluation. Vector components convert to the float.
@@ -892,7 +892,7 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
 
             // Evaluation. Read parsed nodes.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
             const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[2] as VariableDeclarationStatementAst;
 
             // Evaluation. Result has the right columns and the left rows.

@@ -25,7 +25,7 @@ Deno.test('ReturnStatementAst - Parsing', async (pContext) => {
 
             // Evaluation. Correct type of statement node.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
             const lReturnStatement: ReturnStatementAst = lFunctionDeclaration.data.block.data.statementList[0] as ReturnStatementAst;
             expect(lReturnStatement).toBeInstanceOf(ReturnStatementAst);
 
@@ -48,7 +48,7 @@ Deno.test('ReturnStatementAst - Parsing', async (pContext) => {
 
             // Evaluation. Correct type of statement node.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
             const lReturnStatement: ReturnStatementAst = lFunctionDeclaration.data.block.data.statementList[1] as ReturnStatementAst;
             expect(lReturnStatement).toBeInstanceOf(ReturnStatementAst);
 
@@ -71,7 +71,7 @@ Deno.test('ReturnStatementAst - Parsing', async (pContext) => {
 
         // Evaluation. Correct type of statement node.
         const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
         const lReturnStatement: ReturnStatementAst = lFunctionDeclaration.data.block.data.statementList[0] as ReturnStatementAst;
         expect(lReturnStatement).toBeInstanceOf(ReturnStatementAst);
 

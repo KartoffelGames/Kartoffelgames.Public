@@ -135,6 +135,47 @@ export class PgslNumericType extends BasePgslType {
         // Any other numeric types must be a registered automatic conversion.
         return PgslNumericType.CONVERSION_RANKS.get(this.numericTypeName)?.get(pTarget.numericTypeName) ?? Number.POSITIVE_INFINITY;
     }
+
+    /**
+     * Check if a constant fits into this type.
+     * Floats into integers get clamped. 
+     * But integer to integer and float into float does check for overflows.
+     * 
+     * @param pConstantType - Type of the constant.
+     * @param pConstantValue - Value of the constant.
+     * 
+     * @returns true if it fits, false otherwise. 
+     */
+    public constantFits(pConstantType: BasePgslType, pConstantValue: number) {
+        // Validate that constant int values does not overflow. 
+        if (this.numericTypeName === PgslNumericType.typeName.signedInteger) {
+            // Only a int should be validated, a float gets clamped into a valid range.
+            if (!pConstantType.isKind(BasePgslTypeKind.Integer)) {
+                return true;
+            }
+
+            return pConstantValue >= -Math.pow(2, 31) && pConstantValue <= Math.pow(2, 31) - 1;
+        }
+        if (this.numericTypeName === PgslNumericType.typeName.unsignedInteger) {
+            // Only a int should be validated, a float gets clamped into a valid range.
+            if (!pConstantType.isKind(BasePgslTypeKind.Integer)) {
+                return true;
+            }
+
+            return pConstantValue >= 0 && pConstantValue <= Math.pow(2, 32) - 1;
+        }
+
+        // Validate that constant float values does not overflow. 
+        if (this.numericTypeName === PgslNumericType.typeName.float32) {
+            return Math.abs(pConstantValue) <= Math.pow(2, 128) - Math.pow(2, 104);
+        }
+        if (this.numericTypeName === PgslNumericType.typeName.float16) {
+            return Math.abs(pConstantValue) <= Math.pow(2, 16) - Math.pow(2, 5);
+        }
+
+        // Anything else has no restriction.
+        return true;
+    }
 }
 
 /**

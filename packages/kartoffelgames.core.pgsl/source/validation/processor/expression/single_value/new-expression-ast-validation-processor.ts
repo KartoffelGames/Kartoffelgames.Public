@@ -5,6 +5,7 @@ import { PgslArrayType } from '../../../../abstract_syntax_tree/type/definition/
 import { PgslMatrixType } from '../../../../abstract_syntax_tree/type/definition/pgsl-matrix-type.ts';
 import { PgslVectorType } from '../../../../abstract_syntax_tree/type/definition/pgsl-vector-type.ts';
 import { PgslValidatorProcessor } from '../../../pgsl-validator-processor.ts';
+import { PgslNumericType } from "../../../../abstract_syntax_tree/type/definition/pgsl-numeric-type.ts";
 
 /**
  * Validation processor of NewExpressionAst.
@@ -122,39 +123,13 @@ export class NewExpressionAstValidationProcessor extends PgslValidatorProcessor<
                 continue;
             }
 
+            // Parameters must be numberic to be checkled.
+            if (!(pData.returnTypeItem instanceof PgslNumericType)) {
+                continue;
+            }
+
             // Check the value against the range of the item type.
-            const lValueFits: boolean = (() => {
-                // Validate that constant int values does not overflow. 
-                if (pData.returnTypeItem.isKind(BasePgslTypeKind.SignedInteger)) {
-                    // Only a int should be validated, a float gets clamped into a valid range.
-                    if (!lParameterType.isKind(BasePgslTypeKind.Integer)) {
-                        return true;
-                    }
-
-                    return lConstantValue >= -Math.pow(2, 31) && lConstantValue <= Math.pow(2, 31) - 1;
-                }
-                if (pData.returnTypeItem.isKind(BasePgslTypeKind.UnsignedInteger)) {
-                    // Only a int should be validated, a float gets clamped into a valid range.
-                    if (!lParameterType.isKind(BasePgslTypeKind.Integer)) {
-                        return true;
-                    }
-
-                    return lConstantValue >= 0 && lConstantValue <= Math.pow(2, 32) - 1;
-                }
-
-                // Validate that constant float values does not overflow. 
-                if (pData.returnTypeItem.isKind(BasePgslTypeKind.Float32)) {
-                    return Math.abs(lConstantValue) <= Math.pow(2, 128) - Math.pow(2, 104);
-                }
-                if (pData.returnTypeItem.isKind(BasePgslTypeKind.Float16)) {
-                    return Math.abs(lConstantValue) <= Math.pow(2, 16) - Math.pow(2, 5);
-                }
-
-                // Anything else has no restriction.
-                return true;
-            })();
-
-            if (!lValueFits) {
+            if (!pData.returnTypeItem.constantFits(lParameterType, lConstantValue)) {
                 this.pushIncident(`Value ${lConstantValue} does not fit into '${pData.returnTypeItem.meta.typeName}'.`, lParameter);
             }
         }

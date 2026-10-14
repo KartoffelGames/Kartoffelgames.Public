@@ -29,7 +29,7 @@ Deno.test('ContinueStatementAst - Parsing', async (pContext) => {
 
             // Evaluation. Correct type of statement node.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
             const lWhileStatement: WhileStatementAst = lFunctionDeclaration.data.block.data.statementList[0] as WhileStatementAst;
             const lContinueStatement: ContinueStatementAst = lWhileStatement.data.block.data.statementList[0] as ContinueStatementAst;
             expect(lContinueStatement).toBeInstanceOf(ContinueStatementAst);
@@ -50,7 +50,7 @@ Deno.test('ContinueStatementAst - Parsing', async (pContext) => {
 
             // Evaluation. Correct type of statement node.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
             const lForWhileStatement: ForStatementAst = lFunctionDeclaration.data.block.data.statementList[0] as ForStatementAst;
             const lContinueStatement: ContinueStatementAst = lForWhileStatement.data.block.data.statementList[0] as ContinueStatementAst;
             expect(lContinueStatement).toBeInstanceOf(ContinueStatementAst);
@@ -71,7 +71,7 @@ Deno.test('ContinueStatementAst - Parsing', async (pContext) => {
 
             // Evaluation. Correct type of statement node.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
             const lDoWhileStatement: DoWhileStatementAst = lFunctionDeclaration.data.block.data.statementList[0] as DoWhileStatementAst;
             const lContinueStatement: ContinueStatementAst = lDoWhileStatement.data.block.data.statementList[0] as ContinueStatementAst;
             expect(lContinueStatement).toBeInstanceOf(ContinueStatementAst);

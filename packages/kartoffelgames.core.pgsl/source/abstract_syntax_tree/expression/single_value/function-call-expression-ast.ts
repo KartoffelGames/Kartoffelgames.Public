@@ -35,7 +35,7 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
             return null;
         }
 
-        return this.data.parameters[lParameterIndex] ?? null;
+        return this.data.parameters.values[lParameterIndex] ?? null;
     }
 
     /**
@@ -65,7 +65,10 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
             return {
                 // Expression data.
                 name: pCst.functionName,
-                parameters: lParameterList,
+                parameters: {
+                    values: lParameterList,
+                    types: new Array<BasePgslType>()
+                },
                 generics: {
                     explicit: lGenericList,
                     resolved: new Map<PgslGenericType, BasePgslType>()
@@ -104,48 +107,81 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
             return lFixedState;
         })();
 
-        // Try to match function header.
-        const lMatchedFunctionHeader: FunctionOverloadMatchResult | null = this.matchFunctionHeader(lFunctionDeclaration, lGenericList, lParameterList);
+        // Try to match function overload.
+        const lMatchedFunctionOverload: FunctionOverloadMatchResult | null = this.matchFunctionOverload(lFunctionDeclaration, lGenericList, lParameterList);
+        if (!lMatchedFunctionOverload) {
+            return {
+                // Expression data.
+                name: pCst.functionName,
+                parameters: {
+                    values: lParameterList,
+                    types: new Array<BasePgslType>()
+                },
+                generics: {
+                    explicit: lGenericList,
+                    resolved: new Map<PgslGenericType, BasePgslType>()
+                },
 
-        // Get the return type from the matched function header.
+                // Function signature.
+                declaration: lFunctionDeclaration,
+                overload: null,
+
+                // Expression meta data.
+                fixedState: lFixedState,
+                isStorage: false,
+                resolveType: pContext.types.create(PgslInvalidType),
+                constantValue: null,
+                storageAddressSpace: PgslValueAddressSpace.Inherit
+            };
+        }
+
+        // Get the return type from the matched function overload.
         const lReturnType: BasePgslType = (() => {
-            if (!lMatchedFunctionHeader) {
-                return new PgslInvalidType();
-            }
-
-            const lPossibleGenericResultType: BasePgslType = lMatchedFunctionHeader.overload.data.returnType.data.type;
-            if (!lMatchedFunctionHeader.genericTypes.has(lPossibleGenericResultType as PgslGenericType)) { // It is no a generic but so we check if its a generic.
+            const lPossibleGenericResultType: BasePgslType = lMatchedFunctionOverload.overload.data.returnType.data.type;
+            if (!lMatchedFunctionOverload.genericTypes.has(lPossibleGenericResultType as PgslGenericType)) { // It is no a generic but so we check if its a generic.
                 return lPossibleGenericResultType;
             }
 
-            return lMatchedFunctionHeader.genericTypes.get(lPossibleGenericResultType as PgslGenericType)!;
+            return lMatchedFunctionOverload.genericTypes.get(lPossibleGenericResultType as PgslGenericType)!;
         })();
 
-        // For any used pointer type, try to assign its expression address space is correct.
-        if (lMatchedFunctionHeader) {
-            for (let lParameterIndex = 0; lParameterIndex < lMatchedFunctionHeader.overload.data.parameter.length; lParameterIndex++) {
-                const lParameterType: BasePgslType = lMatchedFunctionHeader.overload.data.parameter[lParameterIndex].type.data.type;;
+        // Resolve all overloads parameter types to its resolved type.
+        const lResolvedParameterTypes: Array<BasePgslType> = lMatchedFunctionOverload.overload.data.parameter.map((pParameter) => {
+            // Resolve generic parameter if its a resolved generic.
+            if (lMatchedFunctionOverload.genericTypes.has(pParameter.type.data.type as PgslGenericType)) {
+                return lMatchedFunctionOverload.genericTypes.get(pParameter.type.data.type as PgslGenericType)!;
+            }
 
-                // Assign address space to pointer types.
-                if (lParameterType instanceof PgslPointerType) {
-                    const lParameterExpressionAddressSpace: PgslValueAddressSpace = lParameterList[lParameterIndex].data.storageAddressSpace;
-                    lParameterType.assignAddressSpace(lParameterExpressionAddressSpace, pContext);
-                }
+            return pParameter.type.data.type;
+        });
+
+        // TODO: should be removed some time.
+        // For any used pointer type, try to assign its expression address space is correct. 
+        for (let lParameterIndex = 0; lParameterIndex < lMatchedFunctionOverload.overload.data.parameter.length; lParameterIndex++) {
+            const lParameterType: BasePgslType = lMatchedFunctionOverload.overload.data.parameter[lParameterIndex].type.data.type;;
+
+            // Assign address space to pointer types.
+            if (lParameterType instanceof PgslPointerType) {
+                const lParameterExpressionAddressSpace: PgslValueAddressSpace = lParameterList[lParameterIndex].data.storageAddressSpace;
+                lParameterType.assignAddressSpace(lParameterExpressionAddressSpace, pContext);
             }
         }
 
         return {
             // Expression data.
             name: pCst.functionName,
-            parameters: lParameterList,
+            parameters: {
+                values: lParameterList,
+                types: lResolvedParameterTypes
+            },
             generics: {
                 explicit: lGenericList,
-                resolved: lMatchedFunctionHeader?.genericTypes ?? new Map<PgslGenericType, BasePgslType>()
+                resolved: lMatchedFunctionOverload.genericTypes
             },
 
             // Function signature.
             declaration: lFunctionDeclaration,
-            overload: lMatchedFunctionHeader?.overload ?? null,
+            overload: lMatchedFunctionOverload?.overload ?? null,
 
             // Expression meta data.
             fixedState: lFixedState,
@@ -157,44 +193,44 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
     }
 
     /**
-     * Match function declaration headers against provided generics and parameters.
+     * Match function declaration overloads against provided generics and parameters.
      *
      * @param pFunctionDeclaration - Function declaation of call.
      * @param pGenericList - Generic types used for this call.
      * @param pParameterList - Parameter expressions used for this call.
      *
-     * @returns Best matching function header and infered generics or null when no match is found.
+     * @returns Best matching function overloads and infered generics or null when no match is found.
      */
-    private matchFunctionHeader(pFunctionDeclaration: FunctionDeclarationAst, pGenericList: Array<TypeDeclarationAst>, pParameterList: Array<IExpressionAst>): FunctionOverloadMatchResult | null {
+    private matchFunctionOverload(pFunctionDeclaration: FunctionDeclarationAst, pGenericList: Array<TypeDeclarationAst>, pParameterList: Array<IExpressionAst>): FunctionOverloadMatchResult | null {
         let lBestOverloadMatch: FunctionOverloadMatchResult | null = null;
 
-        // Check each function header for a match and keep the best one.
-        FUNCTION_HEADER_LOOP: for (const lFunctionHeader of pFunctionDeclaration.data.declarations) {
+        // Check each function overload for a match and keep the best one.
+        FUNCTION_OVERLOAD_LOOP: for (const lFunctionOverload of pFunctionDeclaration.data.overloads) {
             // Parameter count needs to match.
-            if (lFunctionHeader.data.parameter.length !== pParameterList.length) {
+            if (lFunctionOverload.data.parameter.length !== pParameterList.length) {
                 continue;
             }
 
             // When any generic is provided, the generics cant be inferred so their count needs to match.
-            if (pGenericList.length > 0 && lFunctionHeader.data.generics.length !== pGenericList.length) {
+            if (pGenericList.length > 0 && lFunctionOverload.data.generics.length !== pGenericList.length) {
                 continue;
             }
 
-            // Build generic restrictions map from header definition.
+            // Build generic restrictions map from overload definition.
             const lGenericRestrictions: Map<string, PgslGenericType> = new Map<string, PgslGenericType>();
-            for (const lGeneric of lFunctionHeader.data.generics) {
+            for (const lGeneric of lFunctionOverload.data.generics) {
                 lGenericRestrictions.set(lGeneric.name, lGeneric);
             }
 
             // Map and validate static provided generic types.
             const lStaticGenericTypes: Map<PgslGenericType, BasePgslType> = new Map<PgslGenericType, BasePgslType>();
             for (let lGenericIndex = 0; lGenericIndex < pGenericList.length; lGenericIndex++) {
-                const lGenericType: PgslGenericType = lFunctionHeader.data.generics[lGenericIndex];
+                const lGenericType: PgslGenericType = lFunctionOverload.data.generics[lGenericIndex];
                 const lExplicitGenericType: BasePgslType = pGenericList[lGenericIndex].data.type;
 
                 // Skip this overload when the explicit generic can not be used for the generic restriction.
                 if (!lGenericType.accepts(lExplicitGenericType)) {
-                    continue FUNCTION_HEADER_LOOP;
+                    continue FUNCTION_OVERLOAD_LOOP;
                 }
 
                 lStaticGenericTypes.set(lGenericType, lExplicitGenericType);
@@ -206,20 +242,20 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
             // Sum of every conversion ranks of every parameter and generic used.
             let lConversionRank: number = 0;
 
-            // Validate each parameter against the function header.
+            // Validate each parameter against the function overload.
             for (let lParameterIndex = 0; lParameterIndex < pParameterList.length; lParameterIndex++) {
                 const lParameterExpression: IExpressionAst = pParameterList[lParameterIndex];
                 const lParameterExpressionType: BasePgslType = lParameterExpression.data.resolveType;
 
-                // The parameter count of the header and used parameters is matched so the FunctionHeader.parameter should be never null.
-                const lParameterDeclaration: FunctionOverloadDeclarationAstDataParameter = lFunctionHeader.data.parameter[lParameterIndex];
+                // The parameter count of the overload and used parameters is matched so the FunctionOverload.parameter should be never null.
+                const lParameterDeclaration: FunctionOverloadDeclarationAstDataParameter = lFunctionOverload.data.parameter[lParameterIndex];
                 const lParameterDeclarationType: BasePgslType = lParameterDeclaration.type.data.type;
 
                 // Non-generic parameter: check implicit cast compatibility directly.
                 if (!(lParameterDeclarationType instanceof PgslGenericType)) {
                     const lParameterConversionRank: number = lParameterExpressionType.conversionRankTo(lParameterDeclarationType);
                     if (lParameterConversionRank === Number.POSITIVE_INFINITY) {
-                        continue FUNCTION_HEADER_LOOP;
+                        continue FUNCTION_OVERLOAD_LOOP;
                     }
 
                     lConversionRank += lParameterConversionRank;
@@ -233,7 +269,7 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
                     // Get the convertion rank between the resolved static and the current parameter. Skip when it cant be converted.
                     const lParameterConversionRank: number = lParameterExpressionType.conversionRankTo(lStaticGenericTypes.get(lParameterDeclarationType)!);
                     if (lParameterConversionRank === Number.POSITIVE_INFINITY) {
-                        continue FUNCTION_HEADER_LOOP;
+                        continue FUNCTION_OVERLOAD_LOOP;
                     }
 
                     lConversionRank += lParameterConversionRank;
@@ -242,7 +278,7 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
 
                 // Validate parameter type satisfies the generic restrictions.
                 if (!lParameterDeclarationType.accepts(lParameterExpressionType)) {
-                    continue FUNCTION_HEADER_LOOP;
+                    continue FUNCTION_OVERLOAD_LOOP;
                 }
 
                 // Collect candidate type for generic inference.
@@ -256,7 +292,7 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
             for (const [lGenericType, lCandidates] of lGenericCandidates) {
                 const lResolvedType: BasePgslType | null = this.resolveStrictestType(lCandidates);
                 if (!lResolvedType) {
-                    continue FUNCTION_HEADER_LOOP;
+                    continue FUNCTION_OVERLOAD_LOOP;
                 }
 
                 lStaticGenericTypes.set(lGenericType, lResolvedType);
@@ -271,7 +307,7 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
             // Keep the best overload match, the overload with the lowest overall conversion rank.
             if (!lBestOverloadMatch || lConversionRank < lBestOverloadMatch.conversionRank) {
                 lBestOverloadMatch = {
-                    overload: lFunctionHeader,
+                    overload: lFunctionOverload,
                     genericTypes: lStaticGenericTypes,
                     conversionRank: lConversionRank
                 };
@@ -318,7 +354,10 @@ type FunctionOverloadMatchResult = {
 
 export type FunctionCallExpressionAstData = {
     name: string;
-    parameters: Array<IExpressionAst>;
+    parameters: {
+        values: Array<IExpressionAst>;
+        types: Array<BasePgslType>;
+    };
     generics: {
         explicit: Array<TypeDeclarationAst>;
         resolved: Map<PgslGenericType, BasePgslType>;

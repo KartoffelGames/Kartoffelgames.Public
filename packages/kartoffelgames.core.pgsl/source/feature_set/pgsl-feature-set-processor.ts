@@ -143,7 +143,7 @@ export abstract class PgslFeatureSetProcessor {
             isConstant: pOptions.constant ?? false,
             explicitGenerics: pOptions.explicitGenerics ?? false,
             validator: pValidator ?? null,
-            declarations: lOverloads
+            overloads: lOverloads
         });
     }
 

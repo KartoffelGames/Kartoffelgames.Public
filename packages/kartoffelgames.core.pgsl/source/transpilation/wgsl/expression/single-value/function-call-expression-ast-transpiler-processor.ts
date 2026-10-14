@@ -23,6 +23,6 @@ export class FunctionCallExpressionAstTranspilerProcessor extends TranspilerProc
             lGenerics = `<${pInstance.data.generics.explicit.map(pGeneric => this.transpileAst(pGeneric)).join(',')}>`;
         }
 
-        return `${pInstance.data.name}${lGenerics}(${pInstance.data.parameters.map(pParam => this.transpileAst(pParam)).join(',')})`;
+        return `${pInstance.data.name}${lGenerics}(${pInstance.data.parameters.values.map(pParam => this.transpileAst(pParam)).join(',')})`;
     }
 }

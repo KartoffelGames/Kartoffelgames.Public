@@ -24,7 +24,7 @@ Deno.test('ForStatementAst - Parsing', async (pContext) => {
 
         // Evaluation. Correct type of statement node.
         const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
         const lForStatement: ForStatementAst = lFunctionDeclaration.data.block.data.statementList[0] as ForStatementAst;
         expect(lForStatement).toBeInstanceOf(ForStatementAst);
         expect(lForStatement.data.init).not.toBeNull();
@@ -46,7 +46,7 @@ Deno.test('ForStatementAst - Parsing', async (pContext) => {
 
         // Evaluation. Correct type of statement node.
         const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
         const lForStatement: ForStatementAst = lFunctionDeclaration.data.block.data.statementList[0] as ForStatementAst;
         expect(lForStatement).toBeInstanceOf(ForStatementAst);
         expect(lForStatement.data.init).toBeNull();
@@ -68,7 +68,7 @@ Deno.test('ForStatementAst - Parsing', async (pContext) => {
 
         // Evaluation. Correct type of statement node.
         const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
         const lForStatement: ForStatementAst = lFunctionDeclaration.data.block.data.statementList[0] as ForStatementAst;
         expect(lForStatement).toBeInstanceOf(ForStatementAst);
         expect(lForStatement.data.init).not.toBeNull();
@@ -90,7 +90,7 @@ Deno.test('ForStatementAst - Parsing', async (pContext) => {
 
         // Evaluation. Correct type of statement node.
         const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
         const lForStatement: ForStatementAst = lFunctionDeclaration.data.block.data.statementList[0] as ForStatementAst;
         expect(lForStatement).toBeInstanceOf(ForStatementAst);
         expect(lForStatement.data.init).not.toBeNull();

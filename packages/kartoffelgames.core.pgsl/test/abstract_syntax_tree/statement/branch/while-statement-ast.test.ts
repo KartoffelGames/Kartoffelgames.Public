@@ -24,7 +24,7 @@ Deno.test('WhileStatementAst - Parsing', async (pContext) => {
 
         // Evaluation. Correct type of statement node.
         const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
         const lWhileStatement: WhileStatementAst = lFunctionDeclaration.data.block.data.statementList[0] as WhileStatementAst;
         expect(lWhileStatement).toBeInstanceOf(WhileStatementAst);
     });
@@ -44,7 +44,7 @@ Deno.test('WhileStatementAst - Parsing', async (pContext) => {
 
         // Evaluation. Correct type of statement node.
         const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
         const lWhileStatement: WhileStatementAst = lFunctionDeclaration.data.block.data.statementList[1] as WhileStatementAst;
         expect(lWhileStatement).toBeInstanceOf(WhileStatementAst);
     });
@@ -63,7 +63,7 @@ Deno.test('WhileStatementAst - Parsing', async (pContext) => {
 
         // Evaluation. Correct type of statement node.
         const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
         const lWhileStatement: WhileStatementAst = lFunctionDeclaration.data.block.data.statementList[0] as WhileStatementAst;
         expect(lWhileStatement).toBeInstanceOf(WhileStatementAst);
     });

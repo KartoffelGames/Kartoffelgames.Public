@@ -34,7 +34,7 @@ Deno.test('IndexedValueExpressionAst - Parsing', async (pContext) => {
 
         // Evaluation. Read parsed nodes.
         const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
         const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[1] as VariableDeclarationStatementAst;
 
         // Evaluation. Correct type of child node.
@@ -72,7 +72,7 @@ Deno.test('IndexedValueExpressionAst - Parsing', async (pContext) => {
 
         // Evaluation. Read parsed nodes.
         const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
         const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[1] as VariableDeclarationStatementAst;
 
         // Evaluation. Correct type of child node.
@@ -111,7 +111,7 @@ Deno.test('IndexedValueExpressionAst - Parsing', async (pContext) => {
 
             // Evaluation. Read parsed nodes.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
             const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[1] as VariableDeclarationStatementAst;
 
             // Evaluation. Correct type of child node.
@@ -149,7 +149,7 @@ Deno.test('IndexedValueExpressionAst - Parsing', async (pContext) => {
 
             // Evaluation. Read parsed nodes.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
             const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[1] as VariableDeclarationStatementAst;
 
             // Evaluation. Correct type of child node.
@@ -192,7 +192,7 @@ Deno.test('IndexedValueExpressionAst - Parsing', async (pContext) => {
 
             // Evaluation. Read parsed nodes.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[1] as FunctionDeclarationAst;
-            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
             const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[1] as VariableDeclarationStatementAst;
 
             // Evaluation. Index wraps the property access, not the other way around.
@@ -230,7 +230,7 @@ Deno.test('IndexedValueExpressionAst - Parsing', async (pContext) => {
 
             // Evaluation. Read parsed nodes.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[2] as FunctionDeclarationAst;
-            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
             const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[1] as VariableDeclarationStatementAst;
 
             // Evaluation. Suffixes nest left to right: ((testStruct.propertyOne).nestedProperty)[0].
@@ -264,7 +264,7 @@ Deno.test('IndexedValueExpressionAst - Parsing', async (pContext) => {
 
             // Evaluation. Read parsed nodes.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[1] as FunctionDeclarationAst;
-            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
             const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[0] as VariableDeclarationStatementAst;
 
             // Evaluation. A call result can be indexed directly.

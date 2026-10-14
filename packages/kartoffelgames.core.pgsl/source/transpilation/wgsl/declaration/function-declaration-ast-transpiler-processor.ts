@@ -23,12 +23,12 @@ export class FunctionDeclarationAstTranspilerProcessor extends TranspilerProcess
      * @returns Transpiled string.
      */
     protected override onProcess(pInstance: FunctionDeclarationAst): string {
-        if (pInstance.data.declarations.length !== 1) {
-            throw new Exception(`Unable to transpile function "${pInstance.data.name}" with ${pInstance.data.declarations.length} heads.`, this);
+        if (pInstance.data.overloads.length !== 1) {
+            throw new Exception(`Unable to transpile function "${pInstance.data.name}" with ${pInstance.data.overloads.length} heads.`, this);
         }
 
         // Use first declaration only for transpilation.
-        const lSoleHeader: FunctionOverloadDeclarationAst = pInstance.data.declarations[0];
+        const lSoleHeader: FunctionOverloadDeclarationAst = pInstance.data.overloads[0];
         if (typeof lSoleHeader.data.returnType === 'string') {
             throw new Exception(`Unable to transpile function "${pInstance.data.name}" with generic return type.`, this);
         }

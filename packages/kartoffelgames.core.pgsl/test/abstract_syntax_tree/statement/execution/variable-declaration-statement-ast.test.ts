@@ -24,7 +24,7 @@ Deno.test('VariableDeclarationStatementAst - Parsing', async (pContext) => {
 
         // Evaluation. Correct type of statement node.
         const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
         const lVariableDeclaration: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[0] as VariableDeclarationStatementAst;
         expect(lVariableDeclaration).toBeInstanceOf(VariableDeclarationStatementAst);
         expect(lVariableDeclaration.data.fixedState).toBe(PgslValueFixedState.Variable);
@@ -43,7 +43,7 @@ Deno.test('VariableDeclarationStatementAst - Parsing', async (pContext) => {
 
         // Evaluation. Correct type of statement node.
         const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
         const lVariableDeclaration: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[0] as VariableDeclarationStatementAst;
         expect(lVariableDeclaration).toBeInstanceOf(VariableDeclarationStatementAst);
         expect(lVariableDeclaration.data.fixedState).toBe(PgslValueFixedState.Variable);
@@ -63,7 +63,7 @@ Deno.test('VariableDeclarationStatementAst - Parsing', async (pContext) => {
 
         // Evaluation. Correct type of statement node.
         const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
         const lVariableDeclaration: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[1] as VariableDeclarationStatementAst;
         expect(lVariableDeclaration).toBeInstanceOf(VariableDeclarationStatementAst);
         expect(lVariableDeclaration.data.fixedState).toBe(PgslValueFixedState.ScopeFixed);
@@ -82,7 +82,7 @@ Deno.test('VariableDeclarationStatementAst - Parsing', async (pContext) => {
 
         // Evaluation. Correct type of statement node.
         const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
         const lVariableDeclaration: VariableDeclarationStatementAst = lFunctionDeclaration.data.block.data.statementList[0] as VariableDeclarationStatementAst;
         expect(lVariableDeclaration).toBeInstanceOf(VariableDeclarationStatementAst);
         expect(lVariableDeclaration.data.fixedState).toBe(PgslValueFixedState.Constant);

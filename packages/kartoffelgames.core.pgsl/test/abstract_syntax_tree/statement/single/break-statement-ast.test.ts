@@ -30,7 +30,7 @@ Deno.test('BreakStatementAst - Parsing', async (pContext) => {
 
             // Evaluation. Correct type of statement node.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
             const lWhileStatement: WhileStatementAst = lFunctionDeclaration.data.block.data.statementList[0] as WhileStatementAst;
             const lBreakStatement: BreakStatementAst = lWhileStatement.data.block.data.statementList[0] as BreakStatementAst;
             expect(lBreakStatement).toBeInstanceOf(BreakStatementAst);
@@ -51,7 +51,7 @@ Deno.test('BreakStatementAst - Parsing', async (pContext) => {
 
             // Evaluation. Correct type of statement node.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
             const lForStatement: ForStatementAst = lFunctionDeclaration.data.block.data.statementList[0] as ForStatementAst;
             const lBreakStatement: BreakStatementAst = lForStatement.data.block.data.statementList[0] as BreakStatementAst;
             expect(lBreakStatement).toBeInstanceOf(BreakStatementAst);
@@ -72,7 +72,7 @@ Deno.test('BreakStatementAst - Parsing', async (pContext) => {
 
             // Evaluation. Correct type of statement node.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+            const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
             const lDoWhileStatement: DoWhileStatementAst = lFunctionDeclaration.data.block.data.statementList[0] as DoWhileStatementAst;
             const lBreakStatement: BreakStatementAst = lDoWhileStatement.data.block.data.statementList[0] as BreakStatementAst;
             expect(lBreakStatement).toBeInstanceOf(BreakStatementAst);
@@ -97,7 +97,7 @@ Deno.test('BreakStatementAst - Parsing', async (pContext) => {
 
         // Evaluation. Correct type of statement node.
         const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.declarations[0];
+        const lFunctionDeclaration: FunctionOverloadDeclarationAst = lFunctionNode.data.overloads[0];
         const lSwitchStatement: SwitchStatementAst = lFunctionDeclaration.data.block.data.statementList[0] as SwitchStatementAst;
         const lCaseBlock: SwitchStatementAstSwitchCase = lSwitchStatement.data.cases[0];
         const lBreakStatement: BreakStatementAst = lCaseBlock.block.data.statementList[0] as BreakStatementAst;

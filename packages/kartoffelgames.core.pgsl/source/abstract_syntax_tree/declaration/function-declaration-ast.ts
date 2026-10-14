@@ -66,7 +66,7 @@ export class FunctionDeclarationAst extends BaseDeclarationAst<FunctionDeclarati
             }, this).process(pContext),
 
             // Map each declaration into a new overload ast.
-            declarations: pCst.declarations.map((pOverloadDeclarationCst) => {
+            overloads: pCst.declarations.map((pOverloadDeclarationCst) => {
                 return new FunctionOverloadDeclarationAst(pCst.name, pOverloadDeclarationCst).process(pContext);
             }),
         } satisfies FunctionDeclarationAstData;
@@ -92,7 +92,7 @@ export type FunctionDeclarationAstData = {
     /**
      * Function parameter list.
      */
-    declarations: ReadonlyArray<FunctionOverloadDeclarationAst>;
+    overloads: ReadonlyArray<FunctionOverloadDeclarationAst>;
 
     /**
      * Additional validation of each call.

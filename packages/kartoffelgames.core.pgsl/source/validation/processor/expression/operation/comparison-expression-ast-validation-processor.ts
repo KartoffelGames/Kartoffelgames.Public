@@ -1,4 +1,8 @@
 import { ComparisonExpressionAst, type ComparisonExpressionAstData } from '../../../../abstract_syntax_tree/expression/operation/comparison-expression-ast.ts';
+import { type BasePgslType, BasePgslTypeKind } from '../../../../abstract_syntax_tree/type/definition/base-pgsl-type.ts';
+import { PgslNumericType } from "../../../../abstract_syntax_tree/type/definition/pgsl-numeric-type.ts";
+import { PgslVectorType } from '../../../../abstract_syntax_tree/type/definition/pgsl-vector-type.ts';
+import { PgslOperator } from '../../../../enum/pgsl-operator.enum.ts';
 import { PgslValidatorProcessor } from '../../../pgsl-validator-processor.ts';
 
 /**
@@ -14,17 +18,73 @@ export class ComparisonExpressionAstValidationProcessor extends PgslValidatorPro
 
     /**
      * Validates the PGSL comparison expression syntax tree.
-     * 
-     * @param _pData - The syntax tree data to validate.
+     *
+     * @param pData - The syntax tree data to validate.
      */
-    protected override onValidate(_pData: ComparisonExpressionAstData): void {
-        // TODO: Validate the left operand expression.
-        // TODO: Validate the right operand expression.
-        // TODO: Validate that the operator is one of ==, !=, <, <=, > and >=.
-        // TODO: Validate that neither operand is an unparenthesized comparison, as chaining comparisons requires parentheses.
-        // TODO: Validate that both operands have the same type or that one converts implicitly into the other.
-        // TODO: Validate that the operands are scalars (int, uint, float, float16 or bool) or vectors of scalars.
-        // TODO: Validate that bool operands and Vectors of bool are only compared with == and !=.
-        // TODO: Validate that a constant abstract operand lies within the range of the concrete component type it converts to when the other operand is concrete, so a == -1 with a uint a is rejected (new).
+    protected override onValidate(pData: ComparisonExpressionAstData): void {
+        // Validate the left and right expression.
+        this.validateAst(pData.leftExpression);
+        this.validateAst(pData.rightExpression);
+
+        // Create list of all comparisons a boolean can compare.
+        const lBooleanComparisonList: Array<PgslOperator> = [
+            PgslOperator.Equal,
+            PgslOperator.NotEqual
+        ];
+
+        // Validate that the operator is ==, !=, <, <=, > and >=.
+        const lComparisonList: Array<PgslOperator> = [
+            ...lBooleanComparisonList,
+            PgslOperator.LowerThan,
+            PgslOperator.LowerThanEqual,
+            PgslOperator.GreaterThan,
+            PgslOperator.GreaterThanEqual
+        ];
+        if (!lComparisonList.includes(pData.operatorName)) {
+            this.pushIncident(`Operator "${pData.operatorName}" can not used for comparisons.`);
+        }
+
+        // Validate that none of the expressions is a comparison itself, as chaining comparisons requires parentheses.
+        for (const lExpression of [pData.leftExpression, pData.rightExpression]) {
+            if (lExpression instanceof ComparisonExpressionAst) {
+                this.pushIncident(`Chaining comparisons requires parentheses.`);
+            }
+        }
+
+        // Validate that both expressions can converts into each other.
+        const lLeftType: BasePgslType = pData.leftExpression.data.resolveType;
+        const lRightType: BasePgslType = pData.rightExpression.data.resolveType;
+        if (lRightType.conversionRankTo(lLeftType) === Number.POSITIVE_INFINITY && lLeftType.conversionRankTo(lRightType) === Number.POSITIVE_INFINITY) {
+            this.pushIncident(`Comparison can only be between values of the same type.`);
+        }
+
+        // Validate that the expressions are scalars or vectors of scalars.
+        const lItemType: BasePgslType = (lLeftType instanceof PgslVectorType) ? lLeftType.innerType : lLeftType;
+        if (!lItemType.isKind(BasePgslTypeKind.Scalar)) {
+            this.pushIncident(`Comparison can only be between scalar values.`);
+        }
+
+        // Validate that boolean expressions and Vectors of bool are only compared with == and !=.
+        if (lItemType.isKind(BasePgslTypeKind.Boolean) && !lBooleanComparisonList.includes(pData.operatorName)) {
+            this.pushIncident(`Boolean can only be compares with "NotEqual" or "Equal"`);
+        }
+
+        // Validate if one type is abstract and the other is conrete, that the abstract number constant fits into the concrete type.
+        if (lLeftType.isKind(BasePgslTypeKind.Abstract) !== lRightType.isKind(BasePgslTypeKind.Abstract)) {
+            // Get the concrete type and the constant value.
+            const [lConstantNumber, lConstantExpression, lConstantType, lConcreteType] = (() => {
+                if (lLeftType.isKind(BasePgslTypeKind.Abstract)) {
+                    return [pData.leftExpression.data.constantValue, pData.leftExpression, lLeftType, lRightType];
+                }
+
+                return [pData.rightExpression.data.constantValue, pData.rightExpression, lRightType, lLeftType];
+            })();
+
+            if (typeof lConstantNumber === 'number' && lConcreteType instanceof PgslNumericType) {
+                if (!lConcreteType.constantFits(lConstantType, lConstantNumber)) {
+                    this.pushIncident(`Value ${lConstantNumber} does not fit into '${lConcreteType.meta.typeName}'.`, lConstantExpression);
+                }
+            }
+        }
     }
 }

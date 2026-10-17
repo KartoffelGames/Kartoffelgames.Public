@@ -31,6 +31,14 @@ PGSL uses abstract numeric types for literal values at compile time:
 
 These types only exist during compilation and are resolved to concrete types based on context.
 
+Unlike WGSL, where an abstract integer has 64 bits, PGSL limits `AbstractInteger` to the range from `-2147483648` to `4294967295`. That range spans `int` and `uint`, so every abstract integer can still be converted into one of them. A shader whose abstract integer leaves that range is rejected, even when the value would come back into range later:
+
+```
+const valueOne: uint = 4294967295;     // Valid, fits into the abstract range.
+const valueTwo: uint = (1 << 40) >> 20; // Invalid, 1 << 40 leaves the abstract range.
+const valueThree: float = 5000000000;   // Invalid, write 5000000000.0 instead.
+```
+
 ### Boolean Type
 
 | PGSL Type | WGSL Type | Description |

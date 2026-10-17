@@ -1,12 +1,10 @@
 import { EnumUtil } from '@kartoffelgames/core';
-import type { ArithmeticExpressionCst, BinaryExpressionCst, ComparisonExpressionCst, ExpressionCstType, LogicalExpressionCst } from '../../../concrete_syntax_tree/expression.type.ts';
+import type { BinaryExpressionCst } from '../../../concrete_syntax_tree/expression.type.ts';
 import { PgslOperator } from '../../../enum/pgsl-operator.enum.ts';
 import { PgslValueAddressSpace } from '../../../enum/pgsl-value-address-space.enum.ts';
 import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
 import type { BasePgslType } from '../../type/definition/base-pgsl-type.ts';
-import { PgslNumericType } from '../../type/definition/pgsl-numeric-type.ts';
-import { PgslVectorType } from '../../type/definition/pgsl-vector-type.ts';
 import { ExpressionAstBuilder } from '../expression-ast-builder.ts';
 import type { ExpressionAstData, IExpressionAst } from '../i-expression-ast.interface.ts';
 
@@ -18,114 +16,33 @@ export class BinaryExpressionAst extends AbstractSyntaxTree<BinaryExpressionCst,
      * @param pCst - Cst data.
      */
     protected override onProcess(pContext: AbstractSyntaxTreeContext, pCst: BinaryExpressionCst): BinaryExpressionAstData {
-        // Try to convert operator.
-        let lOperator: PgslOperator | undefined = EnumUtil.cast(PgslOperator, pCst.operator);
-        if (!lOperator) {
-            pContext.pushIncident(`Operator "${pCst.operator}" is not a valid operator.`, this);
-
-            lOperator = PgslOperator.BinaryOr;
-        }
-
-        // Create list of all bit operations.
-        const lComparisonList: Array<PgslOperator> = [
-            PgslOperator.BinaryOr,
-            PgslOperator.BinaryAnd,
-            PgslOperator.BinaryXor,
-            PgslOperator.ShiftLeft,
-            PgslOperator.ShiftRight
-        ];
-
-        // Validate operator usable for bit operations.
-        if (!lComparisonList.includes(lOperator as PgslOperator)) {
-            pContext.pushIncident(`Operator "${pCst.operator}" can not used for bit operations.`, this);
-        }
-
-        // Chaining binary operators are allowed, as long as no shift operations are chained.
-        const lShiftOperators: Array<string> = [PgslOperator.ShiftLeft, PgslOperator.ShiftRight];
-
-        // Bit operations only take plain operands. Mixing them with any other operator needs parentheses.
-        const lExpressionsWithOperators: Array<ExpressionCstType> = ['ArithmeticExpression', 'BinaryExpression', 'ComparisonExpression', 'LogicalExpression'];
-        for (const lExpression of [pCst.left, pCst.right]) {
-            // Plain and parenthesized operands are always valid.
-            if (!lExpressionsWithOperators.includes(lExpression.type)) {
-                continue;
-            }
-
-            const lExpressionOperator: string = (<ArithmeticExpressionCst | BinaryExpressionCst | ComparisonExpressionCst | LogicalExpressionCst>lExpression).operator;
-
-            // Only &, | and ^ can be chained with themselves.
-            if (lExpressionOperator !== pCst.operator || lShiftOperators.includes(pCst.operator)) {
-                pContext.pushIncident(`Mixing operator "${lExpressionOperator}" with "${pCst.operator}" requires parentheses.`, this);
-            }
-        }
+        // Convert operator.
+        const lOperator: PgslOperator = EnumUtil.cast<PgslOperator>(PgslOperator, pCst.operator, PgslOperator.None);
 
         // Read left and right expression attachments.
         const lLeftExpression: IExpressionAst = ExpressionAstBuilder.build(pCst.left).process(pContext);
         const lRightExpression: IExpressionAst = ExpressionAstBuilder.build(pCst.right).process(pContext);
 
-        // Type buffer for validating the processed types.
-        let lLeftValueType: BasePgslType;
-        let lRightValueType: BasePgslType;
-
-        // Validate vectors differently.
-        if (lLeftExpression.data.resolveType instanceof PgslVectorType) {
-            lLeftValueType = lLeftExpression.data.resolveType.innerType;
-
-            // Left and right must be a vector.
-            if (lRightExpression.data.resolveType instanceof PgslVectorType) {
-                lRightValueType = lRightExpression.data.resolveType.innerType;
-
-                // Validate that both vectors are of same size.
-                if (lLeftExpression.data.resolveType.dimension !== lRightExpression.data.resolveType.dimension) {
-                    pContext.pushIncident('Left and right side of bit expression must be of the same vector size.', this);
-                }
-            } else {
-                pContext.pushIncident('Left and right side of bit expression must be the a vector type.', this);
-                lRightValueType = lRightExpression.data.resolveType;
-            }
-        } else {
-            // Expression types are the processed types.
-            lLeftValueType = lLeftExpression.data.resolveType;
-            lRightValueType = lRightExpression.data.resolveType;
-        }
-
-        const lUnsignedInteger: PgslNumericType = new PgslNumericType(PgslNumericType.typeName.unsignedInteger);
-        const lSignedInteger: PgslNumericType = new PgslNumericType(PgslNumericType.typeName.signedInteger);
-
-        // Left value need to be a integer numeric.
-        if (lLeftValueType.conversionRankTo(lUnsignedInteger) === Number.POSITIVE_INFINITY && lLeftValueType.conversionRankTo(lSignedInteger) === Number.POSITIVE_INFINITY) {
-            pContext.pushIncident(`Binary operations can only be applied to integer types.`, this);
-        }
-        if (lRightValueType.conversionRankTo(lUnsignedInteger) === Number.POSITIVE_INFINITY && lRightValueType.conversionRankTo(lSignedInteger) === Number.POSITIVE_INFINITY) {
-            pContext.pushIncident(`Binary operations can only be applied to integer types.`, this);
-        }
-
         // Get result type of expression.
         const lResultType: BasePgslType = (() => {
-            // Validate that right expression of shift operator needs to be a signed integer.
+            const lLeftType: BasePgslType = lLeftExpression.data.resolveType;
+            const lRightType: BasePgslType = lRightExpression.data.resolveType;
+
+            // A shift allways uses left sides type.
             if (lOperator === PgslOperator.ShiftLeft || lOperator === PgslOperator.ShiftRight) {
-                // Right must be assignable to unsigned integer.
-                if (lRightValueType.conversionRankTo(lUnsignedInteger) === Number.POSITIVE_INFINITY || typeof lRightExpression.data.constantValue === 'number' && lRightExpression.data.constantValue < 0) {
-                    pContext.pushIncident(`Right expression of a shift operation must be an unsigned integer type.`, this);
-                }
-
-                // A shift allways uses left sides type.
-                return lLeftExpression.data.resolveType;
-            } else {
-                // Rank the conversion in both directions.
-                const lLeftToRightRank: number = lLeftExpression.data.resolveType.conversionRankTo(lRightExpression.data.resolveType);
-                const lRightToLeftRank: number = lRightExpression.data.resolveType.conversionRankTo(lLeftExpression.data.resolveType);
-                if (lLeftToRightRank === Number.POSITIVE_INFINITY && lRightToLeftRank === Number.POSITIVE_INFINITY) {
-                    pContext.pushIncident('Left and right side of bit expression must be the same type.', this);
-                }
-
-                // Swap types when the rank to convert to right type is better.
-                if (lLeftToRightRank < lRightToLeftRank) {
-                    return lRightExpression.data.resolveType;
-                }
-
-                return lLeftExpression.data.resolveType;
+                return lLeftType;
             }
+
+            // Rank the conversion in both directions.
+            const lLeftToRightRank: number = lLeftType.conversionRankTo(lRightType);
+            const lRightToLeftRank: number = lRightType.conversionRankTo(lLeftType);
+
+            // Swap types when the rank to convert to right type is better.
+            if (lLeftToRightRank < lRightToLeftRank) {
+                return lRightType;
+            }
+
+            return lLeftType;
         })();
 
         return {

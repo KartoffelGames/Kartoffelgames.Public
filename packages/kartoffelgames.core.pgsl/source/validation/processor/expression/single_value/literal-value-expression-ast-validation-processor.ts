@@ -37,8 +37,8 @@ export class LiteralValueExpressionAstValidationProcessor extends PgslValidatorP
                 case pData.resolveType.isKind(BasePgslTypeKind.SignedInteger): return lValue <= Math.pow(2, 31) - 1;
                 case pData.resolveType.isKind(BasePgslTypeKind.UnsignedInteger): return lValue <= Math.pow(2, 32) - 1;
 
-                // An integer literal without suffix must fit into a 64-bit signed integer.
-                case pData.resolveType.isKind(BasePgslTypeKind.Integer): return lValue < Math.pow(2, 63);
+                // An integer literal without suffix must fit into an abstract int.
+                case pData.resolveType.isKind(BasePgslTypeKind.Integer): return lValue <= Math.pow(2, 32) - 1;
 
                 // A float literal with f or h suffix must not overflow float or float16.
                 case pData.resolveType.isKind(BasePgslTypeKind.Float32): return lValue <= Math.pow(2, 128) - Math.pow(2, 104);

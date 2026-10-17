@@ -165,6 +165,11 @@ export class PgslNumericType extends BasePgslType {
             return pConstantValue >= 0 && pConstantValue <= Math.pow(2, 32) - 1;
         }
 
+        // Validate that constant abstract int values does not overflow.
+        if (this.numericTypeName === PgslNumericType.typeName.abstractInteger) {
+            return pConstantValue >= -Math.pow(2, 31) && pConstantValue <= Math.pow(2, 32) - 1;
+        }
+
         // Validate that constant float values does not overflow. 
         if (this.numericTypeName === PgslNumericType.typeName.float32) {
             return Math.abs(pConstantValue) <= Math.pow(2, 128) - Math.pow(2, 104);

@@ -178,6 +178,11 @@ export class PgslNumericType extends BasePgslType {
             return Math.abs(pConstantValue) <= Math.pow(2, 16) - Math.pow(2, 5);
         }
 
+        // Validate that constant abstract float values are finite.
+        if (this.numericTypeName === PgslNumericType.typeName.abstractFloat) {
+            return Number.isFinite(pConstantValue);
+        }
+
         // Anything else has no restriction.
         return true;
     }

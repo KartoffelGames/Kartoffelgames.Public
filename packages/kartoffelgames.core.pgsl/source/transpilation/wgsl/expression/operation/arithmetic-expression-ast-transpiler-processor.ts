@@ -17,6 +17,6 @@ export class ArithmeticExpressionAstTranspilerProcessor extends TranspilerProces
      * @returns Transpiled WGSL code.
      */
     protected override onProcess(pInstance: ArithmeticExpressionAst): string {
-        return `${this.transpileAst(pInstance.data.leftExpression)}${pInstance.data.operator}${this.transpileAst(pInstance.data.rightExpression)}`;
+        return `${this.transpileAst(pInstance.data.leftExpression)}${pInstance.data.operatorName}${this.transpileAst(pInstance.data.rightExpression)}`;
     }
 }

@@ -72,6 +72,8 @@ function example(): void {
 }
 ```
 
+Dividing by a constant zero with `/` or `%` is rejected for every numeric type. Unlike WGSL, which allows it for floats as long as the left side is not constant, PGSL also rejects `value / 0.0`, as the result of a float division by zero is not usable.
+
 Arithmetic works on vectors and matrices component-wise:
 
 ```pgsl

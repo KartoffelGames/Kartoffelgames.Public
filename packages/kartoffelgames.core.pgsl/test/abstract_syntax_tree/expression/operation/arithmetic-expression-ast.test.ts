@@ -39,7 +39,7 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
             expect(lExpressionNode).toBeInstanceOf(ArithmeticExpressionAst);
 
             // Evaluation. Correct operator.
-            expect(lExpressionNode.data.operator).toBe(PgslOperator.Plus);
+            expect(lExpressionNode.data.operatorName).toBe(PgslOperator.Plus);
 
             // Evaluation. Correct result type.
             const lResultType: PgslNumericType = lExpressionNode.data.resolveType as PgslNumericType;
@@ -76,7 +76,7 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
             expect(lExpressionNode).toBeInstanceOf(ArithmeticExpressionAst);
 
             // Evaluation. Correct operator.
-            expect(lExpressionNode.data.operator).toBe(PgslOperator.Plus);
+            expect(lExpressionNode.data.operatorName).toBe(PgslOperator.Plus);
 
             // Evaluation. Correct result type.
             const lResultType: PgslNumericType = lExpressionNode.data.resolveType as PgslNumericType;
@@ -107,7 +107,7 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
             expect(lExpressionNode).toBeInstanceOf(ArithmeticExpressionAst);
 
             // Evaluation. Correct operator.
-            expect(lExpressionNode.data.operator).toBe(PgslOperator.Plus);
+            expect(lExpressionNode.data.operatorName).toBe(PgslOperator.Plus);
 
             // Evaluation. Correct result type with dimension.
             const lResultType: PgslVectorType = lExpressionNode.data.resolveType as PgslVectorType;
@@ -167,7 +167,7 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
             expect(lExpressionNode).toBeInstanceOf(ArithmeticExpressionAst);
 
             // Evaluation. Correct operator.
-            expect(lExpressionNode.data.operator).toBe(PgslOperator.Minus);
+            expect(lExpressionNode.data.operatorName).toBe(PgslOperator.Minus);
 
             // Evaluation. Correct result type.
             const lResultType: PgslNumericType = lExpressionNode.data.resolveType as PgslNumericType;
@@ -196,7 +196,7 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
             expect(lExpressionNode).toBeInstanceOf(ArithmeticExpressionAst);
 
             // Evaluation. Correct operator.
-            expect(lExpressionNode.data.operator).toBe(PgslOperator.Minus);
+            expect(lExpressionNode.data.operatorName).toBe(PgslOperator.Minus);
 
             // Evaluation. Correct result type.
             const lResultType: PgslNumericType = lExpressionNode.data.resolveType as PgslNumericType;
@@ -227,7 +227,7 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
             expect(lExpressionNode).toBeInstanceOf(ArithmeticExpressionAst);
 
             // Evaluation. Correct operator.
-            expect(lExpressionNode.data.operator).toBe(PgslOperator.Minus);
+            expect(lExpressionNode.data.operatorName).toBe(PgslOperator.Minus);
 
             // Evaluation. Correct result type with dimension.
             const lResultType: PgslVectorType = lExpressionNode.data.resolveType as PgslVectorType;
@@ -286,7 +286,7 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
             expect(lExpressionNode).toBeInstanceOf(ArithmeticExpressionAst);
 
             // Evaluation. Correct operator.
-            expect(lExpressionNode.data.operator).toBe(PgslOperator.Multiply);
+            expect(lExpressionNode.data.operatorName).toBe(PgslOperator.Multiply);
 
             // Evaluation. Correct result type.
             const lResultType: PgslNumericType = lExpressionNode.data.resolveType as PgslNumericType;
@@ -315,7 +315,7 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
             expect(lExpressionNode).toBeInstanceOf(ArithmeticExpressionAst);
 
             // Evaluation. Correct operator.
-            expect(lExpressionNode.data.operator).toBe(PgslOperator.Multiply);
+            expect(lExpressionNode.data.operatorName).toBe(PgslOperator.Multiply);
 
             // Evaluation. Correct result type.
             const lResultType: PgslNumericType = lExpressionNode.data.resolveType as PgslNumericType;
@@ -346,7 +346,7 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
             expect(lExpressionNode).toBeInstanceOf(ArithmeticExpressionAst);
 
             // Evaluation. Correct operator.
-            expect(lExpressionNode.data.operator).toBe(PgslOperator.Multiply);
+            expect(lExpressionNode.data.operatorName).toBe(PgslOperator.Multiply);
 
             // Evaluation. Correct result type with dimension.
             const lResultType: PgslVectorType = lExpressionNode.data.resolveType as PgslVectorType;
@@ -377,7 +377,7 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
             expect(lExpressionNode).toBeInstanceOf(ArithmeticExpressionAst);
 
             // Evaluation. Correct operator.
-            expect(lExpressionNode.data.operator).toBe(PgslOperator.Multiply);
+            expect(lExpressionNode.data.operatorName).toBe(PgslOperator.Multiply);
 
             // Evaluation. Correct result type with dimensions.
             const lResultType: PgslMatrixType = lExpressionNode.data.resolveType as PgslMatrixType;
@@ -521,7 +521,7 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
             expect(lExpressionNode).toBeInstanceOf(ArithmeticExpressionAst);
 
             // Evaluation. Correct operator.
-            expect(lExpressionNode.data.operator).toBe(PgslOperator.Divide);
+            expect(lExpressionNode.data.operatorName).toBe(PgslOperator.Divide);
 
             // Evaluation. Correct result type.
             const lResultType: PgslNumericType = lExpressionNode.data.resolveType as PgslNumericType;
@@ -550,7 +550,7 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
             expect(lExpressionNode).toBeInstanceOf(ArithmeticExpressionAst);
 
             // Evaluation. Correct operator.
-            expect(lExpressionNode.data.operator).toBe(PgslOperator.Divide);
+            expect(lExpressionNode.data.operatorName).toBe(PgslOperator.Divide);
 
             // Evaluation. Correct result type.
             const lResultType: PgslNumericType = lExpressionNode.data.resolveType as PgslNumericType;
@@ -581,7 +581,7 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
             expect(lExpressionNode).toBeInstanceOf(ArithmeticExpressionAst);
 
             // Evaluation. Correct operator.
-            expect(lExpressionNode.data.operator).toBe(PgslOperator.Divide);
+            expect(lExpressionNode.data.operatorName).toBe(PgslOperator.Divide);
 
             // Evaluation. Correct result type with dimension.
             const lResultType: PgslVectorType = lExpressionNode.data.resolveType as PgslVectorType;
@@ -640,7 +640,7 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
             expect(lExpressionNode).toBeInstanceOf(ArithmeticExpressionAst);
 
             // Evaluation. Correct operator.
-            expect(lExpressionNode.data.operator).toBe(PgslOperator.Modulo);
+            expect(lExpressionNode.data.operatorName).toBe(PgslOperator.Modulo);
 
             // Evaluation. Correct result type.
             const lResultType: PgslNumericType = lExpressionNode.data.resolveType as PgslNumericType;
@@ -669,7 +669,7 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
             expect(lExpressionNode).toBeInstanceOf(ArithmeticExpressionAst);
 
             // Evaluation. Correct operator.
-            expect(lExpressionNode.data.operator).toBe(PgslOperator.Modulo);
+            expect(lExpressionNode.data.operatorName).toBe(PgslOperator.Modulo);
 
             // Evaluation. Correct result type.
             const lResultType: PgslNumericType = lExpressionNode.data.resolveType as PgslNumericType;
@@ -700,7 +700,7 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
             expect(lExpressionNode).toBeInstanceOf(ArithmeticExpressionAst);
 
             // Evaluation. Correct operator.
-            expect(lExpressionNode.data.operator).toBe(PgslOperator.Modulo);
+            expect(lExpressionNode.data.operatorName).toBe(PgslOperator.Modulo);
 
             // Evaluation. Correct result type with dimension.
             const lResultType: PgslVectorType = lExpressionNode.data.resolveType as PgslVectorType;
@@ -758,12 +758,12 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
             // Evaluation. Addition is the outer expression.
             const lExpressionNode: ArithmeticExpressionAst = lVariableDeclarationNode.data.expression as ArithmeticExpressionAst;
             expect(lExpressionNode).toBeInstanceOf(ArithmeticExpressionAst);
-            expect(lExpressionNode.data.operator).toBe(PgslOperator.Plus);
+            expect(lExpressionNode.data.operatorName).toBe(PgslOperator.Plus);
 
             // Evaluation. Multiplication is grouped into the left side.
             const lLeftExpression: ArithmeticExpressionAst = lExpressionNode.data.leftExpression as ArithmeticExpressionAst;
             expect(lLeftExpression).toBeInstanceOf(ArithmeticExpressionAst);
-            expect(lLeftExpression.data.operator).toBe(PgslOperator.Multiply);
+            expect(lLeftExpression.data.operatorName).toBe(PgslOperator.Multiply);
 
             // Evaluation. Right side is the plain value.
             const lRightExpression: LiteralValueExpressionAst = lExpressionNode.data.rightExpression as LiteralValueExpressionAst;
@@ -791,12 +791,12 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
             // Evaluation. Last subtraction is the outer expression.
             const lExpressionNode: ArithmeticExpressionAst = lVariableDeclarationNode.data.expression as ArithmeticExpressionAst;
             expect(lExpressionNode).toBeInstanceOf(ArithmeticExpressionAst);
-            expect(lExpressionNode.data.operator).toBe(PgslOperator.Minus);
+            expect(lExpressionNode.data.operatorName).toBe(PgslOperator.Minus);
 
             // Evaluation. First subtraction is grouped into the left side.
             const lLeftExpression: ArithmeticExpressionAst = lExpressionNode.data.leftExpression as ArithmeticExpressionAst;
             expect(lLeftExpression).toBeInstanceOf(ArithmeticExpressionAst);
-            expect(lLeftExpression.data.operator).toBe(PgslOperator.Minus);
+            expect(lLeftExpression.data.operatorName).toBe(PgslOperator.Minus);
 
             // Evaluation. Right side is the plain value.
             const lRightExpression: LiteralValueExpressionAst = lExpressionNode.data.rightExpression as LiteralValueExpressionAst;

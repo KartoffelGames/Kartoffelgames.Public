@@ -38,7 +38,7 @@ export class BinaryExpressionAstValidationProcessor extends PgslValidatorProcess
             PgslOperator.ShiftRight
         ];
         if (!lBitOperatorList.includes(pData.operatorName)) {
-            this.pushIncident(`Operator "${pData.operatorName}" can not used for bit operations.`);
+            this.pushIncident(`Operator "${pData.operatorName}" can not be used for bit operations.`);
             return;
         }
 
@@ -132,12 +132,20 @@ export class BinaryExpressionAstValidationProcessor extends PgslValidatorProcess
 
             // Get the shift result value if both expressions are constants.
             const lConstantShiftResult: number = (() => {
+                // Catch non integers so bigint convertion does not fail.
+                if (!Number.isInteger(lLeftConstantValue)) {
+                    return lLeftConstantValue;
+                }
+
+                // Convert anything into a bigint, as JS clamps a 32bit+ shift.
+                const lLeftValue: bigint = BigInt(lLeftConstantValue);
+
                 // Clamp down shift value to limit bit overflow.
-                const lShiftValue: number = Math.min(Math.max(lRightConstantValue, 0), 32);
+                const lShiftValue: bigint = BigInt(Math.min(Math.max(lRightConstantValue, 0), 32));
 
                 switch (pData.operatorName) {
-                    case PgslOperator.ShiftLeft: return lLeftConstantValue << lShiftValue;
-                    case PgslOperator.ShiftRight: return lLeftConstantValue >> lShiftValue;
+                    case PgslOperator.ShiftLeft: return Number(lLeftValue << lShiftValue);
+                    case PgslOperator.ShiftRight: return Number(lLeftValue >> lShiftValue);
                 }
 
                 return lLeftConstantValue;

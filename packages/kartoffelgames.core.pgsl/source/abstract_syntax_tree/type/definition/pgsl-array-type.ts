@@ -43,7 +43,7 @@ export class PgslArrayType extends BasePgslType {
      * 
      * @returns The type of elements stored in the array.
      */
-    public get innerType(): BasePgslType {
+    public get componentType(): BasePgslType {
         return this.meta.generics![0];
     }
 
@@ -113,7 +113,7 @@ export class PgslArrayType extends BasePgslType {
         }
 
         // When the type and length match, the conversion rank matches the inner type.      
-        return this.innerType.conversionRankTo(pTarget.innerType);
+        return this.componentType.conversionRankTo(pTarget.componentType);
     }
 
     /**
@@ -132,7 +132,7 @@ export class PgslArrayType extends BasePgslType {
         }
 
         // Must have the same inner type.
-        if (!this.innerType.equals(pTarget.innerType)) {
+        if (!this.componentType.equals(pTarget.componentType)) {
             return false;
         }
 

@@ -54,41 +54,41 @@ export class ArithmeticExpressionAst extends AbstractSyntaxTree<ArithmeticExpres
             const lRightExpressionType: ExpressionType = lFindExpressionType(lRightType);
 
             // Vectors and matrices are compared by their component type.
-            const lLeftInnerType: BasePgslType = (lLeftType instanceof PgslVectorType || lLeftType instanceof PgslMatrixType) ? lLeftType.innerType : lLeftType;
-            const lRightInnerType: BasePgslType = (lRightType instanceof PgslVectorType || lRightType instanceof PgslMatrixType) ? lRightType.innerType : lRightType;
+            const lLeftComponentType: BasePgslType = (lLeftType instanceof PgslVectorType || lLeftType instanceof PgslMatrixType) ? lLeftType.componentType : lLeftType;
+            const lRightComponentType: BasePgslType = (lRightType instanceof PgslVectorType || lRightType instanceof PgslMatrixType) ? lRightType.componentType : lRightType;
 
-            // Find the correct inner type based on the highest conversation rank.
-            const lInnerType: BasePgslType = (() => {
+            // Find the correct component type based on the highest conversation rank.
+            const lComponentType: BasePgslType = (() => {
                 // Rank the conversion in both directions.
-                const lLeftToRightRank: number = lLeftInnerType.conversionRankTo(lRightInnerType);
-                const lRightToLeftRank: number = lRightInnerType.conversionRankTo(lLeftInnerType);
+                const lLeftToRightRank: number = lLeftComponentType.conversionRankTo(lRightComponentType);
+                const lRightToLeftRank: number = lRightComponentType.conversionRankTo(lLeftComponentType);
 
                 // If left type has a cheaper type conversion, convert it to the right type.
                 if (lLeftToRightRank < lRightToLeftRank) {
-                    return lRightInnerType;
+                    return lRightComponentType;
                 }
 
-                return lLeftInnerType;
+                return lLeftComponentType;
             })();
 
             // Start right process based on type matching.
             if (lLeftExpressionType === 'scalar' && lRightExpressionType === 'scalar') {
-                return lInnerType;
+                return lComponentType;
             }
             if ((lLeftExpressionType === 'scalar' && lRightExpressionType === 'vector') || (lLeftExpressionType === 'vector' && lRightExpressionType === 'scalar')) {
-                return this.processScalarVectorOperation(lLeftType as PgslNumericType | PgslVectorType, lRightType as PgslNumericType | PgslVectorType, lInnerType, pContext);
+                return this.processScalarVectorOperation(lLeftType as PgslNumericType | PgslVectorType, lRightType as PgslNumericType | PgslVectorType, lComponentType, pContext);
             }
             if ((lLeftExpressionType === 'scalar' && lRightExpressionType === 'matrix') || (lLeftExpressionType === 'matrix' && lRightExpressionType === 'scalar')) {
-                return this.processScalarMatrixOperation(lLeftType as PgslNumericType | PgslMatrixType, lRightType as PgslNumericType | PgslMatrixType, lInnerType, pContext);
+                return this.processScalarMatrixOperation(lLeftType as PgslNumericType | PgslMatrixType, lRightType as PgslNumericType | PgslMatrixType, lComponentType, pContext);
             }
             if (lLeftExpressionType === 'vector' && lRightExpressionType === 'vector') {
-                return this.processVectorOperation(lLeftType as PgslVectorType, lInnerType, pContext);
+                return this.processVectorOperation(lLeftType as PgslVectorType, lComponentType, pContext);
             }
             if ((lLeftExpressionType === 'vector' && lRightExpressionType === 'matrix') || (lLeftExpressionType === 'matrix' && lRightExpressionType === 'vector')) {
-                return this.processVectorMatrixOperation(lLeftType as PgslVectorType | PgslMatrixType, lRightType as PgslVectorType | PgslMatrixType, lInnerType, pContext);
+                return this.processVectorMatrixOperation(lLeftType as PgslVectorType | PgslMatrixType, lRightType as PgslVectorType | PgslMatrixType, lComponentType, pContext);
             }
             if (lLeftExpressionType === 'matrix' && lRightExpressionType === 'matrix') {
-                return this.processMatrixOperation(lLeftType as PgslMatrixType, lRightType as PgslMatrixType, lInnerType, lOperator, pContext);
+                return this.processMatrixOperation(lLeftType as PgslMatrixType, lRightType as PgslMatrixType, lComponentType, lOperator, pContext);
             }
 
             // Expressions without a scalar, vector or matrix shape have no result shape.
@@ -115,20 +115,20 @@ export class ArithmeticExpressionAst extends AbstractSyntaxTree<ArithmeticExpres
      *
      * @param pLeftType - Type of left side expression.
      * @param pRightType - Type of right side expression.
-     * @param pInnerType - Matix item type of the result.
+     * @param pComponentType - Matix item type of the result.
      * @param pOperator - Operator of the expression.
      * @param pContext - Process context.
      *
      * @returns the result type of the operation.
      */
-    private processMatrixOperation(pLeftType: PgslMatrixType, pRightType: PgslMatrixType, pInnerType: BasePgslType, pOperator: PgslOperator, pContext: AbstractSyntaxTreeContext): BasePgslType {
+    private processMatrixOperation(pLeftType: PgslMatrixType, pRightType: PgslMatrixType, pComponentType: BasePgslType, pOperator: PgslOperator, pContext: AbstractSyntaxTreeContext): BasePgslType {
         // A multiplication result has the right columns and the left rows.
         if (pOperator === PgslOperator.Multiply) {
-            return pContext.types.create(PgslMatrixType, pRightType.columnCount, pLeftType.rowCount, pInnerType);
+            return pContext.types.create(PgslMatrixType, pRightType.columnCount, pLeftType.rowCount, pComponentType);
         }
 
         // Any other operation is component wise and keeps the left dimensions.
-        return pContext.types.create(PgslMatrixType, pLeftType.columnCount, pLeftType.rowCount, pInnerType);
+        return pContext.types.create(PgslMatrixType, pLeftType.columnCount, pLeftType.rowCount, pComponentType);
     }
 
     /**
@@ -136,16 +136,16 @@ export class ArithmeticExpressionAst extends AbstractSyntaxTree<ArithmeticExpres
      * 
      * @param pLeftType - Type of left side expression.
      * @param pRightType - Type of right side expression.
-     * @param pInnerType - Matrix item type of the result.
+     * @param pComponentType - Matrix item type of the result.
      * @param pContext - Process context.
      *
      * @returns the result type of the operation.
      */
-    private processScalarMatrixOperation(pLeftType: PgslNumericType | PgslMatrixType, pRightType: PgslNumericType | PgslMatrixType, pInnerType: BasePgslType, pContext: AbstractSyntaxTreeContext): BasePgslType {
+    private processScalarMatrixOperation(pLeftType: PgslNumericType | PgslMatrixType, pRightType: PgslNumericType | PgslMatrixType, pComponentType: BasePgslType, pContext: AbstractSyntaxTreeContext): BasePgslType {
         // Get the matrix side.
         const lMatrixType: PgslMatrixType = (pLeftType instanceof PgslMatrixType) ? pLeftType : (pRightType as PgslMatrixType);
 
-        return pContext.types.create(PgslMatrixType, lMatrixType.columnCount, lMatrixType.rowCount, pInnerType);
+        return pContext.types.create(PgslMatrixType, lMatrixType.columnCount, lMatrixType.rowCount, pComponentType);
     }
 
     /**
@@ -153,16 +153,16 @@ export class ArithmeticExpressionAst extends AbstractSyntaxTree<ArithmeticExpres
      *
      * @param pLeftType - Type of left side expression.
      * @param pRightType - Type of right side expression.
-     * @param pInnerType - Vector item type of the result.
+     * @param pComponentType - Vector item type of the result.
      * @param pContext - Process context.
      *
      * @returns the result type of the operation.
      */
-    private processScalarVectorOperation(pLeftType: PgslNumericType | PgslVectorType, pRightType: PgslNumericType | PgslVectorType, pInnerType: BasePgslType, pContext: AbstractSyntaxTreeContext): BasePgslType {
+    private processScalarVectorOperation(pLeftType: PgslNumericType | PgslVectorType, pRightType: PgslNumericType | PgslVectorType, pComponentType: BasePgslType, pContext: AbstractSyntaxTreeContext): BasePgslType {
         // Get the vector type of operation.
         const lVectorType: PgslVectorType = (pLeftType instanceof PgslVectorType) ? pLeftType : (pRightType as PgslVectorType);
 
-        return pContext.types.create(PgslVectorType, lVectorType.dimension, pInnerType);
+        return pContext.types.create(PgslVectorType, lVectorType.dimension, pComponentType);
     }
 
     /**
@@ -170,33 +170,33 @@ export class ArithmeticExpressionAst extends AbstractSyntaxTree<ArithmeticExpres
      *
      * @param pLeftType - Type of left side expression.
      * @param pRightType - Type of right side expression.
-     * @param pInnerType - Vector item type of the result.
+     * @param pComponentType - Vector item type of the result.
      * @param pContext - Process context.
      *
      * @returns the result type of the operation.
      */
-    private processVectorMatrixOperation(pLeftType: PgslVectorType | PgslMatrixType, pRightType: PgslVectorType | PgslMatrixType, pInnerType: BasePgslType, pContext: AbstractSyntaxTreeContext): BasePgslType {
+    private processVectorMatrixOperation(pLeftType: PgslVectorType | PgslMatrixType, pRightType: PgslVectorType | PgslMatrixType, pComponentType: BasePgslType, pContext: AbstractSyntaxTreeContext): BasePgslType {
         // A matrix x vector operation results in a vector of the matrix rows.
         if (pLeftType instanceof PgslMatrixType) {
-            return pContext.types.create(PgslVectorType, pLeftType.rowCount, pInnerType);
+            return pContext.types.create(PgslVectorType, pLeftType.rowCount, pComponentType);
         }
 
         // A vector x matrix operation results in a vector of the matrix columns.
-        return pContext.types.create(PgslVectorType, (pRightType as PgslMatrixType).columnCount, pInnerType);
+        return pContext.types.create(PgslVectorType, (pRightType as PgslMatrixType).columnCount, pComponentType);
     }
 
     /**
      * Process and determine result type of a pure vector operation.
      *
      * @param pLeftType - Type of left side expression.
-     * @param pInnerType - Vector item type of the result.
+     * @param pComponentType - Vector item type of the result.
      * @param pContext - Process context.
      *
      * @returns the result type of the operation.
      */
-    private processVectorOperation(pLeftType: PgslVectorType, pInnerType: BasePgslType, pContext: AbstractSyntaxTreeContext): BasePgslType {
+    private processVectorOperation(pLeftType: PgslVectorType, pComponentType: BasePgslType, pContext: AbstractSyntaxTreeContext): BasePgslType {
         // A component wise operation keeps the left dimension.
-        return pContext.types.create(PgslVectorType, pLeftType.dimension, pInnerType);
+        return pContext.types.create(PgslVectorType, pLeftType.dimension, pComponentType);
     }
 }
 

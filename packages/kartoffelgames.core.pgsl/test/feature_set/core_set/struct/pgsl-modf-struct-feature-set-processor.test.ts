@@ -105,13 +105,13 @@ Deno.test('PgslModfStructFeatureSetProcessor.declarations', async (pContext) => 
         const lFractType: PgslVectorType = lDeclaration.data.properties[0].data.typeDeclaration.data.type as PgslVectorType;
         expect(lFractType).toBeInstanceOf(PgslVectorType);
         expect(lFractType.dimension).toBe(2);
-        expect((lFractType.innerType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.float32);
+        expect((lFractType.componentType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.float32);
 
         // Evaluation. Whole property type.
         const lWholeType: PgslVectorType = lDeclaration.data.properties[1].data.typeDeclaration.data.type as PgslVectorType;
         expect(lWholeType).toBeInstanceOf(PgslVectorType);
         expect(lWholeType.dimension).toBe(2);
-        expect((lWholeType.innerType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.float32);
+        expect((lWholeType.componentType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.float32);
     });
 
     await pContext.step('__modf_result_vec2_f16', () => {
@@ -132,13 +132,13 @@ Deno.test('PgslModfStructFeatureSetProcessor.declarations', async (pContext) => 
         const lFractType: PgslVectorType = lDeclaration.data.properties[0].data.typeDeclaration.data.type as PgslVectorType;
         expect(lFractType).toBeInstanceOf(PgslVectorType);
         expect(lFractType.dimension).toBe(2);
-        expect((lFractType.innerType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.float16);
+        expect((lFractType.componentType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.float16);
 
         // Evaluation. Whole property type.
         const lWholeType: PgslVectorType = lDeclaration.data.properties[1].data.typeDeclaration.data.type as PgslVectorType;
         expect(lWholeType).toBeInstanceOf(PgslVectorType);
         expect(lWholeType.dimension).toBe(2);
-        expect((lWholeType.innerType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.float16);
+        expect((lWholeType.componentType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.float16);
     });
 
     await pContext.step('__modf_result_vec2_abstractFloat', () => {
@@ -159,13 +159,13 @@ Deno.test('PgslModfStructFeatureSetProcessor.declarations', async (pContext) => 
         const lFractType: PgslVectorType = lDeclaration.data.properties[0].data.typeDeclaration.data.type as PgslVectorType;
         expect(lFractType).toBeInstanceOf(PgslVectorType);
         expect(lFractType.dimension).toBe(2);
-        expect((lFractType.innerType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.abstractFloat);
+        expect((lFractType.componentType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.abstractFloat);
 
         // Evaluation. Whole property type.
         const lWholeType: PgslVectorType = lDeclaration.data.properties[1].data.typeDeclaration.data.type as PgslVectorType;
         expect(lWholeType).toBeInstanceOf(PgslVectorType);
         expect(lWholeType.dimension).toBe(2);
-        expect((lWholeType.innerType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.abstractFloat);
+        expect((lWholeType.componentType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.abstractFloat);
     });
 
     await pContext.step('__modf_result_vec3_f32', () => {
@@ -186,13 +186,13 @@ Deno.test('PgslModfStructFeatureSetProcessor.declarations', async (pContext) => 
         const lFractType: PgslVectorType = lDeclaration.data.properties[0].data.typeDeclaration.data.type as PgslVectorType;
         expect(lFractType).toBeInstanceOf(PgslVectorType);
         expect(lFractType.dimension).toBe(3);
-        expect((lFractType.innerType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.float32);
+        expect((lFractType.componentType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.float32);
 
         // Evaluation. Whole property type.
         const lWholeType: PgslVectorType = lDeclaration.data.properties[1].data.typeDeclaration.data.type as PgslVectorType;
         expect(lWholeType).toBeInstanceOf(PgslVectorType);
         expect(lWholeType.dimension).toBe(3);
-        expect((lWholeType.innerType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.float32);
+        expect((lWholeType.componentType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.float32);
     });
 
     await pContext.step('__modf_result_vec3_f16', () => {
@@ -213,13 +213,13 @@ Deno.test('PgslModfStructFeatureSetProcessor.declarations', async (pContext) => 
         const lFractType: PgslVectorType = lDeclaration.data.properties[0].data.typeDeclaration.data.type as PgslVectorType;
         expect(lFractType).toBeInstanceOf(PgslVectorType);
         expect(lFractType.dimension).toBe(3);
-        expect((lFractType.innerType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.float16);
+        expect((lFractType.componentType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.float16);
 
         // Evaluation. Whole property type.
         const lWholeType: PgslVectorType = lDeclaration.data.properties[1].data.typeDeclaration.data.type as PgslVectorType;
         expect(lWholeType).toBeInstanceOf(PgslVectorType);
         expect(lWholeType.dimension).toBe(3);
-        expect((lWholeType.innerType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.float16);
+        expect((lWholeType.componentType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.float16);
     });
 
     await pContext.step('__modf_result_vec3_abstractFloat', () => {
@@ -240,13 +240,13 @@ Deno.test('PgslModfStructFeatureSetProcessor.declarations', async (pContext) => 
         const lFractType: PgslVectorType = lDeclaration.data.properties[0].data.typeDeclaration.data.type as PgslVectorType;
         expect(lFractType).toBeInstanceOf(PgslVectorType);
         expect(lFractType.dimension).toBe(3);
-        expect((lFractType.innerType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.abstractFloat);
+        expect((lFractType.componentType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.abstractFloat);
 
         // Evaluation. Whole property type.
         const lWholeType: PgslVectorType = lDeclaration.data.properties[1].data.typeDeclaration.data.type as PgslVectorType;
         expect(lWholeType).toBeInstanceOf(PgslVectorType);
         expect(lWholeType.dimension).toBe(3);
-        expect((lWholeType.innerType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.abstractFloat);
+        expect((lWholeType.componentType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.abstractFloat);
     });
 
     await pContext.step('__modf_result_vec4_f32', () => {
@@ -267,13 +267,13 @@ Deno.test('PgslModfStructFeatureSetProcessor.declarations', async (pContext) => 
         const lFractType: PgslVectorType = lDeclaration.data.properties[0].data.typeDeclaration.data.type as PgslVectorType;
         expect(lFractType).toBeInstanceOf(PgslVectorType);
         expect(lFractType.dimension).toBe(4);
-        expect((lFractType.innerType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.float32);
+        expect((lFractType.componentType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.float32);
 
         // Evaluation. Whole property type.
         const lWholeType: PgslVectorType = lDeclaration.data.properties[1].data.typeDeclaration.data.type as PgslVectorType;
         expect(lWholeType).toBeInstanceOf(PgslVectorType);
         expect(lWholeType.dimension).toBe(4);
-        expect((lWholeType.innerType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.float32);
+        expect((lWholeType.componentType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.float32);
     });
 
     await pContext.step('__modf_result_vec4_f16', () => {
@@ -294,13 +294,13 @@ Deno.test('PgslModfStructFeatureSetProcessor.declarations', async (pContext) => 
         const lFractType: PgslVectorType = lDeclaration.data.properties[0].data.typeDeclaration.data.type as PgslVectorType;
         expect(lFractType).toBeInstanceOf(PgslVectorType);
         expect(lFractType.dimension).toBe(4);
-        expect((lFractType.innerType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.float16);
+        expect((lFractType.componentType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.float16);
 
         // Evaluation. Whole property type.
         const lWholeType: PgslVectorType = lDeclaration.data.properties[1].data.typeDeclaration.data.type as PgslVectorType;
         expect(lWholeType).toBeInstanceOf(PgslVectorType);
         expect(lWholeType.dimension).toBe(4);
-        expect((lWholeType.innerType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.float16);
+        expect((lWholeType.componentType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.float16);
     });
 
     await pContext.step('__modf_result_vec4_abstractFloat', () => {
@@ -321,13 +321,13 @@ Deno.test('PgslModfStructFeatureSetProcessor.declarations', async (pContext) => 
         const lFractType: PgslVectorType = lDeclaration.data.properties[0].data.typeDeclaration.data.type as PgslVectorType;
         expect(lFractType).toBeInstanceOf(PgslVectorType);
         expect(lFractType.dimension).toBe(4);
-        expect((lFractType.innerType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.abstractFloat);
+        expect((lFractType.componentType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.abstractFloat);
 
         // Evaluation. Whole property type.
         const lWholeType: PgslVectorType = lDeclaration.data.properties[1].data.typeDeclaration.data.type as PgslVectorType;
         expect(lWholeType).toBeInstanceOf(PgslVectorType);
         expect(lWholeType.dimension).toBe(4);
-        expect((lWholeType.innerType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.abstractFloat);
+        expect((lWholeType.componentType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.abstractFloat);
     });
 });
 

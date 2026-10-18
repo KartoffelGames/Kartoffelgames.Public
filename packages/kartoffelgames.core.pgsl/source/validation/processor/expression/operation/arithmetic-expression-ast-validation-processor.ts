@@ -43,8 +43,8 @@ export class ArithmeticExpressionAstValidationProcessor extends PgslValidatorPro
         // Vectors and matrices are validated by their component type.
         const lLeftType: BasePgslType = pData.leftExpression.data.resolveType;
         const lRightType: BasePgslType = pData.rightExpression.data.resolveType;
-        const lLeftItemType: BasePgslType = (lLeftType instanceof PgslVectorType || lLeftType instanceof PgslMatrixType) ? lLeftType.innerType : lLeftType;
-        const lRightItemType: BasePgslType = (lRightType instanceof PgslVectorType || lRightType instanceof PgslMatrixType) ? lRightType.innerType : lRightType;
+        const lLeftItemType: BasePgslType = (lLeftType instanceof PgslVectorType || lLeftType instanceof PgslMatrixType) ? lLeftType.componentType : lLeftType;
+        const lRightItemType: BasePgslType = (lRightType instanceof PgslVectorType || lRightType instanceof PgslMatrixType) ? lRightType.componentType : lRightType;
 
         // Validate that both expressions are numeric scalars, Vectors or Matrices.
         if (!lLeftItemType.isKind(BasePgslTypeKind.Numeric)) {

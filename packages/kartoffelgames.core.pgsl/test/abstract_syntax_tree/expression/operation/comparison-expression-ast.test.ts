@@ -77,7 +77,7 @@ Deno.test('ComparisonExpressionAst - Parsing', async (pContext) => {
                 const lResultType: PgslVectorType = lExpressionNode.data.resolveType as PgslVectorType;
                 expect(lResultType).toBeInstanceOf(PgslVectorType);
                 expect(lResultType.dimension).toBe(3);
-                expect(lResultType.innerType).toBeInstanceOf(PgslBooleanType);
+                expect(lResultType.componentType).toBeInstanceOf(PgslBooleanType);
             });
         });
 
@@ -149,7 +149,7 @@ Deno.test('ComparisonExpressionAst - Parsing', async (pContext) => {
                 const lResultType: PgslVectorType = lExpressionNode.data.resolveType as PgslVectorType;
                 expect(lResultType).toBeInstanceOf(PgslVectorType);
                 expect(lResultType.dimension).toBe(3);
-                expect(lResultType.innerType).toBeInstanceOf(PgslBooleanType);
+                expect(lResultType.componentType).toBeInstanceOf(PgslBooleanType);
             });
         });
     });
@@ -210,7 +210,7 @@ Deno.test('ComparisonExpressionAst - Parsing', async (pContext) => {
                 const lResultType: PgslVectorType = lExpressionNode.data.resolveType as PgslVectorType;
                 expect(lResultType).toBeInstanceOf(PgslVectorType);
                 expect(lResultType.dimension).toBe(3);
-                expect(lResultType.innerType).toBeInstanceOf(PgslBooleanType);
+                expect(lResultType.componentType).toBeInstanceOf(PgslBooleanType);
             });
         });
 
@@ -269,7 +269,7 @@ Deno.test('ComparisonExpressionAst - Parsing', async (pContext) => {
                 const lResultType: PgslVectorType = lExpressionNode.data.resolveType as PgslVectorType;
                 expect(lResultType).toBeInstanceOf(PgslVectorType);
                 expect(lResultType.dimension).toBe(3);
-                expect(lResultType.innerType).toBeInstanceOf(PgslBooleanType);
+                expect(lResultType.componentType).toBeInstanceOf(PgslBooleanType);
             });
         });
 
@@ -328,7 +328,7 @@ Deno.test('ComparisonExpressionAst - Parsing', async (pContext) => {
                 const lResultType: PgslVectorType = lExpressionNode.data.resolveType as PgslVectorType;
                 expect(lResultType).toBeInstanceOf(PgslVectorType);
                 expect(lResultType.dimension).toBe(3);
-                expect(lResultType.innerType).toBeInstanceOf(PgslBooleanType);
+                expect(lResultType.componentType).toBeInstanceOf(PgslBooleanType);
             });
         });
 
@@ -387,7 +387,7 @@ Deno.test('ComparisonExpressionAst - Parsing', async (pContext) => {
                 const lResultType: PgslVectorType = lExpressionNode.data.resolveType as PgslVectorType;
                 expect(lResultType).toBeInstanceOf(PgslVectorType);
                 expect(lResultType.dimension).toBe(3);
-                expect(lResultType.innerType).toBeInstanceOf(PgslBooleanType);
+                expect(lResultType.componentType).toBeInstanceOf(PgslBooleanType);
             });
         });
     });

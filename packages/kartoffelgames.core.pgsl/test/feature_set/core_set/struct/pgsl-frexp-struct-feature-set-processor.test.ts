@@ -105,13 +105,13 @@ Deno.test('PgslFrexpStructFeatureSetConstructor.declarations', async (pContext) 
         const lFractType: PgslVectorType = lDeclaration.data.properties[0].data.typeDeclaration.data.type as PgslVectorType;
         expect(lFractType).toBeInstanceOf(PgslVectorType);
         expect(lFractType.dimension).toBe(2);
-        expect((lFractType.innerType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.float32);
+        expect((lFractType.componentType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.float32);
 
         // Evaluation. Exp property type.
         const lExpType: PgslVectorType = lDeclaration.data.properties[1].data.typeDeclaration.data.type as PgslVectorType;
         expect(lExpType).toBeInstanceOf(PgslVectorType);
         expect(lExpType.dimension).toBe(2);
-        expect((lExpType.innerType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.signedInteger);
+        expect((lExpType.componentType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.signedInteger);
     });
 
     await pContext.step('__frexp_result_vec2_f16', () => {
@@ -132,13 +132,13 @@ Deno.test('PgslFrexpStructFeatureSetConstructor.declarations', async (pContext) 
         const lFractType: PgslVectorType = lDeclaration.data.properties[0].data.typeDeclaration.data.type as PgslVectorType;
         expect(lFractType).toBeInstanceOf(PgslVectorType);
         expect(lFractType.dimension).toBe(2);
-        expect((lFractType.innerType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.float16);
+        expect((lFractType.componentType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.float16);
 
         // Evaluation. Exp property type.
         const lExpType: PgslVectorType = lDeclaration.data.properties[1].data.typeDeclaration.data.type as PgslVectorType;
         expect(lExpType).toBeInstanceOf(PgslVectorType);
         expect(lExpType.dimension).toBe(2);
-        expect((lExpType.innerType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.signedInteger);
+        expect((lExpType.componentType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.signedInteger);
     });
 
     await pContext.step('__frexp_result_vec2_abstractFloat', () => {
@@ -159,13 +159,13 @@ Deno.test('PgslFrexpStructFeatureSetConstructor.declarations', async (pContext) 
         const lFractType: PgslVectorType = lDeclaration.data.properties[0].data.typeDeclaration.data.type as PgslVectorType;
         expect(lFractType).toBeInstanceOf(PgslVectorType);
         expect(lFractType.dimension).toBe(2);
-        expect((lFractType.innerType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.abstractFloat);
+        expect((lFractType.componentType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.abstractFloat);
 
         // Evaluation. Exp property type.
         const lExpType: PgslVectorType = lDeclaration.data.properties[1].data.typeDeclaration.data.type as PgslVectorType;
         expect(lExpType).toBeInstanceOf(PgslVectorType);
         expect(lExpType.dimension).toBe(2);
-        expect((lExpType.innerType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.abstractInteger);
+        expect((lExpType.componentType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.abstractInteger);
     });
 
     await pContext.step('__frexp_result_vec3_f32', () => {
@@ -186,13 +186,13 @@ Deno.test('PgslFrexpStructFeatureSetConstructor.declarations', async (pContext) 
         const lFractType: PgslVectorType = lDeclaration.data.properties[0].data.typeDeclaration.data.type as PgslVectorType;
         expect(lFractType).toBeInstanceOf(PgslVectorType);
         expect(lFractType.dimension).toBe(3);
-        expect((lFractType.innerType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.float32);
+        expect((lFractType.componentType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.float32);
 
         // Evaluation. Exp property type.
         const lExpType: PgslVectorType = lDeclaration.data.properties[1].data.typeDeclaration.data.type as PgslVectorType;
         expect(lExpType).toBeInstanceOf(PgslVectorType);
         expect(lExpType.dimension).toBe(3);
-        expect((lExpType.innerType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.signedInteger);
+        expect((lExpType.componentType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.signedInteger);
     });
 
     await pContext.step('__frexp_result_vec3_f16', () => {
@@ -213,13 +213,13 @@ Deno.test('PgslFrexpStructFeatureSetConstructor.declarations', async (pContext) 
         const lFractType: PgslVectorType = lDeclaration.data.properties[0].data.typeDeclaration.data.type as PgslVectorType;
         expect(lFractType).toBeInstanceOf(PgslVectorType);
         expect(lFractType.dimension).toBe(3);
-        expect((lFractType.innerType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.float16);
+        expect((lFractType.componentType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.float16);
 
         // Evaluation. Exp property type.
         const lExpType: PgslVectorType = lDeclaration.data.properties[1].data.typeDeclaration.data.type as PgslVectorType;
         expect(lExpType).toBeInstanceOf(PgslVectorType);
         expect(lExpType.dimension).toBe(3);
-        expect((lExpType.innerType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.signedInteger);
+        expect((lExpType.componentType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.signedInteger);
     });
 
     await pContext.step('__frexp_result_vec3_abstractFloat', () => {
@@ -240,13 +240,13 @@ Deno.test('PgslFrexpStructFeatureSetConstructor.declarations', async (pContext) 
         const lFractType: PgslVectorType = lDeclaration.data.properties[0].data.typeDeclaration.data.type as PgslVectorType;
         expect(lFractType).toBeInstanceOf(PgslVectorType);
         expect(lFractType.dimension).toBe(3);
-        expect((lFractType.innerType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.abstractFloat);
+        expect((lFractType.componentType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.abstractFloat);
 
         // Evaluation. Exp property type.
         const lExpType: PgslVectorType = lDeclaration.data.properties[1].data.typeDeclaration.data.type as PgslVectorType;
         expect(lExpType).toBeInstanceOf(PgslVectorType);
         expect(lExpType.dimension).toBe(3);
-        expect((lExpType.innerType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.abstractInteger);
+        expect((lExpType.componentType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.abstractInteger);
     });
 
     await pContext.step('__frexp_result_vec4_f32', () => {
@@ -267,13 +267,13 @@ Deno.test('PgslFrexpStructFeatureSetConstructor.declarations', async (pContext) 
         const lFractType: PgslVectorType = lDeclaration.data.properties[0].data.typeDeclaration.data.type as PgslVectorType;
         expect(lFractType).toBeInstanceOf(PgslVectorType);
         expect(lFractType.dimension).toBe(4);
-        expect((lFractType.innerType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.float32);
+        expect((lFractType.componentType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.float32);
 
         // Evaluation. Exp property type.
         const lExpType: PgslVectorType = lDeclaration.data.properties[1].data.typeDeclaration.data.type as PgslVectorType;
         expect(lExpType).toBeInstanceOf(PgslVectorType);
         expect(lExpType.dimension).toBe(4);
-        expect((lExpType.innerType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.signedInteger);
+        expect((lExpType.componentType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.signedInteger);
     });
 
     await pContext.step('__frexp_result_vec4_f16', () => {
@@ -294,13 +294,13 @@ Deno.test('PgslFrexpStructFeatureSetConstructor.declarations', async (pContext) 
         const lFractType: PgslVectorType = lDeclaration.data.properties[0].data.typeDeclaration.data.type as PgslVectorType;
         expect(lFractType).toBeInstanceOf(PgslVectorType);
         expect(lFractType.dimension).toBe(4);
-        expect((lFractType.innerType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.float16);
+        expect((lFractType.componentType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.float16);
 
         // Evaluation. Exp property type.
         const lExpType: PgslVectorType = lDeclaration.data.properties[1].data.typeDeclaration.data.type as PgslVectorType;
         expect(lExpType).toBeInstanceOf(PgslVectorType);
         expect(lExpType.dimension).toBe(4);
-        expect((lExpType.innerType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.signedInteger);
+        expect((lExpType.componentType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.signedInteger);
     });
 
     await pContext.step('__frexp_result_vec4_abstractFloat', () => {
@@ -321,13 +321,13 @@ Deno.test('PgslFrexpStructFeatureSetConstructor.declarations', async (pContext) 
         const lFractType: PgslVectorType = lDeclaration.data.properties[0].data.typeDeclaration.data.type as PgslVectorType;
         expect(lFractType).toBeInstanceOf(PgslVectorType);
         expect(lFractType.dimension).toBe(4);
-        expect((lFractType.innerType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.abstractFloat);
+        expect((lFractType.componentType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.abstractFloat);
 
         // Evaluation. Exp property type.
         const lExpType: PgslVectorType = lDeclaration.data.properties[1].data.typeDeclaration.data.type as PgslVectorType;
         expect(lExpType).toBeInstanceOf(PgslVectorType);
         expect(lExpType.dimension).toBe(4);
-        expect((lExpType.innerType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.abstractInteger);
+        expect((lExpType.componentType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.abstractInteger);
     });
 });
 

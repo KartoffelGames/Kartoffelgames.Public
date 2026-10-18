@@ -2,7 +2,7 @@ import { BasePgslType, BasePgslTypeKind } from './base-pgsl-type.ts';
 
 /**
  * Vector type definition.
- * Represents a vector type with a specific dimension and inner type.
+ * Represents a vector type with a specific dimension and component type.
  */
 export class PgslVectorType extends BasePgslType {
     /**
@@ -22,12 +22,12 @@ export class PgslVectorType extends BasePgslType {
      * Get a string identification for the type.
      * 
      * @param pDimension - The vector dimension.
-     * @param pInnerType - The inner element type of the vector.
+     * @param pComponentType - The component element type of the vector.
      * 
      * @returns The type identification.
      */
-    public static identifierOf(pDimension: number, pInnerType: BasePgslType): string {
-        return PgslVectorType.typeNameFromDimension(pDimension) + '[' + pInnerType.meta.typeName + ']';
+    public static identifierOf(pDimension: number, pComponentType: BasePgslType): string {
+        return PgslVectorType.typeNameFromDimension(pDimension) + '[' + pComponentType.meta.typeName + ']';
     }
 
     /**
@@ -58,11 +58,11 @@ export class PgslVectorType extends BasePgslType {
     }
 
     /**
-     * Gets the inner element type of the vector.
+     * Gets the component element type of the vector.
      * 
      * @returns The type of elements stored in the vector.
      */
-    public get innerType(): BasePgslType {
+    public get componentType(): BasePgslType {
         return this.meta.generics![0];
     }
 
@@ -70,24 +70,24 @@ export class PgslVectorType extends BasePgslType {
      * Constructor for vector type.
      * 
      * @param pVectorDimension - The vector dimension (2, 3, or 4).
-     * @param pInnerType - The inner element type of the vector.
+     * @param pComponentType - The component element type of the vector.
      */
-    public constructor(pVectorDimension: number, pInnerType: BasePgslType) {
+    public constructor(pVectorDimension: number, pComponentType: BasePgslType) {
         // What a vector is.
         let lKindFlags: BasePgslTypeKind = BasePgslTypeKind.Vector | BasePgslTypeKind.Composite | BasePgslTypeKind.Indexable;
 
-        // Copy kind informations from inner types.
-        lKindFlags |= pInnerType.isKind(BasePgslTypeKind.Plain) ? BasePgslTypeKind.Plain : BasePgslTypeKind.None;
-        lKindFlags |= pInnerType.isKind(BasePgslTypeKind.Concrete) ? BasePgslTypeKind.Concrete : BasePgslTypeKind.None;
-        lKindFlags |= pInnerType.isKind(BasePgslTypeKind.Storable) ? BasePgslTypeKind.Storable : BasePgslTypeKind.None;
-        lKindFlags |= pInnerType.isKind(BasePgslTypeKind.FixedFootprint) ? BasePgslTypeKind.FixedFootprint : BasePgslTypeKind.None;
-        lKindFlags |= pInnerType.isKind(BasePgslTypeKind.Constructible) ? BasePgslTypeKind.Constructible : BasePgslTypeKind.None;
-        lKindFlags |= pInnerType.isKind(BasePgslTypeKind.HostShareable) ? BasePgslTypeKind.HostShareable : BasePgslTypeKind.None;
+        // Copy kind informations from component types.
+        lKindFlags |= pComponentType.isKind(BasePgslTypeKind.Plain) ? BasePgslTypeKind.Plain : BasePgslTypeKind.None;
+        lKindFlags |= pComponentType.isKind(BasePgslTypeKind.Concrete) ? BasePgslTypeKind.Concrete : BasePgslTypeKind.None;
+        lKindFlags |= pComponentType.isKind(BasePgslTypeKind.Storable) ? BasePgslTypeKind.Storable : BasePgslTypeKind.None;
+        lKindFlags |= pComponentType.isKind(BasePgslTypeKind.FixedFootprint) ? BasePgslTypeKind.FixedFootprint : BasePgslTypeKind.None;
+        lKindFlags |= pComponentType.isKind(BasePgslTypeKind.Constructible) ? BasePgslTypeKind.Constructible : BasePgslTypeKind.None;
+        lKindFlags |= pComponentType.isKind(BasePgslTypeKind.HostShareable) ? BasePgslTypeKind.HostShareable : BasePgslTypeKind.None;
 
         // Create and use meta.
         super(lKindFlags, {
-            typeName: PgslVectorType.identifierOf(pVectorDimension, pInnerType),
-            generics: [pInnerType]
+            typeName: PgslVectorType.identifierOf(pVectorDimension, pComponentType),
+            generics: [pComponentType]
         });
 
         this.mVectorDimension = pVectorDimension;
@@ -95,7 +95,7 @@ export class PgslVectorType extends BasePgslType {
 
     /**
      * Get this types convertion rank to another type.
-     * A vector converts into a vector of the same dimension whenever its inner type converts.
+     * A vector converts into a vector of the same dimension whenever its component type converts.
      * 
      * @param pTarget - Conversion target type.
      * 
@@ -107,17 +107,17 @@ export class PgslVectorType extends BasePgslType {
             return Number.POSITIVE_INFINITY;
         }
 
-        // The inner types conversion rank is the vector rank.
-        return this.innerType.conversionRankTo(pTarget.innerType);
+        // The component types conversion rank is the vector rank.
+        return this.componentType.conversionRankTo(pTarget.componentType);
     }
 
     /**
      * Compare this vector type with a target type for equality.
-     * Two vector types are equal if they have the same dimension and inner type.
+     * Two vector types are equal if they have the same dimension and component type.
      * 
      * @param pTarget - Target comparison type. 
      * 
-     * @returns True when both types have the same dimension and inner type.
+     * @returns True when both types have the same dimension and component type.
      */
     public override equals(pTarget: BasePgslType): pTarget is this {
         // Must both be a vector of the same dimension.
@@ -125,6 +125,6 @@ export class PgslVectorType extends BasePgslType {
             return false;
         }
 
-        return this.innerType.equals(pTarget.innerType);
+        return this.componentType.equals(pTarget.componentType);
     }
 }

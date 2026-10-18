@@ -188,19 +188,19 @@ export class PgslParserResultBinding extends PgslParserResultObject {
 
                 // Vector types.
                 case pType instanceof PgslVectorType: {
-                    const lElementType = this.convertType(pType.innerType, pDocument) as PgslParserResultNumericType;
+                    const lElementType = this.convertType(pType.componentType, pDocument) as PgslParserResultNumericType;
                     return new PgslParserResultVectorType(lElementType, pType.dimension);
                 }
 
                 // Matrix types.
                 case pType instanceof PgslMatrixType: {
-                    const lElementType = this.convertType(pType.innerType, pDocument) as PgslParserResultNumericType;
+                    const lElementType = this.convertType(pType.componentType, pDocument) as PgslParserResultNumericType;
                     return new PgslParserResultMatrixType(lElementType, pType.rowCount, pType.columnCount);
                 }
 
                 // Array types.
                 case pType instanceof PgslArrayType: {
-                    const lElementType = this.convertType(pType.innerType, pDocument) as PgslParserResultNumericType;
+                    const lElementType = this.convertType(pType.componentType, pDocument) as PgslParserResultNumericType;
                     return new PgslParserResultArrayType(lElementType, pType.length);
                 }
 

@@ -249,7 +249,7 @@ Deno.test('BinaryExpressionAst - Parsing', async (pContext) => {
             const lResultType: PgslVectorType = lExpressionNode.data.resolveType as PgslVectorType;
             expect(lResultType).toBeInstanceOf(PgslVectorType);
             expect(lResultType.dimension).toBe(3);
-            expect(lResultType.innerType).toBeInstanceOf(PgslNumericType);
+            expect(lResultType.componentType).toBeInstanceOf(PgslNumericType);
         });
 
         await pContext.step('Vector binary AND', () => {

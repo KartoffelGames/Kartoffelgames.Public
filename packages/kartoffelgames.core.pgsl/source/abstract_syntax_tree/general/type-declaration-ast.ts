@@ -267,25 +267,25 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
         }
 
         // Validate template parameter.
-        const lInnerTypeDefinition: TypeDeclarationAstTemplate = pRawTemplate[0];
-        if (lInnerTypeDefinition.type !== 'TypeDeclaration') {
+        const lComponentTypeDefinition: TypeDeclarationAstTemplate = pRawTemplate[0];
+        if (lComponentTypeDefinition.type !== 'TypeDeclaration') {
             pContext.pushIncident(`Matrix template parameter needs to be a type definition.`, this);
             return new PgslInvalidType();
         }
 
-        // Build inner type.
-        const lInnerTypeDeclaration: TypeDeclarationAst = new TypeDeclarationAst(lInnerTypeDefinition).process(pContext);
-        const lInnerType: BasePgslType = lInnerTypeDeclaration.data.type;
+        // Build component type.
+        const lComponentTypeDeclaration: TypeDeclarationAst = new TypeDeclarationAst(lComponentTypeDefinition).process(pContext);
+        const lComponentType: BasePgslType = lComponentTypeDeclaration.data.type;
 
         // A matrix can only be composed of floating point components.
-        if (!lInnerType.isKind(BasePgslTypeKind.Float)) {
+        if (!lComponentType.isKind(BasePgslTypeKind.Float)) {
             pContext.pushIncident(`Matrix component type must be a floating point type.`, this);
         }
 
         const [lColumns, lRows] = PgslMatrixType.dimensionsOf(pRawName as any);
 
         // Build matrix definition.
-        return new PgslMatrixType(lColumns, lRows, lInnerType);
+        return new PgslMatrixType(lColumns, lRows, lComponentType);
     }
 
     /**
@@ -329,16 +329,16 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
         };
 
         // Create a new type declaration without pointer.
-        const lInnerTypeDeclaration: TypeDeclarationAst = new TypeDeclarationAst(lConcreteTypeDeclaration).process(pContext);
-        const lInnerType: BasePgslType = lInnerTypeDeclaration.data.type;
+        const lComponentTypeDeclaration: TypeDeclarationAst = new TypeDeclarationAst(lConcreteTypeDeclaration).process(pContext);
+        const lComponentType: BasePgslType = lComponentTypeDeclaration.data.type;
 
         // Only storable types can be referenced by pointers.
-        if (!lInnerType.isKind(BasePgslTypeKind.Storable)) {
+        if (!lComponentType.isKind(BasePgslTypeKind.Storable)) {
             pContext.pushIncident('Referenced types of pointers need to be storable', this);
         }
 
         // Build pointer type definition.
-        return new PgslPointerType(lInnerType);
+        return new PgslPointerType(lComponentType);
     }
 
     /**
@@ -666,23 +666,23 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
         }
 
         // Validate template parameter.
-        const lInnerTypeDefinition: TypeDeclarationAstTemplate = pRawTemplate[0];
-        if (lInnerTypeDefinition.type !== 'TypeDeclaration') {
+        const lComponentTypeDefinition: TypeDeclarationAstTemplate = pRawTemplate[0];
+        if (lComponentTypeDefinition.type !== 'TypeDeclaration') {
             pContext.pushIncident(`Vector template parameter needs to be a type definition.`, this);
             return new PgslInvalidType();
         }
 
-        // Build inner type.
-        const lInnerTypeDeclaration: TypeDeclarationAst = new TypeDeclarationAst(lInnerTypeDefinition).process(pContext);
-        const lInnerType: BasePgslType = lInnerTypeDeclaration.data.type;
+        // Build component type.
+        const lComponentTypeDeclaration: TypeDeclarationAst = new TypeDeclarationAst(lComponentTypeDefinition).process(pContext);
+        const lComponentType: BasePgslType = lComponentTypeDeclaration.data.type;
 
         // A vector can only be composed of scalar components.
-        if (!lInnerType.isKind(BasePgslTypeKind.Scalar)) {
+        if (!lComponentType.isKind(BasePgslTypeKind.Scalar)) {
             pContext.pushIncident(`Vector component type must be a scalar type.`, this);
         }
 
         // Build vector definition.
-        return new PgslVectorType(lVectorDimension, lInnerType);
+        return new PgslVectorType(lVectorDimension, lComponentType);
     }
 
     /**

@@ -100,7 +100,7 @@ export class ValueDecompositionExpressionAst extends AbstractSyntaxTree<ValueDec
                     // When swizzle is only one long return the inner type.
                     if (lPropertyName.length === 1) {
                         return {
-                            type: lExpressionType.innerType,
+                            type: lExpressionType.componentType,
                             expressionDeclaration: null,
                             propertyValue: null,
 
@@ -113,7 +113,7 @@ export class ValueDecompositionExpressionAst extends AbstractSyntaxTree<ValueDec
 
                     // Build vectorN type from vector type.
                     return {
-                        type: pContext.types.create(PgslVectorType, lPropertyName.length, lExpressionType.innerType),
+                        type: pContext.types.create(PgslVectorType, lPropertyName.length, lExpressionType.componentType),
                         expressionDeclaration: null,
                         propertyValue: null,
 

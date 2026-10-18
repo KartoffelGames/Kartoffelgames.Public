@@ -34,22 +34,22 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
         const lIntegerTypes: Array<BasePgslType> = [pContext.types.create(PgslNumericType, PgslNumericType.typeName.abstractInteger), pContext.types.create(PgslNumericType, PgslNumericType.typeName.signedInteger), pContext.types.create(PgslNumericType, PgslNumericType.typeName.unsignedInteger)];
         const lNumericTypes: Array<BasePgslType> = [...lFloatTypes, ...lIntegerTypes];
 
-        // Vectors and matrices of each inner type.
-        const lVectorsOf = (pDimension: number, pInnerTypes: Array<BasePgslType>): Array<BasePgslType> => {
-            return pInnerTypes.map((pInnerType: BasePgslType) => {
-                return pContext.types.create(PgslVectorType, pDimension, pInnerType);
+        // Vectors and matrices of each component type.
+        const lVectorsOf = (pDimension: number, pComponentTypes: Array<BasePgslType>): Array<BasePgslType> => {
+            return pComponentTypes.map((pComponentType: BasePgslType) => {
+                return pContext.types.create(PgslVectorType, pDimension, pComponentType);
             });
         };
-        const lMatricesOf = (pMatrixName: PgslMatrixTypeName, pInnerTypes: Array<BasePgslType>): Array<BasePgslType> => {
+        const lMatricesOf = (pMatrixName: PgslMatrixTypeName, pComponentTypes: Array<BasePgslType>): Array<BasePgslType> => {
             const [lColumns, lRows] = PgslMatrixType.dimensionsOf(pMatrixName);
-            return pInnerTypes.map((pInnerType: BasePgslType) => {
-                return pContext.types.create(PgslMatrixType, lColumns, lRows, pInnerType);
+            return pComponentTypes.map((pComponentType: BasePgslType) => {
+                return pContext.types.create(PgslMatrixType, lColumns, lRows, pComponentType);
             });
         };
 
-        // Get the type all other types convert into. When a type is a vector or matrix, it uses its inner type.
+        // Get the type all other types convert into. When a type is a vector or matrix, it uses its component type.
         const lCommonParameterTypeOf = (pParameterTypeList: Array<BasePgslType>, pSkipUnwrap: boolean = false): BasePgslType => {
-            // Unwrap a generic-type to get its inner type.
+            // Unwrap a generic-type to get its component type.
             const lUnrapType = (pType: BasePgslType) => {
                 // Skip unwrapping if its disabled (only arrays i think)
                 if (pSkipUnwrap) {
@@ -57,7 +57,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                 }
 
                 if (pType instanceof PgslVectorType || pType instanceof PgslMatrixType) {
-                    return pType.innerType;
+                    return pType.componentType;
                 }
 
                 return pType;
@@ -66,7 +66,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
             // Compare each type to get the type with the highest convertion rank between all types.
             let lCommonType: BasePgslType = lUnrapType(pParameterTypeList[0]);
             for (const lType of pParameterTypeList) {
-                // Unwrap a vector and matrix to get its inner type.
+                // Unwrap a vector and matrix to get its component type.
                 const lUnwrappedType: BasePgslType = lUnrapType(lType);
 
                 // Compare both conversion directions and keep the type the other one converts into.
@@ -144,7 +144,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     [{ typeRestrictions: [...lNumericTypes, lBooleanType], count: { min: 2, max: 2 } }]
                 ],
                 returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pDefinition: NewExpressionAstCallDefinition, pGeneric: BasePgslType | null): NewExpressionAstCallDefinitionReturnType => {
-                    // Find inner type by generic or the common component type of all parameters.
+                    // Find component type by generic or the common component type of all parameters.
                     const lItemType: BasePgslType = pGeneric ?? lMatchingGenericTypeOf(pParameterList, pDefinition.generics);
 
                     return {
@@ -187,7 +187,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     ],
                 ],
                 returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pDefinition: NewExpressionAstCallDefinition, pGeneric: BasePgslType | null): NewExpressionAstCallDefinitionReturnType => {
-                    // Find inner type by generic or the common component type of all parameters.
+                    // Find component type by generic or the common component type of all parameters.
                     const lItemType: BasePgslType = pGeneric ?? lMatchingGenericTypeOf(pParameterList, pDefinition.generics);
 
                     return {
@@ -278,7 +278,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     ],
                 ],
                 returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pDefinition: NewExpressionAstCallDefinition, pGeneric: BasePgslType | null): NewExpressionAstCallDefinitionReturnType => {
-                    // Find inner type by generic or the common component type of all parameters.
+                    // Find component type by generic or the common component type of all parameters.
                     const lItemType: BasePgslType = pGeneric ?? lMatchingGenericTypeOf(pParameterList, pDefinition.generics);
 
                     return {
@@ -302,7 +302,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     [{ typeRestrictions: [...lVectorsOf(2, lFloatTypes)], count: { min: 2, max: 2 } }],
                 ],
                 returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pDefinition: NewExpressionAstCallDefinition, pGeneric: BasePgslType | null): NewExpressionAstCallDefinitionReturnType => {
-                    // Find inner type by generic or the common component type of all parameters.
+                    // Find component type by generic or the common component type of all parameters.
                     const lItemType: BasePgslType = pGeneric ?? lMatchingGenericTypeOf(pParameterList, pDefinition.generics);
 
                     return {
@@ -324,7 +324,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     [{ typeRestrictions: [...lVectorsOf(3, lFloatTypes)], count: { min: 2, max: 2 } }],
                 ],
                 returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pDefinition: NewExpressionAstCallDefinition, pGeneric: BasePgslType | null): NewExpressionAstCallDefinitionReturnType => {
-                    // Find inner type by generic or the common component type of all parameters.
+                    // Find component type by generic or the common component type of all parameters.
                     const lItemType: BasePgslType = pGeneric ?? lMatchingGenericTypeOf(pParameterList, pDefinition.generics);
 
                     return {
@@ -346,7 +346,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     [{ typeRestrictions: [...lVectorsOf(4, lFloatTypes)], count: { min: 2, max: 2 } }],
                 ],
                 returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pDefinition: NewExpressionAstCallDefinition, pGeneric: BasePgslType | null): NewExpressionAstCallDefinitionReturnType => {
-                    // Find inner type by generic or the common component type of all parameters.
+                    // Find component type by generic or the common component type of all parameters.
                     const lItemType: BasePgslType = pGeneric ?? lMatchingGenericTypeOf(pParameterList, pDefinition.generics);
 
                     return {
@@ -368,7 +368,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     [{ typeRestrictions: [...lVectorsOf(2, lFloatTypes)], count: { min: 3, max: 3 } }],
                 ],
                 returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pDefinition: NewExpressionAstCallDefinition, pGeneric: BasePgslType | null): NewExpressionAstCallDefinitionReturnType => {
-                    // Find inner type by generic or the common component type of all parameters.
+                    // Find component type by generic or the common component type of all parameters.
                     const lItemType: BasePgslType = pGeneric ?? lMatchingGenericTypeOf(pParameterList, pDefinition.generics);
 
                     return {
@@ -390,7 +390,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     [{ typeRestrictions: [...lVectorsOf(3, lFloatTypes)], count: { min: 3, max: 3 } }],
                 ],
                 returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pDefinition: NewExpressionAstCallDefinition, pGeneric: BasePgslType | null): NewExpressionAstCallDefinitionReturnType => {
-                    // Find inner type by generic or the common component type of all parameters.
+                    // Find component type by generic or the common component type of all parameters.
                     const lItemType: BasePgslType = pGeneric ?? lMatchingGenericTypeOf(pParameterList, pDefinition.generics);
 
                     return {
@@ -412,7 +412,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     [{ typeRestrictions: [...lVectorsOf(4, lFloatTypes)], count: { min: 3, max: 3 } }],
                 ],
                 returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pDefinition: NewExpressionAstCallDefinition, pGeneric: BasePgslType | null): NewExpressionAstCallDefinitionReturnType => {
-                    // Find inner type by generic or the common component type of all parameters.
+                    // Find component type by generic or the common component type of all parameters.
                     const lItemType: BasePgslType = pGeneric ?? lMatchingGenericTypeOf(pParameterList, pDefinition.generics);
 
                     return {
@@ -434,7 +434,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     [{ typeRestrictions: [...lVectorsOf(2, lFloatTypes)], count: { min: 4, max: 4 } }],
                 ],
                 returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pDefinition: NewExpressionAstCallDefinition, pGeneric: BasePgslType | null): NewExpressionAstCallDefinitionReturnType => {
-                    // Find inner type by generic or the common component type of all parameters.
+                    // Find component type by generic or the common component type of all parameters.
                     const lItemType: BasePgslType = pGeneric ?? lMatchingGenericTypeOf(pParameterList, pDefinition.generics);
 
                     return {
@@ -457,7 +457,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     [{ typeRestrictions: [...lVectorsOf(3, lFloatTypes)], count: { min: 4, max: 4 } }],
                 ],
                 returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pDefinition: NewExpressionAstCallDefinition, pGeneric: BasePgslType | null): NewExpressionAstCallDefinitionReturnType => {
-                    // Find inner type by generic or the common component type of all parameters.
+                    // Find component type by generic or the common component type of all parameters.
                     const lItemType: BasePgslType = pGeneric ?? lMatchingGenericTypeOf(pParameterList, pDefinition.generics);
 
                     return {
@@ -479,7 +479,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     [{ typeRestrictions: [...lVectorsOf(4, lFloatTypes)], count: { min: 4, max: 4 } }],
                 ],
                 returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<BasePgslType>, pDefinition: NewExpressionAstCallDefinition, pGeneric: BasePgslType | null): NewExpressionAstCallDefinitionReturnType => {
-                    // Find inner type by generic or the common component type of all parameters.
+                    // Find component type by generic or the common component type of all parameters.
                     const lItemType: BasePgslType = pGeneric ?? lMatchingGenericTypeOf(pParameterList, pDefinition.generics);
 
                     return {

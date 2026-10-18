@@ -119,7 +119,7 @@ export class PgslParserResultVertexEntryPoint extends PgslParserResultEntryPoint
 
                 // Vector types.
                 case pType instanceof PgslVectorType: {
-                    const lElementType = this.convertType(pType.innerType) as PgslParserResultNumericType;
+                    const lElementType = this.convertType(pType.componentType) as PgslParserResultNumericType;
                     return new PgslParserResultVectorType(lElementType, pType.dimension);
                 }
 

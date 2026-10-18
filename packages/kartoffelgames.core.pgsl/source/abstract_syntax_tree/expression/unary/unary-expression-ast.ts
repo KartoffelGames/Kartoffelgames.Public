@@ -29,7 +29,7 @@ export class UnaryExpressionAst extends AbstractSyntaxTree<UnaryExpressionCst, U
         const lItemType: BasePgslType = (() => {
             // Get inner items of vectors.
             if (lExpression.data.resolveType instanceof PgslVectorType) {
-                return lExpression.data.resolveType.innerType;
+                return lExpression.data.resolveType.componentType;
             }
 
             return lExpression.data.resolveType;

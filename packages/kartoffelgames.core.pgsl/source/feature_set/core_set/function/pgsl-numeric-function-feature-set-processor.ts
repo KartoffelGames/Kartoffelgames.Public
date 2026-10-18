@@ -870,28 +870,28 @@ export class PgslNumericFunctionFeatureSetProcessor extends PgslFeatureSetProces
     /**
      * Get all square matrix types.
      *
-     * @param pInnerType - Inner type of the matrices.
+     * @param pComponentType - Component type of the matrices.
      *
      * @returns the 2x2, 3x3 and 4x4 matrix types.
      */
-    private squareMatrixTypes(pInnerType: BasePgslType): Array<BasePgslType> {
+    private squareMatrixTypes(pComponentType: BasePgslType): Array<BasePgslType> {
         return [2, 3, 4].map((pDimension: number) => {
-            return this.types.create(PgslMatrixType, pDimension, pDimension, pInnerType);
+            return this.types.create(PgslMatrixType, pDimension, pDimension, pComponentType);
         });
     }
 
     /**
-     * Get vector types for every inner type and dimension.
+     * Get vector types for every component type and dimension.
      *
-     * @param pInnerTypes - Inner types of the vectors.
+     * @param pComponentTypes - Component types of the vectors.
      * @param pDimensions - Vector dimensions. Defaults to all dimensions.
      *
      * @returns all vector types.
      */
-    private vectorTypes(pInnerTypes: Array<BasePgslType>, pDimensions: Array<number> = [2, 3, 4]): Array<BasePgslType> {
+    private vectorTypes(pComponentTypes: Array<BasePgslType>, pDimensions: Array<number> = [2, 3, 4]): Array<BasePgslType> {
         return pDimensions.flatMap((pDimension: number) => {
-            return pInnerTypes.map((pInnerType: BasePgslType) => {
-                return this.types.create(PgslVectorType, pDimension, pInnerType);
+            return pComponentTypes.map((pComponentType: BasePgslType) => {
+                return this.types.create(PgslVectorType, pDimension, pComponentType);
             });
         });
     }

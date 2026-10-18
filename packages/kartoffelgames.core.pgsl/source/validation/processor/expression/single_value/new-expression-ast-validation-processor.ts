@@ -97,7 +97,7 @@ export class NewExpressionAstValidationProcessor extends PgslValidatorProcessor<
                 }
 
                 if (pType instanceof PgslVectorType || pType instanceof PgslMatrixType) {
-                    return pType.innerType;
+                    return pType.componentType;
                 }
 
                 return pType;

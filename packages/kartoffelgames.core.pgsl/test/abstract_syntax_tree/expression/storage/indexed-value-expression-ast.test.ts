@@ -125,7 +125,7 @@ Deno.test('IndexedValueExpressionAst - Parsing', async (pContext) => {
             const lResultType: PgslVectorType = lExpressionNode.data.resolveType as PgslVectorType;
             expect(lResultType).toBeInstanceOf(PgslVectorType);
             expect(lResultType.dimension).toBe(2);
-            expect(lResultType.innerType).toBeInstanceOf(PgslNumericType);
+            expect(lResultType.componentType).toBeInstanceOf(PgslNumericType);
 
             // Evaluation. Correct structure.
             expect(lIndexExpression).toBeInstanceOf(LiteralValueExpressionAst);

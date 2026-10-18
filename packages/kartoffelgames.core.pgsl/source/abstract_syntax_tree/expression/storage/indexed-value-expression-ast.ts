@@ -27,11 +27,11 @@ export class IndexedValueExpressionAst extends AbstractSyntaxTree<IndexedValueEx
         const [lResolveType, lFixedLength] = ((): [BasePgslType, number] => {
             switch (true) {
                 case lValue.data.resolveType instanceof PgslArrayType: {
-                    return [lValue.data.resolveType.innerType, lValue.data.resolveType.length ?? -1];
+                    return [lValue.data.resolveType.componentType, lValue.data.resolveType.length ?? -1];
                 }
 
                 case lValue.data.resolveType instanceof PgslVectorType: {
-                    return [lValue.data.resolveType.innerType, lValue.data.resolveType.dimension];
+                    return [lValue.data.resolveType.componentType, lValue.data.resolveType.dimension];
                 }
 
                 case lValue.data.resolveType instanceof PgslMatrixType: {

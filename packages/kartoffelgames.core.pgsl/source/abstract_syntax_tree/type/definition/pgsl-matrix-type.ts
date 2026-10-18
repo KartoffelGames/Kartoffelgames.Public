@@ -4,7 +4,7 @@ import { PgslVectorType } from './pgsl-vector-type.ts';
 
 /**
  * Matrix type definition.
- * Represents a matrix type with specific row and column dimensions and inner numeric type.
+ * Represents a matrix type with specific row and column dimensions and component numeric type.
  * Matrices are composite types used for linear algebra operations in graphics programming.
  * 
  * MATRIXES ARE ALWAYS COLUMN MAJOR ORDERED.
@@ -55,12 +55,12 @@ export class PgslMatrixType extends BasePgslType {
      * 
      * @param pColumnCount - The number of columns in the matrix.
      * @param pRowCount - The number of rows in the matrix.
-     * @param pInnerType - The inner element type of the matrix.
+     * @param pComponentType - The component element type of the matrix.
      * 
      * @returns The type identification.
      */
-    public static identifierOf(pColumnCount: number, pRowCount: number, pInnerType: BasePgslType): string {
-        return PgslMatrixType.typenameFromDimensions(pColumnCount, pRowCount) + '[' + pInnerType.meta.typeName + ']';
+    public static identifierOf(pColumnCount: number, pRowCount: number, pComponentType: BasePgslType): string {
+        return PgslMatrixType.typenameFromDimensions(pColumnCount, pRowCount) + '[' + pComponentType.meta.typeName + ']';
     }
 
     /**
@@ -101,11 +101,11 @@ export class PgslMatrixType extends BasePgslType {
     }
 
     /**
-     * Gets the inner element type of the matrix.
+     * Gets the component element type of the matrix.
      * 
      * @returns The type of elements stored in the matrix.
      */
-    public get innerType(): BasePgslType {
+    public get componentType(): BasePgslType {
         return this.meta.generics![0];
     }
 
@@ -132,31 +132,31 @@ export class PgslMatrixType extends BasePgslType {
      * 
      * @param pColumnCount - The number of columns in the matrix.
      * @param pRowCount - The number of rows in the matrix.
-     * @param pInnerType - The inner element type of the matrix.
+     * @param pComponentType - The component element type of the matrix.
      */
-    public constructor(pColumnCount: number, pRowCount: number, pInnerType: BasePgslType) {
+    public constructor(pColumnCount: number, pRowCount: number, pComponentType: BasePgslType) {
         // A matrix is always a composite that can be indexed. It is never a scalar itself.
         let lKindFlags: BasePgslTypeKind = BasePgslTypeKind.Matrix | BasePgslTypeKind.Composite | BasePgslTypeKind.Indexable;
 
-        // Copy kind informations from inner types.
-        lKindFlags |= pInnerType.isKind(BasePgslTypeKind.Plain) ? BasePgslTypeKind.Plain : BasePgslTypeKind.None;
-        lKindFlags |= pInnerType.isKind(BasePgslTypeKind.Concrete) ? BasePgslTypeKind.Concrete : BasePgslTypeKind.None;
-        lKindFlags |= pInnerType.isKind(BasePgslTypeKind.Storable) ? BasePgslTypeKind.Storable : BasePgslTypeKind.None;
-        lKindFlags |= pInnerType.isKind(BasePgslTypeKind.FixedFootprint) ? BasePgslTypeKind.FixedFootprint : BasePgslTypeKind.None;
-        lKindFlags |= pInnerType.isKind(BasePgslTypeKind.Constructible) ? BasePgslTypeKind.Constructible : BasePgslTypeKind.None;
-        lKindFlags |= pInnerType.isKind(BasePgslTypeKind.HostShareable) ? BasePgslTypeKind.HostShareable : BasePgslTypeKind.None;
+        // Copy kind informations from component types.
+        lKindFlags |= pComponentType.isKind(BasePgslTypeKind.Plain) ? BasePgslTypeKind.Plain : BasePgslTypeKind.None;
+        lKindFlags |= pComponentType.isKind(BasePgslTypeKind.Concrete) ? BasePgslTypeKind.Concrete : BasePgslTypeKind.None;
+        lKindFlags |= pComponentType.isKind(BasePgslTypeKind.Storable) ? BasePgslTypeKind.Storable : BasePgslTypeKind.None;
+        lKindFlags |= pComponentType.isKind(BasePgslTypeKind.FixedFootprint) ? BasePgslTypeKind.FixedFootprint : BasePgslTypeKind.None;
+        lKindFlags |= pComponentType.isKind(BasePgslTypeKind.Constructible) ? BasePgslTypeKind.Constructible : BasePgslTypeKind.None;
+        lKindFlags |= pComponentType.isKind(BasePgslTypeKind.HostShareable) ? BasePgslTypeKind.HostShareable : BasePgslTypeKind.None;
 
         // Create and use meta.
         super(lKindFlags, {
-            typeName: PgslMatrixType.identifierOf(pColumnCount, pRowCount, pInnerType),
-            generics: [pInnerType]
+            typeName: PgslMatrixType.identifierOf(pColumnCount, pRowCount, pComponentType),
+            generics: [pComponentType]
         });
 
         this.mColumnCount = pColumnCount;
         this.mRowCount = pRowCount;
 
         // Create underlying vector type based on matrix type.
-        this.mVectorTypeDefinition = new PgslVectorType(this.mColumnCount, pInnerType);
+        this.mVectorTypeDefinition = new PgslVectorType(this.mColumnCount, pComponentType);
     }
 
     /**
@@ -174,16 +174,16 @@ export class PgslMatrixType extends BasePgslType {
         }
 
         // The component conversion decides the rank of the whole matrix.
-        return this.innerType.conversionRankTo(pTarget.innerType);
+        return this.componentType.conversionRankTo(pTarget.componentType);
     }
 
     /**
      * Compare this matrix type with a target type for equality.
-     * Two matrix types are equal if they have the same dimensions and inner type.
+     * Two matrix types are equal if they have the same dimensions and component type.
      * 
      * @param pTarget - Target comparison type. 
      * 
-     * @returns True when both types have the same dimensions and inner type.
+     * @returns True when both types have the same dimensions and component type.
      */
     public override equals(pTarget: BasePgslType): pTarget is this {
         // Must both be a matrix.
@@ -196,7 +196,7 @@ export class PgslMatrixType extends BasePgslType {
             return false;
         }
 
-        return this.innerType.equals(pTarget.innerType);
+        return this.componentType.equals(pTarget.componentType);
     }
 }
 

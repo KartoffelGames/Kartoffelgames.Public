@@ -76,8 +76,8 @@ export class BinaryExpressionAstValidationProcessor extends PgslValidatorProcess
         // Vectors are validated with their inner type.
         const lLeftType: BasePgslType = pData.leftExpression.data.resolveType;
         const lRightType: BasePgslType = pData.rightExpression.data.resolveType;
-        const lLeftItemType: BasePgslType = (lLeftType instanceof PgslVectorType) ? lLeftType.innerType : lLeftType;
-        const lRightItemType: BasePgslType = (lRightType instanceof PgslVectorType) ? lRightType.innerType : lRightType;
+        const lLeftItemType: BasePgslType = (lLeftType instanceof PgslVectorType) ? lLeftType.componentType : lLeftType;
+        const lRightItemType: BasePgslType = (lRightType instanceof PgslVectorType) ? lRightType.componentType : lRightType;
 
         // Both types must be an integer or integer vector.
         if (!lLeftItemType.isKind(BasePgslTypeKind.Integer) || !lRightItemType.isKind(BasePgslTypeKind.Integer)) {

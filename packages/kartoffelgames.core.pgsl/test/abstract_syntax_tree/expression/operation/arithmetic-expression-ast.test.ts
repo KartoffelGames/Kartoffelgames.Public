@@ -113,7 +113,7 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
             const lResultType: PgslVectorType = lExpressionNode.data.resolveType as PgslVectorType;
             expect(lResultType).toBeInstanceOf(PgslVectorType);
             expect(lResultType.dimension).toBe(3);
-            expect(lResultType.innerType).toBeInstanceOf(PgslNumericType);
+            expect(lResultType.componentType).toBeInstanceOf(PgslNumericType);
         });
 
         await pContext.step('Mixed vector with float', () => {
@@ -874,7 +874,7 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
             const lResultType: PgslVectorType = lExpressionNode.data.resolveType as PgslVectorType;
             expect(lResultType).toBeInstanceOf(PgslVectorType);
             expect(lResultType.dimension).toBe(3);
-            expect((lResultType.innerType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.abstractFloat);
+            expect((lResultType.componentType as PgslNumericType).numericTypeName).toBe(PgslNumericType.typeName.abstractFloat);
         });
 
         await pContext.step('Matrix with different dimensions', () => {

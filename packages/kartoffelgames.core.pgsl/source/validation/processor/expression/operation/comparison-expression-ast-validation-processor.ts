@@ -59,7 +59,7 @@ export class ComparisonExpressionAstValidationProcessor extends PgslValidatorPro
         }
 
         // Validate that the expressions are scalars or vectors of scalars.
-        const lItemType: BasePgslType = (lLeftType instanceof PgslVectorType) ? lLeftType.innerType : lLeftType;
+        const lItemType: BasePgslType = (lLeftType instanceof PgslVectorType) ? lLeftType.componentType : lLeftType;
         if (!lItemType.isKind(BasePgslTypeKind.Scalar)) {
             this.pushIncident(`Comparison can only be between scalar values.`);
         }

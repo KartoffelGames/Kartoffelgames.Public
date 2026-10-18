@@ -49,19 +49,19 @@ export class TypeDeclarationAstTranspilerProcessor extends TranspilerProcessor<T
      * @returns The WGSL array type string.
      */
     private transpileArrayType(pType: PgslArrayType): string {
-        // None concrete inner types are expressed as an unknown array.
-        if (!pType.innerType.isKind(BasePgslTypeKind.Concrete)) {
+        // None concrete component types are expressed as an unknown array.
+        if (!pType.componentType.isKind(BasePgslTypeKind.Concrete)) {
             return `array`;
         }
 
-        const lInnerTypeWgsl: string = this.transpileType(pType.innerType);
+        const lComponentTypeWgsl: string = this.transpileType(pType.componentType);
 
         if (pType.length !== null) {
             // Fixed-size array
-            return `array<${lInnerTypeWgsl},${pType.length}>`;
+            return `array<${lComponentTypeWgsl},${pType.length}>`;
         } else {
             // Runtime-sized array
-            return `array<${lInnerTypeWgsl}>`;
+            return `array<${lComponentTypeWgsl}>`;
         }
     }
 
@@ -75,13 +75,13 @@ export class TypeDeclarationAstTranspilerProcessor extends TranspilerProcessor<T
     private transpileMatrixType(pType: PgslMatrixType): string {
         const lMatrixTypename: string = `mat${pType.columnCount}x${pType.rowCount}`;
 
-        // None concrete inner types are expressed as unknown matrices.
+        // None concrete component types are expressed as unknown matrices.
         if (!pType.isKind(BasePgslTypeKind.Concrete)) {
             return lMatrixTypename;
         }
 
-        const lInnerTypeWgsl: string = this.transpileType(pType.innerType);
-        return `${lMatrixTypename}<${lInnerTypeWgsl}>`;
+        const lComponentTypeWgsl: string = this.transpileType(pType.componentType);
+        return `${lMatrixTypename}<${lComponentTypeWgsl}>`;
     }
 
     /**
@@ -272,7 +272,7 @@ export class TypeDeclarationAstTranspilerProcessor extends TranspilerProcessor<T
 
     /**
      * Transpiles a PGSL type into its WGSL type string.
-     * Dispatches to the type specific transpilation, also used for inner types.
+     * Dispatches to the type specific transpilation, also used for component types.
      *
      * @param pType - The PGSL type to transpile.
      *
@@ -318,12 +318,12 @@ export class TypeDeclarationAstTranspilerProcessor extends TranspilerProcessor<T
     private transpileVectorType(pType: PgslVectorType): string {
         const lVectorTypename: string = `vec${pType.dimension}`;
 
-        // None concrete inner types are expressed as unknown matrices.
+        // None concrete component types are expressed as unknown matrices.
         if (!pType.isKind(BasePgslTypeKind.Concrete)) {
             return lVectorTypename;
         }
 
-        const lInnerTypeWgsl: string = this.transpileType(pType.innerType);
-        return `${lVectorTypename}<${lInnerTypeWgsl}>`;
+        const lComponentTypeWgsl: string = this.transpileType(pType.componentType);
+        return `${lVectorTypename}<${lComponentTypeWgsl}>`;
     }
 }

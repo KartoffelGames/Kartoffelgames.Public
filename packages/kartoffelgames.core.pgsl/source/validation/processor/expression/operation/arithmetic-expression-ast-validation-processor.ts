@@ -36,7 +36,7 @@ export class ArithmeticExpressionAstValidationProcessor extends PgslValidatorPro
             PgslOperator.Modulo
         ];
         if (!lArithmeticOperatorList.includes(pData.operatorName)) {
-            this.pushIncident(`Operator "${pData.operatorName}" can not used for arithmetic operations.`);
+            this.pushIncident(`Operator "${pData.operatorName}" can not be used for arithmetic operations.`);
             return;
         }
 
@@ -92,7 +92,7 @@ export class ArithmeticExpressionAstValidationProcessor extends PgslValidatorPro
         if ((lLeftType instanceof PgslMatrixType) !== (lRightType instanceof PgslMatrixType)) {
             // Only a multiplication is allowed.
             if (pData.operatorName !== PgslOperator.Multiply) {
-                this.pushIncident('Only multiplication operation is allowed between matrix and scalar or vector types.');
+                this.pushIncident('Only multiplications are allowed between matrix and scalar or vector types.');
             }
 
             // When its a matrix x vector operation, the matrix columns must match the vector dimension.

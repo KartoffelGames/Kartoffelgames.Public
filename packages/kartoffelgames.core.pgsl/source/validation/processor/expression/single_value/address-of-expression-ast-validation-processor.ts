@@ -33,17 +33,17 @@ export class AddressOfExpressionAstValidationProcessor extends PgslValidatorProc
 
         // Validate that the target of the address is a stored value.
         if (!lVariableData.isStorage) {
-            this.pushIncident(`Target of address needs to a stored value`);
+            this.pushIncident(`Target of address needs to be a stored value.`);
         }
 
         // Validate that the type of the target is storable.
         if (!lVariableData.resolveType.isKind(BasePgslTypeKind.Storable)) {
-            this.pushIncident(`Target of address needs to storable`);
+            this.pushIncident(`Target of address needs to be storable.`);
         }
 
         // Validate that the target is not a texture or sampler value, because their handle address space can not be addressed.
         if (lVariableData.storageAddressSpace === PgslValueAddressSpace.Texture) {
-            this.pushIncident(`Target of address can not be a texture or sampler value`);
+            this.pushIncident(`Target of address can not be a texture or sampler value.`);
         }
 
         // Validate that the target is not a single vector component, neither by index nor by swizzle, because WGSL can not take the address of a vector component.

@@ -1,9 +1,9 @@
 import { EnumUtil, Exception } from '@kartoffelgames/core';
-import { PgslAccessModeEnum, type PgslAccessMode } from '../../feature_set/enum/pgsl-access-mode-enum.ts';
 import type { VariableDeclarationCst } from '../../concrete_syntax_tree/declaration.type.ts';
 import { PgslDeclarationType } from '../../enum/pgsl-declaration-type.enum.ts';
 import { PgslValueAddressSpace } from '../../enum/pgsl-value-address-space.enum.ts';
 import { PgslValueFixedState } from '../../enum/pgsl-value-fixed-state.ts';
+import { PgslAccessModeEnum, type PgslAccessMode } from '../../feature_set/enum/pgsl-access-mode-enum.ts';
 import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
 import { ExpressionAstBuilder } from '../expression/expression-ast-builder.ts';
 import type { IExpressionAst } from '../expression/i-expression-ast.interface.ts';
@@ -100,7 +100,6 @@ export class VariableDeclarationAst extends BaseDeclarationAst<VariableDeclarati
         const lFixedState: PgslValueFixedState = this.getValueFixedState(lDeclarationType);
         const lAccessMode: PgslAccessMode = this.getAccessMode(lAttributes);
         const lAddressSpace: PgslValueAddressSpace = this.getAddressSpace(pContext, pCst, lDeclarationType, lType);
-        const lConstantValue: number | null = this.getConstantValue(lExpression);
         const lBindingInformation: { bindGroupName: string; bindLocationName: string; } | null = this.getBindingInformation(pContext, lAttributes);
 
         // Check if variable with same name already exists in scope.
@@ -119,7 +118,7 @@ export class VariableDeclarationAst extends BaseDeclarationAst<VariableDeclarati
             addressSpace: lAddressSpace,
             attributes: lAttributes,
             bindingInformation: lBindingInformation,
-            constantValue: lConstantValue,
+            constantValue: this.getConstantValue(lDeclarationType, lExpression),
             declarationType: lDeclarationType,
             expression: lExpression,
             fixedState: lFixedState,
@@ -251,12 +250,16 @@ export class VariableDeclarationAst extends BaseDeclarationAst<VariableDeclarati
     /**
      * Gets the constant value from an expression.
      *
+     * @param pDeclarationType - Declaration type.
      * @param pExpression - Expression to extract constant value from.
      *
      * @returns The constant value or null if not available.
      */
-    private getConstantValue(pExpression: IExpressionAst | null): number | null {
-        // TODO: Only set a constant value when its a const declaration.
+    private getConstantValue(pDeclarationType: PgslDeclarationType, pExpression: IExpressionAst | null): number | null {
+        // Only a const declaration can set a constant value.
+        if (pDeclarationType !== PgslDeclarationType.Const) {
+            return null;
+        }
 
         // Constant value must be a number.
         if (!pExpression || typeof pExpression.data.constantValue !== 'number') {

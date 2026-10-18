@@ -21,7 +21,7 @@ export class LiteralValueExpressionAstValidationProcessor extends PgslValidatorP
     protected override onValidate(pData: LiteralValueExpressionAstData): void {
         // Validate that the literal text is a boolean, integer or float literal.
         if (pData.resolveType.isKind(BasePgslTypeKind.Invalid)) {
-            this.pushIncident(`No matching Type for literal "${pData.textValue}".`);
+            this.pushIncident(`No matching type for literal "${pData.textValue}".`);
         }
 
         // Literals always have a numeric constant value. It is never negative, as a minus is an unary expression.

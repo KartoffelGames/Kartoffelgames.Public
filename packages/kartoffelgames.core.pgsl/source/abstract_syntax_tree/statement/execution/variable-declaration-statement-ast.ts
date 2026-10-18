@@ -47,7 +47,10 @@ export class VariableDeclarationStatementAst extends AbstractSyntaxTree<Variable
             lExpression = ExpressionAstBuilder.build(pCst.expression).process(pContext);
 
             // TODO: Only assign a const value when its a const declaration.
-            lConstantValue = lExpression.data.constantValue;
+            // Only a const declaration can set a constant value.
+            if (lDeclarationType === PgslDeclarationType.Const) {
+                lConstantValue = lExpression.data.constantValue;
+            }
 
             // Validate same type.
             if (lExpression.data.resolveType.conversionRankTo(lType) === Number.POSITIVE_INFINITY) {

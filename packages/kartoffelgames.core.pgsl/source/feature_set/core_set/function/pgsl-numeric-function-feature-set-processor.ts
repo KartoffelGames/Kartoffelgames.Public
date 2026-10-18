@@ -180,7 +180,7 @@ export class PgslNumericFunctionFeatureSetProcessor extends PgslFeatureSetProces
 
             // The references type cant be a fixed array.
             if (lArrayType.referencedType.isKind(BasePgslTypeKind.FixedFootprint)) {
-                pPushIncident(`References array must be runtime-sized.`);
+                pPushIncident(`Referenced array must be runtime-sized.`);
             }
         }));
     }

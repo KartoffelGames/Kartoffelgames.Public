@@ -22,7 +22,7 @@ export class VariableNameExpressionAstValidationProcessor extends PgslValidatorP
     protected override onValidate(pData: VariableNameExpressionAstData, pInstance: VariableNameExpressionAst): void {
         // Validate that the name was found.
         if (pData.valueDeclaration === null) {
-            this.pushIncident(`Variable "${pData.variableName}" not defined.`);
+            this.pushIncident(`Variable "${pData.variableName}" is not defined.`);
         }
 
         // If its a enum. Check that its inside a value decomposition.
@@ -30,7 +30,7 @@ export class VariableNameExpressionAstValidationProcessor extends PgslValidatorP
             // The enum value must be the value part of a decomposition. 
             const lDecompositionAst: ValueDecompositionExpressionAst | null = this.stackContains(ValueDecompositionExpressionAst);
             if (!lDecompositionAst || lDecompositionAst.data.expressionValue !== pInstance) {
-                this.pushIncident(`Enum "${pData.variableName}" can only be used as value.`);
+                this.pushIncident(`Enum "${pData.variableName}" can only be used as a value.`);
             }
         }
     }

@@ -25,19 +25,19 @@ export class IndexedValueExpressionAstValidationProcessor extends PgslValidatorP
 
         // Value needs to be indexable.
         if (!pData.value.data.resolveType.isKind(BasePgslTypeKind.Indexable)) {
-            this.pushIncident('Value of index expression needs to be a indexable composite value.', pData.value);
+            this.pushIncident('Value of index expression needs to be an indexable composite value.', pData.value);
         }
 
         // Value needs to be a integer value.
         if (!pData.index.data.resolveType.isKind(BasePgslTypeKind.Integer)) {
-            this.pushIncident('Index needs to be a integer value.', pData.index);
+            this.pushIncident('Index needs to be an integer value.', pData.index);
         }
 
         // When the index is a constant value we can validate that too.
         if (typeof pData.index.data.constantValue === 'number') {
             // Index cannot be negative constant.
             if (pData.index.data.constantValue < 0) {
-                this.pushIncident('Index needs to be a non negative integer value.', pData.index);
+                this.pushIncident('Index needs to be a non-negative integer value.', pData.index);
             }
 
             // Index must be inside bounds.

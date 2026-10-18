@@ -41,7 +41,7 @@ export class ComparisonExpressionAstValidationProcessor extends PgslValidatorPro
             PgslOperator.GreaterThanEqual
         ];
         if (!lComparisonList.includes(pData.operatorName)) {
-            this.pushIncident(`Operator "${pData.operatorName}" can not used for comparisons.`);
+            this.pushIncident(`Operator "${pData.operatorName}" can not be used for comparisons.`);
         }
 
         // Validate that none of the expressions is a comparison itself, as chaining comparisons requires parentheses.
@@ -66,7 +66,7 @@ export class ComparisonExpressionAstValidationProcessor extends PgslValidatorPro
 
         // Validate that boolean expressions and Vectors of bool are only compared with == and !=.
         if (lItemType.isKind(BasePgslTypeKind.Boolean) && !lBooleanComparisonList.includes(pData.operatorName)) {
-            this.pushIncident(`Boolean can only be compares with "NotEqual" or "Equal"`);
+            this.pushIncident(`Boolean can only be compared with "NotEqual" or "Equal".`);
         }
 
         // Validate if one type is abstract and the other is conrete, that the abstract number constant fits into the concrete type.

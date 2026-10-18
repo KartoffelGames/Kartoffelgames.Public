@@ -34,7 +34,7 @@ export class ValueDecompositionExpressionAstValidationProcessor extends PgslVali
             case lValueType instanceof PgslVectorType: {
                 // Validate swizzle name.
                 if (!/^([rgba]{1,4}|[xyzw]{1,4})$/.test(pData.property)) {
-                    this.pushIncident(`Swizzle name "${pData.property}" can't be used to access vector.`);
+                    this.pushIncident(`Swizzle name "${pData.property}" can't be used to access a vector.`);
                 }
 
                 // Validate that a swizzle can only use certain names for certain vector dimensions.
@@ -64,7 +64,7 @@ export class ValueDecompositionExpressionAstValidationProcessor extends PgslVali
 
                 // Validate that the struct contains the property.
                 if (!lProperty) {
-                    this.pushIncident(`Struct has no defined property "${pData.property}"`);
+                    this.pushIncident(`Struct has no defined property "${pData.property}".`);
                     break;
                 }
 
@@ -90,7 +90,7 @@ export class ValueDecompositionExpressionAstValidationProcessor extends PgslVali
             }
 
             default: {
-                this.pushIncident(`Value of a decomposition must be a compositeable type.`, pData.expressionValue);
+                this.pushIncident(`Value of a decomposition must be a composite type.`, pData.expressionValue);
             }
         }
     }

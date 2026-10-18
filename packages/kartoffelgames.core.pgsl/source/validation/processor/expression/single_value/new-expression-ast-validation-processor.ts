@@ -70,12 +70,12 @@ export class NewExpressionAstValidationProcessor extends PgslValidatorProcessor<
         for (const lParameter of pData.parameterList) {
             // Must be constructable.
             if (!lParameter.data.resolveType.isKind(BasePgslTypeKind.Constructible)) {
-                this.pushIncident(`New expression type must be constructible.`);
+                this.pushIncident(`Parameter of type '${lParameter.data.resolveType.meta.typeName}' must be constructible.`, lParameter);
             }
 
             // Must be fixed.
             if (!lParameter.data.resolveType.isKind(BasePgslTypeKind.FixedFootprint)) {
-                this.pushIncident(`New expression type must be length fixed.`);
+                this.pushIncident(`Parameter of type '${lParameter.data.resolveType.meta.typeName}' must have a fixed length.`, lParameter);
             }
         }
 

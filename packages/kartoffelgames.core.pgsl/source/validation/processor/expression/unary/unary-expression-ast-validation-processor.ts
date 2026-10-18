@@ -38,21 +38,21 @@ export class UnaryExpressionAstValidationProcessor extends PgslValidatorProcesso
         switch (pData.operator) {
             case PgslOperator.BinaryNegate: {
                 if (!lCastableIntoType(pData.itemType, BasePgslTypeKind.Integer)) {
-                    this.pushIncident(`Binary negation only valid for integer type.`);
+                    this.pushIncident(`Binary negation is only valid for integer types.`);
                 }
 
                 break;
             }
             case PgslOperator.Minus: {
                 if (!lCastableIntoType(pData.itemType, BasePgslTypeKind.Float, BasePgslTypeKind.SignedInteger, BasePgslTypeKind.Abstract | BasePgslTypeKind.Integer)) {
-                    this.pushIncident(`Negation only valid for signed numeric or vector type.`);
+                    this.pushIncident(`Negation is only valid for signed numeric or vector types.`);
                 }
 
                 break;
             }
             case PgslOperator.Not: {
                 if (!lCastableIntoType(pData.itemType, BasePgslTypeKind.Boolean)) {
-                    this.pushIncident(`Boolean negation only valid for boolean type.`);
+                    this.pushIncident(`Boolean negation is only valid for boolean types.`);
                 }
 
                 break;

@@ -31,7 +31,7 @@ export class LogicalExpressionAstValidationProcessor extends PgslValidatorProces
             PgslOperator.ShortCircuitAnd
         ];
         if (!lShortCircuitOperationList.includes(pData.operatorName)) {
-            this.pushIncident(`Operator "${pData.operatorName}" can not used for logical expressions.`);
+            this.pushIncident(`Operator "${pData.operatorName}" can not be used for logical expressions.`);
         }
 
         // Validate that none of the expressions is a logical expression itself, as chaining logical expression requires parentheses.
@@ -49,12 +49,12 @@ export class LogicalExpressionAstValidationProcessor extends PgslValidatorProces
 
         // Validate that the left expression is a bool.
         if (!pData.leftExpression.data.resolveType.isKind(BasePgslTypeKind.Boolean)) {
-            this.pushIncident('Left side of logical expression needs to be a boolean', pData.leftExpression);
+            this.pushIncident('Left side of logical expression needs to be a boolean.', pData.leftExpression);
         }
 
         // Validate that the right expression is a bool.
         if (!pData.rightExpression.data.resolveType.isKind(BasePgslTypeKind.Boolean)) {
-            this.pushIncident('Right side of logical expression needs to be a boolean', pData.rightExpression);
+            this.pushIncident('Right side of logical expression needs to be a boolean.', pData.rightExpression);
         }
     }
 }

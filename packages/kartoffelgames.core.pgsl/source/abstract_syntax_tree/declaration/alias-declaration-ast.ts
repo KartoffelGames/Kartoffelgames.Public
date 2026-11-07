@@ -13,7 +13,7 @@ export class AliasDeclarationAst extends BaseDeclarationAst<AliasDeclarationCst,
      * Alias name.
      */
     public get name(): string {
-        return this.data.aliasName;
+        return this.data.name;
     }
 
     /**
@@ -22,11 +22,6 @@ export class AliasDeclarationAst extends BaseDeclarationAst<AliasDeclarationCst,
      * @param pContext - Processing context.
      */
     public override register(pContext: AbstractSyntaxTreeContext): this {
-        // Check if alias with same name already exists.
-        if (pContext.getAlias(this.name)) {
-            pContext.pushIncident(`Alias with name "${this.name}" already defined.`, this);
-        }
-
         // Set alias in context.
         pContext.registerAlias(this.name, this);
 
@@ -47,14 +42,14 @@ export class AliasDeclarationAst extends BaseDeclarationAst<AliasDeclarationCst,
         const lTypeDeclaration: TypeDeclarationAst = new TypeDeclarationAst(pCst.typeDefinition).process(pContext);
 
         return {
-            aliasName: pCst.name,
-            attributes: lAttributes,
-            underlyingType: lTypeDeclaration.data.type
+            name: pCst.name,
+            attributes: new AttributeListAst(pCst.attributeList, this).process(pContext),
+            typeDeclaration: new TypeDeclarationAst(pCst.typeDefinition).process(pContext)
         };
     }
 }
 
 export type AliasDeclarationAstData = {
-    aliasName: string;
-    underlyingType: BasePgslType;
+    name: string;
+    typeDeclaration: TypeDeclarationAst;
 } & DeclarationAstData;

@@ -73,7 +73,7 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
             throw new Exception(`Alias can't have templates values.`, this);
         }
 
-        return lAlias.data.underlyingType;
+        return lAlias.data.typeDeclaration.data.type;
     }
 
     /**

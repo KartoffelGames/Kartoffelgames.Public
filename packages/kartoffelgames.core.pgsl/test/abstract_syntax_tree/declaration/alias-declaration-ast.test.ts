@@ -30,7 +30,7 @@ Deno.test('AliasDeclarationAst - Parsing', async (pContext) => {
 
             // Evaluation. Correct structure.
             expect(lDeclarationNode.data.aliasName).toBe(lAliasName);
-            expect(lDeclarationNode.data.underlyingType).toBeInstanceOf(PgslNumericType);
+            expect(lDeclarationNode.data.typeDeclaration.data.type).toBeInstanceOf(PgslNumericType);
         });
 
         await pContext.step('Integer', () => {
@@ -45,7 +45,7 @@ Deno.test('AliasDeclarationAst - Parsing', async (pContext) => {
             const lDeclarationNode: AliasDeclarationAst = lDocument.data.content[0] as AliasDeclarationAst;
             expect(lDeclarationNode).toBeInstanceOf(AliasDeclarationAst);
             expect(lDeclarationNode.data.aliasName).toBe(lAliasName);
-            expect(lDeclarationNode.data.underlyingType).toBeInstanceOf(PgslNumericType);
+            expect(lDeclarationNode.data.typeDeclaration.data.type).toBeInstanceOf(PgslNumericType);
         });
 
         await pContext.step('Boolean', () => {
@@ -60,7 +60,7 @@ Deno.test('AliasDeclarationAst - Parsing', async (pContext) => {
             const lDeclarationNode: AliasDeclarationAst = lDocument.data.content[0] as AliasDeclarationAst;
             expect(lDeclarationNode).toBeInstanceOf(AliasDeclarationAst);
             expect(lDeclarationNode.data.aliasName).toBe(lAliasName);
-            expect(lDeclarationNode.data.underlyingType).toBeInstanceOf(PgslBooleanType);
+            expect(lDeclarationNode.data.typeDeclaration.data.type).toBeInstanceOf(PgslBooleanType);
         });
     });
 
@@ -77,7 +77,7 @@ Deno.test('AliasDeclarationAst - Parsing', async (pContext) => {
             const lDeclarationNode: AliasDeclarationAst = lDocument.data.content[0] as AliasDeclarationAst;
             expect(lDeclarationNode).toBeInstanceOf(AliasDeclarationAst);
             expect(lDeclarationNode.data.aliasName).toBe(lAliasName);
-            expect(lDeclarationNode.data.underlyingType).toBeInstanceOf(PgslArrayType);
+            expect(lDeclarationNode.data.typeDeclaration.data.type).toBeInstanceOf(PgslArrayType);
         });
 
         await pContext.step('Vector', () => {
@@ -92,7 +92,7 @@ Deno.test('AliasDeclarationAst - Parsing', async (pContext) => {
             const lDeclarationNode: AliasDeclarationAst = lDocument.data.content[0] as AliasDeclarationAst;
             expect(lDeclarationNode).toBeInstanceOf(AliasDeclarationAst);
             expect(lDeclarationNode.data.aliasName).toBe(lAliasName);
-            expect(lDeclarationNode.data.underlyingType).toBeInstanceOf(PgslVectorType);
+            expect(lDeclarationNode.data.typeDeclaration.data.type).toBeInstanceOf(PgslVectorType);
         });
     });
 
@@ -117,7 +117,7 @@ Deno.test('AliasDeclarationAst - Parsing', async (pContext) => {
             const lDeclarationNode: AliasDeclarationAst = lDocument.data.content[1] as AliasDeclarationAst;
             expect(lDeclarationNode).toBeInstanceOf(AliasDeclarationAst);
             expect(lDeclarationNode.data.aliasName).toBe(lAliasName);
-            expect(lDeclarationNode.data.underlyingType).toBeInstanceOf(PgslStructType);
+            expect(lDeclarationNode.data.typeDeclaration.data.type).toBeInstanceOf(PgslStructType);
         });
 
         await pContext.step('Alias', () => {
@@ -141,9 +141,9 @@ Deno.test('AliasDeclarationAst - Parsing', async (pContext) => {
             expect(lFirstDeclarationNode).toBeInstanceOf(AliasDeclarationAst);
             expect(lSecondDeclarationNode).toBeInstanceOf(AliasDeclarationAst);
             expect(lFirstDeclarationNode.data.aliasName).toBe(lFirstAliasName);
-            expect(lFirstDeclarationNode.data.underlyingType).toBeInstanceOf(PgslNumericType);
+            expect(lFirstDeclarationNode.data.typeDeclaration.data.type).toBeInstanceOf(PgslNumericType);
             expect(lSecondDeclarationNode.data.aliasName).toBe(lSecondAliasName);
-            expect(lSecondDeclarationNode.data.underlyingType).toBeInstanceOf(PgslNumericType);
+            expect(lSecondDeclarationNode.data.typeDeclaration.data.type).toBeInstanceOf(PgslNumericType);
         });
     });
 });

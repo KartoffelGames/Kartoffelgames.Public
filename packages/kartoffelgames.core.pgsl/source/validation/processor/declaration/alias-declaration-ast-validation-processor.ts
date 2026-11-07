@@ -15,11 +15,20 @@ export class AliasDeclarationAstValidationProcessor extends PgslValidatorProcess
     /**
      * Validates the PGSL alias declaration syntax tree.
      * 
-     * @param _pData - The syntax tree data to validate.
+     * @param pData - The syntax tree data to validate.
      */
-    protected override onValidate(_pData: AliasDeclarationAstData): void {
-        // TODO: Validate the child attribute list.
-        // TODO: Validate the child type declaration of the aliased type.
-        // TODO: Validate that the alias name does not contain the reserved name part __GENERIC__ (new).
+    protected override onValidate(pData: AliasDeclarationAstData): void {
+        // Validate the child attribute list.
+        if (pData.attributes) {
+            this.validateAst(pData.attributes);
+        }
+
+        // Validate the child type declaration of the aliased type.
+        this.validateAst(pData.typeDeclaration);
+
+        // Validate that the alias name does not contain the reserved name part __GENERIC__.
+        if(pData.name.includes('__GENERIC__')) {
+            this.pushIncident(`Alias name must not contain reservec names "__GENERIC__"`);
+        }
     }
 }

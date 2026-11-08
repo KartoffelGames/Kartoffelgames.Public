@@ -1,6 +1,7 @@
 import { EnumDeclarationAst } from "../../../../abstract_syntax_tree/declaration/enum-declaration-ast.ts";
 import { ValueDecompositionExpressionAst } from '../../../../abstract_syntax_tree/expression/storage/value-decomposition-expression-ast.ts';
 import { TranspilerProcessor } from '../../../transpiler-processor.ts';
+import { WgslTranspiler } from '../../wgsl-transpiler.ts';
 
 export class ValueDecompositionExpressionAstTranspilerProcessor extends TranspilerProcessor<ValueDecompositionExpressionAst> {
     /**
@@ -27,6 +28,6 @@ export class ValueDecompositionExpressionAstTranspilerProcessor extends Transpil
         }
 
         // Transpile value and property.
-        return `${this.transpileAst(pInstance.data.expressionValue)}.${pInstance.data.property}`;
+        return `${this.transpileAst(pInstance.data.expressionValue)}.${WgslTranspiler.escapeName(pInstance.data.property)}`;
     }
 }

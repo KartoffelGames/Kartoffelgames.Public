@@ -1,7 +1,8 @@
 import { Exception } from '@kartoffelgames/core';
 import { VariableNameExpressionAst } from '../../../../abstract_syntax_tree/expression/storage/variable-name-expression-ast.ts';
-import { TranspilerProcessor } from '../../../transpiler-processor.ts';
 import { PgslEnumType } from '../../../../abstract_syntax_tree/type/definition/pgsl-enum-type.ts';
+import { TranspilerProcessor } from '../../../transpiler-processor.ts';
+import { WgslTranspiler } from '../../wgsl-transpiler.ts';
 
 export class VariableNameExpressionAstTranspilerProcessor extends TranspilerProcessor<VariableNameExpressionAst> {
     /**
@@ -24,6 +25,6 @@ export class VariableNameExpressionAstTranspilerProcessor extends TranspilerProc
             throw new Exception(`Cannot transpile variable name expression for enum type "${pInstance.data.resolveType.enumName}".`, this);
         }
 
-        return pInstance.data.variableName;
+        return WgslTranspiler.escapeName(pInstance.data.variableName);
     }
 }

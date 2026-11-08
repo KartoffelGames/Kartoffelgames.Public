@@ -18,6 +18,7 @@ import { PgslAccessModeEnum } from '../../../feature_set/enum/pgsl-access-mode-e
 import { PgslTexelFormatEnum } from '../../../feature_set/enum/pgsl-texel-format-enum.ts';
 import { PgslValueAddressSpace } from '../../../enum/pgsl-value-address-space.enum.ts';
 import { TranspilerProcessor } from '../../transpiler-processor.ts';
+import { WgslTranspiler } from '../wgsl-transpiler.ts';
 
 /**
  * Transpiles PGSL type declarations and the types they resolve to into WGSL.
@@ -288,7 +289,7 @@ export class TypeDeclarationAstTranspilerProcessor extends TranspilerProcessor<T
             case pType instanceof PgslNumericType: return this.transpileNumericType(pType);
             case pType instanceof PgslPointerType: return this.transpilePointerType(pType);
             case pType instanceof PgslSamplerType: return this.transpileSamplerType(pType);
-            case pType instanceof PgslStructType: return pType.structName;
+            case pType instanceof PgslStructType: return WgslTranspiler.escapeName(pType.structName);
             case pType instanceof PgslTextureType: return this.transpileTextureType(pType);
             case pType instanceof PgslVectorType: return this.transpileVectorType(pType);
 

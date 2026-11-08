@@ -1,10 +1,11 @@
 import { VariableDeclarationAst } from '../../../abstract_syntax_tree/declaration/variable-declaration-ast.ts';
 import { PgslSamplerType } from '../../../abstract_syntax_tree/type/definition/pgsl-sampler-type.ts';
 import { PgslTextureType } from '../../../abstract_syntax_tree/type/definition/pgsl-texture-type.ts';
-import { PgslAccessModeEnum } from '../../../feature_set/enum/pgsl-access-mode-enum.ts';
 import { PgslDeclarationType } from '../../../enum/pgsl-declaration-type.enum.ts';
-import { TranspilerProcessor } from '../../transpiler-processor.ts';
+import { PgslAccessModeEnum } from '../../../feature_set/enum/pgsl-access-mode-enum.ts';
 import type { TranspilationMetaBinding } from '../../transpilation-meta.ts';
+import { TranspilerProcessor } from '../../transpiler-processor.ts';
+import { WgslTranspiler } from '../wgsl-transpiler.ts';
 
 export class VariableDeclarationAstTranspilerProcessor extends TranspilerProcessor<VariableDeclarationAst> {
     /**
@@ -74,12 +75,13 @@ export class VariableDeclarationAstTranspilerProcessor extends TranspilerProcess
 
         // Transpile declaration parts to fit spaces correctly.
         const lTypeDeclaration: string = this.transpileAst(pInstance.data.typeDeclaration);
+        const lEscapedName: string = WgslTranspiler.escapeName(pInstance.data.name);
 
         // If no expression is given, return declaration without expression.
         if (!pInstance.data.expression) {
-            return `${lBindingAttribute}${lDeclarationTypeString} ${pInstance.data.name}:${lTypeDeclaration};`;
+            return `${lBindingAttribute}${lDeclarationTypeString} ${lEscapedName}:${lTypeDeclaration};`;
         } else {
-            return `${lBindingAttribute}${lDeclarationTypeString} ${pInstance.data.name}:${lTypeDeclaration}=${this.transpileAst(pInstance.data.expression)};`;
+            return `${lBindingAttribute}${lDeclarationTypeString} ${lEscapedName}:${lTypeDeclaration}=${this.transpileAst(pInstance.data.expression)};`;
         }
     }
 } 

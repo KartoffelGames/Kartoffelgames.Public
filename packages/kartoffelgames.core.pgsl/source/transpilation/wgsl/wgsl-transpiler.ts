@@ -44,7 +44,7 @@ export class WgslTranspiler extends Transpiler {
     /**
      * WGSL types and keywords that should not be used as names.
      */
-    public static readonly PredeclaredNames: Set<string> = new Set<string>([
+    private static readonly WgslReservedNames: Set<string> = new Set<string>([
         // Scalar, vector, matrix, array, atomic and pointer types.
         'bool', 'f16', 'f32', 'i32', 'u32', 'vec2', 'vec3', 'vec4', 'mat2x2', 'mat2x3', 'mat2x4', 'mat3x2', 'mat3x3', 'mat3x4', 'mat4x2', 'mat4x3', 'mat4x4', 'array', 'atomic', 'ptr',
 
@@ -70,6 +70,22 @@ export class WgslTranspiler extends Transpiler {
         // Reserved words.
         'fn', 'override', 'non_coherent', 'noncoherent'
     ]);
+
+    /**
+     * Escape a name when it uses WGSL reserved names.
+     * 
+     * @param pName - A name.
+     *
+     * @returns The escaped name.
+     */
+    public static escapeName(pName: string): string {
+        // Append the reserved name part to names that WGSL already uses.
+        if (WgslTranspiler.WgslReservedNames.has(pName)) {
+            return `${pName}__CATCH__`;
+        }
+
+        return pName;
+    }
 
     /**
      * Creates a new WGSL transpiler instance.

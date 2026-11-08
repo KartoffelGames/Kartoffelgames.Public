@@ -1,6 +1,7 @@
 import { VariableDeclarationStatementAst } from '../../../../abstract_syntax_tree/statement/execution/variable-declaration-statement-ast.ts';
 import { PgslValueFixedState } from '../../../../enum/pgsl-value-fixed-state.ts';
 import { TranspilerProcessor } from '../../../transpiler-processor.ts';
+import { WgslTranspiler } from '../../wgsl-transpiler.ts';
 
 export class VariableDeclarationStatementAstTranspilerProcessor extends TranspilerProcessor<VariableDeclarationStatementAst> {
     /**
@@ -28,11 +29,14 @@ export class VariableDeclarationStatementAstTranspilerProcessor extends Transpil
             lDeclarationName = 'var';
         }
 
+        // Escape the used variable name.
+        const lEscapedName: string = WgslTranspiler.escapeName(pInstance.data.name);
+
         // Depending on the expression presence, create the declaration with or without an initialization value.
         if(pInstance.data.expression){
-            return `${lDeclarationName} ${pInstance.data.name}:${this.transpileAst(pInstance.data.typeDeclaration)}=${this.transpileAst(pInstance.data.expression)};`;
+            return `${lDeclarationName} ${lEscapedName}:${this.transpileAst(pInstance.data.typeDeclaration)}=${this.transpileAst(pInstance.data.expression)};`;
         } else {
-            return `${lDeclarationName} ${pInstance.data.name}:${this.transpileAst(pInstance.data.typeDeclaration)};`;
+            return `${lDeclarationName} ${lEscapedName}:${this.transpileAst(pInstance.data.typeDeclaration)};`;
         }
     }
 }

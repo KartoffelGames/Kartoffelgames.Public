@@ -4,6 +4,7 @@ import type { BasePgslType } from '../../../abstract_syntax_tree/type/definition
 import { PgslVoidType } from '../../../abstract_syntax_tree/type/definition/pgsl-void-type.ts';
 import { TranspilerProcessor } from '../../transpiler-processor.ts';
 import type { FunctionOverloadDeclarationAst } from '../../../abstract_syntax_tree/declaration/function-overload-declaration-ast.ts';
+import { WgslTranspiler } from '../wgsl-transpiler.ts';
 
 export class FunctionDeclarationAstTranspilerProcessor extends TranspilerProcessor<FunctionDeclarationAst> {
     /**
@@ -43,7 +44,7 @@ export class FunctionDeclarationAstTranspilerProcessor extends TranspilerProcess
                 throw new Exception(`Unable to transpile function "${pInstance.data.name}" with generic parameter type.`, this);
             }
 
-            return `${pParameter.name}:${this.transpileAst(pParameter.type)}`;
+            return `${WgslTranspiler.escapeName(pParameter.name)}:${this.transpileAst(pParameter.type)}`;
         }).join(',');
 
         // Transpile attributes.
@@ -70,7 +71,7 @@ export class FunctionDeclarationAstTranspilerProcessor extends TranspilerProcess
         })();
 
         // Create function declaration head without return type. Attributes contains trailing space.
-        let lResult: string = `${lAttributes}fn ${pInstance.data.name}(${lParameterList})`;
+        let lResult: string = `${lAttributes}fn ${WgslTranspiler.escapeName(pInstance.data.name)}(${lParameterList})`;
 
         // Add return type when it is not void/empty.
         if (lReturnTypeName !== null) {

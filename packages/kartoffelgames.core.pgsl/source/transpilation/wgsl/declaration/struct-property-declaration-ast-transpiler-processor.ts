@@ -3,6 +3,7 @@ import { PgslBuildInType } from '../../../abstract_syntax_tree/type/definition/p
 import { PgslInterpolateSamplingEnum } from '../../../feature_set/enum/pgsl-interpolate-sampling-enum.ts';
 import { PgslInterpolateTypeEnum } from '../../../feature_set/enum/pgsl-interpolate-type-enum.ts';
 import { TranspilerProcessor } from '../../transpiler-processor.ts';
+import { WgslTranspiler } from '../wgsl-transpiler.ts';
 
 export class StructPropertyDeclarationAstTranspilerProcessor extends TranspilerProcessor<StructPropertyDeclarationAst> {
     /**
@@ -85,7 +86,9 @@ export class StructPropertyDeclarationAstTranspilerProcessor extends TranspilerP
             lResultParts.push(`@interpolate(${lInterpolationTypeString}, ${lSamplingTypeString})`);
         }
 
-        lResultParts.push(`${pInstance.data.name}:${lTypeTranspilation}`);
+        // Escape and add actual property.
+        const lEscapedPropertyName: string = WgslTranspiler.escapeName(pInstance.data.name);
+        lResultParts.push(`${lEscapedPropertyName}:${lTypeTranspilation}`);
 
         return lResultParts.join('');
     }

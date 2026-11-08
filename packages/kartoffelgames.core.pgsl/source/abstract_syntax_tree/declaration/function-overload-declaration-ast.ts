@@ -10,9 +10,7 @@ import type { IValueStoreAst } from '../i-value-store-ast.interface.ts';
 import { BlockStatementAst } from '../statement/execution/block-statement-ast.ts';
 import type { BasePgslType } from '../type/definition/base-pgsl-type.ts';
 import { PgslGenericType } from '../type/definition/pgsl-generic-type.ts';
-import { PgslInvalidType } from '../type/definition/pgsl-invalid-type.ts';
 import { PgslStructType } from '../type/definition/pgsl-struct-type.ts';
-import { PgslVoidType } from '../type/definition/pgsl-void-type.ts';
 import { BaseDeclarationAst, type DeclarationAstData } from './base-declaration-ast.ts';
 
 export class FunctionOverloadDeclarationAst extends BaseDeclarationAst<FunctionOverloadDeclarationCst, FunctionOverloadDeclarationAstData> {
@@ -55,63 +53,44 @@ export class FunctionOverloadDeclarationAst extends BaseDeclarationAst<FunctionO
         // Create attribute list for this declaration.
         const lAttributes: AttributeListAst = new AttributeListAst(pCst.attributeList, this).process(pContext);
 
-        // Create generic mapping for this declaration.
-        const lGenericMapping: Map<string, TypeDeclarationAst> = new Map<string, TypeDeclarationAst>();
-        for (const lGeneric of pCst.generics) {
-            // Check for duplicate generic names.
-            if (lGenericMapping.has(lGeneric.name)) {
-                pContext.pushIncident(`Generic type name "${lGeneric.name}" is already defined for this function header.`, this);
-            }
-
+        // Create every generic type of this declaration.
+        const lGenericList: Array<PgslGenericType> = pCst.generics.map((pGenericCst) => {
             // Create generic restrictions as type definition and get the raw type.
-            const lGenericRestrictions: Array<BasePgslType> = lGeneric.restrictions.map((pRestricionTypeDeclarationCst) => {
-                return new TypeDeclarationAst(pRestricionTypeDeclarationCst).process(pContext).data.type;
+            const lGenericRestrictions: Array<BasePgslType> = pGenericCst.restrictions.map((pRestrictionTypeDeclarationCst) => {
+                return new TypeDeclarationAst(pRestrictionTypeDeclarationCst).process(pContext).data.type;
             });
 
-            // Create the core generic type.
-            const lGenericType: PgslGenericType = new PgslGenericType(lGeneric.name, lGenericRestrictions);
-
-            // And from that core type, create the type declarationand register it by name.
-            lGenericMapping.set(lGenericType.name, new TypeDeclarationAst({
-                type: lGenericType
-            }));
-        }
+            return new PgslGenericType(pGenericCst.name, lGenericRestrictions);
+        });
 
         return pContext.pushScope('function', () => {
             // Create parameter list.
             const lParameterList: Array<FunctionOverloadDeclarationAstDataParameter> = new Array<FunctionOverloadDeclarationAstDataParameter>();
             for (const lParameter of pCst.parameters) {
-                let lParameterData: FunctionOverloadDeclarationAstDataParameter;
+                // Create or read the parameter type declaration.
+                const lParameterTypeDeclaration: TypeDeclarationAst = (() => {
+                    // Check if parameter is generic.
+                    if (typeof lParameter.typeDeclaration !== 'string') {
+                        return new TypeDeclarationAst(lParameter.typeDeclaration).process(pContext);
+                    }
 
-                // Check for generic parameter.
-                if (typeof lParameter.typeDeclaration === 'string') {
-                    // Validate generic parameter index.
                     const lGenericName: string = lParameter.typeDeclaration;
-                    if (!lGenericMapping.has(lGenericName)) {
-                        pContext.pushIncident(`Generic parameter name "${lGenericName}" is not defined for this function header.`, this);
-                    }
 
-                    lParameterData = {
-                        name: lParameter.name,
-                        type: lGenericMapping.get(lGenericName)!
-                    };
-                } else {
-                    lParameterData = {
-                        name: lParameter.name,
-                        type: new TypeDeclarationAst(lParameter.typeDeclaration).process(pContext)
-                    };
-                }
+                    // Find the used generic type by name.
+                    const lGenericType: PgslGenericType | undefined = lGenericList.find((pGeneric) => {
+                        return pGeneric.name === lGenericName;
+                    });
 
-                lParameterList.push(lParameterData);
-
-                const lParameterType: BasePgslType = (() => {
-                    if (typeof lParameterData.type === 'string') {
-                        // Generic type, cannot be resolved yet.
-                        return new PgslInvalidType();
-                    }
-
-                    return lParameterData.type.data.type;
+                    return new TypeDeclarationAst({
+                        type: lGenericType ?? pContext.types.create(PgslGenericType, lGenericName, [])
+                    });
                 })();
+
+                // Add found type with set name.
+                lParameterList.push({
+                    name: lParameter.name,
+                    type: lParameterTypeDeclaration
+                });
 
                 // Register parameter in current scope.
                 pContext.registerValue(lParameter.name, {
@@ -119,7 +98,7 @@ export class FunctionOverloadDeclarationAst extends BaseDeclarationAst<FunctionO
                         fixedState: PgslValueFixedState.ScopeFixed,
                         declarationType: PgslDeclarationType.Const,
                         addressSpace: PgslValueAddressSpace.Function,
-                        type: lParameterType,
+                        type: lParameterTypeDeclaration.data.type,
                         name: lParameter.name,
                         constantValue: null,
                         accessMode: 'read'
@@ -131,29 +110,7 @@ export class FunctionOverloadDeclarationAst extends BaseDeclarationAst<FunctionO
             const lBlock: BlockStatementAst = new BlockStatementAst(pCst.block).process(pContext);
 
             // Build return type.
-            const lReturnTypeDeclaration: TypeDeclarationAst = (() => {
-                const lReturnType: TypeDeclarationAst = new TypeDeclarationAst(pCst.returnType).process(pContext);
-
-                // Read block return type.
-                const lBlockReturnType: BasePgslType = lBlock.data.returnType;
-
-                // Check for correct return type in function block.
-                if (lBlockReturnType.conversionRankTo(lReturnType.data.type) === Number.POSITIVE_INFINITY) {
-                    pContext.pushIncident(`Function block return type does not match the declared return type.`, lBlock);
-                }
-
-                return lReturnType;
-            })();
-
-            // Convert all generics to types. O(n²) fuck it.
-            const lGenericList: Array<PgslGenericType> = pCst.generics.map((pGenericType) => {
-                // Build each type restriction ast and get its types.
-                const lGenericRestrictions: Array<BasePgslType> = pGenericType.restrictions.map((pGenericRestrictionTypeDeclaration) => {
-                    return new TypeDeclarationAst(pGenericRestrictionTypeDeclaration).process(pContext).data.type;
-                });
-
-                return new PgslGenericType(pGenericType.name, lGenericRestrictions);
-            });
+            const lReturnTypeDeclaration: TypeDeclarationAst = new TypeDeclarationAst(pCst.returnType).process(pContext);
 
             const lDeclarationResult: FunctionOverloadDeclarationAstData = {
                 attributes: lAttributes,
@@ -165,7 +122,7 @@ export class FunctionOverloadDeclarationAst extends BaseDeclarationAst<FunctionO
             };
 
             // Find entry point.
-            const lEntryPoint: FunctionOverloadDeclarationAstDataEntryPoint | null = this.readEntryPoint(lAttributes, lDeclarationResult, pContext);
+            const lEntryPoint: FunctionOverloadDeclarationAstDataEntryPoint | null = this.readEntryPoint(lAttributes, lDeclarationResult);
             if (lEntryPoint) {
                 lDeclarationResult.entryPoint = lEntryPoint;
             }
@@ -177,143 +134,63 @@ export class FunctionOverloadDeclarationAst extends BaseDeclarationAst<FunctionO
 
     /**
      * Read entry point information from function attributes.
-     * 
+     *
      * @param pAttributes - Function attributes.
-     * @param pContext - Build context.
-     * 
-     * @returns Entry point data or null if function is not an entry point. 
+     * @param pDeclaration - Function overload data.
+     *
+     * @returns Entry point data or null if function is not an entry point.
      */
-    private readEntryPoint(pAttributes: AttributeListAst, pDeclaration: FunctionOverloadDeclarationAstData, pContext: AbstractSyntaxTreeContext): FunctionOverloadDeclarationAstDataEntryPoint | null {
-        const lValidateVertexFragmentParameterType = (pParameter: Array<FunctionOverloadDeclarationAstDataParameter>, pEntryPointName: string): PgslStructType | null => {
-            // Vertex entry point must have a struct type parameter.
-            if (pParameter.length !== 1) {
-                pContext.pushIncident(`The ${pEntryPointName} entry points must have exactly one parameter defining the ${pEntryPointName} input structure.`, this);
-
-                if (pParameter.length === 0) {
-                    return null;
-                }
+    private readEntryPoint(pAttributes: AttributeListAst, pDeclaration: FunctionOverloadDeclarationAstData): FunctionOverloadDeclarationAstDataEntryPoint | null {
+        // Read the struct type of a type declaration or not if its not a enum at all.
+        const lStructTypeOf = (pTypeDeclaration: TypeDeclarationAst | undefined): PgslStructType | null => {
+            if (pTypeDeclaration?.data.type instanceof PgslStructType) {
+                return pTypeDeclaration.data.type;
             }
 
-            // Read first parameter type and check if it is a struct type.
-            const lParameterType: string | TypeDeclarationAst = pParameter[0].type;
-            if (typeof lParameterType === 'string') {
-                pContext.pushIncident(`The ${pEntryPointName} entry point parameter cannot be a generic type.`, this);
-                return null;
-            }
-            if (!(lParameterType.data.type instanceof PgslStructType)) {
-                pContext.pushIncident(`The ${pEntryPointName} entry point parameter must be a struct type defining the ${pEntryPointName} input structure.`, this);
-                return null;
-            }
-
-            return lParameterType.data.type;
-        };
-
-        const lValidateVertexFragmentResultType = (pReturnType: string | TypeDeclarationAst, pEntryPointName: string): PgslStructType | null => {
-            // Check return type.
-            if (typeof pReturnType === 'string') {
-                pContext.pushIncident(`The ${pEntryPointName} entry point return type cannot be a generic type.`, this);
-                return null;
-            }
-            if (!(pReturnType.data.type instanceof PgslStructType)) {
-                pContext.pushIncident(`The ${pEntryPointName} entry point return type must be a struct type defining the ${pEntryPointName} output structure.`, this);
-                return null;
-            }
-
-            return pReturnType.data.type;
-        };
-
-        const lValidateEntryPointHeader = (pEntryPointName: string): void => {
-            // Entry points must not have generic parameters.
-            if (pDeclaration.generics.length > 0) {
-                pContext.pushIncident(`The ${pEntryPointName} entry point must not have generic parameters.`, this);
-            }
+            return null;
         };
 
         switch (true) {
             case pAttributes.hasAttribute(AttributeListAst.attributeNames.vertex): {
-                // Validate entry point header.
-                lValidateEntryPointHeader('vertex');
-
-                // Validate parameter and return type.
-                const lParameterType: PgslStructType | null = lValidateVertexFragmentParameterType(pDeclaration.parameter, 'vertex');
-                const lReturnType: PgslStructType | null = lValidateVertexFragmentResultType(pDeclaration.returnType, 'vertex');
-                if (!lParameterType || !lReturnType) {
-                    return null;
-                }
-
                 return {
                     stage: 'vertex',
-                    parameter: lParameterType,
-                    returnType: lReturnType
+                    parameter: lStructTypeOf(pDeclaration.parameter[0]?.type),
+                    returnType: lStructTypeOf(pDeclaration.returnType)
                 };
             }
             case pAttributes.hasAttribute(AttributeListAst.attributeNames.fragment): {
-                // Validate entry point header.
-                lValidateEntryPointHeader('fragment');
-
-                // Validate parameter type and return type.
-                const lParameterType: PgslStructType | null = lValidateVertexFragmentParameterType(pDeclaration.parameter, 'fragment');
-                const lReturnType: PgslStructType | null = lValidateVertexFragmentResultType(pDeclaration.returnType, 'fragment');
-                if (!lParameterType || !lReturnType) {
-                    return null;
-                }
-
                 return {
                     stage: 'fragment',
-                    parameter: lParameterType,
-                    returnType: lReturnType
+                    parameter: lStructTypeOf(pDeclaration.parameter[0]?.type),
+                    returnType: lStructTypeOf(pDeclaration.returnType)
                 };
             }
             case pAttributes.hasAttribute(AttributeListAst.attributeNames.compute): {
-                // Validate entry point header.
-                lValidateEntryPointHeader('compute');
+                // Read the workgroup size from the compute attribute parameters.
+                const lWorkgroupSize: FunctionOverloadDeclarationAstDataEntryPointWorkgroupSize | null = (() => {
+                    // Workgroup size needs to be three parameters.
+                    const lAttributeParameter: Array<IExpressionAst> = pAttributes.getAttributeParameter(AttributeListAst.attributeNames.compute);
+                    if (lAttributeParameter.length !== 3) {
+                        return null;
+                    }
 
-                // Read compute attribute parameters.
-                const lAttributeParameter: Array<IExpressionAst> = pAttributes.getAttributeParameter(AttributeListAst.attributeNames.compute);
+                    // Every parameter needs a constant integer value.
+                    for (const lParameter of lAttributeParameter) {
+                        if (lParameter.data.fixedState !== PgslValueFixedState.Constant || !Number.isInteger(lParameter.data.constantValue)) {
+                            return null;
+                        }
+                    }
 
-                // Check parameter count.
-                if (lAttributeParameter.length !== 3) {
-                    pContext.pushIncident(`Compute attribute needs exactly three constant parameters for work group size declaration.`, pAttributes);
-                    return null;
-                }
-
-                // Compute entry point must not have parameters or a return type.
-                if (pDeclaration.parameter.length > 0) {
-                    pContext.pushIncident(`Compute entry points must not have parameters.`, this);
-                }
-                if (typeof pDeclaration.returnType !== 'string' && !(pDeclaration.returnType.data.type instanceof PgslVoidType)) {
-                    pContext.pushIncident(`Compute entry points must not have a return type.`, this);
-                }
-
-                // Get expression traces.
-                const lWorkGroupSizeTraceX: IExpressionAst = lAttributeParameter[0];
-                const lWorkGroupSizeTraceY: IExpressionAst = lAttributeParameter[1];
-                const lWorkGroupSizeTraceZ: IExpressionAst = lAttributeParameter[2];
-
-                // Check if all parameters are constants.
-                if (lWorkGroupSizeTraceX.data.fixedState !== PgslValueFixedState.Constant || lWorkGroupSizeTraceY.data.fixedState !== PgslValueFixedState.Constant || lWorkGroupSizeTraceZ.data.fixedState !== PgslValueFixedState.Constant) {
-                    pContext.pushIncident(`All compute attribute parameters need to be constant expressions.`, pAttributes);
-                    return null;
-                }
-
-                // Get constant values.
-                const lWorkGroupSizeX: string | number | null = lWorkGroupSizeTraceX.data.constantValue;
-                const lWorkGroupSizeY: string | number | null = lWorkGroupSizeTraceY.data.constantValue;
-                const lWorkGroupSizeZ: string | number | null = lWorkGroupSizeTraceZ.data.constantValue;
-
-                // Check if all parameters are numbers.
-                if (!Number.isInteger(lWorkGroupSizeX) || !Number.isInteger(lWorkGroupSizeY) || !Number.isInteger(lWorkGroupSizeZ)) {
-                    pContext.pushIncident(`All compute attribute parameters need to be constant integer expressions.`, pAttributes);
-                    return null;
-                }
+                    return {
+                        x: lAttributeParameter[0].data.constantValue as number,
+                        y: lAttributeParameter[1].data.constantValue as number,
+                        z: lAttributeParameter[2].data.constantValue as number
+                    };
+                })();
 
                 return {
                     stage: 'compute',
-                    workgroupSize: {
-                        x: lWorkGroupSizeX as number,
-                        y: lWorkGroupSizeY as number,
-                        z: lWorkGroupSizeZ as number
-                    }
+                    workgroupSize: lWorkgroupSize
                 };
             }
         }
@@ -403,9 +280,21 @@ export type FunctionDeclarationAstEntryPointStage = 'vertex' | 'fragment' | 'com
  */
 export type FunctionOverloadDeclarationAstDataEntryPoint = {
     stage: 'compute';
-    workgroupSize: FunctionOverloadDeclarationAstDataEntryPointWorkgroupSize;
+
+    /**
+     * Workgroup size.
+     */
+    workgroupSize: FunctionOverloadDeclarationAstDataEntryPointWorkgroupSize | null;
 } | {
     stage: 'vertex' | 'fragment';
-    parameter: PgslStructType;
-    returnType: PgslStructType;
+
+    /**
+     * Input parameters as struct.
+     */
+    parameter: PgslStructType | null;
+
+    /**
+     * Output values as struct.
+     */
+    returnType: PgslStructType | null;
 };

@@ -171,19 +171,32 @@ export class PgslParserResult extends PgslParserResultObject {
                 continue;
             }
 
+            // Set entrypoints.
             switch (lEntryPointTypeDeclaration.data.entryPoint.stage) {
                 case 'vertex': {
+                    if (!lEntryPointTypeDeclaration.data.entryPoint.parameter) {
+                        break;
+                    }
+
                     const lVertexEntryPoint: PgslParserResultVertexEntryPoint = new PgslParserResultVertexEntryPoint(lEntryPointTypeDeclaration, lEntryPointTypeDeclaration.data.entryPoint.parameter, pDocument, pMeta);
                     lEntryPoints.vertex.set(lValue.data.name, lVertexEntryPoint);
                     break;
                 }
                 case 'fragment': {
+                    if (!lEntryPointTypeDeclaration.data.entryPoint.returnType) {
+                        break;
+                    }
+
                     const lFragmentEntryPoint: PgslParserResultFragmentEntryPoint = new PgslParserResultFragmentEntryPoint(lEntryPointTypeDeclaration, lEntryPointTypeDeclaration.data.entryPoint.returnType, pDocument, pMeta);
                     lEntryPoints.fragment.set(lValue.data.name, lFragmentEntryPoint);
                     break;
                 }
                 case 'compute': {
-                    const lWorkgroupSize: FunctionOverloadDeclarationAstDataEntryPointWorkgroupSize = lEntryPointTypeDeclaration.data.entryPoint.workgroupSize!;
+                    if (!lEntryPointTypeDeclaration.data.entryPoint.workgroupSize) {
+                        break;
+                    }
+
+                    const lWorkgroupSize: FunctionOverloadDeclarationAstDataEntryPointWorkgroupSize = lEntryPointTypeDeclaration.data.entryPoint.workgroupSize;
                     const lComputeEntryPoint: PgslParserResultComputeEntryPoint = new PgslParserResultComputeEntryPoint(lEntryPointTypeDeclaration, lWorkgroupSize.x ?? 0, lWorkgroupSize.y ?? 0, lWorkgroupSize.z ?? 0);
                     lEntryPoints.compute.set(lValue.data.name, lComputeEntryPoint);
                     break;

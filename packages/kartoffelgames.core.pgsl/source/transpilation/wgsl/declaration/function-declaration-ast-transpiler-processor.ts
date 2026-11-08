@@ -61,8 +61,9 @@ export class FunctionDeclarationAstTranspilerProcessor extends TranspilerProcess
                     return `@fragment `;
                 }
                 case 'compute': {
+                    // Wrong workgroup parameters still output somthing.
                     if (!lSoleHeader.data.entryPoint.workgroupSize) {
-                        throw new Exception(`Compute entry point for function "${pInstance.data.name}" is missing workgroup size definition.`, this);
+                        return `@compute `;
                     }
 
                     return `@compute @workgroup_size(${lSoleHeader.data.entryPoint.workgroupSize.x},${lSoleHeader.data.entryPoint.workgroupSize.y},${lSoleHeader.data.entryPoint.workgroupSize.z}) `;

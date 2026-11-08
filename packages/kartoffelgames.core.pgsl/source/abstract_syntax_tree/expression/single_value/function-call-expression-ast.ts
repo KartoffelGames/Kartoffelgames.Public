@@ -212,20 +212,20 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
             }
 
             // When any generic is provided, the generics cant be inferred so their count needs to match.
-            if (pGenericList.length > 0 && lFunctionOverload.data.generics.length !== pGenericList.length) {
+            if (pGenericList.length > 0 && lFunctionOverload.data.generic.types.length !== pGenericList.length) {
                 continue;
             }
 
             // Build generic restrictions map from overload definition.
             const lGenericRestrictions: Map<string, PgslGenericType> = new Map<string, PgslGenericType>();
-            for (const lGeneric of lFunctionOverload.data.generics) {
+            for (const lGeneric of lFunctionOverload.data.generic.types) {
                 lGenericRestrictions.set(lGeneric.name, lGeneric);
             }
 
             // Map and validate static provided generic types.
             const lStaticGenericTypes: Map<PgslGenericType, BasePgslType> = new Map<PgslGenericType, BasePgslType>();
             for (let lGenericIndex = 0; lGenericIndex < pGenericList.length; lGenericIndex++) {
-                const lGenericType: PgslGenericType = lFunctionOverload.data.generics[lGenericIndex];
+                const lGenericType: PgslGenericType = lFunctionOverload.data.generic.types[lGenericIndex];
                 const lExplicitGenericType: BasePgslType = pGenericList[lGenericIndex].data.type;
 
                 // Skip this overload when the explicit generic can not be used for the generic restriction.
@@ -305,7 +305,7 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
             }
 
             // Skip this overload when any generic cant be resolved, because either the generic is not explicit set or cant be infered by the set parameters.
-            for (const lGenericType of lFunctionOverload.data.generics) {
+            for (const lGenericType of lFunctionOverload.data.generic.types) {
                 if (!lStaticGenericTypes.has(lGenericType)) {
                     continue FUNCTION_OVERLOAD_LOOP;
                 }

@@ -28,7 +28,17 @@ export class PgslStructType extends BasePgslType {
         return PgslStructType.typeName.struct + '[' + pStructDeclaration.name + ']';
     }
 
+    private readonly mStructDeclaration: StructDeclarationAst;
     private readonly mStructName: string;
+
+    /**
+     * Gets the declaration of the struct type.
+     *
+     * @returns The struct declaration.
+     */
+    public get declaration(): StructDeclarationAst {
+        return this.mStructDeclaration;
+    }
 
     /**
      * Gets the name of the struct type.
@@ -71,6 +81,7 @@ export class PgslStructType extends BasePgslType {
             typeName: PgslStructType.identifierOf(pStructDeclaration)
         });
 
+        this.mStructDeclaration = pStructDeclaration;
         this.mStructName = pStructDeclaration.name;
     }
 

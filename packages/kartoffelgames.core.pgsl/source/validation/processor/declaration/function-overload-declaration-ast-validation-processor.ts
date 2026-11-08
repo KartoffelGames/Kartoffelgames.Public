@@ -24,7 +24,12 @@ export class FunctionOverloadDeclarationAstValidationProcessor extends PgslValid
         // Validate the child attribute list.
         this.validateAst(pData.attributes);
 
-        // TODO: Validate the child restriction type declarations of every generic.
+        // Validate the child restriction type declarations of every generic.
+        for (const lRestrictionTypeDeclarations of pData.generic.restrictions.values()) {
+            for (const lRestrictionTypeDeclaration of lRestrictionTypeDeclarations) {
+                this.validateAst(lRestrictionTypeDeclaration);
+            }
+        }
 
         // Validate the child return type declaration.
         this.validateAst(pData.returnType);
@@ -32,14 +37,25 @@ export class FunctionOverloadDeclarationAstValidationProcessor extends PgslValid
         // Validate the child block.
         this.validateAst(pData.block);
 
+        // Validate that an entry point overload has no generics.
+        if (pData.entryPoint && pData.generic.types.length > 0) {
+            this.pushIncident(`The ${pData.entryPoint.stage} entry point must not have generic parameters.`);
+        }
+
         // Validate the child type declaration of every parameter.
         for (const lParameter of pData.parameter) {
             this.validateAst(lParameter.type);
+
+            // Validate that every generic parameter has its generic defined as function generic.
+            const lParameterType: BasePgslType = lParameter.type.data.type;
+            if (lParameterType instanceof PgslGenericType && !pData.generic.restrictions.has(lParameterType)) {
+                this.pushIncident(`Generic parameter name "${lParameterType.name}" is not defined for this function header.`);
+            }
         }
 
         // Validate that generics names have no dublicates.
         const lGenericNames: Set<string> = new Set<string>();
-        for (const lGeneric of pData.generics) {
+        for (const lGeneric of pData.generic.types) {
             if (lGenericNames.has(lGeneric.name)) {
                 this.pushIncident(`Generic type name "${lGeneric.name}" is already defined for this function header.`);
             }
@@ -50,13 +66,6 @@ export class FunctionOverloadDeclarationAstValidationProcessor extends PgslValid
         // TODO: Validate that a generic restriction only references generics declared before it (new).
         // TODO: Validate that no generic name shadows a module scope type (new).
 
-        // Validate that every generic parameter has its generic defined as function generic.
-        for (const lParameter of pData.parameter) {
-            const lParameterType: BasePgslType = lParameter.type.data.type;
-            if (lParameterType instanceof PgslGenericType && !pData.generics.includes(lParameterType)) {
-                this.pushIncident(`Generic parameter name "${lParameterType.name}" is not defined for this function header.`);
-            }
-        }
 
         // TODO: Validate that no two parameters share a name (new).
         // TODO: Validate that every parameter name is a valid WGSL identifier: not a WGSL keyword or reserved word (the lexer lets fn, override, non_coherent and noncoherent through) and not starting with two underscores (new).
@@ -74,11 +83,6 @@ export class FunctionOverloadDeclarationAstValidationProcessor extends PgslValid
         }
 
         // TODO: Validate that at most one of the Vertex, Fragment and Compute attributes is set (new).
-
-        // Validate that an entry point overload has no generics.
-        if (pData.entryPoint && pData.generics.length > 0) {
-            this.pushIncident(`The ${pData.entryPoint.stage} entry point must not have generic parameters.`);
-        }
 
         // Everything but a compute entry point.
         if (pData.entryPoint && pData.entryPoint.stage !== 'compute') {
@@ -124,7 +128,5 @@ export class FunctionOverloadDeclarationAstValidationProcessor extends PgslValid
                 this.pushIncident(`Compute entry points must not have a return type.`);
             }
         }
-
-
     }
 }

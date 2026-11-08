@@ -8,7 +8,6 @@ import { AttributeListAst } from '../general/attribute-list-ast.ts';
 import { TypeDeclarationAst } from '../general/type-declaration-ast.ts';
 import type { IValueStoreAst } from '../i-value-store-ast.interface.ts';
 import { BlockStatementAst } from '../statement/execution/block-statement-ast.ts';
-import type { BasePgslType } from '../type/definition/base-pgsl-type.ts';
 import { PgslGenericType } from '../type/definition/pgsl-generic-type.ts';
 import { PgslStructType } from '../type/definition/pgsl-struct-type.ts';
 import { BaseDeclarationAst, type DeclarationAstData } from './base-declaration-ast.ts';
@@ -53,15 +52,20 @@ export class FunctionOverloadDeclarationAst extends BaseDeclarationAst<FunctionO
         // Create attribute list for this declaration.
         const lAttributes: AttributeListAst = new AttributeListAst(pCst.attributeList, this).process(pContext);
 
-        // Create every generic type of this declaration.
-        const lGenericList: Array<PgslGenericType> = pCst.generics.map((pGenericCst) => {
-            // Create generic restrictions as type definition and get the raw type.
-            const lGenericRestrictions: Array<BasePgslType> = pGenericCst.restrictions.map((pRestrictionTypeDeclarationCst) => {
-                return new TypeDeclarationAst(pRestrictionTypeDeclarationCst).process(pContext).data.type;
+        // Create every generic type of this declaration and keep the restriction type declarations of each generic.
+        const lGenericRestrictions: Map<PgslGenericType, Array<TypeDeclarationAst>> = new Map<PgslGenericType, Array<TypeDeclarationAst>>(pCst.generics.map((pGenericCst): [PgslGenericType, Array<TypeDeclarationAst>] => {
+            // Create generic restrictions as type declarations.
+            const lRestrictionTypeDeclarations: Array<TypeDeclarationAst> = pGenericCst.restrictions.map((pRestrictionTypeDeclarationCst) => {
+                return new TypeDeclarationAst(pRestrictionTypeDeclarationCst).process(pContext);
             });
 
-            return new PgslGenericType(pGenericCst.name, lGenericRestrictions);
-        });
+            // Create the generic with the raw restriction types.
+            const lGenericType: PgslGenericType = new PgslGenericType(pGenericCst.name, lRestrictionTypeDeclarations.map((pRestrictionTypeDeclaration) => {
+                return pRestrictionTypeDeclaration.data.type;
+            }));
+
+            return [lGenericType, lRestrictionTypeDeclarations];
+        }));
 
         return pContext.pushScope('function', () => {
             // Create parameter list.
@@ -77,12 +81,12 @@ export class FunctionOverloadDeclarationAst extends BaseDeclarationAst<FunctionO
                     const lGenericName: string = lParameter.typeDeclaration;
 
                     // Find the used generic type by name.
-                    const lGenericType: PgslGenericType | undefined = lGenericList.find((pGeneric) => {
+                    const lGenericType: PgslGenericType | undefined = lGenericRestrictions.keys().find((pGeneric) => {
                         return pGeneric.name === lGenericName;
                     });
 
                     return new TypeDeclarationAst({
-                        type: lGenericType ?? pContext.types.create(PgslGenericType, lGenericName, [])
+                        type: lGenericType ?? new PgslGenericType(lGenericName, [])
                     });
                 })();
 
@@ -118,7 +122,10 @@ export class FunctionOverloadDeclarationAst extends BaseDeclarationAst<FunctionO
                 parameter: lParameterList,
                 returnType: lReturnTypeDeclaration,
                 block: lBlock,
-                generics: lGenericList
+                generic: {
+                    types: [...lGenericRestrictions.keys()],
+                    restrictions: lGenericRestrictions
+                }
             };
 
             // Find entry point.
@@ -211,7 +218,17 @@ export type FunctionOverloadDeclarationAstData = {
     /**
      * Function generic types.
      */
-    generics: Array<PgslGenericType>;
+    generic: {
+        /**
+         * Just the generic types.
+         */
+        types: Array<PgslGenericType>;
+
+        /**
+         * Restriction type declarations of every generic.
+         */
+        restrictions: Map<PgslGenericType, Array<TypeDeclarationAst>>;
+    };
 
     /**
      * Function parameter list.

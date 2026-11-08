@@ -659,7 +659,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
                 isConstant: false,
                 range: this.createTokenBoundParameter(pStartToken, pEndToken),
                 name: pData.name,
-                declarations: [lFunctionHeader]
+                overloads: [lFunctionHeader]
             } satisfies FunctionDeclarationCst;
         });
 

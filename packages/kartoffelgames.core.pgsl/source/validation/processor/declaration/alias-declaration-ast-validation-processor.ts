@@ -26,9 +26,14 @@ export class AliasDeclarationAstValidationProcessor extends PgslValidatorProcess
         // Validate the child type declaration of the aliased type.
         this.validateAst(pData.typeDeclaration);
 
-        // Validate that the alias name does not contain the reserved name part __GENERIC__.
+        // Validate that the name does not contain the reserved name part __GENERIC__.
         if(pData.name.includes('__GENERIC__')) {
-            this.pushIncident(`Alias name must not contain reservec names "__GENERIC__"`);
+            this.pushIncident(`Name "${pData.name}" must not contain the reserved name part "__GENERIC__".`);
+        }
+
+        // Validate that the name does not contain the reserved name part __CATCH__.
+        if(pData.name.includes('__CATCH__')) {
+            this.pushIncident(`Name "${pData.name}" must not contain the reserved name part "__CATCH__".`);
         }
     }
 }

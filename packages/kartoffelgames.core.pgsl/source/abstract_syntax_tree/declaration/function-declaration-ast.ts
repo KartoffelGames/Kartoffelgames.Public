@@ -23,11 +23,6 @@ export class FunctionDeclarationAst extends BaseDeclarationAst<FunctionDeclarati
      * @param pContext - Processing context.
      */
     public override register(pContext: AbstractSyntaxTreeContext): this {
-        // Check if function is already defined in current scope.
-        if (pContext.getFunction(this.name)) {
-            pContext.pushIncident(`Function "${this.name}" is already defined.`, this);
-        }
-
         // Register function in current scope.
         pContext.registerFunction(this.name, this);
 
@@ -41,16 +36,6 @@ export class FunctionDeclarationAst extends BaseDeclarationAst<FunctionDeclarati
      * @param pCst - Cst data.
      */
     protected override onProcess(pContext: AbstractSyntaxTreeContext, pCst: FunctionDeclarationCst): FunctionDeclarationAstData {
-        // If it is a function with multiple headers no attributelist is allowed.
-        if (pCst.declarations.length > 1) {
-            for (const lDeclarations of pCst.declarations) {
-                if (lDeclarations.attributeList.attributes.length > 0) {
-                    pContext.pushIncident(`Functions with multiple headers cannot have generic parameters.`, this);
-                    break;
-                }
-            }
-        }
-
         // Build return data.
         return {
             isConstant: pCst.isConstant,
@@ -66,7 +51,7 @@ export class FunctionDeclarationAst extends BaseDeclarationAst<FunctionDeclarati
             }, this).process(pContext),
 
             // Map each declaration into a new overload ast.
-            overloads: pCst.declarations.map((pOverloadDeclarationCst) => {
+            overloads: pCst.overloads.map((pOverloadDeclarationCst) => {
                 return new FunctionOverloadDeclarationAst(pCst.name, pOverloadDeclarationCst).process(pContext);
             }),
         } satisfies FunctionDeclarationAstData;

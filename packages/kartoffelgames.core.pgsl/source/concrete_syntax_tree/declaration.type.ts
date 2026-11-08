@@ -39,7 +39,7 @@ export type EnumDeclarationValueCst = {
 
 export type FunctionDeclarationCst = {
     name: string;
-    declarations: Array<FunctionOverloadDeclarationCst>;
+    overloads: Array<FunctionOverloadDeclarationCst>;
     isConstant: boolean;
     explicitGenerics?: true;
 } & DeclarationCst<'FunctionDeclaration'>;

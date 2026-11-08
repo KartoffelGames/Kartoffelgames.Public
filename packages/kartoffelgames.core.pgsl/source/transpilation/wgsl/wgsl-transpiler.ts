@@ -42,6 +42,36 @@ import { TypeDeclarationAstTranspilerProcessor } from './type/type-declaration-a
  */
 export class WgslTranspiler extends Transpiler {
     /**
+     * WGSL types and keywords that should not be used as names.
+     */
+    public static readonly PredeclaredNames: Set<string> = new Set<string>([
+        // Scalar, vector, matrix, array, atomic and pointer types.
+        'bool', 'f16', 'f32', 'i32', 'u32', 'vec2', 'vec3', 'vec4', 'mat2x2', 'mat2x3', 'mat2x4', 'mat3x2', 'mat3x3', 'mat3x4', 'mat4x2', 'mat4x3', 'mat4x4', 'array', 'atomic', 'ptr',
+
+        // Vector and matrix type aliases.
+        'vec2i', 'vec3i', 'vec4i', 'vec2u', 'vec3u', 'vec4u', 'vec2f', 'vec3f', 'vec4f', 'vec2h', 'vec3h', 'vec4h',
+        'mat2x2f', 'mat2x3f', 'mat2x4f', 'mat3x2f', 'mat3x3f', 'mat3x4f', 'mat4x2f', 'mat4x3f', 'mat4x4f',
+        'mat2x2h', 'mat2x3h', 'mat2x4h', 'mat3x2h', 'mat3x3h', 'mat3x4h', 'mat4x2h', 'mat4x3h', 'mat4x4h',
+
+        // Sampler and texture types.
+        'sampler', 'sampler_comparison', 'texture_1d', 'texture_2d', 'texture_2d_array', 'texture_3d', 'texture_cube', 'texture_cube_array', 'texture_multisampled_2d',
+        'texture_depth_2d', 'texture_depth_2d_array', 'texture_depth_cube', 'texture_depth_cube_array', 'texture_depth_multisampled_2d', 'texture_external',
+        'texture_storage_1d', 'texture_storage_2d', 'texture_storage_2d_array', 'texture_storage_3d',
+
+        // Access mode and address space enumerants.
+        'read', 'write', 'read_write', 'function', 'private', 'workgroup', 'uniform', 'storage',
+
+        // Texel format enumerants.
+        'rgba8unorm', 'rgba8snorm', 'rgba8uint', 'rgba8sint', 'rgba16unorm', 'rgba16snorm', 'rgba16uint', 'rgba16sint', 'rgba16float', 'rgba32uint', 'rgba32sint', 'rgba32float', 'bgra8unorm',
+        'rg8unorm', 'rg8snorm', 'rg8uint', 'rg8sint', 'rg16unorm', 'rg16snorm', 'rg16uint', 'rg16sint', 'rg16float', 'rg32uint', 'rg32sint', 'rg32float',
+        'r8unorm', 'r8snorm', 'r8uint', 'r8sint', 'r16unorm', 'r16snorm', 'r16uint', 'r16sint', 'r16float', 'r32uint', 'r32sint', 'r32float',
+        'rgb10a2unorm', 'rgb10a2uint', 'rg11b10ufloat',
+
+        // Reserved words.
+        'fn', 'override', 'non_coherent', 'noncoherent'
+    ]);
+
+    /**
      * Creates a new WGSL transpiler instance.
      * Initializes all transpilation processors specific to WGSL code generation.
      */

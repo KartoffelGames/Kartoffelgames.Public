@@ -15,13 +15,32 @@ export class FunctionDeclarationAstValidationProcessor extends PgslValidatorProc
     /**
      * Validates the PGSL function declaration syntax tree.
      * 
-     * @param _pData - The syntax tree data to validate.
+     * @param pData - The syntax tree data to validate.
      */
-    protected override onValidate(_pData: FunctionDeclarationAstData): void {
-        // TODO: Validate the child overload declarations.
-        // TODO: Validate that the function name is a valid WGSL identifier: not a WGSL keyword or reserved word (the lexer lets fn, override, non_coherent and noncoherent through) and not starting with two underscores (new).
-        // TODO: Validate that the function name is not a WGSL predeclared type or enumerant name like f32, vec3, read or rgba8unorm, which the function would shadow in the whole transpiled module (new).
-        // TODO: Validate that the function name does not contain the reserved name part __GENERIC__ (new).
-        // TODO: Validate that no overload of a function with more than one overload has attributes.
+    protected override onValidate(pData: FunctionDeclarationAstData): void {
+        // Validate the child overload declarations.
+        for (const lOverload of pData.overloads) {
+            this.validateAst(lOverload);
+
+            // If it is a function with multiple headers no attributelist is allowed.
+            if (pData.overloads.length > 1 && lOverload.data.attributes.data.attributes.size > 0) {
+                this.pushIncident(`Functions with multiple headers cannot have generic parameters.`, lOverload);
+            }
+        }
+
+        // Validate that the function name does not start with two underscores, as WGSL identifiers can not.
+        if (pData.name.startsWith('__')) {
+            this.pushIncident(`Name "${pData.name}" must not start with two underscores.`);
+        }
+
+        // Validate that the name does not contain the reserved name part __GENERIC__.
+        if(pData.name.includes('__GENERIC__')) {
+            this.pushIncident(`Name "${pData.name}" must not contain the reserved name part "__GENERIC__".`);
+        }
+
+        // Validate that the name does not contain the reserved name part __CATCH__.
+        if(pData.name.includes('__CATCH__')) {
+            this.pushIncident(`Name "${pData.name}" must not contain the reserved name part "__CATCH__".`);
+        }
     }
 }

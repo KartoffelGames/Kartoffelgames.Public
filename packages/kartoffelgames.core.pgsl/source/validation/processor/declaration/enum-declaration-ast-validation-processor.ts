@@ -35,7 +35,11 @@ export class EnumDeclarationAstValidationProcessor extends PgslValidatorProcesso
 
             // Validate that the enum value name does not contain the __GENERIC__.
             if (lEnumValueName.includes('__GENERIC__')) {
-                this.pushIncident(`Enum value name must not contain reservec names "__GENERIC__"`);
+                this.pushIncident(`Name "${lEnumValueName}" must not contain the reserved name part "__GENERIC__".`);
+            }
+            // Validate that the enum value name does not contain the __CATCH__.
+            if (lEnumValueName.includes('__CATCH__')) {
+                this.pushIncident(`Name "${lEnumValueName}" must not contain the reserved name part "__CATCH__".`);
             }
 
             // All values need to be string or integer.
@@ -54,9 +58,14 @@ export class EnumDeclarationAstValidationProcessor extends PgslValidatorProcesso
             }
         }
 
-        // Validate that the enum name does not contain the reserved name part __GENERIC__.
-        if (pData.name.includes('__GENERIC__')) {
-            this.pushIncident(`Enum name must not contain reservec names "__GENERIC__"`);
+        // Validate that the name does not contain the reserved name part __GENERIC__.
+        if(pData.name.includes('__GENERIC__')) {
+            this.pushIncident(`Name "${pData.name}" must not contain the reserved name part "__GENERIC__".`);
+        }
+
+        // Validate that the name does not contain the reserved name part __CATCH__.
+        if(pData.name.includes('__CATCH__')) {
+            this.pushIncident(`Name "${pData.name}" must not contain the reserved name part "__CATCH__".`);
         }
 
         // Validate that the enum has at least one value.

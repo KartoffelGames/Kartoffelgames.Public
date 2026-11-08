@@ -74,7 +74,7 @@ export abstract class PgslFeatureSetProcessor {
 
         return new EnumDeclarationAst({
             name: pName,
-            underlyingType: this.types.create(PgslStringType),
+            valuesType: this.types.create(PgslStringType),
             values: lValues
         });
     }

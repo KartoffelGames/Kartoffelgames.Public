@@ -5,8 +5,6 @@ import type { IExpressionAst } from '../expression/i-expression-ast.interface.ts
 import { AttributeListAst } from '../general/attribute-list-ast.ts';
 import type { BasePgslType } from '../type/definition/base-pgsl-type.ts';
 import { PgslInvalidType } from '../type/definition/pgsl-invalid-type.ts';
-import { PgslNumericType } from '../type/definition/pgsl-numeric-type.ts';
-import { PgslStringType } from '../type/definition/pgsl-string-type.ts';
 import { BaseDeclarationAst, type DeclarationAstData } from './base-declaration-ast.ts';
 
 /**
@@ -26,11 +24,6 @@ export class EnumDeclarationAst extends BaseDeclarationAst<EnumDeclarationCst, E
      * @param pContext - Processing context.
      */
     public override register(pContext: AbstractSyntaxTreeContext): this {
-        // Check if enum is already defined.
-        if (pContext.getEnum(this.name)) {
-            pContext.pushIncident(`Enum "${this.name}" is already defined.`, this);
-        }
-
         // Register enum.
         pContext.registerEnum(this.name, this);
 
@@ -47,24 +40,26 @@ export class EnumDeclarationAst extends BaseDeclarationAst<EnumDeclarationCst, E
         // Create attribute list.
         const lAttributes: AttributeListAst = new AttributeListAst(pCst.attributeList, this).process(pContext);
 
-        const lProperties: ReadonlyMap<string, IExpressionAst> = this.processProperties(pContext, pCst);
+        // Read and convert enum values.
+        const lEnumValues: Array<[string, IExpressionAst]> = this.processProperties(pContext, pCst);
 
-        let lFirstPropertyType: BasePgslType;
+        // Read first value of enum. That defines the types for all other enum values.
+        const lFirstPropertyType: BasePgslType = (() => {
+            // Fallback to invalid type.
+            if (lEnumValues.length === 0) {
+                return pContext.types.create(PgslInvalidType);
+            }
 
-        // Fallback to invalid type.
-        if (lProperties.size === 0) {
-            pContext.pushIncident(`Enum ${pCst.name} has no values`, this);
-            lFirstPropertyType = new PgslInvalidType();
-        } else {
             // Get first property type.
-            lFirstPropertyType = lProperties.values().next().value!.data.resolveType;
-        }
+            return lEnumValues[0][1].data.resolveType;
+        })();
 
         return {
             attributes: lAttributes,
             name: pCst.name,
-            values: lProperties,
-            underlyingType: lFirstPropertyType
+            values: new Map<string, IExpressionAst>(lEnumValues),
+            valuesType: lFirstPropertyType,
+            propertyList: lEnumValues
         };
     }
 
@@ -76,41 +71,16 @@ export class EnumDeclarationAst extends BaseDeclarationAst<EnumDeclarationCst, E
      * 
      * @returns Map of all build properties. 
      */
-    private processProperties(pContext: AbstractSyntaxTreeContext, pCst: EnumDeclarationCst): Map<string, IExpressionAst> {
+    private processProperties(pContext: AbstractSyntaxTreeContext, pCst: EnumDeclarationCst): Array<[string, IExpressionAst]> {
         // Validate that the enum has no dublicate names.
-        const lPropertyList: Map<string, IExpressionAst> = new Map<string, IExpressionAst>();
+        const lPropertyList: Array<[string, IExpressionAst]> = new Array<[string, IExpressionAst]>();
 
-        let lFirstPropertyType: BasePgslType | null = null;
         for (const lProperty of pCst.values) {
             // Create expression ast.
             const lExpressionAst: IExpressionAst = ExpressionAstBuilder.build(lProperty.value).process(pContext);
 
-            // Validate dublicates.
-            if (lPropertyList.has(lProperty.name)) {
-                pContext.pushIncident(`Value "${lProperty.name}" was already added to enum "${pCst.name}"`, this);
-            }
-
             // Add property.
-            lPropertyList.set(lProperty.name, lExpressionAst);
-
-            // Validate property type.
-            const lIsNumeric: boolean = lExpressionAst.data.resolveType.conversionRankTo(new PgslNumericType(PgslNumericType.typeName.unsignedInteger)) !== Number.POSITIVE_INFINITY;
-            const lIsString: boolean = lExpressionAst.data.resolveType.conversionRankTo(new PgslStringType()) !== Number.POSITIVE_INFINITY;
-
-            // All values need to be string or integer.
-            if (!lIsNumeric && !lIsString) {
-                pContext.pushIncident(`Enum "${pCst.name}" can only hold unsigned integer values.`, this);
-            }
-
-            // Init on first value.
-            if (lFirstPropertyType === null) {
-                lFirstPropertyType = lExpressionAst.data.resolveType;
-            }
-
-            // Property is the same type as the others.
-            if (!lExpressionAst.data.resolveType.equals(lFirstPropertyType)) {
-                pContext.pushIncident(`Enum "${pCst.name}" has mixed value types. Expected all values to be of the same type.`, this);
-            }
+            lPropertyList.push([lProperty.name, lExpressionAst]);
         }
 
         return lPropertyList;
@@ -119,6 +89,7 @@ export class EnumDeclarationAst extends BaseDeclarationAst<EnumDeclarationCst, E
 
 export type EnumDeclarationAstData = {
     name: string;
-    underlyingType: BasePgslType;
+    valuesType: BasePgslType;
     values: ReadonlyMap<string, IExpressionAst>;
+    propertyList: Array<[string, IExpressionAst]>;
 } & DeclarationAstData;

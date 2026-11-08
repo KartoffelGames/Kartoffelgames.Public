@@ -245,7 +245,7 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
             pContext.pushIncident(`Enum can't have templates values.`, this);
         }
 
-        return lEnum.data.underlyingType;
+        return lEnum.data.valuesType;
     }
 
     /**

@@ -48,7 +48,7 @@ export class PgslEnumType extends BasePgslType {
         let lTypeKind: BasePgslTypeKind = BasePgslTypeKind.Enum | BasePgslTypeKind.Composite | BasePgslTypeKind.FixedFootprint;
 
         // A enum is only concrete when its underlying type is.
-        lTypeKind |= pEnumDeclaration.data.underlyingType.isKind(BasePgslTypeKind.Concrete) ? BasePgslTypeKind.Concrete : BasePgslTypeKind.None;
+        lTypeKind |= pEnumDeclaration.data.valuesType.isKind(BasePgslTypeKind.Concrete) ? BasePgslTypeKind.Concrete : BasePgslTypeKind.None;
 
         // Create and use meta.
         super(lTypeKind, {

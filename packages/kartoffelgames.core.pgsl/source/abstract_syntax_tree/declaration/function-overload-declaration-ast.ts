@@ -157,19 +157,23 @@ export class FunctionOverloadDeclarationAst extends BaseDeclarationAst<FunctionO
             return null;
         };
 
+        // Read struct type of parameters and return values.
+        const lParameterStructType: PgslStructType | null = lStructTypeOf(pDeclaration.parameter[0]?.type);
+        const lReturnStructType: PgslStructType | null = lStructTypeOf(pDeclaration.returnType);
+
         switch (true) {
             case pAttributes.hasAttribute(AttributeListAst.attributeNames.vertex): {
                 return {
                     stage: 'vertex',
-                    parameter: lStructTypeOf(pDeclaration.parameter[0]?.type),
-                    returnType: lStructTypeOf(pDeclaration.returnType)
+                    parameter: lParameterStructType,
+                    returnType: lReturnStructType
                 };
             }
             case pAttributes.hasAttribute(AttributeListAst.attributeNames.fragment): {
                 return {
                     stage: 'fragment',
-                    parameter: lStructTypeOf(pDeclaration.parameter[0]?.type),
-                    returnType: lStructTypeOf(pDeclaration.returnType)
+                    parameter: lParameterStructType,
+                    returnType: lReturnStructType
                 };
             }
             case pAttributes.hasAttribute(AttributeListAst.attributeNames.compute): {
@@ -197,6 +201,8 @@ export class FunctionOverloadDeclarationAst extends BaseDeclarationAst<FunctionO
 
                 return {
                     stage: 'compute',
+                    parameter: lParameterStructType,
+                    returnType: lReturnStructType,
                     workgroupSize: lWorkgroupSize
                 };
             }
@@ -297,6 +303,16 @@ export type FunctionDeclarationAstEntryPointStage = 'vertex' | 'fragment' | 'com
  */
 export type FunctionOverloadDeclarationAstDataEntryPoint = {
     stage: 'compute';
+
+    /**
+     * Optional input parameters as struct.
+     */
+    parameter: PgslStructType | null;
+
+    /**
+     * Output values as struct.
+     */
+    returnType: PgslStructType | null;
 
     /**
      * Workgroup size.

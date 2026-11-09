@@ -105,7 +105,7 @@ export class FunctionOverloadDeclarationAstValidationProcessor extends PgslValid
         // TODO: Validate that no parameter name is the name of a function or struct declaration, which the parameter would shadow in the transpiled function body while PGSL still resolves calls and type names in the body to that declaration (new).
 
         // Validate that the return type is void or constructible.
-        if (!(pData.returnType.data.type instanceof PgslVoidType) && !pData.returnType.data.type.isKind(BasePgslTypeKind.Constructible)) {
+        if (!(pData.returnType.data.type.isKind(BasePgslTypeKind.Void)) && !pData.returnType.data.type.isKind(BasePgslTypeKind.Constructible)) {
             this.pushIncident(`Return type must be void or constructible.`, pData.returnType);
         }
 
@@ -126,150 +126,158 @@ export class FunctionOverloadDeclarationAstValidationProcessor extends PgslValid
             this.pushIncident(`Only one endpoint attribute can be set. Either Vertex, Fragment or Compute.`, pData.attributes);
         }
 
+        if (!pData.entryPoint) {
+            return;
+        }
+
         // Everything but a compute entry point.
-        if (pData.entryPoint && pData.entryPoint.stage !== 'compute') {
+        if (pData.entryPoint.stage !== 'compute') {
             // Validate that a Vertex or Fragment entry point has exactly one parameter.
             if (pData.parameter.length !== 1) {
                 this.pushIncident(`The ${pData.entryPoint.stage} entry points must have exactly one parameter defining the ${pData.entryPoint.stage} input structure.`);
-            }
-
-            // Validate that the parameter type of a Vertex or Fragment entry point is a struct. A missing parameter is already reported by the parameter count.
-            if (pData.parameter.length > 0 && !pData.entryPoint.parameter) {
-                this.pushIncident(`The ${pData.entryPoint.stage} entry point parameter must be a struct type defining the ${pData.entryPoint.stage} input structure.`);
             }
 
             // Validate that the return type of a Vertex or Fragment entry point is a struct.
             if (!pData.entryPoint.returnType) {
                 this.pushIncident(`The ${pData.entryPoint.stage} entry point return type must be a struct type defining the ${pData.entryPoint.stage} output structure.`);
             }
-
-            const lEndpointStage: 'vertex' | 'fragment' | 'compute' = pData.entryPoint.stage;
-
-            // Read the built-in type eacg endpoint allows.
-            const lAllowedBuildIns: { input: Array<PgslBuildInTypeName>; output: Array<PgslBuildInTypeName>; } = (() => {
-                switch (lEndpointStage) {
-                    case 'vertex': return {
-                        input: [PgslBuildInType.typeName.vertexIndex, PgslBuildInType.typeName.instanceIndex],
-                        output: [PgslBuildInType.typeName.position, PgslBuildInType.typeName.clipDistances]
-                    };
-                    case 'fragment': return {
-                        input: [PgslBuildInType.typeName.position, PgslBuildInType.typeName.frontFacing, PgslBuildInType.typeName.sampleIndex, PgslBuildInType.typeName.sampleMask, PgslBuildInType.typeName.primitiveIndex],
-                        output: [PgslBuildInType.typeName.fragDepth, PgslBuildInType.typeName.sampleMask]
-                    };
-                    case 'compute': return {
-                        input: [PgslBuildInType.typeName.globalInvocationId, PgslBuildInType.typeName.localInvocationId, PgslBuildInType.typeName.localInvocationIndex, PgslBuildInType.typeName.numWorkgroups],
-                        output: []
-                    };
-                }
-            })();
-
-            // Small mapping for input and output types.
-            const lEntryPointStructList: Array<[direction: 'input' | 'output', struct: PgslStructType | null]> = [
-                ['input', pData.entryPoint.parameter],
-                ['output', pData.entryPoint.returnType]
-            ];
-
-
-            // Validate the properties of the input and output struct.
-            for (const [lDirection, lStruct] of lEntryPointStructList) {
-                // Skip further validation on broken or missing types. 
-                if (!lStruct) {
-                    continue;
-                }
-
-                // Additional checks for structs that exchanges data between stages.
-                const lIsExchangeStruct: boolean = (() => {
-                    if (lEndpointStage === 'vertex' && lDirection === 'output') {
-                        return true;
-                    }
-
-                    if (lEndpointStage === 'fragment' && lDirection === 'input') {
-                        return true;
-                    }
-
-                    return false;
-                })();
-
-                // Mapping for used Built-ins.
-                const lUsedBuildIns: Set<PgslBuildInTypeName> = new Set<PgslBuildInTypeName>();
-
-                // Check each property.
-                for (const lProperty of lStruct.declaration.data.properties) {
-                    const lBuildIn: PgslBuildInTypeName | undefined = lProperty.data.typeDeclaration.data.buildIn;
-                    if (lBuildIn) {
-                        // Validate that no built-in type occurs more than once.
-                        if (lUsedBuildIns.has(lBuildIn)) {
-                            this.pushIncident(`Built-in type "${lBuildIn}" is used more than once in struct "${lStruct.structName}".`, lProperty);
-                        }
-
-                        // Add build in to build in mapping.
-                        lUsedBuildIns.add(lBuildIn);
-
-                        // Validate that the built-in type fits the stage and direction.
-                        if (!lAllowedBuildIns[lDirection].includes(lBuildIn)) {
-                            this.pushIncident(`Built-in type "${lBuildIn}" can not be used in the ${lEndpointStage} ${lDirection} struct.`, lProperty);
-                        }
-                    }
-
-                    const lHasLocation: boolean = lProperty.data.attributes.hasAttribute(AttributeListAst.attributeNames.location);
-
-                    // Validate that the property is a build in or has a location.
-                    if (lBuildIn && lHasLocation || !lBuildIn && !lHasLocation) {
-                        this.pushIncident(`Property "${lProperty.data.name}" of an entry point struct must have either a built-in type or a Location attribute.`, lProperty);
-                    }
-
-                    // Get component type of property when its a vector.
-                    const lComponentType: BasePgslType = (() => {
-                        const lPropertyType: BasePgslType = lProperty.data.typeDeclaration.data.type;
-                        if (lPropertyType instanceof PgslVectorType) {
-                            return lPropertyType.componentType;
-                        }
-
-                        return lPropertyType;
-                    })();
-
-                    // Validate that an non build in integer or integer-vector must have a flat interpolation.
-                    if (lIsExchangeStruct && lHasLocation && lComponentType.isKind(BasePgslTypeKind.Integer)) {
-                        if (!lProperty.data.meta.interpolation || lProperty.data.meta.interpolation?.type !== PgslInterpolateTypeEnum.VALUES.Flat) {
-                            this.pushIncident(`Location property "${lProperty.data.name}" with an integer type needs a flat Interpolate attribute.`, lProperty);
-                        }
-                    }
-
-                    // Validate that BlendSource attributes are only used in the output struct of a fragment entry point.
-                    if (lProperty.data.attributes.hasAttribute(AttributeListAst.attributeNames.blendSource)) {
-                        if (!(lEndpointStage === 'fragment' && lDirection === 'output')) {
-                            this.pushIncident(`BlendSource properties can only be used in the output struct of a fragment entry point.`, lProperty);
-                        }
-                    }
-                }
-
-                // Validate that the output struct of a Vertex entry point has a Position property.
-                if (lEndpointStage === 'vertex' && lDirection === 'output' && !lUsedBuildIns.has(PgslBuildInType.typeName.position)) {
-                    this.pushIncident(`The vertex entry point output struct needs a Position property.`);
-                }
-            }
         }
 
         // Nothing but a compute entry point.
-        if (pData.entryPoint?.stage === 'compute') {
-            // Validate that the workgroup size of a Compute entry point could be read from the attribute parameters.
+        if (pData.entryPoint.stage === 'compute') {
+            // Validate that the workgroup size. If it isnt set, the parameters were not static.
             if (!pData.entryPoint.workgroupSize) {
                 this.pushIncident(`All compute attribute parameters need to be constant integer expressions.`, pData.attributes);
             }
 
-            // Validate that all Compute attribute parameters are greater than zero.
+            // Validate that all compute attribute parameters are greater than zero.
             if (pData.entryPoint.workgroupSize && (pData.entryPoint.workgroupSize.x < 1 || pData.entryPoint.workgroupSize.y < 1 || pData.entryPoint.workgroupSize.z < 1)) {
                 this.pushIncident(`All compute attribute parameters need to be greater than zero.`, pData.attributes);
             }
 
-            // Validate that a Compute entry point has no parameters.
-            if (pData.parameter.length > 0) {
-                this.pushIncident(`Compute entry points must not have parameters.`);
+            // Validate that a compute entry point has none or one parameter.
+            if (pData.parameter.length > 1) {
+                this.pushIncident(`The compute entry points must have at most one parameter defining the compute input structure.`);
             }
 
-            // Validate that a Compute entry point has a void return type.
-            if (!(pData.returnType.data.type instanceof PgslVoidType)) {
+            // Validate that a compute entry point has a void return type.
+            if (!(pData.returnType.data.type.isKind(BasePgslTypeKind.Void))) {
                 this.pushIncident(`Compute entry points must not have a return type.`);
+            }
+        }
+
+        // Validate that the parameter type of an entry point is a struct. A missing parameter is already reported by the parameter count of each stage.
+        if (pData.parameter.length > 0 && !pData.entryPoint.parameter) {
+            this.pushIncident(`The ${pData.entryPoint.stage} entry point parameter must be a struct type defining the ${pData.entryPoint.stage} input structure.`);
+        }
+
+        const lEndpointStage: 'vertex' | 'fragment' | 'compute' = pData.entryPoint.stage;
+
+        // Read the built-in type eacg endpoint allows.
+        const lAllowedBuildIns: { input: Array<PgslBuildInTypeName>; output: Array<PgslBuildInTypeName>; } = (() => {
+            switch (lEndpointStage) {
+                case 'vertex': return {
+                    input: [PgslBuildInType.typeName.vertexIndex, PgslBuildInType.typeName.instanceIndex],
+                    output: [PgslBuildInType.typeName.position, PgslBuildInType.typeName.clipDistances]
+                };
+                case 'fragment': return {
+                    input: [PgslBuildInType.typeName.position, PgslBuildInType.typeName.frontFacing, PgslBuildInType.typeName.sampleIndex, PgslBuildInType.typeName.sampleMask, PgslBuildInType.typeName.primitiveIndex],
+                    output: [PgslBuildInType.typeName.fragDepth, PgslBuildInType.typeName.sampleMask]
+                };
+                case 'compute': return {
+                    input: [PgslBuildInType.typeName.globalInvocationId, PgslBuildInType.typeName.localInvocationId, PgslBuildInType.typeName.localInvocationIndex, PgslBuildInType.typeName.workgroupId, PgslBuildInType.typeName.numWorkgroups],
+                    output: []
+                };
+            }
+        })();
+
+        // Small mapping for input and output types.
+        const lEntryPointStructList: Array<[direction: 'input' | 'output', struct: PgslStructType | null]> = [
+            ['input', pData.entryPoint.parameter],
+            ['output', pData.entryPoint.returnType]
+        ];
+
+        // Validate the properties of the input and output struct.
+        for (const [lDirection, lStruct] of lEntryPointStructList) {
+            // Skip further validation on broken or missing types. 
+            if (!lStruct) {
+                continue;
+            }
+
+            // Additional checks for structs that exchanges data between stages.
+            const lIsExchangeStruct: boolean = (() => {
+                if (lEndpointStage === 'vertex' && lDirection === 'output') {
+                    return true;
+                }
+
+                if (lEndpointStage === 'fragment' && lDirection === 'input') {
+                    return true;
+                }
+
+                return false;
+            })();
+
+            // Mapping for used Built-ins.
+            const lUsedBuildIns: Set<PgslBuildInTypeName> = new Set<PgslBuildInTypeName>();
+
+            // Validate that the output struct of a Vertex entry point has a Position property.
+            if (lEndpointStage === 'vertex' && lDirection === 'output' && !lUsedBuildIns.has(PgslBuildInType.typeName.position)) {
+                this.pushIncident(`The vertex entry point output struct needs a Position property.`);
+            }
+
+            // Check each property.
+            for (const lProperty of lStruct.declaration.data.properties) {
+                const lBuildIn: PgslBuildInTypeName | undefined = lProperty.data.typeDeclaration.data.buildIn;
+                if (lBuildIn) {
+                    // Validate that no built-ins arent used twice.
+                    if (lUsedBuildIns.has(lBuildIn)) {
+                        this.pushIncident(`Built-in type "${lBuildIn}" is used more than once in struct "${lStruct.structName}".`, lProperty);
+                    }
+
+                    // Add build in to build in mapping.
+                    lUsedBuildIns.add(lBuildIn);
+
+                    // Validate that the built-in type fits the stage and direction.
+                    if (!lAllowedBuildIns[lDirection].includes(lBuildIn)) {
+                        this.pushIncident(`Built-in type "${lBuildIn}" can not be used in the ${lEndpointStage} ${lDirection} struct.`, lProperty);
+                    }
+                }
+
+                // Compute entry points only have build in inputs.
+                if (lEndpointStage === 'compute' && !lBuildIn) {
+                    this.pushIncident(`Property "${lProperty.data.name}" of the compute input struct must have a built-in type.`, lProperty);
+                } 
+
+                const lHasLocation: boolean = lProperty.data.attributes.hasAttribute(AttributeListAst.attributeNames.location);
+                
+                // Validate that the property is a build in or has a location.
+                if (lBuildIn && lHasLocation || !lBuildIn && !lHasLocation) {
+                    this.pushIncident(`Property "${lProperty.data.name}" of an entry point struct must have either a built-in type or a Location attribute.`, lProperty);
+                }
+
+                // Get component type of property when its a vector.
+                const lComponentType: BasePgslType = (() => {
+                    const lPropertyType: BasePgslType = lProperty.data.typeDeclaration.data.type;
+                    if (lPropertyType instanceof PgslVectorType) {
+                        return lPropertyType.componentType;
+                    }
+
+                    return lPropertyType;
+                })();
+
+                // Validate that an non build in integer or integer-vector must have a flat interpolation.
+                if (lIsExchangeStruct && lHasLocation && lComponentType.isKind(BasePgslTypeKind.Integer)) {
+                    if (!lProperty.data.meta.interpolation || lProperty.data.meta.interpolation?.type !== PgslInterpolateTypeEnum.VALUES.Flat) {
+                        this.pushIncident(`Location property "${lProperty.data.name}" with an integer type needs a flat Interpolate attribute.`, lProperty);
+                    }
+                }
+
+                // Validate that BlendSource attributes are only used in the output struct of a fragment entry point.
+                if (lProperty.data.attributes.hasAttribute(AttributeListAst.attributeNames.blendSource)) {
+                    if (!(lEndpointStage === 'fragment' && lDirection === 'output')) {
+                        this.pushIncident(`BlendSource properties can only be used in the output struct of a fragment entry point.`, lProperty);
+                    }
+                }
             }
         }
     }

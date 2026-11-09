@@ -1,7 +1,12 @@
 import { FunctionOverloadDeclarationAst, type FunctionOverloadDeclarationAstData } from '../../../abstract_syntax_tree/declaration/function-overload-declaration-ast.ts';
-import type { BasePgslType } from '../../../abstract_syntax_tree/type/definition/base-pgsl-type.ts';
+import { AttributeListAst } from '../../../abstract_syntax_tree/general/attribute-list-ast.ts';
+import { type BasePgslType, BasePgslTypeKind } from '../../../abstract_syntax_tree/type/definition/base-pgsl-type.ts';
+import { PgslBuildInType, type PgslBuildInTypeName } from '../../../abstract_syntax_tree/type/definition/pgsl-build-in-type.ts';
 import { PgslGenericType } from '../../../abstract_syntax_tree/type/definition/pgsl-generic-type.ts';
+import type { PgslStructType } from '../../../abstract_syntax_tree/type/definition/pgsl-struct-type.ts';
+import { PgslVectorType } from '../../../abstract_syntax_tree/type/definition/pgsl-vector-type.ts';
 import { PgslVoidType } from '../../../abstract_syntax_tree/type/definition/pgsl-void-type.ts';
+import { PgslInterpolateTypeEnum } from '../../../feature_set/enum/pgsl-interpolate-type-enum.ts';
 import { PgslValidatorProcessor } from '../../pgsl-validator-processor.ts';
 
 /**
@@ -42,6 +47,9 @@ export class FunctionOverloadDeclarationAstValidationProcessor extends PgslValid
             this.pushIncident(`The ${pData.entryPoint.stage} entry point must not have generic parameters.`);
         }
 
+        // Parameter names that are already defined by a previous parameter.
+        const lParameterNames: Set<string> = new Set<string>();
+
         // Validate the child type declaration of every parameter.
         for (const lParameter of pData.parameter) {
             this.validateAst(lParameter.type);
@@ -51,7 +59,35 @@ export class FunctionOverloadDeclarationAstValidationProcessor extends PgslValid
             if (lParameterType instanceof PgslGenericType && !pData.generic.restrictions.has(lParameterType)) {
                 this.pushIncident(`Generic parameter name "${lParameterType.name}" is not defined for this function header.`);
             }
+
+            // Validate parameter names are not dublicated.
+            if (lParameterNames.has(lParameter.name)) {
+                this.pushIncident(`Parameter "${lParameter.name}" is already defined.`);
+            }
+            lParameterNames.add(lParameter.name);
+
+            // Validate that the parameter name does not start with two underscores.
+            if (lParameter.name.startsWith('__')) {
+                this.pushIncident(`Name "${lParameter.name}" must not start with two underscores.`);
+            }
+
+            // Validate that the parameter name does not contain the reserved name part __GENERIC__.
+            if (lParameter.name.includes('__GENERIC__')) {
+                this.pushIncident(`Name "${lParameter.name}" must not contain the reserved name part "__GENERIC__".`);
+            }
+
+            // Validate that the parameter name does not contain the reserved name part __CATCH__.
+            if (lParameter.name.includes('__CATCH__')) {
+                this.pushIncident(`Name "${lParameter.name}" must not contain the reserved name part "__CATCH__".`);
+            }
+
+            // Validate that the parameter type is constructible, a pointer, a texture or a sampler.
+            if (!lParameterType.isKind(BasePgslTypeKind.Constructible) && !lParameterType.isKind(BasePgslTypeKind.Pointer) && !lParameterType.isKind(BasePgslTypeKind.Texture) && !lParameterType.isKind(BasePgslTypeKind.Sampler)) {
+                this.pushIncident(`Parameter type must be constructible, a pointer, a texture or a sampler.`, lParameter.type);
+            }
         }
+
+        // TODO: Validate that a parameter is not shadowed by a inner variable declaration.
 
         // Validate that generics names have no dublicates.
         const lGenericNames: Set<string> = new Set<string>();
@@ -65,16 +101,14 @@ export class FunctionOverloadDeclarationAstValidationProcessor extends PgslValid
 
         // TODO: Validate that a generic restriction only references generics declared before it (new).
         // TODO: Validate that no generic name shadows a module scope type (new).
-
-
-        // TODO: Validate that no two parameters share a name (new).
-        // TODO: Validate that every parameter name is a valid WGSL identifier: not a WGSL keyword or reserved word (the lexer lets fn, override, non_coherent and noncoherent through) and not starting with two underscores (new).
         // TODO: Validate that no parameter name is a WGSL predeclared type, enumerant or built-in function name like f32, vec3, read or min, which the parameter would shadow in the transpiled function body (new).
         // TODO: Validate that no parameter name is the name of a function or struct declaration, which the parameter would shadow in the transpiled function body while PGSL still resolves calls and type names in the body to that declaration (new).
-        // TODO: Validate that no parameter name contains the reserved name part __GENERIC__ (new).
-        // TODO: Validate that no variable declared directly in the function block shares a name with a parameter, because WGSL gives both the same end scope (new).
-        // TODO: Validate that every parameter type is constructible, a pointer, a texture or a sampler (new).
-        // TODO: Validate that the declared return type is void or constructible (new).
+
+        // Validate that the return type is void or constructible.
+        if (!(pData.returnType.data.type instanceof PgslVoidType) && !pData.returnType.data.type.isKind(BasePgslTypeKind.Constructible)) {
+            this.pushIncident(`Return type must be void or constructible.`, pData.returnType);
+        }
+
         // TODO: Validate that every control flow path of an overload with a non-void return type ends in a return statement, counting returns nested in if/else and switch branches, in place of today's comparison of the block return type with the declared return type.
 
         // Validate that the block return type can convert to the return type.
@@ -82,7 +116,15 @@ export class FunctionOverloadDeclarationAstValidationProcessor extends PgslValid
             this.pushIncident(`Function block return type does not match the declared return type.`, pData.block);
         }
 
-        // TODO: Validate that at most one of the Vertex, Fragment and Compute attributes is set (new).
+        // Count endpoint attributes.
+        const lEntryPointAttributeCount: number = [AttributeListAst.attributeNames.vertex, AttributeListAst.attributeNames.fragment, AttributeListAst.attributeNames.compute].filter((pAttributeName) => {
+            return pData.attributes.hasAttribute(pAttributeName);
+        }).length;
+
+        // Validate that only one endpoint attribute is set.
+        if (lEntryPointAttributeCount > 1) {
+            this.pushIncident(`Only one endpoint attribute can be set. Either Vertex, Fragment or Compute.`, pData.attributes);
+        }
 
         // Everything but a compute entry point.
         if (pData.entryPoint && pData.entryPoint.stage !== 'compute') {
@@ -100,14 +142,113 @@ export class FunctionOverloadDeclarationAstValidationProcessor extends PgslValid
             if (!pData.entryPoint.returnType) {
                 this.pushIncident(`The ${pData.entryPoint.stage} entry point return type must be a struct type defining the ${pData.entryPoint.stage} output structure.`);
             }
-        }
 
-        // TODO: Validate that every property of the input and output struct of a Vertex or Fragment entry point has either a built-in type or a Location attribute, never both (new).
-        // TODO: Validate that every built-in property of the input and output struct fits the stage and direction: VertexIndex and InstanceIndex as Vertex input, Position and ClipDistances as Vertex output, Position, FrontFacing, SampleIndex, SampleMask and PrimitiveIndex as Fragment input, FragDepth and SampleMask as Fragment output (new).
-        // TODO: Validate that no built-in type occurs more than once in the input struct or in the output struct of an entry point (new).
-        // TODO: Validate that the output struct of a Vertex entry point has a Position property (new).
-        // TODO: Validate that every Location property with an integer scalar or vector type in the output struct of a Vertex entry point or the input struct of a Fragment entry point has a flat Interpolate attribute (new).
-        // TODO: Validate that BlendSource properties only appear in the output struct of a Fragment entry point (new).
+            const lEndpointStage: 'vertex' | 'fragment' | 'compute' = pData.entryPoint.stage;
+
+            // Read the built-in type eacg endpoint allows.
+            const lAllowedBuildIns: { input: Array<PgslBuildInTypeName>; output: Array<PgslBuildInTypeName>; } = (() => {
+                switch (lEndpointStage) {
+                    case 'vertex': return {
+                        input: [PgslBuildInType.typeName.vertexIndex, PgslBuildInType.typeName.instanceIndex],
+                        output: [PgslBuildInType.typeName.position, PgslBuildInType.typeName.clipDistances]
+                    };
+                    case 'fragment': return {
+                        input: [PgslBuildInType.typeName.position, PgslBuildInType.typeName.frontFacing, PgslBuildInType.typeName.sampleIndex, PgslBuildInType.typeName.sampleMask, PgslBuildInType.typeName.primitiveIndex],
+                        output: [PgslBuildInType.typeName.fragDepth, PgslBuildInType.typeName.sampleMask]
+                    };
+                    case 'compute': return {
+                        input: [PgslBuildInType.typeName.globalInvocationId, PgslBuildInType.typeName.localInvocationId, PgslBuildInType.typeName.localInvocationIndex, PgslBuildInType.typeName.numWorkgroups],
+                        output: []
+                    };
+                }
+            })();
+
+            // Small mapping for input and output types.
+            const lEntryPointStructList: Array<[direction: 'input' | 'output', struct: PgslStructType | null]> = [
+                ['input', pData.entryPoint.parameter],
+                ['output', pData.entryPoint.returnType]
+            ];
+
+
+            // Validate the properties of the input and output struct.
+            for (const [lDirection, lStruct] of lEntryPointStructList) {
+                // Skip further validation on broken or missing types. 
+                if (!lStruct) {
+                    continue;
+                }
+
+                // Additional checks for structs that exchanges data between stages.
+                const lIsExchangeStruct: boolean = (() => {
+                    if (lEndpointStage === 'vertex' && lDirection === 'output') {
+                        return true;
+                    }
+
+                    if (lEndpointStage === 'fragment' && lDirection === 'input') {
+                        return true;
+                    }
+
+                    return false;
+                })();
+
+                // Mapping for used Built-ins.
+                const lUsedBuildIns: Set<PgslBuildInTypeName> = new Set<PgslBuildInTypeName>();
+
+                // Check each property.
+                for (const lProperty of lStruct.declaration.data.properties) {
+                    const lBuildIn: PgslBuildInTypeName | undefined = lProperty.data.typeDeclaration.data.buildIn;
+                    if (lBuildIn) {
+                        // Validate that no built-in type occurs more than once.
+                        if (lUsedBuildIns.has(lBuildIn)) {
+                            this.pushIncident(`Built-in type "${lBuildIn}" is used more than once in struct "${lStruct.structName}".`, lProperty);
+                        }
+
+                        // Add build in to build in mapping.
+                        lUsedBuildIns.add(lBuildIn);
+
+                        // Validate that the built-in type fits the stage and direction.
+                        if (!lAllowedBuildIns[lDirection].includes(lBuildIn)) {
+                            this.pushIncident(`Built-in type "${lBuildIn}" can not be used in the ${lEndpointStage} ${lDirection} struct.`, lProperty);
+                        }
+                    }
+
+                    const lHasLocation: boolean = lProperty.data.attributes.hasAttribute(AttributeListAst.attributeNames.location);
+
+                    // Validate that the property is a build in or has a location.
+                    if (lBuildIn && lHasLocation || !lBuildIn && !lHasLocation) {
+                        this.pushIncident(`Property "${lProperty.data.name}" of an entry point struct must have either a built-in type or a Location attribute.`, lProperty);
+                    }
+
+                    // Get component type of property when its a vector.
+                    const lComponentType: BasePgslType = (() => {
+                        const lPropertyType: BasePgslType = lProperty.data.typeDeclaration.data.type;
+                        if (lPropertyType instanceof PgslVectorType) {
+                            return lPropertyType.componentType;
+                        }
+
+                        return lPropertyType;
+                    })();
+
+                    // Validate that an non build in integer or integer-vector must have a flat interpolation.
+                    if (lIsExchangeStruct && lHasLocation && lComponentType.isKind(BasePgslTypeKind.Integer)) {
+                        if (!lProperty.data.meta.interpolation || lProperty.data.meta.interpolation?.type !== PgslInterpolateTypeEnum.VALUES.Flat) {
+                            this.pushIncident(`Location property "${lProperty.data.name}" with an integer type needs a flat Interpolate attribute.`, lProperty);
+                        }
+                    }
+
+                    // Validate that BlendSource attributes are only used in the output struct of a fragment entry point.
+                    if (lProperty.data.attributes.hasAttribute(AttributeListAst.attributeNames.blendSource)) {
+                        if (!(lEndpointStage === 'fragment' && lDirection === 'output')) {
+                            this.pushIncident(`BlendSource properties can only be used in the output struct of a fragment entry point.`, lProperty);
+                        }
+                    }
+                }
+
+                // Validate that the output struct of a Vertex entry point has a Position property.
+                if (lEndpointStage === 'vertex' && lDirection === 'output' && !lUsedBuildIns.has(PgslBuildInType.typeName.position)) {
+                    this.pushIncident(`The vertex entry point output struct needs a Position property.`);
+                }
+            }
+        }
 
         // Nothing but a compute entry point.
         if (pData.entryPoint?.stage === 'compute') {
@@ -116,7 +257,10 @@ export class FunctionOverloadDeclarationAstValidationProcessor extends PgslValid
                 this.pushIncident(`All compute attribute parameters need to be constant integer expressions.`, pData.attributes);
             }
 
-            // TODO: Validate that all Compute attribute parameters are greater than zero (new).
+            // Validate that all Compute attribute parameters are greater than zero.
+            if (pData.entryPoint.workgroupSize && (pData.entryPoint.workgroupSize.x < 1 || pData.entryPoint.workgroupSize.y < 1 || pData.entryPoint.workgroupSize.z < 1)) {
+                this.pushIncident(`All compute attribute parameters need to be greater than zero.`, pData.attributes);
+            }
 
             // Validate that a Compute entry point has no parameters.
             if (pData.parameter.length > 0) {

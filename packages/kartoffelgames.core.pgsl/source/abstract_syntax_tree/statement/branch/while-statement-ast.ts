@@ -1,16 +1,15 @@
 import type { WhileStatementCst } from '../../../concrete_syntax_tree/statement.type.ts';
 import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
-import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
 import { ExpressionAstBuilder } from '../../expression/expression-ast-builder.ts';
 import type { IExpressionAst } from '../../expression/i-expression-ast.interface.ts';
 import { PgslBooleanType } from '../../type/definition/pgsl-boolean-type.ts';
+import { BaseStatementAst, StatementAstControlFlow, type StatementAstData } from '../base-statement-ast.ts';
 import { BlockStatementAst } from '../execution/block-statement-ast.ts';
-import type { IStatementAst, StatementAstData } from '../i-statement-ast.interface.ts';
 
 /**
  * PGSL structure for a while statement.
  */
-export class WhileStatementAst extends AbstractSyntaxTree<WhileStatementCst, WhileStatementAstData> implements IStatementAst {
+export class WhileStatementAst extends BaseStatementAst<WhileStatementCst, WhileStatementAstData> {
     /**
      * Validate data of current structure.
      * 
@@ -34,9 +33,23 @@ export class WhileStatementAst extends AbstractSyntaxTree<WhileStatementCst, Whi
                 pContext.pushIncident('Expression of while loops must resolve into a boolean.', lExpression);
             }
 
+            // Filter control flows of the loop block.
+            const lControlFlows: Array<StatementAstControlFlow> = (() => {
+                // Filter any control flow that only affects the loop itself like a break and continue.
+                const lLoopControlFlow: Array<StatementAstControlFlow> = lBlock.data.controlFlow.filter((pControlFlow) => {
+                    return pControlFlow !== StatementAstControlFlow.Break && pControlFlow !== StatementAstControlFlow.Continue && pControlFlow !== StatementAstControlFlow.Next;
+                });
+
+                // The loop can allways exit before the block even run when the condition is false.
+                lLoopControlFlow.push(StatementAstControlFlow.Next);
+
+                return lLoopControlFlow;
+            })();
+
             return {
                 expression: lExpression,
-                block: lBlock
+                block: lBlock,
+                controlFlow: lControlFlows
             } satisfies WhileStatementAstData;
         }, this);
     }

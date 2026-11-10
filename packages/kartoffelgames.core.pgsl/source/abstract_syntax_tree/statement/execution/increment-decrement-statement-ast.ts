@@ -1,17 +1,16 @@
 import { EnumUtil } from '@kartoffelgames/core';
+import type { IncrementDecrementStatementCst } from '../../../concrete_syntax_tree/statement.type.ts';
 import { PgslOperator } from '../../../enum/pgsl-operator.enum.ts';
 import { PgslValueFixedState } from '../../../enum/pgsl-value-fixed-state.ts';
-import type { IncrementDecrementStatementCst } from '../../../concrete_syntax_tree/statement.type.ts';
 import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
-import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
 import { ExpressionAstBuilder } from '../../expression/expression-ast-builder.ts';
 import type { IExpressionAst } from '../../expression/i-expression-ast.interface.ts';
-import type { IStatementAst, StatementAstData } from '../i-statement-ast.interface.ts';
+import { BaseStatementAst, StatementAstControlFlow, type StatementAstData } from '../base-statement-ast.ts';
 
 /**
  * PGSL structure holding a increment or decrement statement.
  */
-export class IncrementDecrementStatementAst extends AbstractSyntaxTree<IncrementDecrementStatementCst, IncrementDecrementStatementAstData> implements IStatementAst {
+export class IncrementDecrementStatementAst extends BaseStatementAst<IncrementDecrementStatementCst, IncrementDecrementStatementAstData> {
     /**
      * Validate data of current structure.
      * 
@@ -47,7 +46,10 @@ export class IncrementDecrementStatementAst extends AbstractSyntaxTree<Increment
         return {
             // Statement data.
             operator: lOperator ?? PgslOperator.Increment,
-            expression: lExpression
+            expression: lExpression,
+
+            // Static behaviour.
+            controlFlow: [StatementAstControlFlow.Next]
         };
     }
 }

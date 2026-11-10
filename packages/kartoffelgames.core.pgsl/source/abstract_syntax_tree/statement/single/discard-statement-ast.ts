@@ -1,21 +1,22 @@
 import type { DiscardStatementCst } from '../../../concrete_syntax_tree/statement.type.ts';
 import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
-import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
-import type { IStatementAst, StatementAstData } from '../i-statement-ast.interface.ts';
+import { BaseStatementAst, StatementAstControlFlow, type StatementAstData } from '../base-statement-ast.ts';
 
 /**
  * PGSL structure holding a discard statement.
  */
-export class DiscardStatementAst extends AbstractSyntaxTree<DiscardStatementCst, DiscardStatementAstData> implements IStatementAst {
+export class DiscardStatementAst extends BaseStatementAst<DiscardStatementCst, DiscardStatementAstData> {
     /**
      * Validate data of current structure.
      * 
      * @param _pContext - Validation context.
      */
     protected onProcess(_pContext: AbstractSyntaxTreeContext): DiscardStatementAstData {
-        // Nothing really to validate.
-        return {};
+        // Static behaviour.
+        return {
+            controlFlow: [StatementAstControlFlow.Next]
+        };
     }
 }
 
-export type DiscardStatementAstData = Record<string, never> & StatementAstData;
+export type DiscardStatementAstData = StatementAstData;

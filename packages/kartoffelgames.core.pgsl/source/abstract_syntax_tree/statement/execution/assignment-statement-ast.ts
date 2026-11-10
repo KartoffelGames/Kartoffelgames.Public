@@ -5,15 +5,14 @@ import { PgslAssignment } from '../../../enum/pgsl-assignment.enum.ts';
 import { PgslOperator } from '../../../enum/pgsl-operator.enum.ts';
 import { PgslValueFixedState } from '../../../enum/pgsl-value-fixed-state.ts';
 import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
-import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
 import { ExpressionAstBuilder } from '../../expression/expression-ast-builder.ts';
 import type { IExpressionAst } from '../../expression/i-expression-ast.interface.ts';
-import type { IStatementAst, StatementAstData } from '../i-statement-ast.interface.ts';
+import { BaseStatementAst, StatementAstControlFlow, type StatementAstData } from '../base-statement-ast.ts';
 
 /**
  * PGSL structure holding a assignment statement.
  */
-export class AssignmentStatementAst extends AbstractSyntaxTree<AssignmentStatementCst, AssignmentStatementAstData> implements IStatementAst {
+export class AssignmentStatementAst extends BaseStatementAst<AssignmentStatementCst, AssignmentStatementAstData> {
     /**
      * Validate data of current structure.
      * 
@@ -77,7 +76,10 @@ export class AssignmentStatementAst extends AbstractSyntaxTree<AssignmentStateme
             variable: lVariable,
 
             // Build the real expression that should be assigned.
-            expression: ExpressionAstBuilder.build(pCst.expression).process(pContext)
+            expression: ExpressionAstBuilder.build(pCst.expression).process(pContext),
+
+            // Static behaviour.
+            controlFlow: [StatementAstControlFlow.Next]
         };
     }
 

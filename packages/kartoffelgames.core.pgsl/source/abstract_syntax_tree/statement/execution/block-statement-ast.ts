@@ -1,18 +1,12 @@
 import type { BlockStatementCst } from '../../../concrete_syntax_tree/statement.type.ts';
 import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
-import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
-import type { BasePgslType } from '../../type/definition/base-pgsl-type.ts';
-import { PgslVoidType } from '../../type/definition/pgsl-void-type.ts';
-import type { IStatementAst, StatementAstData } from '../i-statement-ast.interface.ts';
-import { BreakStatementAst } from '../single/break-statement-ast.ts';
-import { ContinueStatementAst } from '../single/continue-statement-ast.ts';
-import { ReturnStatementAst } from '../single/return-statement-ast.ts';
+import { BaseStatementAst, StatementAstControlFlow, type StatementAstData } from '../base-statement-ast.ts';
 import { StatementAstBuilder } from '../statement-ast-builder.ts';
 
 /**
  * PGSL structure holding a list of statements. Handles scoped values.
  */
-export class BlockStatementAst extends AbstractSyntaxTree<BlockStatementCst, BlockStatementAstData> implements IStatementAst {
+export class BlockStatementAst extends BaseStatementAst<BlockStatementCst, BlockStatementAstData> {
     /**
      * Build tree of current structure.
      * 
@@ -23,52 +17,38 @@ export class BlockStatementAst extends AbstractSyntaxTree<BlockStatementCst, Blo
         // Create new scope and validate all statements.
         return pContext.pushScope('inherit', () => {
             // Prepare data containers.
-            const lStatementData = {
-                statementList: Array<IStatementAst>(),
-                returnType: null as BasePgslType | null,
-                isContinuing: null as boolean | null,
-                isBreaking: null as boolean | null
-            };
+            const lStatementList: Array<BaseStatementAst> = new Array<BaseStatementAst>();
 
+            // When the statement list is empty, the control flow just contains next.
+            const lControlFlows: Set<StatementAstControlFlow> = new Set<StatementAstControlFlow>();
+            lControlFlows.add(StatementAstControlFlow.Next);
+
+            // Build all statements ASTs and find their control flows.
             for (const lStatement of pCst.statements) {
-                // Build statement.
-                const lStatementAst: IStatementAst = StatementAstBuilder.build(lStatement).process(pContext);
+                // Build statement and push to statement list.
+                const lStatementAst: BaseStatementAst = StatementAstBuilder.build(lStatement).process(pContext);
+                lStatementList.push(lStatementAst);
 
-                // Push statement to list.
-                lStatementData.statementList.push(lStatementAst);
+                // A statement is only reached when the statements before it continue with the next statement. Its behaviors replace that next behavior.
+                // A statement can only add its control flow when it even can be reached.
+                if (lControlFlows.has(StatementAstControlFlow.Next)) {
+                    lControlFlows.delete(StatementAstControlFlow.Next);
 
-                // Check for return statement.
-                if (lStatementAst instanceof ReturnStatementAst) {
-                    lStatementData.returnType = lStatementAst.data.returnType;
-                    continue;
-                }
-
-                // Check for continuing or breaking statements.
-                if (lStatementAst instanceof ContinueStatementAst) {
-                    lStatementData.isContinuing = true;
-                    continue;
-                }
-
-                // Check for breaking statements.
-                if (lStatementAst instanceof BreakStatementAst) {
-                    lStatementData.isBreaking = true;
-                    continue;
+                    // Merge statements control flows.
+                    for (const lStatementControlFlow of lStatementAst.data.controlFlow) {
+                        lControlFlows.add(lStatementControlFlow);
+                    }
                 }
             }
 
             return {
-                statementList: lStatementData.statementList,
-                returnType: lStatementData.returnType ?? new PgslVoidType(),
-                isContinuing: lStatementData.isContinuing ?? false,
-                isBreaking: lStatementData.isBreaking ?? false
+                statementList: lStatementList,
+                controlFlow: [...lControlFlows]
             } satisfies BlockStatementAstData;
         }, this);
     }
 }
 
 export type BlockStatementAstData = {
-    statementList: ReadonlyArray<IStatementAst>;
-    returnType: BasePgslType;
-    isContinuing: boolean;
-    isBreaking: boolean;
+    statementList: ReadonlyArray<BaseStatementAst>;
 } & StatementAstData;

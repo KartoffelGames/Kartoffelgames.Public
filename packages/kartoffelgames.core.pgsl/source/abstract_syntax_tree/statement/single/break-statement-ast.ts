@@ -1,12 +1,11 @@
 import type { BreakStatementCst } from '../../../concrete_syntax_tree/statement.type.ts';
 import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
-import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
-import type { IStatementAst, StatementAstData } from '../i-statement-ast.interface.ts';
+import { BaseStatementAst, StatementAstControlFlow, type StatementAstData } from '../base-statement-ast.ts';
 
 /**
  * PGSL structure holding a break statement.
  */
-export class BreakStatementAst extends AbstractSyntaxTree<BreakStatementCst, BreakStatementAstData> implements IStatementAst {
+export class BreakStatementAst extends BaseStatementAst<BreakStatementCst, BreakStatementAstData> {
     /**
      * Validate data of current structure.
      * 
@@ -18,8 +17,11 @@ export class BreakStatementAst extends AbstractSyntaxTree<BreakStatementCst, Bre
             pContext.pushIncident('Break statement can only be used within loops or switch statements.', this);
         }
 
-        return {};
+        // Static behaviour.
+        return {
+            controlFlow: [StatementAstControlFlow.Break]
+        };
     }
 }
 
-export type BreakStatementAstData = Record<string, never> & StatementAstData;
+export type BreakStatementAstData = StatementAstData;

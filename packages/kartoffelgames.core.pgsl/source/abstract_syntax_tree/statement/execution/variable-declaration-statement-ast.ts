@@ -1,23 +1,22 @@
 import { EnumUtil } from '@kartoffelgames/core';
-import { PgslAccessModeEnum } from '../../../feature_set/enum/pgsl-access-mode-enum.ts';
 import type { VariableDeclarationStatementCst } from '../../../concrete_syntax_tree/statement.type.ts';
 import { PgslDeclarationType } from '../../../enum/pgsl-declaration-type.enum.ts';
 import { PgslValueAddressSpace } from '../../../enum/pgsl-value-address-space.enum.ts';
 import { PgslValueFixedState } from '../../../enum/pgsl-value-fixed-state.ts';
+import { PgslAccessModeEnum } from '../../../feature_set/enum/pgsl-access-mode-enum.ts';
 import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
-import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
 import { ExpressionAstBuilder } from '../../expression/expression-ast-builder.ts';
 import type { IExpressionAst } from '../../expression/i-expression-ast.interface.ts';
 import { TypeDeclarationAst } from '../../general/type-declaration-ast.ts';
 import type { IValueStoreAst, ValueStoreAstData } from '../../i-value-store-ast.interface.ts';
 import { type BasePgslType, BasePgslTypeKind } from '../../type/definition/base-pgsl-type.ts';
 import { PgslPointerType } from '../../type/definition/pgsl-pointer-type.ts';
-import type { IStatementAst, StatementAstData } from '../i-statement-ast.interface.ts';
+import { BaseStatementAst, StatementAstControlFlow, type StatementAstData } from '../base-statement-ast.ts';
 
 /**
  * PGSL structure holding a variable declaration for a function scope variable.
  */
-export class VariableDeclarationStatementAst extends AbstractSyntaxTree<VariableDeclarationStatementCst, VariableDeclarationStatementAstData> implements IStatementAst, IValueStoreAst {
+export class VariableDeclarationStatementAst extends BaseStatementAst<VariableDeclarationStatementCst, VariableDeclarationStatementAstData> implements IValueStoreAst {
     /**
      * Validate data of current structure.
      * 
@@ -125,6 +124,9 @@ export class VariableDeclarationStatementAst extends AbstractSyntaxTree<Variable
             name: pCst.name,
             constantValue: typeof lConstantValue === 'number' ? lConstantValue : null,
             accessMode: PgslAccessModeEnum.VALUES.ReadWrite,
+
+            // Static behaviour.
+            controlFlow: [StatementAstControlFlow.Next]
         };
     }
 }

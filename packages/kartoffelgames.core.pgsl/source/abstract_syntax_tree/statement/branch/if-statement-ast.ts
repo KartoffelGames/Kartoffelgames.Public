@@ -1,16 +1,15 @@
 import type { IfStatementCst } from '../../../concrete_syntax_tree/statement.type.ts';
 import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
-import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
 import { ExpressionAstBuilder } from '../../expression/expression-ast-builder.ts';
 import type { IExpressionAst } from '../../expression/i-expression-ast.interface.ts';
 import { PgslBooleanType } from '../../type/definition/pgsl-boolean-type.ts';
+import { BaseStatementAst, StatementAstControlFlow, type StatementAstData } from '../base-statement-ast.ts';
 import { BlockStatementAst } from '../execution/block-statement-ast.ts';
-import type { IStatementAst, StatementAstData } from '../i-statement-ast.interface.ts';
 
 /**
  * PGSL structure for a if statement with optional else block.
  */
-export class IfStatementAst extends AbstractSyntaxTree<IfStatementCst, IfStatementAstData> implements IStatementAst {
+export class IfStatementAst extends BaseStatementAst<IfStatementCst, IfStatementAstData> {
     /**
      * Validate data of current structure.
      * 
@@ -43,10 +42,29 @@ export class IfStatementAst extends AbstractSyntaxTree<IfStatementCst, IfStateme
             pContext.pushIncident('Expression of if must resolve into a boolean.', lExpression);
         }
 
+        // Behaviors of both branches.
+        const lControlFlows: Array<StatementAstControlFlow> = (() => {
+            // Copy control flows of else.
+            const lIfElseControlFlows: Set<StatementAstControlFlow> = new Set<StatementAstControlFlow>(lElse?.data.controlFlow);
+
+            // When no else branch is defined, the "if" can potentially reach the next statement.
+            if(!lElse) {
+                lIfElseControlFlows.add(StatementAstControlFlow.Next);
+            }
+
+            // Merge if block control flows.
+            for(const lIfControlFlow of lBlock.data.controlFlow){
+                lIfElseControlFlows.add(lIfControlFlow);
+            }
+
+            return [...lIfElseControlFlows];
+        })();
+
         return {
             expression: lExpression,
             block: lBlock,
-            else: lElse
+            else: lElse,
+            controlFlow: lControlFlows
         };
     }
 }

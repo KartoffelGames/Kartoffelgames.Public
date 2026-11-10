@@ -1,12 +1,11 @@
 import type { ContinueStatementCst } from '../../../concrete_syntax_tree/statement.type.ts';
 import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
-import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
-import type { IStatementAst, StatementAstData } from '../i-statement-ast.interface.ts';
+import { BaseStatementAst, StatementAstControlFlow, type StatementAstData } from '../base-statement-ast.ts';
 
 /**
  * PGSL structure holding a continue statement.
  */
-export class ContinueStatementAst extends AbstractSyntaxTree<ContinueStatementCst, ContinueStatementAstData> implements IStatementAst {
+export class ContinueStatementAst extends BaseStatementAst<ContinueStatementCst, ContinueStatementAstData> {
     /**
      * Validate data of current structure.
      * 
@@ -18,8 +17,11 @@ export class ContinueStatementAst extends AbstractSyntaxTree<ContinueStatementCs
             pContext.pushIncident('Continue statement can only be used within loops.', this);
         }
 
-        return {};
+        // Static behaviour.
+        return {
+            controlFlow: [StatementAstControlFlow.Continue]
+        };
     }
 }
 
-export type ContinueStatementAstData = Record<string, never> & StatementAstData;
+export type ContinueStatementAstData = StatementAstData;

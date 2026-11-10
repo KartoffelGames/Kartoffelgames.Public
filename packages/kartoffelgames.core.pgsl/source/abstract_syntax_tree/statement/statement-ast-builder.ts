@@ -1,5 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import type { AssignmentStatementCst, BlockStatementCst, BreakStatementCst, ContinueStatementCst, DiscardStatementCst, DoWhileStatementCst, ForStatementCst, FunctionCallStatementCst, IfStatementCst, IncrementDecrementStatementCst, ReturnStatementCst, StatementCst, SwitchStatementCst, VariableDeclarationStatementCst, WhileStatementCst } from '../../concrete_syntax_tree/statement.type.ts';
+import type { BaseStatementAst } from './base-statement-ast.ts';
 import { DoWhileStatementAst } from './branch/do-while-statement-ast.ts';
 import { ForStatementAst } from './branch/for-statement-ast.ts';
 import { IfStatementAst } from './branch/if-statement-ast.ts';
@@ -10,7 +11,6 @@ import { BlockStatementAst } from './execution/block-statement-ast.ts';
 import { FunctionCallStatementAst } from './execution/function-call-statement-ast.ts';
 import { IncrementDecrementStatementAst } from './execution/increment-decrement-statement-ast.ts';
 import { VariableDeclarationStatementAst } from './execution/variable-declaration-statement-ast.ts';
-import type { IStatementAst } from './i-statement-ast.interface.ts';
 import { BreakStatementAst } from './single/break-statement-ast.ts';
 import { ContinueStatementAst } from './single/continue-statement-ast.ts';
 import { DiscardStatementAst } from './single/discard-statement-ast.ts';
@@ -24,7 +24,7 @@ export class StatementAstBuilder {
      * 
      * @returns Statement AST node or null if the type is not recognized.
      */
-    public static build(pCst: StatementCst): IStatementAst {
+    public static build(pCst: StatementCst): BaseStatementAst {
         switch (pCst.type) {
             case 'BlockStatement':
                 return new BlockStatementAst(pCst as BlockStatementCst);

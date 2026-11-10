@@ -1,11 +1,11 @@
 import { FunctionOverloadDeclarationAst, type FunctionOverloadDeclarationAstData } from '../../../abstract_syntax_tree/declaration/function-overload-declaration-ast.ts';
 import { AttributeListAst } from '../../../abstract_syntax_tree/general/attribute-list-ast.ts';
+import { StatementAstControlFlow } from '../../../abstract_syntax_tree/statement/base-statement-ast.ts';
 import { type BasePgslType, BasePgslTypeKind } from '../../../abstract_syntax_tree/type/definition/base-pgsl-type.ts';
 import { PgslBuildInType, type PgslBuildInTypeName } from '../../../abstract_syntax_tree/type/definition/pgsl-build-in-type.ts';
 import { PgslGenericType } from '../../../abstract_syntax_tree/type/definition/pgsl-generic-type.ts';
 import type { PgslStructType } from '../../../abstract_syntax_tree/type/definition/pgsl-struct-type.ts';
 import { PgslVectorType } from '../../../abstract_syntax_tree/type/definition/pgsl-vector-type.ts';
-import { PgslVoidType } from '../../../abstract_syntax_tree/type/definition/pgsl-void-type.ts';
 import { PgslInterpolateTypeEnum } from '../../../feature_set/enum/pgsl-interpolate-type-enum.ts';
 import { PgslValidatorProcessor } from '../../pgsl-validator-processor.ts';
 
@@ -87,7 +87,7 @@ export class FunctionOverloadDeclarationAstValidationProcessor extends PgslValid
             }
         }
 
-        // TODO: Validate that a parameter is not shadowed by a inner variable declaration.
+        // TODO: Validate that a parameter is not shadowed by a direct inner variable declaration.
 
         // Validate that generics names have no dublicates.
         const lGenericNames: Set<string> = new Set<string>();
@@ -104,16 +104,18 @@ export class FunctionOverloadDeclarationAstValidationProcessor extends PgslValid
         // TODO: Validate that no parameter name is a WGSL predeclared type, enumerant or built-in function name like f32, vec3, read or min, which the parameter would shadow in the transpiled function body (new).
         // TODO: Validate that no parameter name is the name of a function or struct declaration, which the parameter would shadow in the transpiled function body while PGSL still resolves calls and type names in the body to that declaration (new).
 
-        // Validate that the return type is void or constructible.
-        if (!(pData.returnType.data.type.isKind(BasePgslTypeKind.Void)) && !pData.returnType.data.type.isKind(BasePgslTypeKind.Constructible)) {
-            this.pushIncident(`Return type must be void or constructible.`, pData.returnType);
-        }
+        // On functions that return something.
+        if (!(pData.returnType.data.type.isKind(BasePgslTypeKind.Void))) {
+            // Validate that the return type is void or constructible.
+            if (!pData.returnType.data.type.isKind(BasePgslTypeKind.Constructible)) {
+                this.pushIncident(`Return type must be void or constructible.`, pData.returnType);
+            }
 
-        // TODO: Validate that every control flow path of an overload with a non-void return type ends in a return statement, counting returns nested in if/else and switch branches, in place of today's comparison of the block return type with the declared return type.
-
-        // Validate that the block return type can convert to the return type.
-        if (pData.block.data.returnType.conversionRankTo(pData.returnType.data.type) === Number.POSITIVE_INFINITY) {
-            this.pushIncident(`Function block return type does not match the declared return type.`, pData.block);
+            // Validate that every control flow path of a non void function does return something.
+            // If a branch does not return, the block has multiple control flows.
+            if (pData.block.data.controlFlow.length !== 1 || pData.block.data.controlFlow[0] !== StatementAstControlFlow.Return) {
+                this.pushIncident(`Every control flow path of a function with a return type must end in a return statement.`, pData.block);
+            }
         }
 
         // Count endpoint attributes.
@@ -246,10 +248,10 @@ export class FunctionOverloadDeclarationAstValidationProcessor extends PgslValid
                 // Compute entry points only have build in inputs.
                 if (lEndpointStage === 'compute' && !lBuildIn) {
                     this.pushIncident(`Property "${lProperty.data.name}" of the compute input struct must have a built-in type.`, lProperty);
-                } 
+                }
 
                 const lHasLocation: boolean = lProperty.data.attributes.hasAttribute(AttributeListAst.attributeNames.location);
-                
+
                 // Validate that the property is a build in or has a location.
                 if (lBuildIn && lHasLocation || !lBuildIn && !lHasLocation) {
                     this.pushIncident(`Property "${lProperty.data.name}" of an entry point struct must have either a built-in type or a Location attribute.`, lProperty);

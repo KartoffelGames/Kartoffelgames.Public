@@ -1,19 +1,18 @@
 import type { ForStatementCst } from '../../../concrete_syntax_tree/statement.type.ts';
 import { PgslDeclarationType } from '../../../enum/pgsl-declaration-type.enum.ts';
 import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
-import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
 import { ExpressionAstBuilder } from '../../expression/expression-ast-builder.ts';
 import type { IExpressionAst } from '../../expression/i-expression-ast.interface.ts';
 import { PgslBooleanType } from '../../type/definition/pgsl-boolean-type.ts';
+import { BaseStatementAst, StatementAstControlFlow, type StatementAstData } from '../base-statement-ast.ts';
 import { BlockStatementAst } from '../execution/block-statement-ast.ts';
 import { VariableDeclarationStatementAst } from '../execution/variable-declaration-statement-ast.ts';
-import type { IStatementAst, StatementAstData } from '../i-statement-ast.interface.ts';
 import { StatementAstBuilder } from '../statement-ast-builder.ts';
 
 /**
  * PGSL structure for a for statement.
  */
-export class ForStatementAst extends AbstractSyntaxTree<ForStatementCst, ForStatementAstData> implements IStatementAst {
+export class ForStatementAst extends BaseStatementAst<ForStatementCst, ForStatementAstData> {
     /**
      * Validate data of current structure.
      * 
@@ -46,7 +45,7 @@ export class ForStatementAst extends AbstractSyntaxTree<ForStatementCst, ForStat
             }
 
             // Validate optional update statement.
-            let lUpdate: IStatementAst | null = null;
+            let lUpdate: BaseStatementAst | null = null;
             if (pCst.update) {
                 lUpdate = StatementAstBuilder.build(pCst.update).process(pContext);
 
@@ -60,11 +59,27 @@ export class ForStatementAst extends AbstractSyntaxTree<ForStatementCst, ForStat
             // Trace block.
             const lBlock: BlockStatementAst = new BlockStatementAst(pCst.block).process(pContext);
 
+            // Filter control flows of the loop block.
+            const lControlFlows: Array<StatementAstControlFlow> = (() => {
+                // Filter any control flow that only affects the loop itself like a break and continue.
+                const lLoopControlFlow: Array<StatementAstControlFlow> = lBlock.data.controlFlow.filter((pControlFlow) => {
+                    return pControlFlow !== StatementAstControlFlow.Break && pControlFlow !== StatementAstControlFlow.Continue && pControlFlow !== StatementAstControlFlow.Next;
+                });
+
+                // On "endless"-loops, the loop can only reaches the next statement if it has a break. 
+                if (lExpression !== null || lBlock.data.controlFlow.includes(StatementAstControlFlow.Break)) {
+                    lLoopControlFlow.push(StatementAstControlFlow.Next);
+                }
+
+                return lLoopControlFlow;
+            })();
+
             return {
                 init: lInit,
                 expression: lExpression,
                 update: lUpdate,
-                block: lBlock
+                block: lBlock,
+                controlFlow: lControlFlows
             };
         }, this);
     }
@@ -73,6 +88,6 @@ export class ForStatementAst extends AbstractSyntaxTree<ForStatementCst, ForStat
 export type ForStatementAstData = {
     init: VariableDeclarationStatementAst | null;
     expression: IExpressionAst | null;
-    update: IStatementAst | null;
+    update: BaseStatementAst | null;
     block: BlockStatementAst;
 } & StatementAstData;

@@ -8,11 +8,11 @@ import { StructPropertyDeclarationAst } from '../abstract_syntax_tree/declaratio
 import type { IExpressionAst } from '../abstract_syntax_tree/expression/i-expression-ast.interface.ts';
 import { StringValueExpressionAst } from '../abstract_syntax_tree/expression/single_value/string-value-expression-ast.ts';
 import { TypeDeclarationAst } from '../abstract_syntax_tree/general/type-declaration-ast.ts';
+import { StatementAstControlFlow } from '../abstract_syntax_tree/statement/base-statement-ast.ts';
 import { BlockStatementAst } from '../abstract_syntax_tree/statement/execution/block-statement-ast.ts';
 import type { BasePgslType } from '../abstract_syntax_tree/type/definition/base-pgsl-type.ts';
 import { PgslGenericType } from '../abstract_syntax_tree/type/definition/pgsl-generic-type.ts';
 import { PgslStringType } from '../abstract_syntax_tree/type/definition/pgsl-string-type.ts';
-import { PgslVoidType } from '../abstract_syntax_tree/type/definition/pgsl-void-type.ts';
 import type { PgslTypeCache } from '../abstract_syntax_tree/type/pgsl-type-cache.ts';
 import { PgslValueAddressSpace } from '../enum/pgsl-value-address-space.enum.ts';
 import { PgslValueFixedState } from '../enum/pgsl-value-fixed-state.ts';
@@ -250,9 +250,7 @@ export abstract class PgslFeatureSetProcessor {
     private createEmptyBlock(): BlockStatementAst {
         return new BlockStatementAst({
             statementList: [],
-            returnType: this.types.create(PgslVoidType),
-            isContinuing: false,
-            isBreaking: false
+            controlFlow: [StatementAstControlFlow.Next]
         });
     }
 

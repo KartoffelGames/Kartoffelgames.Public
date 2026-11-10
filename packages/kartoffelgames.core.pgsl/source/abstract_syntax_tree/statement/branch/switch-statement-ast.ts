@@ -1,18 +1,17 @@
 import type { SwitchStatementCst } from '../../../concrete_syntax_tree/statement.type.ts';
 import { PgslValueFixedState } from '../../../enum/pgsl-value-fixed-state.ts';
 import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
-import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
 import { ExpressionAstBuilder } from '../../expression/expression-ast-builder.ts';
 import type { IExpressionAst } from '../../expression/i-expression-ast.interface.ts';
 import type { BasePgslType } from '../../type/definition/base-pgsl-type.ts';
 import { PgslNumericType } from '../../type/definition/pgsl-numeric-type.ts';
+import { BaseStatementAst, StatementAstControlFlow, type StatementAstData } from '../base-statement-ast.ts';
 import { BlockStatementAst } from '../execution/block-statement-ast.ts';
-import type { IStatementAst, StatementAstData } from '../i-statement-ast.interface.ts';
 
 /**
  * PGSL structure for a switch statement with optional default block.
  */
-export class SwitchStatementAst extends AbstractSyntaxTree<SwitchStatementCst, SwitchStatementAstData> implements IStatementAst {
+export class SwitchStatementAst extends BaseStatementAst<SwitchStatementCst, SwitchStatementAstData> {
     /**
      * Validate data of current structure.
      * 
@@ -88,10 +87,33 @@ export class SwitchStatementAst extends AbstractSyntaxTree<SwitchStatementCst, S
             // Trace default block.
             const lDefault: BlockStatementAst = new BlockStatementAst(pCst.default).process(pContext);
 
+            // Merge any control flow from any case and default.
+            const lControlFlows: Array<StatementAstControlFlow> = (() => {
+                // Map case blocks.
+                const lCaseBlockFlows: Array<StatementAstControlFlow> = lCases.flatMap((pCase) => {
+                    return pCase.block.data.controlFlow;
+                });
+
+                // Merge into a set, to create a distinct list, initialize with default block control flows.
+                const lCaseControlFlows: Set<StatementAstControlFlow> = new Set<StatementAstControlFlow>(lDefault.data.controlFlow);
+                for(const lCaseBlockControlFlow of lCaseBlockFlows){
+                    lCaseControlFlows.add(lCaseBlockControlFlow);
+                }
+
+                // If it contains a "break", the break is replaced by a "next" as it does not affect outside statements.
+                if (lCaseControlFlows.has(StatementAstControlFlow.Break)) {
+                    lCaseControlFlows.delete(StatementAstControlFlow.Break);
+                    lCaseControlFlows.add(StatementAstControlFlow.Next);
+                }
+
+                return [...lCaseControlFlows];
+            })();
+
             return {
                 expression: lExpression,
                 cases: lCases,
-                default: lDefault
+                default: lDefault,
+                behaviors: lControlFlows
             };
         }, this);
     }

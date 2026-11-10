@@ -1,16 +1,15 @@
 import type { DoWhileStatementCst } from '../../../concrete_syntax_tree/statement.type.ts';
 import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
-import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
 import { ExpressionAstBuilder } from '../../expression/expression-ast-builder.ts';
 import type { IExpressionAst } from '../../expression/i-expression-ast.interface.ts';
 import { PgslBooleanType } from '../../type/definition/pgsl-boolean-type.ts';
+import { BaseStatementAst, StatementAstControlFlow, type StatementAstData } from '../base-statement-ast.ts';
 import { BlockStatementAst } from '../execution/block-statement-ast.ts';
-import type { IStatementAst, StatementAstData } from '../i-statement-ast.interface.ts';
 
 /**
  * PGSL structure for a do while statement.
  */
-export class DoWhileStatementAst extends AbstractSyntaxTree<DoWhileStatementCst, DoWhileStatementAstData> implements IStatementAst {
+export class DoWhileStatementAst extends BaseStatementAst<DoWhileStatementCst, DoWhileStatementAstData> {
     /**
      * Validate data of current structure.
      * 
@@ -31,9 +30,26 @@ export class DoWhileStatementAst extends AbstractSyntaxTree<DoWhileStatementCst,
             // Create block statement.
             const lBlock: BlockStatementAst = new BlockStatementAst(pCst.block).process(pContext);
 
+            // Filter control flows of the loop block.
+            const lControlFlows: Array<StatementAstControlFlow> = (() => {
+                // Filter any control flow that only affects the loop itself like a break and continue.
+                const lLoopControlFlow: Array<StatementAstControlFlow> = lBlock.data.controlFlow.filter((pControlFlow) => {
+                    return pControlFlow !== StatementAstControlFlow.Break && pControlFlow !== StatementAstControlFlow.Continue && pControlFlow !== StatementAstControlFlow.Next;
+                });
+
+                // The block can be endless, as the condition is executed AFTER it runs.
+                // So we need to check if the block if it can even reach the condition once.
+                if (lBlock.data.controlFlow.includes(StatementAstControlFlow.Next) || lBlock.data.controlFlow.includes(StatementAstControlFlow.Break)) {
+                    lLoopControlFlow.push(StatementAstControlFlow.Next);
+                }
+
+                return lLoopControlFlow;
+            })();
+
             return {
                 expression: lExpression,
-                block: lBlock
+                block: lBlock,
+                controlFlow: lControlFlows
             } satisfies DoWhileStatementAstData;
         }, this);
     }
